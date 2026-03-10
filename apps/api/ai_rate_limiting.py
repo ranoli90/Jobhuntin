@@ -31,7 +31,8 @@ class InMemoryRateLimiter:
 
     async def get(self, key: str) -> str | None:
         """Get value from in-memory storage."""
-        return self._storage.get(key)
+        val = self._storage.get(key)
+        return str(val) if val is not None else None
 
     async def setex(self, key: str, seconds: int, value: str) -> None:
         """Set value with expiration in in-memory storage."""
@@ -131,13 +132,15 @@ class RateLimiter:
         """Safely get value from Redis with fallback to in-memory."""
         try:
             if self.redis_available:
-                return await self.redis.get(key)
+                val = await self.redis.get(key)
+                return str(val) if val is not None else None
         except Exception as e:
             logger.warning(f"Redis get failed, using fallback: {e}")
             self.redis_available = False
 
         # Fallback to in-memory
-        return await self.fallback.get(key)
+        val = await self.fallback.get(key)
+        return str(val) if val is not None else None
 
     async def _safe_redis_setex(self, key: str, seconds: int, value: str) -> None:
         """Safely set value in Redis with fallback to in-memory."""
@@ -161,8 +164,8 @@ class RateLimiter:
         minute_key = f"{key}:{current_time // 60}"
 
         # Get current count with fallback
-        current_count = await self._safe_redis_get(minute_key)
-        current_count = int(current_count) if current_count else 0
+        raw_count: str | None = await self._safe_redis_get(minute_key)
+        current_count = int(raw_count) if raw_count else 0
 
         if current_count >= limit:
             incr(f"rate_limit.exceeded:{endpoint_type}")
@@ -182,8 +185,8 @@ class RateLimiter:
         hour_key = f"{key}:{current_time // 3600}"
 
         # Get current count with fallback
-        current_count = await self._safe_redis_get(hour_key)
-        current_count = int(current_count) if current_count else 0
+        raw_count = await self._safe_redis_get(hour_key)
+        current_count = int(raw_count) if raw_count else 0
 
         if current_count >= limit:
             incr(f"rate_limit.exceeded:{endpoint_type}")
@@ -203,8 +206,8 @@ class RateLimiter:
         day_key = f"{key}:{current_time // 86400}"
 
         # Get current count with fallback
-        current_count = await self._safe_redis_get(day_key)
-        current_count = int(current_count) if current_count else 0
+        raw_count = await self._safe_redis_get(day_key)
+        current_count = int(raw_count) if raw_count else 0
 
         if current_count >= limit:
             incr(f"rate_limit.exceeded:{endpoint_type}")

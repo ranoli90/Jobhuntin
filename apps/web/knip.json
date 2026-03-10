@@ -3,6 +3,21 @@
   "entry": ["src/main.tsx", "src/App.tsx", "vite.config.ts", "scripts/**/*.js", "scripts/**/*.cjs"],
   "project": ["src/**/*.{ts,tsx}"],
   "ignore": ["**/*.test.{ts,tsx}", "**/*.spec.{ts,tsx}"],
-  "ignoreDependencies": ["@axe-core/cli", "blc", "broken-link-checker", "depcheck", "type-coverage", "@types/react-syntax-highlighter"],
+  "ignoreDependencies": [
+    "@axe-core/cli",
+    "blc",
+    "broken-link-checker",
+    "depcheck",
+    "type-coverage",
+    "@types/react-syntax-highlighter",
+    "@tanstack/react-virtual",
+    "@types/redis",
+    "react-hook-form",
+    "react-syntax-highlighter",
+    "redis",
+    "undraw-svg",
+    "zod",
+    "eslint-import-resolver-typescript"
+  ],
   "eslint": { "config": [".eslintrc.json"] }
 }

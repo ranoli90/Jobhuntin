@@ -222,21 +222,22 @@ async def get_skills_taxonomy_info(
         categories = {}
         for category in taxonomy.get_skill_categories():
             skills = taxonomy.get_skills_by_category(category)
-            categories[category.value] = [
-                {
-                    "name": skill_name,
-                    "aliases": list(taxonomy.get_skill_info(skill_name).aliases),
-                    "demand_score": taxonomy.get_skill_info(skill_name).demand_score,
-                    "description": taxonomy.get_skill_info(skill_name).description,
-                    "proficiency_levels": taxonomy.get_skill_info(
-                        skill_name
-                    ).proficiency_levels,
-                    "technical_level": taxonomy.get_skill_info(
-                        skill_name
-                    ).technical_level,
-                }
-                for skill_name in skills
-            ]
+            items = []
+            for skill_name in skills:
+                info = taxonomy.get_skill_info(skill_name)
+                if info is None:
+                    continue
+                items.append(
+                    {
+                        "name": skill_name,
+                        "aliases": list(info.aliases),
+                        "demand_score": info.demand_score,
+                        "description": info.description,
+                        "proficiency_levels": info.proficiency_levels,
+                        "technical_level": info.technical_level,
+                    }
+                )
+            categories[category.value] = items
 
         logger.info(f"[SKILLS] Served taxonomy info to user {ctx.user_id}")
 
@@ -337,12 +338,18 @@ async def search_skills(
                 )
 
         # Sort by relevance (exact name match first, then demand score)
-        matching_skills.sort(
-            key=lambda x: (
-                0 if x["name"].lower() == normalized_query else 1,
-                -x["demand_score"],  # Higher demand score first
+        def sort_key(x: Dict[str, Any]) -> tuple[int, float]:
+            name_match = (
+                0
+                if isinstance(x.get("name"), str)
+                and str(x["name"]).lower() == normalized_query
+                else 1
             )
-        )
+            score = x.get("demand_score", 0)
+            score_val = float(score) if isinstance(score, (int, float)) else 0.0
+            return (name_match, -score_val)
+
+        matching_skills.sort(key=sort_key)
 
         # Limit results
         results = matching_skills[:limit]
