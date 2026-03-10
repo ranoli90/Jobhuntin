@@ -214,6 +214,17 @@ app.state.cors_origins = CORS_ORIGINS
     # CORS MUST be registered LAST so it executes FIRST (handles OPTIONS preflight).
     # ---------------------------------------------------------------------------
 
+    # CRITICAL: Add response compression middleware (early in stack to compress all responses)
+    from shared.api_compression import CompressionMiddleware, create_compression_config
+    
+    compression_config = create_compression_config(
+        min_size=512,  # Compress responses > 512 bytes
+        enable_gzip=True,
+        enable_brotli=True,
+        enable_deflate=True,
+    )
+    app.add_middleware(CompressionMiddleware, config=compression_config)
+    
     # Add Request ID middleware for distributed tracing
     setup_request_id_middleware(app)
     
@@ -379,9 +390,41 @@ async def idempotency_middleware(request: Request, call_next):
             r = await get_redis()
             cache_key = f"idempotency:{idempotency_key}"
             
-            # Check for existing response
+            # CRITICAL: Use atomic SET NX to prevent race condition
+            # Two requests with same key will both check, but only one can set the lock
+            lock_key = f"{cache_key}:lock"
+            lock_acquired = await r.set(lock_key, "1", nx=True, ex=30)  # 30 second lock
+            
+            if not lock_acquired:
+                # Another request is processing with this key, wait and check cache
+                import asyncio
+                await asyncio.sleep(0.1)  # Brief wait
+                cached = await r.get(cache_key)
+                if cached:
+                    logger.info(
+                        "Idempotent request detected (race condition avoided) - returning cached response",
+                        extra={"idempotency_key": idempotency_key[:16] + "...", "path": request.url.path},
+                    )
+                    try:
+                        cached_data = json.loads(cached)
+                        return JSONResponse(
+                            content=cached_data.get("body", {}),
+                            status_code=cached_data.get("status_code", 200),
+                            headers=cached_data.get("headers", {}),
+                        )
+                    except json.JSONDecodeError:
+                        logger.warning("Failed to parse cached idempotency response")
+                        # Release lock and fall through
+                        await r.delete(lock_key)
+                        return await call_next(request)
+                # No cache yet, release lock and proceed (shouldn't happen but handle gracefully)
+                await r.delete(lock_key)
+            
+            # Check for existing cached response (double-check after acquiring lock)
             cached = await r.get(cache_key)
             if cached:
+                # Release lock since we found cached response
+                await r.delete(lock_key)
                 logger.info(
                     "Idempotent request detected - returning cached response",
                     extra={"idempotency_key": idempotency_key[:16] + "...", "path": request.url.path},
@@ -397,8 +440,12 @@ async def idempotency_middleware(request: Request, call_next):
                     logger.warning("Failed to parse cached idempotency response")
                     # Fall through to process request
             
-            # Process request
-            response = await call_next(request)
+            # Process request (we hold the lock)
+            try:
+                response = await call_next(request)
+            finally:
+                # Always release lock
+                await r.delete(lock_key)
             
             # Cache successful responses (2xx status codes)
             if 200 <= response.status_code < 300:
@@ -1062,13 +1109,17 @@ class ResumeParseResponse(BaseModel):
 
 
 class AnswerItem(BaseModel):
-    input_id: str
-    answer: str
+    input_id: str = Field(..., min_length=1, max_length=100, description="Input identifier")
+    answer: str = Field(..., max_length=5000, description="Answer text (max 5000 characters)")
 
 
 class ResumeTaskRequest(BaseModel):
-    application_id: str
-    answers: list[AnswerItem]
+    application_id: str = Field(..., description="Application identifier")
+    answers: list[AnswerItem] = Field(
+        ..., 
+        max_length=100,  # HIGH: Limit to prevent DoS
+        description="List of answers (max 100)"
+    )
 
 
 class ApplicationInputOut(BaseModel):
@@ -1100,9 +1151,9 @@ class ApplicationDetailResponse(BaseModel):
 
 
 class SaveAnswerRequest(BaseModel):
-    field_label: str
-    field_type: str = "text"
-    answer_value: str
+    field_label: str = Field(..., min_length=1, max_length=200, description="Field label")
+    field_type: str = Field(default="text", max_length=50, description="Field type")
+    answer_value: str = Field(..., max_length=5000, description="Answer value (max 5000 characters)")
 
 
 @app.get("/me/answer-memory")
@@ -1144,19 +1195,23 @@ async def save_answer_memory(
 
 
 class RichSkillRequest(BaseModel):
-    skill: str
-    confidence: float = 0.5
-    years_actual: float | None = None
-    context: str = ""
-    last_used: str | None = None
-    verified: bool = False
-    related_to: list[str] = []
-    source: str = "manual"
-    project_count: int = 0
+    skill: str = Field(..., min_length=1, max_length=100, description="Skill name")
+    confidence: float = Field(default=0.5, ge=0.0, le=1.0, description="Confidence level (0.0-1.0)")
+    years_actual: float | None = Field(default=None, ge=0.0, le=50.0, description="Years of experience")
+    context: str = Field(default="", max_length=500, description="Context description")
+    last_used: str | None = Field(default=None, max_length=50, description="Last used date")
+    verified: bool = Field(default=False, description="Whether skill is verified")
+    related_to: list[str] = Field(default_factory=list, max_length=20, description="Related skills (max 20)")
+    source: str = Field(default="manual", max_length=50, description="Skill source")
+    project_count: int = Field(default=0, ge=0, le=1000, description="Number of projects using this skill")
 
 
 class SaveSkillsRequest(BaseModel):
-    skills: list[RichSkillRequest]
+    skills: list[RichSkillRequest] = Field(
+        ..., 
+        max_length=500,  # HIGH: Limit to prevent DoS with large skill lists
+        description="List of skills (max 500)"
+    )
 
 
 @app.get("/me/skills")
@@ -1248,13 +1303,41 @@ async def save_user_skills(
 
 
 class WorkStyleRequest(BaseModel):
-    autonomy_preference: str = "medium"
-    learning_style: str = "building"
-    company_stage_preference: str = "flexible"
-    communication_style: str = "mixed"
-    pace_preference: str = "steady"
-    ownership_preference: str = "team"
-    career_trajectory: str = "open"
+    autonomy_preference: str = Field(
+        default="medium",
+        pattern="^(low|medium|high)$",  # HIGH: Validate enum values
+        description="Autonomy preference"
+    )
+    learning_style: str = Field(
+        default="building",
+        pattern="^(building|studying|mixed)$",
+        description="Learning style"
+    )
+    company_stage_preference: str = Field(
+        default="flexible",
+        pattern="^(startup|growth|enterprise|flexible)$",
+        description="Company stage preference"
+    )
+    communication_style: str = Field(
+        default="mixed",
+        pattern="^(async|sync|mixed)$",
+        description="Communication style"
+    )
+    pace_preference: str = Field(
+        default="steady",
+        pattern="^(fast|steady|relaxed)$",
+        description="Pace preference"
+    )
+    ownership_preference: str = Field(
+        default="team",
+        pattern="^(individual|team|mixed)$",
+        description="Ownership preference"
+    )
+    career_trajectory: str = Field(
+        default="open",
+        pattern="^(open|focused|exploring)$",
+        description="Career trajectory"
+    )
 
     class Config:
         extra = "ignore"  # Ignore extra fields
@@ -1289,7 +1372,10 @@ async def save_work_style(
         extra={"user_id": user_id, "data": body.model_dump()},
     )
 
-    async with db.acquire() as conn:
+    # HIGH: Wrap multi-table updates in transaction to ensure atomicity
+    from packages.backend.domain.repositories import db_transaction
+    
+    async with db_transaction(db) as conn:
         # Check if user has already saved work style (only add completeness on first save)
         had_work_style = await conn.fetchval(
             "SELECT 1 FROM public.work_style_profiles WHERE user_id = $1 LIMIT 1",

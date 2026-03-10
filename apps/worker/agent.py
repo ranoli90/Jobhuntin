@@ -512,9 +512,43 @@ async def fill_form_from_mapping(
                 await el.fill(value)
 
             logger.info("Filled [step:%s] %s = %s", step_idx, selector, value[:60])
+            
+            # HIGH: Validate field was actually filled after attempting
+            try:
+                # Wait a brief moment for value to be set
+                await page.wait_for_timeout(100)
+                
+                # Verify the field has the expected value
+                actual_value = await el.input_value() if field_type != "file" else None
+                if actual_value is not None:
+                    # For text fields, check if value matches (allowing for formatting differences)
+                    if field_type in ["text", "textarea", "email", "tel"]:
+                        if value.lower().strip() not in actual_value.lower().strip() and actual_value.lower().strip() not in value.lower().strip():
+                            logger.warning(
+                                "Field value mismatch: expected '%s', got '%s' for selector %s",
+                                value[:50],
+                                actual_value[:50],
+                                selector
+                            )
+                            incr("agent.field_validation.mismatch", tags={"field_type": field_type})
+                    # For select fields, verify option was selected
+                    elif field_type == "select":
+                        selected_text = await el.evaluate("el => el.options[el.selectedIndex]?.text || ''")
+                        if value.lower() not in selected_text.lower() and selected_text.lower() not in value.lower():
+                            logger.warning(
+                                "Select value mismatch: expected '%s', got '%s' for selector %s",
+                                value,
+                                selected_text,
+                                selector
+                            )
+                            incr("agent.field_validation.mismatch", tags={"field_type": "select"})
+            except Exception as validation_error:
+                logger.debug("Field validation check failed (non-critical): %s", validation_error)
+                # Don't fail the entire fill operation if validation check fails
 
         except Exception as exc:
             logger.warning("Could not fill %s: %s", selector, exc)
+            incr("agent.field_fill.failed", tags={"field_type": field_type, "error": type(exc).__name__})
 
 
 async def _fill_select(el: Any, value: str) -> None:
@@ -556,7 +590,10 @@ async def _fill_checkbox(el: Any, value: str) -> None:
 
 
 async def submit_form(page: Page, selectors: list[str] | None = None) -> bool:
-    """Click the submit button and wait for navigation or network idle."""
+    """Click the submit button and wait for navigation or network idle.
+    
+    HIGH: Implements retry logic for transient submission failures.
+    """
     submit_selectors = selectors or [
         'button[type="submit"]',
         'input[type="submit"]',
@@ -565,14 +602,19 @@ async def submit_form(page: Page, selectors: list[str] | None = None) -> bool:
         'button:has-text("Send Application")',
         'button:has-text("Send")',
     ]
-    for sel in submit_selectors:
-        btn = page.locator(sel).first
-        if await btn.count() > 0:
-            try:
-                async with page.expect_navigation(
-                    wait_until="networkidle", timeout=30_000
-                ):
-                    await btn.click()
+    
+    max_retries = 2
+    base_delay = 1.0
+    
+    for attempt in range(max_retries):
+        for sel in submit_selectors:
+            btn = page.locator(sel).first
+            if await btn.count() > 0:
+                try:
+                    async with page.expect_navigation(
+                        wait_until="networkidle", timeout=30_000
+                    ):
+                        await btn.click()
             except Exception as e:
                 # Some forms don't navigate; accept the click as success
                 logger.warning(
@@ -704,6 +746,35 @@ class FormAgent:
             incr("agent.rate_limited", {"limiter": "processing"})
             return False
 
+        # CRITICAL: Check concurrent usage limits BEFORE claiming task
+        # This prevents race condition where task is claimed but then rejected
+        # Peek at the next task to get tenant_id for limit check (without locking)
+        async with self.pool.acquire() as conn:
+            peek_task = await conn.fetchrow(
+                """
+                SELECT id, tenant_id, user_id, blueprint_key
+                FROM public.applications
+                WHERE status = 'QUEUED'
+                ORDER BY priority_score DESC, created_at ASC
+                LIMIT 1
+                """
+            )
+            
+            if peek_task:
+                peek_tenant_id = str(peek_task["tenant_id"]) if peek_task.get("tenant_id") else None
+                # Check limits before claiming (CRITICAL: prevents claiming then rejecting)
+                concurrent_tracker = get_concurrent_tracker()
+                can_start = await concurrent_tracker.can_start_task(tenant_id=peek_tenant_id)
+                if not can_start:
+                    logger.warning(
+                        "Concurrent usage limit reached, skipping task %s for tenant %s",
+                        peek_task["id"],
+                        peek_tenant_id or "none"
+                    )
+                    incr("agent.concurrent_limited", {"tenant_id": peek_tenant_id or "none"})
+                    return False
+        
+        # Now claim the task (we've verified we can process it)
         task = await claim_task(self.pool)
         if task is None:
             return False
@@ -712,12 +783,18 @@ class FormAgent:
         tenant_id = str(task["tenant_id"]) if task.get("tenant_id") else None
         blueprint_key = task.get("blueprint_key", _settings.default_blueprint_key)
 
-        # Check concurrent usage limits
+        # Mark task as started in concurrent tracker (double-check limits here too)
         concurrent_tracker = get_concurrent_tracker()
-        can_start = await concurrent_tracker.start_task(app_id, tenant_id)
-        if not can_start:
-            logger.warning("Concurrent usage limit reached, skipping task %s", app_id)
-            incr("agent.concurrent_limited", {"tenant_id": tenant_id or "none"})
+        started = await concurrent_tracker.start_task(app_id, tenant_id)
+        if not started:
+            # Limits changed between peek and claim - release the task back to QUEUED
+            logger.warning("Concurrent limit reached after claim, releasing task %s", app_id)
+            async with self.pool.acquire() as conn:
+                await conn.execute(
+                    "UPDATE public.applications SET status = 'QUEUED' WHERE id = $1",
+                    app_id
+                )
+            incr("agent.concurrent_limited_after_claim", {"tenant_id": tenant_id or "none"})
             return False
 
         LogContext.set(
@@ -848,32 +925,64 @@ class FormAgent:
             )
 
     async def _navigate_to_app(self, page: Page, ctx: dict) -> None:
-        """Navigate to the application URL."""
-        try:
-            await page.goto(
-                ctx["application_url"],
-                wait_until="networkidle",
-                timeout=PAGE_TIMEOUT_MS,
-            )
-
-            # Check for OAuth/SSO flow
-            if await self.oauth_handler.detect_oauth_flow(page):
-                logger.info("OAuth/SSO flow detected, attempting authentication")
-                user_credentials = ctx.get("profile", {}).get("oauth_credentials")
-                oauth_success = await self.oauth_handler.handle_oauth_flow(
-                    page, user_credentials
+        """Navigate to the application URL.
+        
+        HIGH: Implements retry logic with exponential backoff for network failures.
+        """
+        max_retries = 3
+        base_delay = 2.0
+        
+        for attempt in range(max_retries):
+            try:
+                await page.goto(
+                    ctx["application_url"],
+                    wait_until="networkidle",
+                    timeout=PAGE_TIMEOUT_MS,
                 )
-                if not oauth_success:
-                    logger.warning(
-                        "OAuth authentication failed, continuing with standard flow"
-                    )
-                else:
-                    logger.info("OAuth authentication successful")
 
-        except Exception as exc:
-            raise RuntimeError(
-                f"Page load timeout for {ctx['application_url']}: {exc}"
-            ) from exc
+                # Check for OAuth/SSO flow
+                if await self.oauth_handler.detect_oauth_flow(page):
+                    logger.info("OAuth/SSO flow detected, attempting authentication")
+                    user_credentials = ctx.get("profile", {}).get("oauth_credentials")
+                    oauth_success = await self.oauth_handler.handle_oauth_flow(
+                        page, user_credentials
+                    )
+                    if not oauth_success:
+                        logger.warning(
+                            "OAuth authentication failed, continuing with standard flow"
+                        )
+                    else:
+                        logger.info("OAuth authentication successful")
+                
+                # Success - return
+                return
+
+            except Exception as exc:
+                # Check if error is retryable (network/timeout errors)
+                is_retryable = (
+                    isinstance(exc, (TimeoutError, ConnectionError)) or
+                    "timeout" in str(exc).lower() or
+                    "network" in str(exc).lower() or
+                    "connection" in str(exc).lower()
+                )
+                
+                if is_retryable and attempt < max_retries - 1:
+                    # HIGH: Exponential backoff with jitter
+                    delay = base_delay * (2 ** attempt) + (random.random() * 0.5)
+                    logger.warning(
+                        "Page navigation failed (attempt %d/%d), retrying in %.2fs: %s",
+                        attempt + 1,
+                        max_retries,
+                        delay,
+                        exc,
+                    )
+                    await asyncio.sleep(delay)
+                    continue
+                else:
+                    # Non-retryable or retries exhausted
+                    raise RuntimeError(
+                        f"Page load failed for {ctx['application_url']} after {max_retries} attempts: {exc}"
+                    ) from exc
 
     async def _extract_fields(self, page: Page) -> list[FormField]:
         form_fields = await extract_all_form_fields(page)
@@ -1239,7 +1348,53 @@ class FormAgent:
             logger.error("Failed to send status change email: %s", e)
 
     async def _submit_application(self, page: Page, ctx: dict) -> None:
-        """Click the submit button."""
+        """Click the submit button.
+        
+        HIGH: Integrates CAPTCHA detection and solving before submission.
+        """
+        # HIGH: Detect and solve CAPTCHA before form submission
+        try:
+            from packages.backend.domain.captcha_handler import CaptchaHandler
+            
+            handler = CaptchaHandler()
+            page_url = page.url
+            
+            # Handle CAPTCHA (detects and solves)
+            captcha_result = await handler.handle_captcha(page, page_url)
+            
+            if captcha_result.get("detected"):
+                captcha_type = captcha_result.get("captcha_type", "unknown")
+                logger.warning(
+                    "CAPTCHA detected: type=%s on %s",
+                    captcha_type,
+                    page_url,
+                )
+                incr("agent.captcha.detected", tags={"type": captcha_type})
+                
+                if captcha_result.get("solved"):
+                    solution = captcha_result.get("solution")
+                    if solution:
+                        # Inject solution into page
+                        injected = await handler.inject_solution(page, captcha_type, solution)
+                        if injected:
+                            logger.info("CAPTCHA solved and injected successfully")
+                            incr("agent.captcha.solved", tags={"type": captcha_type})
+                        else:
+                            logger.warning("CAPTCHA solved but injection failed")
+                            incr("agent.captcha.injection_failed", tags={"type": captcha_type})
+                    else:
+                        logger.error("CAPTCHA solved but no solution returned")
+                        incr("agent.captcha.no_solution", tags={"type": captcha_type})
+                else:
+                    error = captcha_result.get("error", "Unknown error")
+                    logger.error("Failed to solve CAPTCHA: %s", error)
+                    incr("agent.captcha.failed", tags={"type": captcha_type, "error": error})
+                    # Continue anyway - some CAPTCHAs may be solved client-side or may not block submission
+        except Exception as e:
+            logger.warning("CAPTCHA detection/solving failed: %s", e)
+            incr("agent.captcha.error", tags={"error": type(e).__name__})
+            # Continue with submission - don't block on CAPTCHA errors
+        
         # Capture screenshot before submission
         await self.capture_screenshot(page, ctx, "pre_submit", success=True)
 
@@ -1584,7 +1739,38 @@ async def worker_loop() -> None:
     load_default_blueprints(enabled_slugs=enabled or None)
     pool = await create_db_pool()
 
+    # HIGH: Add signal handlers for graceful shutdown and browser cleanup
+    import signal
+    
+    browser = None
+    playwright_instance = None
+    
+    async def cleanup_browser():
+        """Cleanup browser and Playwright on shutdown."""
+        if browser:
+            try:
+                await browser.close()
+                logger.info("Browser closed gracefully")
+            except Exception as e:
+                logger.warning("Error closing browser: %s", e)
+        if playwright_instance:
+            try:
+                await playwright_instance.stop()
+                logger.info("Playwright stopped gracefully")
+            except Exception as e:
+                logger.warning("Error stopping Playwright: %s", e)
+    
+    def signal_handler(signum, frame):
+        """Handle shutdown signals."""
+        logger.info("Received signal %d, initiating graceful shutdown...", signum)
+        asyncio.create_task(cleanup_browser())
+    
+    # Register signal handlers for graceful shutdown
+    signal.signal(signal.SIGTERM, signal_handler)
+    signal.signal(signal.SIGINT, signal_handler)
+    
     async with async_playwright() as pw:
+        playwright_instance = pw
         browser = await pw.chromium.launch(headless=s.playwright_headless)
 
         async def context_factory() -> BrowserContext:

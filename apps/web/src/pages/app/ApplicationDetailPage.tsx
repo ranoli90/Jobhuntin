@@ -6,10 +6,27 @@ import { Button } from "../../components/ui/Button";
 import { Card } from "../../components/ui/Card";
 import { Badge } from "../../components/ui/Badge";
 import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
-import { ArrowLeft, Briefcase, Clock } from "lucide-react";
+import { ArrowLeft, Briefcase, Clock, CheckCircle, XCircle, AlertCircle, MessageSquare, FileText, History } from "lucide-react";
 import { formatDate } from "../../lib/format";
 import { getLocale } from "../../lib/i18n";
 import { telemetry } from "../../lib/telemetry";
+
+interface ApplicationInput {
+  id: string;
+  selector?: string;
+  question?: string;
+  field_type?: string;
+  answer?: string | null;
+  resolved?: boolean;
+  meta?: Record<string, unknown> | null;
+}
+
+interface ApplicationEvent {
+  id?: string;
+  event_type?: string;
+  properties?: Record<string, unknown> | null;
+  created_at?: string;
+}
 
 interface ApplicationDetail {
   application: {
@@ -19,9 +36,11 @@ interface ApplicationDetail {
     status?: string;
     hold_question?: string;
     last_activity?: string;
+    created_at?: string;
+    updated_at?: string;
   };
-  inputs: Array<Record<string, unknown>>;
-  events: Array<Record<string, unknown>>;
+  inputs: ApplicationInput[];
+  events: ApplicationEvent[];
 }
 
 function statusVariant(status: string): 'success' | 'warning' | 'error' | 'default' {
@@ -128,6 +147,133 @@ export default function ApplicationDetailPage() {
           </div>
         )}
       </Card>
+
+      {/* HIGH: Display Application Inputs (Hold Questions) */}
+      {data.inputs && data.inputs.length > 0 && (
+        <Card className="p-6" shadow="sm">
+          <div className="flex items-center gap-2 mb-4">
+            <FileText className="w-5 h-5 text-slate-600" />
+            <h2 className="text-lg font-bold text-slate-900">Application Questions</h2>
+            <Badge variant="default" className="ml-auto">
+              {data.inputs.length} {data.inputs.length === 1 ? 'question' : 'questions'}
+            </Badge>
+          </div>
+          <div className="space-y-4">
+            {data.inputs.map((input, idx) => (
+              <div
+                key={input.id || idx}
+                className={`p-4 rounded-lg border ${
+                  input.resolved
+                    ? "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800"
+                    : "bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800"
+                }`}
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      {input.resolved ? (
+                        <CheckCircle className="w-4 h-4 text-green-600" />
+                      ) : (
+                        <AlertCircle className="w-4 h-4 text-amber-600" />
+                      )}
+                      <span className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                        {input.question || "Question"}
+                      </span>
+                      {input.resolved && (
+                        <Badge variant="success" className="text-xs">Resolved</Badge>
+                      )}
+                    </div>
+                    {input.answer && (
+                      <p className="text-sm text-slate-600 dark:text-slate-400 mt-2 pl-6">
+                        <span className="font-medium">Answer: </span>
+                        {input.answer}
+                      </p>
+                    )}
+                    {input.field_type && (
+                      <span className="text-xs text-slate-500 dark:text-slate-500 mt-1 pl-6 block">
+                        Type: {input.field_type}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
+
+      {/* HIGH: Display Application Events Timeline */}
+      {data.events && data.events.length > 0 && (
+        <Card className="p-6" shadow="sm">
+          <div className="flex items-center gap-2 mb-4">
+            <History className="w-5 h-5 text-slate-600" />
+            <h2 className="text-lg font-bold text-slate-900">Application Timeline</h2>
+            <Badge variant="default" className="ml-auto">
+              {data.events.length} {data.events.length === 1 ? 'event' : 'events'}
+            </Badge>
+          </div>
+          <div className="space-y-4">
+            {data.events
+              .sort((a, b) => {
+                const aTime = a.created_at ? new Date(a.created_at).getTime() : 0;
+                const bTime = b.created_at ? new Date(b.created_at).getTime() : 0;
+                return bTime - aTime; // Most recent first
+              })
+              .map((event, idx) => {
+                const eventType = event.event_type || "UNKNOWN";
+                const eventDate = event.created_at ? formatDate(event.created_at, locale) : "Unknown date";
+                const getEventIcon = () => {
+                  if (eventType.includes("SUCCESS") || eventType.includes("APPLIED") || eventType.includes("COMPLETED")) {
+                    return <CheckCircle className="w-5 h-5 text-green-600" />;
+                  }
+                  if (eventType.includes("FAILED") || eventType.includes("ERROR") || eventType.includes("REJECTED")) {
+                    return <XCircle className="w-5 h-5 text-red-600" />;
+                  }
+                  if (eventType.includes("REQUIRES_INPUT") || eventType.includes("HOLD")) {
+                    return <AlertCircle className="w-5 h-5 text-amber-600" />;
+                  }
+                  return <MessageSquare className="w-5 h-5 text-slate-600" />;
+                };
+                
+                return (
+                  <div key={event.id || idx} className="flex items-start gap-4 pb-4 border-b border-slate-200 dark:border-slate-700 last:border-0">
+                    <div className="flex-shrink-0 mt-1">
+                      {getEventIcon()}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between gap-2 mb-1">
+                        <span className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                          {eventType.replace(/_/g, " ")}
+                        </span>
+                        <span className="text-xs text-slate-500 dark:text-slate-500 whitespace-nowrap">
+                          {eventDate}
+                        </span>
+                      </div>
+                      {event.properties && Object.keys(event.properties).length > 0 && (
+                        <div className="mt-2 p-2 rounded bg-slate-50 dark:bg-slate-800 text-xs">
+                          <pre className="whitespace-pre-wrap text-slate-600 dark:text-slate-400">
+                            {JSON.stringify(event.properties, null, 2)}
+                          </pre>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+          </div>
+        </Card>
+      )}
+
+      {/* Empty states for missing data */}
+      {(!data.inputs || data.inputs.length === 0) && (!data.events || data.events.length === 0) && (
+        <Card className="p-8 text-center" shadow="sm">
+          <MessageSquare className="w-12 h-12 text-slate-300 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-slate-900 mb-2">No additional details</h3>
+          <p className="text-slate-500 mb-4">
+            This application doesn't have any questions or events yet.
+          </p>
+        </Card>
+      )}
     </div>
   );
 }

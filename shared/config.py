@@ -46,8 +46,8 @@ class Settings(BaseSettings):
     # SECURITY: Database URL must be provided via DATABASE_URL environment variable
     # Hardcoded credentials are a critical security vulnerability
     database_url: str = ""  # Required - must be set via DATABASE_URL env var
-    db_pool_min: int = 5  # Increased from 2 for better baseline performance
-    db_pool_max: int = 20  # Increased from 10 for higher concurrency
+    db_pool_min: int = 10  # Increased for better baseline performance
+    db_pool_max: int = 100  # CRITICAL: Increased from 20 to 100 for 5000+ concurrent users
 
     # ── Web App ──────────────────────────────────────────────────
     app_base_url: str = "https://sorce-web.onrender.com"
@@ -86,7 +86,7 @@ class Settings(BaseSettings):
     # ── Playwright / Agent ───────────────────────────────────────
     playwright_browser_type: str = "chromium"
     playwright_headless: bool = True
-    max_concurrent_browser_contexts: int = 1
+    max_concurrent_browser_contexts: int = 50  # CRITICAL: Increased from 1 to 50 for scalability (5000+ users)
 
     # ── Agent tuning ─────────────────────────────────────────────
     poll_interval_seconds: int = 5

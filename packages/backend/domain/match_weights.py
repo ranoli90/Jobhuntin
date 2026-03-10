@@ -448,6 +448,12 @@ class MatchWeightsManager:
         total_score = 0.0
         total_weight = 0.0
 
+        # HIGH: Normalize weights to ensure scores are consistent
+        # First, calculate total enabled weight
+        total_enabled_weight = sum(
+            wc.weight for wc in config.weights.values() if wc.enabled
+        )
+        
         # Calculate scores for each enabled category
         for category, weight_config in config.weights.items():
             if not weight_config.enabled:
@@ -458,8 +464,14 @@ class MatchWeightsManager:
             )
 
             if category_score > 0:
-                total_score += category_score * weight_config.weight
-                total_weight += weight_config.weight
+                # HIGH: Normalize weight by total enabled weight to prevent score inflation
+                normalized_weight = (
+                    weight_config.weight / total_enabled_weight
+                    if total_enabled_weight > 0
+                    else 0.0
+                )
+                total_score += category_score * normalized_weight
+                total_weight += normalized_weight
 
         # Apply global multiplier
         if total_weight > 0:
@@ -516,24 +528,58 @@ class MatchWeightsManager:
     def _calculate_skills_score(
         self, match_data: Dict[str, Any], weight_config: WeightConfig
     ) -> float:
-        """Calculate skills matching score."""
+        """Calculate skills matching score.
+        
+        HIGH: Enhanced to use rich skills metadata (confidence, years) for better matching.
+        """
         user_skills = match_data.get("user_skills", [])
         job_skills = match_data.get("job_skills", [])
 
         if not user_skills or not job_skills:
             return 0.0
 
-        # Calculate skill overlap
-        user_skill_set = set(user_skills)
-        job_skill_set = set(job_skills)
+        # HIGH: Handle rich skills (dicts with confidence, years) or simple strings
+        # Build skill map with confidence scores
+        user_skill_map: dict[str, float] = {}  # skill_name -> confidence
+        user_skill_years: dict[str, float] = {}  # skill_name -> years
+        
+        for skill in user_skills:
+            if isinstance(skill, dict):
+                skill_name = (skill.get("skill") or skill.get("name") or "").lower().strip()
+                confidence = float(skill.get("confidence", 0.5))
+                years = float(skill.get("years_actual", 0)) if skill.get("years_actual") else 0.0
+                if skill_name:
+                    # Use highest confidence if skill appears multiple times
+                    if skill_name not in user_skill_map or confidence > user_skill_map[skill_name]:
+                        user_skill_map[skill_name] = confidence
+                        user_skill_years[skill_name] = years
+            elif isinstance(skill, str):
+                skill_name = skill.lower().strip()
+                if skill_name:
+                    user_skill_map[skill_name] = 0.5  # Default confidence
+                    user_skill_years[skill_name] = 0.0
 
-        exact_matches = len(user_skill_set.intersection(job_skill_set))
+        # Calculate skill overlap with confidence weighting
+        job_skill_set = {s.lower().strip() for s in job_skills if s}
+        matched_skills = set(user_skill_map.keys()).intersection(job_skill_set)
+        
         total_job_skills = len(job_skill_set)
-
         if total_job_skills == 0:
             return 0.0
 
-        base_score = exact_matches / total_job_skills
+        # HIGH: Weight matches by confidence
+        weighted_matches = sum(
+            user_skill_map[skill] for skill in matched_skills
+        )
+        # Normalize by total possible confidence (if all skills matched with confidence 1.0)
+        base_score = weighted_matches / total_job_skills if total_job_skills > 0 else 0.0
+        
+        # HIGH: Bonus for skills with years of experience
+        years_bonus = sum(
+            min(user_skill_years.get(skill, 0) / 10.0, 0.2)  # Max 0.2 bonus per skill
+            for skill in matched_skills
+        )
+        base_score = min(1.0, base_score + years_bonus)
 
         # Apply custom rules
         rules = weight_config.custom_rules

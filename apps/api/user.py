@@ -334,13 +334,16 @@ async def create_application(
 
         return {"status": "recorded", "decision": body.decision}
 
-    async with db.acquire() as conn:
-        # Check for existing application first
+    # CRITICAL: Use transaction to prevent race conditions in concurrent swipes
+    async with db_transaction(db) as conn:
+        # CRITICAL: Use SELECT FOR UPDATE to lock the row and prevent race conditions
+        # This ensures only one request can check and insert for the same user_id + job_id
         existing_app = await conn.fetchrow(
             """
             SELECT id, status, created_at, updated_at
             FROM public.applications
             WHERE user_id = $1 AND job_id = $2 AND tenant_id = $3
+            FOR UPDATE
             """,
             ctx.user_id,
             body.job_id,

@@ -29,7 +29,8 @@ export default function JobsView() {
 
     // Local swipe state — tracks which jobs have been swiped and in which direction
     const [swipedJobs, setSwipedJobs] = useState<Map<string, SwipeRecord>>(new Map());
-    const [submitting, setSubmitting] = useState<string | null>(null);
+    // CRITICAL: Use Set instead of single string to prevent race conditions in concurrent swipes
+    const [submittingSet, setSubmittingSet] = useState<Set<string>>(new Set());
     const [undoStack, setUndoStack] = useState<string[]>([]);
 
     const appliedCount = useMemo(
@@ -49,8 +50,15 @@ export default function JobsView() {
 
     const handleSwipe = useCallback(
         async (jobId: string, action: "accept" | "reject") => {
-            if (swipedJobs.has(jobId) || submitting) return;
-            setSubmitting(jobId);
+            // CRITICAL: Use Set to prevent race conditions - multiple swipes can't pass check
+            if (swipedJobs.has(jobId) || submittingSet.has(jobId)) return;
+            
+            // Add to submitting set atomically
+            setSubmittingSet((prev) => {
+                const next = new Set(prev);
+                next.add(jobId);
+                return next;
+            });
 
             // Optimistically record the swipe locally
             setSwipedJobs((prev) => {
@@ -72,24 +80,46 @@ export default function JobsView() {
                     pushToast({ title: "Applied!", tone: "success" });
                 }
             } catch (error) {
-                const err = error as Error;
+                const err = error as Error & { status?: number; response?: { status?: number } };
+                const statusCode = err.status || err.response?.status;
+                
                 if (import.meta.env.DEV) console.error("[JobsView] Swipe failed:", err);
-                // Rollback the optimistic update
-                setSwipedJobs((prev) => {
-                    const next = new Map(prev);
+                
+                // HIGH: Handle quota exceeded error (402 Payment Required)
+                if (statusCode === 402) {
+                    pushToast({
+                        title: "Application limit reached",
+                        description: "You've reached your plan's application limit. Upgrade to continue applying.",
+                        tone: "error",
+                        duration: 8000,
+                    });
+                    // Navigate to billing page after a delay
+                    setTimeout(() => {
+                        window.location.href = "/app/billing";
+                    }, 2000);
+                } else {
+                    // Rollback the optimistic update for other errors
+                    setSwipedJobs((prev) => {
+                        const next = new Map(prev);
+                        next.delete(jobId);
+                        return next;
+                    });
+                    pushToast({
+                        title: action === "accept" ? "Apply failed" : "Skip failed",
+                        description: err.message || "Please try again",
+                        tone: "error",
+                    });
+                }
+            } finally {
+                // Remove from submitting set
+                setSubmittingSet((prev) => {
+                    const next = new Set(prev);
                     next.delete(jobId);
                     return next;
                 });
-                pushToast({
-                    title: action === "accept" ? "Apply failed" : "Skip failed",
-                    description: err.message || "Please try again",
-                    tone: "error",
-                });
-            } finally {
-                setSubmitting(null);
             }
         },
-        [swipedJobs, submitting]
+        [swipedJobs, submittingSet]
     );
 
     if (isLoading) {
@@ -132,8 +162,38 @@ export default function JobsView() {
 
     const topJob = visibleJobs[0];
 
+    // HIGH: Add keyboard navigation for swiping (accessibility)
+    React.useEffect(() => {
+        if (!topJob || submittingSet.has(topJob.id)) return;
+
+        const handleKeyDown = (e: KeyboardEvent) => {
+            // Only handle if focus is on the page (not in input fields)
+            if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+                return;
+            }
+
+            // Arrow Right or 'D' key = Accept/Apply
+            if (e.key === "ArrowRight" || e.key === "d" || e.key === "D") {
+                e.preventDefault();
+                handleSwipe(topJob.id, "accept");
+            }
+            // Arrow Left or 'A' key = Reject/Skip
+            else if (e.key === "ArrowLeft" || e.key === "a" || e.key === "A") {
+                e.preventDefault();
+                handleSwipe(topJob.id, "reject");
+            }
+        };
+
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
+    }, [topJob, handleSwipe, submittingSet]);
+
     return (
         <main className="space-y-6" aria-label="Job applications">
+            {/* HIGH: Keyboard shortcuts hint */}
+            <div className="text-xs text-slate-500 dark:text-slate-400 text-center mb-2">
+                <kbd className="px-2 py-1 bg-slate-100 dark:bg-slate-800 rounded text-xs">←</kbd> or <kbd className="px-2 py-1 bg-slate-100 dark:bg-slate-800 rounded text-xs">A</kbd> to skip • <kbd className="px-2 py-1 bg-slate-100 dark:bg-slate-800 rounded text-xs">→</kbd> or <kbd className="px-2 py-1 bg-slate-100 dark:bg-slate-800 rounded text-xs">D</kbd> to apply
+            </div>
             <section aria-labelledby="stats-heading">
                 <h2 id="stats-heading" className="sr-only">Application Statistics</h2>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -166,8 +226,8 @@ export default function JobsView() {
                         key={job.id}
                         className="absolute w-full h-full"
                         style={{ zIndex: 3 - index }}
-                        drag={index === 0 && !submitting ? "x" : false}
-                        dragConstraints={{ left: 0, right: 0 }}
+                        drag={index === 0 && !submittingSet.has(job.id) ? "x" : false}
+                        dragConstraints={{ left: -200, right: 200 }}  // HIGH: Fix drag constraints to allow swiping
                         onDragEnd={(_, info) => {
                             if (info.offset.x > 100)
                                 handleSwipe(job.id, "accept");
@@ -182,7 +242,13 @@ export default function JobsView() {
                         }}
                         transition={{ duration: shouldReduceMotion ? 0.1 : 0.3 }}
                     >
-                        <Card className="w-full h-full p-6 flex flex-col justify-between bg-white border border-brand-border shadow-lg rounded-xl" role="article" aria-labelledby={`job-${job.id}-title`}>
+                        <Card 
+                            className="w-full h-full p-6 flex flex-col justify-between bg-white border border-brand-border shadow-lg rounded-xl" 
+                            role="article" 
+                            aria-labelledby={`job-${job.id}-title`}
+                            tabIndex={index === 0 ? 0 : -1}  // HIGH: Make top card keyboard focusable
+                            aria-label={`${job.title || 'Job'} at ${job.company || 'Company'}. Press Arrow Right or D to apply, Arrow Left or A to skip.`}
+                        >
                             <div>
                                 <h3 id={`job-${job.id}-title`} className="text-xl font-bold text-brand-text">{job.title}</h3>
                                 <p className="text-brand-text/80">{job.company}</p>

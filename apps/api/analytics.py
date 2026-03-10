@@ -79,9 +79,13 @@ class EventBatchResponse(BaseModel):
 @router.post("/analytics/events", response_model=EventBatchResponse)
 async def ingest_events(
     body: EventBatchRequest,
+    ctx: TenantContext = Depends(_get_tenant_ctx),  # CRITICAL: Add authentication
     db: asyncpg.Pool = Depends(_get_pool),
 ) -> EventBatchResponse:
     """Batch-insert analytics events from the client.
+
+    CRITICAL: Now requires authentication via TenantContext to prevent
+    unauthenticated event injection and data pollution.
 
     Validates event_type against the known taxonomy but still accepts
     unknown types (for forward compatibility) — they are just counted
@@ -95,14 +99,17 @@ async def ingest_events(
             if evt.event_type not in ALL_EVENT_TYPES:
                 rejected += 1
                 continue
+            
+            # SECURITY: Override tenant_id and user_id from authenticated context
+            # to prevent users from injecting events for other users/tenants
             await conn.execute(
                 """
                 INSERT INTO public.analytics_events
                     (tenant_id, user_id, session_id, event_type, properties, created_at)
                 VALUES ($1, $2, $3, $4, $5::jsonb, COALESCE($6::timestamptz, now()))
                 """,
-                evt.tenant_id,
-                evt.user_id,
+                ctx.tenant_id,  # Use authenticated tenant_id
+                ctx.user_id,    # Use authenticated user_id
                 evt.session_id,
                 evt.event_type,
                 json.dumps(evt.properties),

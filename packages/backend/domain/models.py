@@ -154,13 +154,18 @@ def normalize_profile(raw: dict) -> CanonicalProfile:
     skills_raw = raw.get("skills", {})
 
     # Handle V2 rich skills format (objects with confidence) or V1 format (strings)
+    # NOTE: This normalization extracts skill names for CanonicalProfile (used in LLM prompts).
+    # Rich skills metadata (confidence, years, context) is preserved in the user_skills table
+    # and used by the matching system via profile_assembly.py, which reads from user_skills.
+    # The matching system (_calculate_skills_score) has been enhanced to use confidence and years.
     technical_raw = skills_raw.get("technical", [])
     soft_raw = skills_raw.get("soft", [])
 
-    # Extract skill names from rich format if needed
+    # Extract skill names from rich format if needed (for canonical profile)
     technical = []
     for s in technical_raw:
         if isinstance(s, dict):
+            # HIGH: Extract skill name - rich metadata (confidence, years) preserved in user_skills table
             technical.append(s.get("skill", ""))
         elif isinstance(s, str):
             technical.append(s)
@@ -168,6 +173,7 @@ def normalize_profile(raw: dict) -> CanonicalProfile:
     soft = []
     for s in soft_raw:
         if isinstance(s, dict):
+            # HIGH: Extract skill name - rich metadata preserved in user_skills table
             soft.append(s.get("skill", ""))
         elif isinstance(s, str):
             soft.append(s)

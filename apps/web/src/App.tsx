@@ -90,6 +90,9 @@ const HoldsViewWrapper = React.lazy(() => import("./pages/dashboard/HoldsView"))
 const TeamViewWrapper = React.lazy(() => import("./pages/dashboard/TeamView"));
 // Dashboard sub-components are exported from Dashboard.tsx and will be loaded when Dashboard chunk loads
 
+// Job Alerts Page
+const JobAlertsPage = React.lazy(() => import("./pages/app/JobAlerts"));
+
 /**
  * Bi-directional onboarding guard:
  * - Users who haven't completed onboarding are redirected TO /app/onboarding
@@ -236,6 +239,7 @@ export default function App() {
                 <Route path="applications/:id" element={<RouteErrorBoundary><React.Suspense fallback={<PageLoader />}><ApplicationDetailPage /></React.Suspense></RouteErrorBoundary>} />
                 <Route path="holds" element={<RouteErrorBoundary><React.Suspense fallback={<PageLoader />}><HoldsViewWrapper /></React.Suspense></RouteErrorBoundary>} />
                 <Route path="team" element={<RouteErrorBoundary><React.Suspense fallback={<PageLoader />}><TeamViewWrapper /></React.Suspense></RouteErrorBoundary>} />
+                <Route path="job-alerts" element={<RouteErrorBoundary><React.Suspense fallback={<PageLoader />}><JobAlertsPage /></React.Suspense></RouteErrorBoundary>} />
                 <Route path="billing" element={<RouteErrorBoundary><React.Suspense fallback={<PageLoader />}><Billing /></React.Suspense></RouteErrorBoundary>} />
                 <Route path="settings" element={<RouteErrorBoundary><Settings /></RouteErrorBoundary>} />
                 <Route path="sessions" element={<RouteErrorBoundary><React.Suspense fallback={<PageLoader />}><Sessions /></React.Suspense></RouteErrorBoundary>} />

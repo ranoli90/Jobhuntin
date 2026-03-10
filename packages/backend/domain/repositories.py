@@ -550,7 +550,11 @@ class JobRepo:
         tenant_id: str | None = None,
         user_id: str | None = None,
     ) -> List[dict]:
-        """List jobs with comprehensive details."""
+        """List jobs with comprehensive details.
+        
+        SECURITY: Uses parameterized queries to prevent SQL injection.
+        All filters and pagination parameters are properly bound.
+        """
         query = """
             SELECT
                 j.*,
@@ -575,33 +579,76 @@ class JobRepo:
             LEFT JOIN public.companies c ON j.company_id = c.id
             WHERE j.is_active = true
         """
+        
+        # Build parameter array for filters
+        params: list[Any] = []
+        param_index = 1
 
-        # Apply filters if provided
+        # Apply filters if provided (using proper parameterized queries)
         if filters:
             if "location" in filters:
-                query += "AND j.location ILIKE $1"
+                location_value = filters["location"]
+                if location_value:
+                    query += f" AND j.location ILIKE ${param_index}"
+                    params.append(f"%{location_value}%")
+                    param_index += 1
+                    
             if "remote" in filters:
-                query += "AND j.remote = $1"
+                remote_value = filters["remote"]
+                if remote_value is not None:
+                    query += f" AND j.remote = ${param_index}"
+                    params.append(remote_value)
+                    param_index += 1
+                    
             if "job_type" in filters:
-                query += "AND j.job_type = $1"
+                job_type_value = filters["job_type"]
+                if job_type_value:
+                    query += f" AND j.job_type = ${param_index}"
+                    params.append(job_type_value)
+                    param_index += 1
+                    
             if "company_size" in filters:
-                query += "AND c.size = $1"
+                company_size_value = filters["company_size"]
+                if company_size_value:
+                    query += f" AND c.size = ${param_index}"
+                    params.append(company_size_value)
+                    param_index += 1
+                    
             if "industry" in filters:
-                query += "AND c.industry = $1"
+                industry_value = filters["industry"]
+                if industry_value:
+                    query += f" AND c.industry = ${param_index}"
+                    params.append(industry_value)
+                    param_index += 1
+                    
             if "salary_min" in filters:
-                query += "AND j.salary_min >= $1"
+                salary_min_value = filters["salary_min"]
+                if salary_min_value is not None:
+                    query += f" AND j.salary_min >= ${param_index}"
+                    params.append(salary_min_value)
+                    param_index += 1
+                    
             if "salary_max" in filters:
-                query += "AND j.salary_max <= $1"
+                salary_max_value = filters["salary_max"]
+                if salary_max_value is not None:
+                    query += f" AND j.salary_max <= ${param_index}"
+                    params.append(salary_max_value)
+                    param_index += 1
 
         query += " ORDER BY j.created_at DESC"
-
+        
+        # Add pagination with proper parameter binding
         if offset > 0:
-            query += f" OFFSET {offset}"
+            query += f" OFFSET ${param_index}"
+            params.append(offset)
+            param_index += 1
 
         if limit > 0:
-            query += f" LIMIT {limit}"
+            query += f" LIMIT ${param_index}"
+            params.append(limit)
 
-        rows = await conn.fetch(query)
+        # Execute query with parameters
+        rows = await conn.fetch(query, *params)
 
         # Format with comprehensive job details
         jobs = []

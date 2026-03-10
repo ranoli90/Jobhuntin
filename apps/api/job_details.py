@@ -247,11 +247,44 @@ async def list_jobs(
             )
 
             # Get total count for pagination
-            count_query = (
-                "SELECT COUNT(*) as total FROM public.jobs WHERE is_active = true"
-            )
-            total_result = await conn.fetchrow(count_query)
-            total_count = total_result["total"]
+            # HIGH: Fix pagination total count - apply same filters to count query
+            count_query = "SELECT COUNT(*) as total FROM public.jobs j LEFT JOIN public.companies c ON j.company_id = c.id WHERE j.is_active = true"
+            count_params: list[Any] = []
+            count_param_index = 1
+            
+            # Apply same filters to count query
+            if filters:
+                if "location" in filters and filters.get("location"):
+                    count_query += f" AND j.location ILIKE ${count_param_index}"
+                    count_params.append(f"%{filters['location']}%")
+                    count_param_index += 1
+                if "remote" in filters and filters.get("remote") is not None:
+                    count_query += f" AND j.remote = ${count_param_index}"
+                    count_params.append(filters["remote"])
+                    count_param_index += 1
+                if "job_type" in filters and filters.get("job_type"):
+                    count_query += f" AND j.job_type = ${count_param_index}"
+                    count_params.append(filters["job_type"])
+                    count_param_index += 1
+                if "company_size" in filters and filters.get("company_size"):
+                    count_query += f" AND c.size = ${count_param_index}"
+                    count_params.append(filters["company_size"])
+                    count_param_index += 1
+                if "industry" in filters and filters.get("industry"):
+                    count_query += f" AND c.industry = ${count_param_index}"
+                    count_params.append(filters["industry"])
+                    count_param_index += 1
+                if "salary_min" in filters and filters.get("salary_min") is not None:
+                    count_query += f" AND j.salary_min >= ${count_param_index}"
+                    count_params.append(filters["salary_min"])
+                    count_param_index += 1
+                if "salary_max" in filters and filters.get("salary_max") is not None:
+                    count_query += f" AND j.salary_max <= ${count_param_index}"
+                    count_params.append(filters["salary_max"])
+                    count_param_index += 1
+            
+            total_result = await conn.fetchrow(count_query, *count_params)
+            total_count = total_result["total"] if total_result else 0
 
             logger.info(f"Listed {len(jobs)} jobs for tenant {ctx.tenant_id}")
 
