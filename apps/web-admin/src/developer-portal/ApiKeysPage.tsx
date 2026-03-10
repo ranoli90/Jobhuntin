@@ -56,10 +56,10 @@ export default function ApiKeysPage() {
   const createKey = async () => {
     setCreating(true);
     try {
-      const data = await request("POST", "/developer/api-keys", {
+      const data = await request<{ raw_key?: string }>("POST", "/developer/api-keys", {
         name: newKeyName, tier: newKeyTier
       });
-      setCreatedKey(data.raw_key);
+      setCreatedKey(data.raw_key ?? null);
       load();
     } catch (e) { alert(String(e)); }
     finally { setCreating(false); }

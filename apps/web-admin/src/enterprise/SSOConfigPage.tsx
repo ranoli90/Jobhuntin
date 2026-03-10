@@ -60,7 +60,7 @@ export default function SSOConfigPage() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const c = await request("POST", "/sso/config", {
+      const c = await request<SSOConfig>("POST", "/sso/config", {
         provider, entity_id: entityId, sso_url: ssoUrl, certificate
       });
       setConfig(c);

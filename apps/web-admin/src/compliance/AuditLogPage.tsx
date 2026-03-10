@@ -50,7 +50,7 @@ export default function AuditLogPage() {
     try {
       const params = new URLSearchParams({ limit: String(pageSize), offset: String(p * pageSize) });
       if (action) params.set("action", action);
-      const resp = await request("GET", `/billing/audit-log?${params}`);
+      const resp = await request<{ logs?: AuditEntry[]; total?: number }>("GET", `/billing/audit-log?${params}`);
       setLogs(resp.logs || []);
       setTotal(resp.total || 0);
     } catch (e) { console.error(e); }

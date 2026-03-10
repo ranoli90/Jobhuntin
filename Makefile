@@ -8,17 +8,17 @@
 # ---------------------------------------------------------------------------
 
 dev-backend:
-	PYTHONPATH=apps:packages uvicorn api.main:app --reload --host 0.0.0.0 --port 8000
+	PYTHONPATH=apps:packages:. uvicorn api.main:app --reload --host 0.0.0.0 --port 8000
 
 dev-worker:
-	PYTHONPATH=apps:packages python -m worker.agent
+	PYTHONPATH=apps:packages:. python -m worker.agent
 
 test-backend:
 	pytest tests/ -v -s --tb=short
 
 lint-backend:
 	ruff check . --select E,W,F,I
-	PYTHONPATH=apps:packages mypy apps/api/ apps/worker/ packages/backend/ packages/shared/ --ignore-missing-imports
+	PYTHONPATH=apps:packages:. mypy apps/api/ apps/worker/ packages/backend/ packages/shared/ --ignore-missing-imports
 
 fmt-backend:
 	ruff format .

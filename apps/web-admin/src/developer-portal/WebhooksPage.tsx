@@ -53,8 +53,8 @@ export default function WebhooksPage() {
 
   const create = async () => {
     if (!url.trim()) return;
-    const data = await request("POST", "/developer/webhooks", { url, events });
-    setCreatedSecret(data.secret);
+    const data = await request<{ secret?: string }>("POST", "/developer/webhooks", { url, events });
+    setCreatedSecret(data.secret ?? null);
     setUrl("");
     load();
   };
