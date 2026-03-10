@@ -339,6 +339,8 @@ VACUUM ANALYZE applications;
 
 **Recommended:** 2–3 workers for production; 1 for staging.
 
+**#59 LISTEN/NOTIFY:** Worker uses a dedicated pool connection for `LISTEN job_queue`. On `NOTIFY job_queue` (from application inserts), the worker wakes immediately. A 60s sleep in the listen loop is a keep-alive only; the connection stays open for real-time wake-up.
+
 ---
 
 ## Monitoring & Alerts

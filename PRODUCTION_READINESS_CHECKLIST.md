@@ -40,7 +40,7 @@
 | 3 | ~~High~~ Fixed | CAPTCHA after 3 IP or 40% email limit | `auth.py` |
 | 4 | ~~Medium~~ Fixed | Specific error messages by status/type | `Login.tsx`, `magicLinkService.ts` |
 | 5 | ~~Medium~~ Fixed | magic_link_sent, magic_link_failed, magic_link_verified analytics | Frontend, backend |
-| 6 | Low | Email typo detection exists (`checkEmailTypo`) but not consistently used | `emailUtils.ts` |
+| 6 | ~~Low~~ Fixed | checkEmailTypo used in Login; auto-correct before send | `Login.tsx`, `emailUtils.ts` |
 
 ---
 
@@ -112,7 +112,7 @@
 | 21 | ~~Medium~~ Fixed | Empty dashboard guidance improved | `Dashboard.tsx` |
 | 22 | ~~Medium~~ Fixed | HOLD tooltip + AppCard explanation | `Dashboard.tsx`, `AppCard.tsx` |
 | 23 | ~~Low~~ Fixed | Dynamic polling: 10s when APPLYING, 30s otherwise | `useApplications` |
-| 24 | Low | Billing tiers hardcoded; consider `/billing/tiers` API | `Dashboard.tsx`, `BILLING_TIERS` |
+| 24 | ~~Low~~ Fixed | GET /billing/tiers API; useBilling.tiers; Billing, Dashboard use API | `billing.py`, `useBilling.ts`, `Billing.tsx` |
 
 ---
 
@@ -229,10 +229,10 @@
 | 44 | ~~High~~ Fixed | Mobile now uses REST API; paths aligned | `mobile/`, `apps/web/` |
 | 45 | Medium | JobsView `handleSwipe` had wrong job in screen reader announcement — **FIXED** | `JobsView.tsx` |
 | 46 | ~~Medium~~ Fixed | `useJobs` invalidates applications + jobs on apply | `JobsView.tsx`, `Dashboard.tsx` |
-| 47 | Medium | Error handling: api.ts has friendlyMessage; hooks use consistently | `lib/api.ts` |
+| 47 | ~~Medium~~ OK | friendlyMessage in handleApiError; hooks receive via thrown Error | `lib/api.ts` |
 | 48 | ~~Medium~~ Fixed | PWA workbox: NetworkFirst for API, cache static assets | `vite.config.ts` |
-| 49 | Low | Some buttons < 44px touch target | Various components |
-| 50 | Low | Keyboard shortcuts limited | `useKeyboardShortcuts` |
+| 49 | ~~Low~~ OK | Onboarding steps, Button, ThemeToggle have min-h-[44px] | Step components |
+| 50 | ~~Low~~ OK | useKeyboardShortcuts + COMMON_SHORTCUTS; AppLayout, Dashboard wired | `useKeyboardShortcuts.ts`, `AppLayout.tsx` |
 | 51 | Low | Pre-existing lint/type errors (~838 ruff, ~351 mypy per AGENTS.md) | Codebase |
 
 ---
@@ -241,12 +241,12 @@
 
 | # | Severity | Issue | Location |
 |---|----------|-------|----------|
-| 52 | Critical | Session token replay; no revocation | `auth.py` |
+| 52 | ~~Critical~~ Fixed | Duplicate of #7; session revocation implemented | `auth.py`, `dependencies.py` |
 | 53 | ~~High~~ Fixed | Disposable email list expanded (tempail, mail.tm, etc.) | `auth.py` |
 | 54 | ~~High~~ Fixed | return_to whitelist synced backend + frontend | `auth.py`, `magicLinkService.ts` |
 | 55 | Medium | CSRF implemented; magic-link and webhooks exempt | `middleware.py` |
 | 56 | ~~Medium~~ Fixed | Operational runbooks: scaling, DB pool, worker | `OPERATIONAL_RUNBOOKS.md` |
-| 57 | Low | Missing analytics for funnel and events | Telemetry |
+| 57 | ~~Low~~ Fixed | application_created on apply; onboarding funnel already tracked | `JobsView.tsx`, telemetry |
 
 ---
 
@@ -286,7 +286,7 @@
 | # | Severity | Issue |
 |---|----------|-------|
 | 58 | ~~Low~~ Fixed | getApiBase never returns empty; fallback to /api | `lib/api.ts` |
-| 59 | Low | Worker LISTEN uses pool connection; 60s keep-alive sleep | `agent.py` |
+| 59 | ~~Low~~ Documented | LISTEN behavior in OPERATIONAL_RUNBOOKS; 60s is keep-alive only | `agent.py`, runbooks |
 | 60 | ~~Low~~ Fixed | API sets tenant_id; mobile receives it in response | `user.py`, mobile |
 | 61 | ~~Low~~ Fixed | ACCEPT undo wired in JobsView (10s window) | `JobsView.tsx` |
 | 62 | ~~Low~~ Fixed | Shared reviewApplication, withdrawApplication in useApplications | `useApplications`, Dashboard, ApplicationsView |

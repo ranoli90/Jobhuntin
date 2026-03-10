@@ -16,6 +16,7 @@ import { Button } from '../components/ui/Button';
 import { cn } from '../lib/utils';
 import { magicLinkService } from '../services/magicLinkService';
 import { ValidationUtils } from '../lib/validation';
+import { checkEmailTypo } from '../lib/emailUtils';
 import { telemetry } from '../lib/telemetry';
 import { t, formatT, getLocale } from '../lib/i18n';
 import { SocialLoginGroup, SocialLoginDivider } from '../components/auth/SocialLogin';
@@ -147,11 +148,22 @@ export default function Login() {
     e.preventDefault();
     if (!emailIsValid) return;
 
+    // #6: Email typo detection - auto-correct and proceed
+    const trimmed = email.trim();
+    const typoSuggestion = checkEmailTypo(trimmed);
+    const emailToSend = typoSuggestion
+      ? `${trimmed.split("@")[0]}@${typoSuggestion}`
+      : trimmed;
+    if (typoSuggestion) {
+      setEmail(emailToSend);
+      pushToast({ title: "Email corrected", description: `Sent to ${emailToSend}`, tone: "info" });
+    }
+
     setIsLoading(true);
     setFormError(null);
 
     try {
-      const normalized = await requestMagicLink(email, safeReturnTo, captchaToken || undefined);
+      const normalized = await requestMagicLink(emailToSend, safeReturnTo, captchaToken || undefined);
       setShowCaptcha(false);
       setCaptchaToken("");
       telemetry.track("login_magic_link_requested", { usedCaptcha: !!captchaToken, destination: safeReturnTo });

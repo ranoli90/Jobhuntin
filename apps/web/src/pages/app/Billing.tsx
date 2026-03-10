@@ -12,12 +12,6 @@ import { motion, useReducedMotion } from "framer-motion";
 import { pushToast } from "../../lib/toast";
 import { telemetry } from "../../lib/telemetry";
 
-const BILLING_TIERS = [
-  { name: "FREE" as const, price: "$0", features: ["10 applications", "Basic tailoring", "Standard support"], actionKey: null, recommended: false },
-  { name: "PRO" as const, price: "$19", features: ["Unlimited apps", "Priority queue", "Interview coach"], recommended: true, actionKey: "upgrade" as const },
-  { name: "TEAM" as const, price: "$49", features: ["10 team seats", "API access", "White-label reports"], actionKey: "addSeats" as const, recommended: false },
-] as const;
-
 interface Invoice {
   id: string;
   created: number;
@@ -26,7 +20,7 @@ interface Invoice {
 }
 
 export default function Billing() {
-  const { status, plan, usage, upgrade, addSeats, manageBilling, loading: billingLoading, error } = useBilling();
+  const { status, plan, usage, tiers, upgrade, addSeats, manageBilling, loading: billingLoading, error } = useBilling();
   const shouldReduceMotion = useReducedMotion();
 
   const { data: invoices = [], isLoading: invoicesLoading } = useQuery<Invoice[]>({
@@ -87,7 +81,7 @@ export default function Billing() {
     : null;
 
   const actionMap: Record<string, (() => Promise<void>) | null> = { upgrade, addSeats };
-  const tiers = BILLING_TIERS.map((t) => ({
+  const tiersWithActions = tiers.map((t) => ({
     ...t,
     action: t.actionKey ? actionMap[t.actionKey] ?? null : null,
   }));
@@ -139,7 +133,7 @@ export default function Billing() {
             </Card>
 
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
-              {tiers.map((tier) => (
+              {tiersWithActions.map((tier) => (
                 <Card
                   key={tier.name}
                   className={`p-6 flex flex-col items-center text-center transition-all hover:shadow-lg ${tier.recommended ? "border-primary-500 shadow-xl shadow-primary-500/10 ring-1 ring-primary-500" : "border-slate-100 dark:border-slate-800"}`}

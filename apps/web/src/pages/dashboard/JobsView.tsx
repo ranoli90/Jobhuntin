@@ -12,6 +12,7 @@ import { Link } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { apiPost } from "../../lib/api";
 import { pushToast } from "../../lib/toast";
+import { telemetry } from "../../lib/telemetry";
 
 interface SwipeRecord {
     direction: "accept" | "reject";
@@ -86,6 +87,7 @@ export default function JobsView() {
 
                 const job = jobs.find((j) => j.id === jobId);
                 if (action === "accept") {
+                    telemetry.track("application_created", { job_id: jobId, company: job?.company, title: job?.title });
                     pushToast({ title: "Applied!", tone: "success" });
                     setSwipeAnnouncement(`Applied to ${job?.title || "job"} at ${job?.company || "company"}`);
                     queryClient.invalidateQueries({ queryKey: ["applications"] });

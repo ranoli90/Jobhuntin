@@ -19,6 +19,13 @@ logger = get_logger("sorce.api.billing")
 
 router = APIRouter(prefix="/billing", tags=["billing"])
 
+# #24: Canonical billing tiers - single source of truth for API and frontend
+BILLING_TIERS = [
+    {"name": "FREE", "price": "$0", "features": ["10 applications", "Basic tailoring", "Standard support"], "actionKey": None, "recommended": False},
+    {"name": "PRO", "price": "$19", "features": ["Unlimited apps", "Priority queue", "Interview coach"], "recommended": True, "actionKey": "upgrade"},
+    {"name": "TEAM", "price": "$49", "features": ["10 team seats", "API access", "White-label reports"], "actionKey": "addSeats", "recommended": False},
+]
+
 
 # Dependencies (to be overridden at app startup)
 async def _get_pool():
@@ -37,6 +44,14 @@ class CheckoutRequest(BaseModel):
 
 class PortalRequest(BaseModel):
     return_url: str
+
+
+@router.get("/tiers")
+async def billing_tiers(
+    tenant_ctx: Any = Depends(_get_tenant_ctx),
+) -> list[dict[str, Any]]:
+    """#24: Get billing tiers. Single source of truth for plan display."""
+    return BILLING_TIERS
 
 
 @router.get("/status")

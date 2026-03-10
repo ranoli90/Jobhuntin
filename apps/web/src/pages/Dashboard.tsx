@@ -35,13 +35,6 @@ function statusVariant(status: string): 'success' | 'warning' | 'error' | 'defau
   }
 }
 
-// D14/B1: BILLING_TIERS hardcoded; consider fetching from /billing/tiers API when available
-const BILLING_TIERS = [
-  { name: "FREE" as const, price: "$0", features: ["10 applications", "Basic tailoring", "Standard support"], actionKey: null, recommended: false },
-  { name: "PRO" as const, price: "$19", features: ["Unlimited apps", "Priority queue", "Interview coach"], recommended: true, actionKey: "upgrade" as const },
-  { name: "TEAM" as const, price: "$49", features: ["10 team seats", "API access", "White-label reports"], actionKey: "addSeats" as const, recommended: false },
-] as const;
-
 // N-2: Locale helpers — called inside components via useMemo to stay reactive
 
 // M-12: Page size for ApplicationsView pagination

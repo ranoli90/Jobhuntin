@@ -24,18 +24,35 @@ interface BillingUsage {
   percentage_used: number;
 }
 
+export interface BillingTier {
+  name: "FREE" | "PRO" | "TEAM";
+  price: string;
+  features: string[];
+  actionKey: string | null;
+  recommended: boolean;
+}
+
 interface BillingData {
   status: BillingStatus;
   usage: BillingUsage;
+  tiers: BillingTier[];
 }
 
 async function fetchBillingData(): Promise<BillingData> {
-  const [status, usage] = await Promise.all([
+  const [status, usage, tiers] = await Promise.all([
     apiGet<BillingStatus>("billing/status"),
     apiGet<BillingUsage & { monthly_used?: number; monthly_limit?: number }>("billing/usage"),
+    apiGet<BillingTier[]>("billing/tiers"),
   ]);
-  return { status, usage };
+  return { status, usage, tiers };
 }
+
+// #24: Fallback when API unavailable (e.g. loading, 401)
+const DEFAULT_TIERS: BillingTier[] = [
+  { name: "FREE", price: "$0", features: ["10 applications", "Basic tailoring", "Standard support"], actionKey: null, recommended: false },
+  { name: "PRO", price: "$19", features: ["Unlimited apps", "Priority queue", "Interview coach"], actionKey: "upgrade", recommended: true },
+  { name: "TEAM", price: "$49", features: ["10 team seats", "API access", "White-label reports"], actionKey: "addSeats", recommended: false },
+];
 
 export function useBilling() {
   const queryClient = useQueryClient();
@@ -51,6 +68,7 @@ export function useBilling() {
 
   const status = query.data?.status ?? null;
   const usage = query.data?.usage ?? null;
+  const tiers = query.data?.tiers ?? DEFAULT_TIERS;
 
   // M-11: Detect ?success=1 or ?success=true param (from Stripe redirect) and celebrate
   useEffect(() => {
@@ -124,6 +142,7 @@ export function useBilling() {
     plan: status?.plan ?? "FREE",
     status,
     usage,
+    tiers,
     loading: query.isLoading,
     error: query.error ? (query.error as Error).message : null,
     upgrade,
