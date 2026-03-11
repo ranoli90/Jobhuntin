@@ -47,7 +47,12 @@
 - **packages/backend/domain/ccpa.py**: Same alignment; custom delete for application_inputs before applications.
 - **packages/backend/domain/gdpr.py**: Added answer_memory to export and deletion.
 
-### 11. Security
+### 11. Admin RBAC (Item 23)
+- **api/dependencies.py**: Added `require_admin_user_id` — returns user_id only if tenant OWNER/ADMIN or system admin; raises 403 otherwise.
+- **api/main.py**: Admin endpoints (admin, analytics, dashboard, growth, dlq) now use `require_admin_user_id` instead of `get_current_user_id`.
+- **api/user.py**: Profile includes `role` (user/admin/superadmin) for AdminGuard; derived from tenant_members and users.is_system_admin.
+
+### 12. Security
 - **update-render-env.sh**: Stripe keys loaded from env; no hardcoding
 - **sync_render_env_from_dotenv.py**: Fixed get_env_vars for Render API response formats
 

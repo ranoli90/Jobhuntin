@@ -120,7 +120,7 @@ PYTHONPATH=apps:packages:. mypy apps/api/ apps/worker/ packages/backend/ shared/
 |---|-------------|----------|
 | 21 | Billing upgrade/portal: aggressive polling, no backoff | Medium |
 | 22 | Admin sources: polls every 5s, no error boundary | Medium |
-| 23 | Admin pages lack RBAC; any user can access | Critical |
+| 23 | Admin pages lack RBAC; any user can access | fixed |
 | 24 | Admin sync "Trigger Sync" no confirmation modal | Medium |
 | 25 | Admin alerts: mock fallback masks outages | High |
 | 26 | Admin alerts acknowledge: optimistic update, no rollback | Medium |

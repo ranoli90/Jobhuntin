@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 import asyncpg
-from fastapi import Cookie, Header, HTTPException
+from fastapi import Cookie, Depends, Header, HTTPException
 
 from shared.config import get_settings
 from shared.logging_config import get_logger
@@ -281,3 +281,33 @@ async def get_current_user_id(
     except Exception as exc:
         logger.warning("Token processing error: %s", exc)
         raise HTTPException(status_code=401, detail="Invalid or expired token")
+
+
+async def require_admin_user_id(
+    user_id: str = Depends(get_current_user_id),
+    db: asyncpg.Pool = Depends(get_pool),
+) -> str:
+    """Return user_id only if user is admin (tenant OWNER/ADMIN or system admin).
+    Item 23: Admin RBAC — any authenticated user could access admin endpoints.
+    Raises 403 if not admin.
+    """
+    from backend.domain.tenant import (
+        TenantScopeError,
+        require_system_admin,
+        resolve_tenant_context,
+    )
+
+    async with db.acquire() as conn:
+        # Tenant admin: OWNER or ADMIN in tenant_members
+        ctx = await resolve_tenant_context(conn, user_id)
+        if ctx.is_admin:
+            return user_id
+        # System admin: users.is_system_admin
+        try:
+            await require_system_admin(conn, user_id)
+            return user_id
+        except TenantScopeError:
+            pass
+
+    logger.warning("Admin access denied for user %s", user_id)
+    raise HTTPException(status_code=403, detail="Admin access required")

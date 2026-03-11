@@ -1073,6 +1073,19 @@ async def get_profile(
                 "SELECT profile_data, resume_url FROM public.profiles WHERE user_id = $1",
                 ctx.user_id,
             )
+            # Item 23: Include role for AdminGuard (admin/superadmin = OWNER/ADMIN or is_system_admin)
+            role: str = "user"
+            if ctx.is_admin:
+                role = "admin"
+            try:
+                is_system_admin = await conn.fetchval(
+                    "SELECT COALESCE(is_system_admin, false) FROM public.users WHERE id = $1",
+                    ctx.user_id,
+                )
+                if is_system_admin:
+                    role = "superadmin"
+            except Exception:
+                pass
     except Exception as exc:
         logger.error(
             "[PROFILE] Database error fetching profile: %s", exc, exc_info=True
@@ -1123,6 +1136,7 @@ async def get_profile(
         "onboarding_step": profile_data.get("onboarding_step"),
         "onboarding_completed_steps": profile_data.get("onboarding_completed_steps")
         or [],
+        "role": role,
     }
 
 

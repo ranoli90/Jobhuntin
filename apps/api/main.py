@@ -98,7 +98,12 @@ if _settings.sentry_dsn:
 
 from contextlib import asynccontextmanager
 
-from api.dependencies import _pool_manager, get_current_user_id, get_pool
+from api.dependencies import (
+    _pool_manager,
+    get_current_user_id,
+    get_pool,
+    require_admin_user_id,
+)
 
 
 @asynccontextmanager
@@ -701,7 +706,7 @@ def _mount_sub_routers() -> None:
 
     app.dependency_overrides[admin_mod._get_pool] = get_pool
     app.dependency_overrides[admin_mod._get_tenant_ctx] = get_tenant_context
-    app.dependency_overrides[admin_mod._get_admin_user_id] = get_current_user_id
+    app.dependency_overrides[admin_mod._get_admin_user_id] = require_admin_user_id
     app.include_router(admin_mod.router)
 
     import api.auth as auth_mod
@@ -719,14 +724,14 @@ def _mount_sub_routers() -> None:
 
     app.dependency_overrides[analytics_mod._get_pool] = get_pool
     app.dependency_overrides[analytics_mod._get_tenant_ctx] = get_tenant_context
-    app.dependency_overrides[analytics_mod._get_admin_user_id] = get_current_user_id
+    app.dependency_overrides[analytics_mod._get_admin_user_id] = require_admin_user_id
     app.include_router(analytics_mod.router)
 
     import api.growth as growth_mod
 
     app.dependency_overrides[growth_mod._get_pool] = get_pool
     app.dependency_overrides[growth_mod._get_user_id] = get_current_user_id
-    app.dependency_overrides[growth_mod._get_admin_user_id] = get_current_user_id
+    app.dependency_overrides[growth_mod._get_admin_user_id] = require_admin_user_id
     app.include_router(growth_mod.router)
 
     try:
@@ -880,7 +885,7 @@ def _mount_sub_routers() -> None:
 
     app.dependency_overrides[dashboard_mod._get_pool] = get_pool
     app.dependency_overrides[dashboard_mod._get_tenant_ctx] = get_tenant_context
-    app.dependency_overrides[dashboard_mod._get_admin_user_id] = get_current_user_id
+    app.dependency_overrides[dashboard_mod._get_admin_user_id] = require_admin_user_id
     app.include_router(dashboard_mod.router)
 
     import api.sessions as sessions_mod
@@ -996,7 +1001,7 @@ def _mount_sub_routers() -> None:
     app.dependency_overrides[dlq_mod._get_pool] = get_pool
     app.dependency_overrides[dlq_mod._get_tenant_ctx] = get_tenant_context
     app.dependency_overrides[dlq_mod.get_tenant_context] = get_tenant_context
-    app.dependency_overrides[dlq_mod._get_admin_user_id] = get_current_user_id
+    app.dependency_overrides[dlq_mod._get_admin_user_id] = require_admin_user_id
     app.include_router(dlq_mod.router)
 
     # Concurrent Usage (Phase 12.1)
