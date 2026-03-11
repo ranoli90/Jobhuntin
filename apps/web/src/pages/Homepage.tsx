@@ -198,7 +198,8 @@ function UserJourneySection() {
         <Reveal>
           <p className="text-center text-[12px] font-medium text-[#7DD3CF] uppercase tracking-widest mb-[12px]">Your story starts here</p>
           <h2 className="text-center text-[clamp(1.75rem,4vw,40px)] font-bold text-white leading-tight mb-[48px]" style={{ letterSpacing: '-1.5px' }}>
-            From signup to offer — <span className="text-[#7DD3CF]">in one flow</span>
+            From signup to offer —<br />
+            <span className="text-[#7DD3CF]">in one flow</span>
           </h2>
         </Reveal>
 
@@ -327,7 +328,7 @@ export default function Homepage() {
         <div className="relative max-w-[1080px] mx-auto px-6 pt-[140px] sm:pt-[180px] pb-[60px]">
           <div className="max-w-[680px] mx-auto text-center">
             <Reveal>
-              <h1 className="font-display text-white text-[clamp(2.5rem,6vw,64px)] font-bold" style={{ lineHeight: '1', letterSpacing: '-2.125px' }}>
+              <h1 className="text-white text-[clamp(2.5rem,6vw,64px)] font-bold" style={{ lineHeight: '1', letterSpacing: '-2.125px' }}>
                 Your job hunt, <span className="text-[#7DD3CF] sm:whitespace-nowrap">on autopilot.</span>
               </h1>
             </Reveal>
@@ -535,8 +536,8 @@ export default function Homepage() {
         <div className="max-w-[1080px] mx-auto px-6">
           <Reveal>
             <div className="text-center max-w-[520px] mx-auto mb-[48px] sm:mb-[64px]">
-              <p className="text-[12px] font-semibold text-[#9B9A97] uppercase tracking-[0.2em] mb-[8px]">How it works</p>
-              <h2 className="font-display text-[clamp(2rem,4vw,48px)] font-bold text-[#2D2A26] leading-[1]" style={{ letterSpacing: '-1.5px' }}>
+              <p className="text-[12px] font-medium text-[#9B9A97] uppercase tracking-wider mb-[8px]">How it works</p>
+              <h2 className="text-[clamp(2rem,4vw,48px)] font-bold text-[#2D2A26] leading-[1]" style={{ letterSpacing: '-1.5px' }}>
                 Set up in two minutes.
               </h2>
             </div>

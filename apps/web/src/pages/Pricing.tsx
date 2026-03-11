@@ -284,7 +284,7 @@ export default function Pricing() {
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">
             <div>
               <p className="text-xs font-bold uppercase tracking-widest text-[#787774] mb-2">Free forever</p>
-              <h2 id="pricing-free-heading" className="font-display text-3xl sm:text-4xl font-bold text-[#2D2A26] mb-3" style={{ letterSpacing: '-1px' }}>
+              <h2 id="pricing-free-heading" className="text-3xl sm:text-4xl font-bold text-[#2D2A26] mb-3" style={{ letterSpacing: '-1px' }}>
                 20 applications per week
               </h2>
               <p className="text-[#787774] font-medium mb-6 max-w-md">
@@ -327,7 +327,7 @@ export default function Pricing() {
                 <p className="text-xs font-bold uppercase tracking-widest text-white/50">Pro</p>
                 <Zap className="w-4 h-4 text-[#7DD3CF]" />
               </div>
-              <h2 id="pricing-pro-heading" className="font-display text-2xl sm:text-3xl font-bold text-white mb-3" style={{ letterSpacing: '-1px' }}>
+              <h2 id="pricing-pro-heading" className="text-2xl sm:text-3xl font-bold text-white mb-3" style={{ letterSpacing: '-1px' }}>
                 Unlimited applications
               </h2>
               <p className="text-white/70 font-medium mb-6 max-w-md">

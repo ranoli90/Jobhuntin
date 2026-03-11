@@ -132,7 +132,7 @@ export default function SuccessStories() {
         <div className="relative max-w-[1080px] mx-auto px-6 py-20 sm:py-28">
           <Reveal>
             <p className="text-[12px] font-medium text-[#7DD3CF] uppercase tracking-wider mb-[12px]">Real outcomes</p>
-            <h1 className="font-display text-[clamp(2.25rem,5vw,3.5rem)] font-bold text-white leading-tight mb-[16px]" style={{ letterSpacing: '-1.5px' }}>
+            <h1 className="text-[clamp(2.25rem,5vw,3.5rem)] font-bold text-white leading-tight mb-[16px]" style={{ letterSpacing: '-1.5px' }}>
               They got hired. <span className="text-[#7DD3CF]">You're next.</span>
             </h1>
             <p className="text-[16px] text-white/75 max-w-[480px] font-medium">
