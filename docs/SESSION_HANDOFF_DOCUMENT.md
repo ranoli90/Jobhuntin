@@ -106,8 +106,8 @@ PYTHONPATH=apps:packages:. mypy apps/api/ apps/worker/ packages/backend/ shared/
 | ID | File | Description | Priority |
 |----|------|-------------|----------|
 | PRIV-006 | gdpr.py | request_id verification blocked until gdpr_requests table exists | Medium |
-| PRIV-007 | data_retention.py | Applications hard-deleted, not archived; needs archive table | Deferred |
-| PRIV-008 | gdpr.py | GDPR export returns raw data in response; needs secure download URLs | Deferred |
+| PRIV-007 | data_retention.py | Applications hard-deleted, not archived; needs archive table | Fixed |
+| PRIV-008 | gdpr.py | GDPR export returns raw data in response; needs secure download URLs | Fixed |
 
 ### 3.2 JobSpy / Job Sync
 | ID | Description | Priority |

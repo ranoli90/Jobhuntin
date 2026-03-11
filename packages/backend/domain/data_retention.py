@@ -91,21 +91,42 @@ async def archive_old_applications(
     days_old: int = RetentionPolicy.APPLICATIONS_DAYS,
     batch_size: int = 1000,
 ) -> int:
+    """Archive applications older than retention period, then delete.
+
+    PRIV-007: Insert into applications_archive before DELETE for compliance.
+    """
     total_archived = 0
 
     while True:
-        result = await conn.execute(
-            f"""  # nosec
-            WITH to_archive AS (
-                SELECT id FROM public.applications
-                WHERE created_at < NOW() - INTERVAL '{days_old} days'
-                LIMIT {batch_size}
-                FOR UPDATE SKIP LOCKED
+        # Archive first (INSERT), then delete; same CTE in one transaction
+        async with conn.transaction():
+            await conn.execute(
+                f"""  # nosec
+                WITH to_archive AS (
+                    SELECT id FROM public.applications
+                    WHERE created_at < NOW() - INTERVAL '{days_old} days'
+                    LIMIT {batch_size}
+                    FOR UPDATE SKIP LOCKED
+                )
+                INSERT INTO public.applications_archive
+                SELECT a.* FROM public.applications a
+                WHERE a.id IN (SELECT id FROM to_archive)
+                ON CONFLICT (id) DO NOTHING
+                """
             )
-            DELETE FROM public.applications
-            WHERE id IN (SELECT id FROM to_archive)
-            """
-        )
+
+            result = await conn.execute(
+                f"""  # nosec
+                WITH to_archive AS (
+                    SELECT id FROM public.applications
+                    WHERE created_at < NOW() - INTERVAL '{days_old} days'
+                    LIMIT {batch_size}
+                    FOR UPDATE SKIP LOCKED
+                )
+                DELETE FROM public.applications
+                WHERE id IN (SELECT id FROM to_archive)
+                """
+            )
 
         archived = int(result.split()[-1]) if result and "DELETE" in result else 0
         total_archived += archived

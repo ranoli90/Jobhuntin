@@ -9,16 +9,18 @@ Implements:
 from __future__ import annotations
 
 import json
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 import asyncpg
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import Response
 from pydantic import BaseModel, Field, field_validator
 
 from backend.domain.repositories import db_transaction
 from shared.logging_config import get_logger
 from shared.metrics import incr
+from shared.validators import validate_uuid
 
 logger = get_logger("sorce.gdpr")
 
@@ -247,17 +249,63 @@ async def export_user_data(
                 extra={"error": str(e)},
             )
 
-    # Generate JSON export and include in response
+    # PRIV-008: Upload to storage, return secure download URL instead of raw data
     json_export = json.dumps(export_data, indent=2, default=str)
-    export_data["json_export"] = json_export
+    download_url: str | None = None
+    expires_at: str | None = None
+    export_ttl_seconds = 3600  # 1 hour
+
+    try:
+        from shared.storage import get_storage_service
+
+        storage = get_storage_service()
+        storage_path = f"{user_id}/{export_id}.json"
+        await storage.upload_file(
+            "gdpr-exports",
+            storage_path,
+            json_export.encode("utf-8"),
+            content_type="application/json",
+        )
+        full_storage_path = f"gdpr-exports/{storage_path}"
+        download_url = await storage.generate_signed_url(
+            full_storage_path, ttl_seconds=export_ttl_seconds
+        )
+        # For local storage (file://) or relative paths, use our API endpoint
+        if download_url.startswith("file://") or (
+            download_url.startswith("/") and "http" not in download_url[:8]
+        ):
+            download_url = f"/gdpr/export/{export_id}/download"
+        expires_at = (
+            datetime.now(timezone.utc) + timedelta(seconds=export_ttl_seconds)
+        ).isoformat()
+    except Exception as e:
+        logger.warning("GDPR export storage upload failed, using Redis fallback: %s", e)
+        from shared.config import get_settings
+
+        if get_settings().redis_url:
+            from shared.redis_client import get_redis
+
+            r = await get_redis()
+            key = f"gdpr_export:{user_id}:{export_id}"
+            await r.setex(key, export_ttl_seconds, json_export)
+            download_url = f"/gdpr/export/{export_id}/download"
+            expires_at = (
+                datetime.now(timezone.utc) + timedelta(seconds=export_ttl_seconds)
+            ).isoformat()
+        else:
+            raise HTTPException(
+                status_code=503,
+                detail="Export storage unavailable. Please try again later.",
+            ) from e
 
     incr("gdpr.export_completed", tags={"tenant_id": tenant_id})
 
     return DataExportResponse(
         export_id=export_id,
         status="completed",
-        download_url=None,
-        data=export_data,
+        download_url=download_url,
+        expires_at=expires_at,
+        data=None,  # PRIV-008: no raw data in response
         data_categories=data_categories,
     )
 
@@ -386,6 +434,54 @@ async def delete_user_data(
         scheduled_at=datetime.now(timezone.utc).isoformat(),
         retention_exceptions=retention_exceptions,
     )
+
+
+@router.get("/export/{export_id}/download")
+async def download_export(
+    export_id: str,
+    user_id: str = Depends(_get_user_id),
+) -> Response:
+    """PRIV-008: Secure download of GDPR export. No raw data in POST response."""
+    try:
+        validate_uuid(export_id, "export_id")
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid export ID format")
+
+    # Try storage first
+    try:
+        from shared.storage import get_storage_service
+
+        storage = get_storage_service()
+        storage_path = f"gdpr-exports/{user_id}/{export_id}.json"
+        data = await storage.download_file(storage_path)
+        return Response(
+            content=data,
+            media_type="application/json",
+            headers={"Content-Disposition": f'attachment; filename="gdpr_export_{export_id}.json"'},
+        )
+    except FileNotFoundError:
+        pass
+    except Exception as e:
+        logger.warning("GDPR export download from storage failed: %s", e)
+
+    # Fallback: Redis (when storage upload failed)
+    from shared.config import get_settings
+
+    if get_settings().redis_url:
+        from shared.redis_client import get_redis
+
+        r = await get_redis()
+        key = f"gdpr_export:{user_id}:{export_id}"
+        raw = await r.get(key)
+        if raw:
+            content = raw.encode("utf-8") if isinstance(raw, str) else raw
+            return Response(
+                content=content,
+                media_type="application/json",
+                headers={"Content-Disposition": f'attachment; filename="gdpr_export_{export_id}.json"'},
+            )
+
+    raise HTTPException(status_code=404, detail="Export not found or expired")
 
 
 @router.get("/status/{request_id}")

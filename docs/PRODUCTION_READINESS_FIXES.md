@@ -42,10 +42,12 @@
 ### 9. Resume (OB-001)
 - **resume.py**: Compensating delete of orphaned file on DB upsert failure (already present)
 
-### 10. GDPR/Privacy (PRIV-005)
+### 10. GDPR/Privacy (PRIV-005, PRIV-007, PRIV-008)
 - **apps/api/gdpr.py**: Replaced legacy `input_answers` with `application_inputs` (export via application_id, delete via subquery) and `answer_memory` (user_id). Export and deletion now align with actual schema.
 - **packages/backend/domain/ccpa.py**: Same alignment; custom delete for application_inputs before applications.
 - **packages/backend/domain/gdpr.py**: Added answer_memory to export and deletion.
+- **PRIV-007**: data_retention.py — Applications now archived to applications_archive before DELETE; migration 032_applications_archive.sql.
+- **PRIV-008**: gdpr.py — Export uploads to storage, returns download_url/expires_at; no raw data in response; GET /gdpr/export/{id}/download for secure fetch; Redis fallback when storage unavailable.
 
 ### 11. Admin RBAC (Item 23)
 - **api/dependencies.py**: Added `require_admin_user_id` — returns user_id only if tenant OWNER/ADMIN or system admin; raises 403 otherwise.
