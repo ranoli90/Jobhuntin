@@ -42,46 +42,40 @@ class ConcurrentUsageTracker:
         self._stats = ConcurrentUsageStats()
         self._lock = asyncio.Lock()
 
+    def _check_can_start(
+        self, task_id: Optional[str] = None, tenant_id: Optional[str] = None
+    ) -> bool:
+        """Lock-free check if a task can start. Caller must hold _lock."""
+        if len(self._active_tasks) >= self.max_concurrent:
+            logger.warning(
+                "Global concurrent limit reached: %d/%d",
+                len(self._active_tasks),
+                self.max_concurrent,
+            )
+            return False
+        if tenant_id:
+            current_tenant_usage = self._tenant_usage.get(tenant_id, 0)
+            if current_tenant_usage >= self.max_per_tenant:
+                logger.warning(
+                    "Tenant %s concurrent limit reached: %d/%d",
+                    tenant_id,
+                    current_tenant_usage,
+                    self.max_per_tenant,
+                )
+                return False
+        return True
+
     async def can_start_task(
         self, task_id: Optional[str] = None, tenant_id: Optional[str] = None
     ) -> bool:
-        """Check if a task can start based on concurrent usage limits.
-
-        Args:
-            task_id: Optional task ID (for logging)
-            tenant_id: Tenant ID to check limits for
-
-        Returns:
-            True if task can start, False if limits reached
-        """
+        """Check if a task can start based on concurrent usage limits."""
         async with self._lock:
-            # Check global limit
-            if len(self._active_tasks) >= self.max_concurrent:
-                logger.warning(
-                    "Global concurrent limit reached: %d/%d",
-                    len(self._active_tasks),
-                    self.max_concurrent,
-                )
-                return False
-
-            # Check tenant-specific limit
-            if tenant_id:
-                current_tenant_usage = self._tenant_usage.get(tenant_id, 0)
-                if current_tenant_usage >= self.max_per_tenant:
-                    logger.warning(
-                        "Tenant %s concurrent limit reached: %d/%d",
-                        tenant_id,
-                        current_tenant_usage,
-                        self.max_per_tenant,
-                    )
-                    return False
-
-            return True
+            return self._check_can_start(task_id, tenant_id)
 
     async def start_task(self, task_id: str, tenant_id: Optional[str] = None) -> bool:
         """Start tracking a task."""
         async with self._lock:
-            if not await self.can_start_task(task_id, tenant_id):
+            if not self._check_can_start(task_id, tenant_id):
                 return False
 
             # Add task to active set
