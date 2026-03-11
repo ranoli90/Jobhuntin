@@ -1,7 +1,12 @@
 # PowerShell script to trigger Render deployment
+$apiKey = $env:RENDER_API_KEY
+if (-not $apiKey) {
+    Write-Error "Set RENDER_API_KEY environment variable"
+    exit 1
+}
 $headers = @{
     "Accept" = "application/json"
-    "Authorization" = "Bearer rnd_60sCKrELEJ54xsuJYPR9Q1DalWxa"
+    "Authorization" = "Bearer $apiKey"
 }
 
 $body = @{

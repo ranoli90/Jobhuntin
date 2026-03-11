@@ -1,4 +1,5 @@
 import json
+import os
 
 import requests
 
@@ -18,8 +19,12 @@ def list_deploys(service_id, api_token):
 
 
 if __name__ == "__main__":
-    api_token = "rnd_V3u4rM4GNZcTQXSWUzNjv375AVdY"
-    service_id = "srv-d66aadsr85hc73dastfg"
+    api_token = os.environ.get("RENDER_API_KEY")
+    service_id = os.environ.get("RENDER_SERVICE_ID")
+    if not api_token or not service_id:
+        raise SystemExit(
+            "Set RENDER_API_KEY and RENDER_SERVICE_ID environment variables"
+        )
     deploys = list_deploys(service_id, api_token)
     if isinstance(deploys, list):
         print(f"Found {len(deploys)} deploys.")

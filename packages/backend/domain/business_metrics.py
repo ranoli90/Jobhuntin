@@ -21,7 +21,7 @@ async def get_daily_active_users(
             DATE(created_at) AS date,
             COUNT(DISTINCT user_id)::int AS dau
         FROM public.analytics_events
-        WHERE created_at >= now() - interval '%s days'
+        WHERE created_at >= now() - interval '1 day' * $1
         GROUP BY DATE(created_at)
         ORDER BY date DESC
         """,
