@@ -109,6 +109,11 @@ async def complete_concurrent_session(
 ) -> Dict[str, str]:
     """Complete a concurrent usage session."""
     try:
+        # IDOR prevention: verify session belongs to current tenant
+        session = tracker.get_session(session_id)
+        if not session or session.tenant_id != ctx.tenant_id:
+            raise HTTPException(status_code=404, detail="Session not found")
+
         success = await tracker.complete_session(session_id, status, error_count)
 
         if not success:
@@ -137,6 +142,11 @@ async def fail_concurrent_session(
 ) -> Dict[str, str]:
     """Mark a concurrent usage session as failed."""
     try:
+        # IDOR prevention: verify session belongs to current tenant
+        session = tracker.get_session(session_id)
+        if not session or session.tenant_id != ctx.tenant_id:
+            raise HTTPException(status_code=404, detail="Session not found")
+
         success = await tracker.fail_session(session_id, error_count)
 
         if not success:
@@ -172,6 +182,9 @@ async def get_concurrent_sessions(
             session = tracker.get_session(session_id)
             if not session:
                 raise HTTPException(status_code=404, detail="Session not found")
+            # IDOR prevention: verify session belongs to current tenant
+            if session.tenant_id != ctx.tenant_id:
+                raise HTTPException(status_code=404, detail="Session not found")
 
             return {
                 "session": {
@@ -193,8 +206,10 @@ async def get_concurrent_sessions(
                 }
             }
         else:
-            # Get all active sessions
-            active_sessions = tracker.get_active_sessions()
+            # Get all active sessions (filter by tenant to prevent IDOR)
+            active_sessions = [
+                s for s in tracker.get_active_sessions() if s.tenant_id == ctx.tenant_id
+            ]
 
             # Filter sessions
             filtered_sessions = active_sessions
