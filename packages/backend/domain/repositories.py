@@ -273,6 +273,7 @@ class ApplicationRepo:
         conn: asyncpg.Connection,
         application_id: str,
         tenant_id: str | None = None,
+        user_id: str | None = None,
     ) -> ApplicationDetail | None:
         """Fetch application + inputs + last 10 events.
 
@@ -326,10 +327,12 @@ class ApplicationRepo:
                     LIMIT 10
                 ) ae ON ae.application_id = a.id
                 WHERE a.id = $1 AND (a.tenant_id = $2 OR $2 IS NULL)
+                  AND (a.user_id = $3 OR $3 IS NULL)
                 GROUP BY a.id
                 """,
                 application_id,
                 tenant_id,
+                user_id,
             )
         else:
             row = await conn.fetchrow(

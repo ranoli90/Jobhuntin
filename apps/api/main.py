@@ -1381,18 +1381,19 @@ async def save_user_skills(
         extra={"user_id": user_id, "skill_count": len(body.skills)},
     )
 
-    if not body.skills:
-        logger.warning(
-            "[SKILLS] Empty skills list received", extra={"user_id": user_id}
-        )
-        return {"status": "saved", "count": 0}
-
     async with db.acquire() as conn:
         async with conn.transaction():
-            # Clear existing skills and insert new ones (atomic)
+            # Clear existing skills (empty list = clear all)
             await conn.execute(
                 "DELETE FROM public.user_skills WHERE user_id = $1", user_id
             )
+
+            if not body.skills:
+                logger.info(
+                    "[SKILLS] Cleared all skills for user",
+                    extra={"user_id": user_id},
+                )
+                return {"status": "saved", "count": 0}
 
             for skill in body.skills:
                 try:
@@ -1462,33 +1463,33 @@ class WorkStyleRequest(BaseModel):
     )
     learning_style: str = Field(
         default="building",
-        pattern="^(building|studying|mixed)$",
+        pattern="^(building|studying|mixed|docs|hands_on)$",
         description="Learning style",
     )
     company_stage_preference: str = Field(
         default="flexible",
-        pattern="^(startup|growth|enterprise|flexible)$",
+        pattern="^(startup|early_startup|growth|enterprise|flexible)$",
         description="Company stage preference",
     )
     communication_style: str = Field(
         default="mixed",
-        pattern="^(async|sync|mixed)$",
+        pattern="^(async|sync|mixed|flexible)$",
         description="Communication style",
     )
     pace_preference: str = Field(
         default="steady",
-        pattern="^(fast|steady|relaxed)$",
+        pattern="^(fast|steady|relaxed|methodical|flexible)$",
         description="Pace preference",
     )
     ownership_preference: str = Field(
         default="team",
-        pattern="^(individual|team|mixed)$",
+        pattern="^(individual|team|mixed|solo|lead|flexible)$",
         description="Ownership preference",
     )
     career_trajectory: str = Field(
         default="open",
-        pattern="^(open|focused|exploring)$",
-        description="Career trajectory",
+        pattern="^(open|focused|exploring|ic|tech_lead|manager|founder)$",
+        description="Career trajectory (ic, tech_lead, manager, founder, open, focused, exploring)",
     )
 
     model_config = ConfigDict(extra="ignore")
@@ -1826,7 +1827,7 @@ async def get_application_detail(
     validate_uuid(application_id, "application_id")
     async with db.acquire() as conn:
         detail = await ApplicationRepo.get_detail(
-            conn, application_id, tenant_id=ctx.tenant_id
+            conn, application_id, tenant_id=ctx.tenant_id, user_id=ctx.user_id
         )
         if detail is None:
             raise HTTPException(status_code=404, detail="Application not found")

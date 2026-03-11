@@ -634,7 +634,7 @@ export default function Dashboard() {
                               <MessageCircle className="h-3.5 w-3.5" />
                             </div>
                             <div className="min-w-0">
-                              <p className="truncate font-medium text-slate-900">{app.company}</p>
+                              <p className="truncate font-medium text-slate-900">{app.company ?? "Unknown"}</p>
                               <p className="text-xs text-slate-500 truncate">
                                 {app.hold_question?.slice(0, 50)}{app.hold_question && app.hold_question.length > 50 ? '...' : ''}
                               </p>
@@ -750,6 +750,24 @@ export function JobsView() {
     isRemote: userPrefs?.remote_only ?? false,
     jobType: undefined
   });
+
+  // Sync filters when profile loads (useState initial only runs once; profile may load async)
+  const hasSyncedPrefs = useRef(false);
+  useEffect(() => {
+    if (userPrefs && !hasSyncedPrefs.current) {
+      hasSyncedPrefs.current = true;
+      setLocalLocation(userPrefs.location || "");
+      setLocalKeywords(userPrefs.role_type || "");
+      setLocalSalaryMin(userPrefs.salary_min ? String(userPrefs.salary_min) : "");
+      setFilters((prev) => ({
+        ...prev,
+        location: userPrefs.location || "",
+        keywords: userPrefs.role_type || "",
+        minSalary: userPrefs.salary_min ?? undefined,
+        isRemote: userPrefs.remote_only ?? false,
+      }));
+    }
+  }, [userPrefs]);
   const [sortBy, setSortBy] = useState<"match_score" | "recently_matched" | "salary">("match_score");
   const [showFilters, setShowFilters] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -1608,7 +1626,7 @@ export function ApplicationsView() {
 
   const filteredApps = useMemo(
     () => applications.filter(app =>
-      app.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (app.company ?? "").toLowerCase().includes(searchTerm.toLowerCase()) ||
       app.job_title.toLowerCase().includes(searchTerm.toLowerCase())
     ),
     [applications, searchTerm]
@@ -1735,10 +1753,10 @@ export function ApplicationsView() {
             <Card key={app.id} className="p-4 border-slate-200" shadow="sm">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-lg bg-slate-900 flex items-center justify-center text-white font-bold text-sm shadow-sm">
-                  {app.company.charAt(0)}
+                  {(app.company ?? "").charAt(0) || "?"}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-bold text-slate-900">{app.company}</p>
+                  <p className="font-bold text-slate-900">{app.company ?? "Unknown"}</p>
                   <p className="text-xs text-slate-500 font-medium truncate">{app.job_title}</p>
                 </div>
                 <Badge
@@ -1801,7 +1819,7 @@ export function ApplicationsView() {
                     className="group hover:bg-slate-50/50 transition-colors cursor-pointer"
                     tabIndex={0}
                     role="button"
-                    aria-label={`View details for ${app.company} - ${app.job_title}`}
+                    aria-label={`View details for ${app.company ?? "Unknown"} - ${app.job_title}`}
                     onClick={() => navigate(`/app/applications/${app.id}`)}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' || e.key === ' ') {
@@ -1813,10 +1831,10 @@ export function ApplicationsView() {
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-4">
                         <div className="w-10 h-10 rounded-lg bg-slate-900 flex items-center justify-center text-white font-bold text-sm shadow-sm">
-                          {app.company.charAt(0)}
+                          {(app.company ?? "").charAt(0) || "?"}
                         </div>
                         <div>
-                          <p className="font-bold text-slate-900 group-hover:text-primary-600 transition-colors">{app.company}</p>
+                          <p className="font-bold text-slate-900 group-hover:text-primary-600 transition-colors">{app.company ?? "Unknown"}</p>
                           <p className="text-xs text-slate-500 font-medium">{app.job_title}</p>
                         </div>
                       </div>

@@ -634,17 +634,43 @@ async def save_session_progress(
             if not session:
                 raise HTTPException(status_code=404, detail="Session not found")
 
-            # Update session with progress data
+            # Update session with progress data (validate to avoid 500 on malformed input)
             if "current_step" in progress_data:
-                session.current_step = int(progress_data["current_step"])
+                try:
+                    session.current_step = int(progress_data["current_step"])
+                except (TypeError, ValueError):
+                    raise HTTPException(
+                        status_code=400,
+                        detail="current_step must be a valid integer",
+                    )
             if "completion_percentage" in progress_data:
-                session.completion_percentage = float(
-                    progress_data["completion_percentage"]
-                )
+                try:
+                    session.completion_percentage = float(
+                        progress_data["completion_percentage"]
+                    )
+                except (TypeError, ValueError):
+                    raise HTTPException(
+                        status_code=400,
+                        detail="completion_percentage must be a valid number",
+                    )
             if "responses" in progress_data:
-                session.responses.update(progress_data["responses"])
+                r = progress_data["responses"]
+                if isinstance(r, dict):
+                    session.responses.update(r)
+                else:
+                    raise HTTPException(
+                        status_code=400,
+                        detail="responses must be an object",
+                    )
             if "user_profile" in progress_data:
-                session.user_profile.update(progress_data["user_profile"])
+                up = progress_data["user_profile"]
+                if isinstance(up, dict):
+                    session.user_profile.update(up)
+                else:
+                    raise HTTPException(
+                        status_code=400,
+                        detail="user_profile must be an object",
+                    )
 
             # Save updated session
             await OnboardingSessionRepo.save_session(conn, session)

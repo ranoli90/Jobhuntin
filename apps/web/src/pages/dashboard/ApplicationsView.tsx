@@ -118,7 +118,7 @@ export default function ApplicationsView() {
   const filteredApps = useMemo(
     () => applications.filter(app => {
       const matchesSearch = !searchTerm ||
-        app.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (app.company ?? "").toLowerCase().includes(searchTerm.toLowerCase()) ||
         app.job_title.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesStatus = !statusFilter || app.status === statusFilter;
       return matchesSearch && matchesStatus;
@@ -273,10 +273,10 @@ export default function ApplicationsView() {
             <Card key={app.id} className="p-4 border-slate-200" shadow="sm">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-lg bg-slate-900 flex items-center justify-center text-white font-bold text-sm shadow-sm">
-                  {app.company.charAt(0)}
+                  {(app.company ?? "").charAt(0) || "?"}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-bold text-slate-900">{app.company}</p>
+                  <p className="font-bold text-slate-900">{app.company ?? "Unknown"}</p>
                   <p className="text-xs text-slate-500 font-medium truncate">{app.job_title}</p>
                 </div>
                 <Badge
@@ -340,7 +340,7 @@ export default function ApplicationsView() {
                     className="group hover:bg-slate-50/50 transition-colors cursor-pointer"
                     tabIndex={0}
                     role="button"
-                    aria-label={`View details for ${app.company} - ${app.job_title}`}
+                    aria-label={`View details for ${app.company ?? "Unknown"} - ${app.job_title}`}
                     onClick={() => navigate(`/app/applications/${app.id}`)}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' || e.key === ' ') {
@@ -352,10 +352,10 @@ export default function ApplicationsView() {
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-4">
                         <div className="w-10 h-10 rounded-lg bg-slate-900 flex items-center justify-center text-white font-bold text-sm shadow-sm">
-                          {app.company.charAt(0)}
+                          {(app.company ?? "").charAt(0) || "?"}
                         </div>
                         <div>
-                          <p className="font-bold text-brand-text group-hover:text-brand-primary transition-colors">{app.company}</p>
+                          <p className="font-bold text-brand-text group-hover:text-brand-primary transition-colors">{app.company ?? "Unknown"}</p>
                           <p className="text-xs text-slate-500 font-medium">{app.job_title}</p>
                         </div>
                       </div>

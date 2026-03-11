@@ -331,7 +331,10 @@ export default function Onboarding() {
     if (formData.showParsingPreview !== undefined && showParsingPreview !== formData.showParsingPreview) {
       setShowParsingPreview(formData.showParsingPreview);
     }
-  }, [currentStep, formData, linkedinUrl, workStyleAnswers, parsedResume, parsedProfile, richSkills, showParsingPreview]);
+    if (formData.careerGoals && JSON.stringify(careerGoals) !== JSON.stringify(formData.careerGoals)) {
+      setCareerGoals(formData.careerGoals);
+    }
+  }, [currentStep, formData, linkedinUrl, workStyleAnswers, parsedResume, parsedProfile, richSkills, showParsingPreview, careerGoals]);
 
   // Clear save error when changing steps (e.g. prev/next) so it doesn't persist across steps
   React.useEffect(() => {
@@ -439,6 +442,7 @@ export default function Onboarding() {
         parsedProfile,
         richSkills,
         showParsingPreview,
+        careerGoals,
       });
       
       // Only update if values actually changed
@@ -452,6 +456,7 @@ export default function Onboarding() {
           parsedProfile,
           richSkills,
           showParsingPreview,
+          careerGoals,
         });
         prevValuesRef.current = currentValues;
       }
@@ -463,7 +468,7 @@ export default function Onboarding() {
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [contactInfo, preferences, linkedinUrl, workStyleAnswers, parsedResume, parsedProfile, richSkills, showParsingPreview]);
+  }, [contactInfo, preferences, linkedinUrl, workStyleAnswers, parsedResume, parsedProfile, richSkills, showParsingPreview, careerGoals]);
 
   // OB4: Resume Where You Left Off - Show banner for returning users
   React.useEffect(() => {
@@ -495,33 +500,7 @@ export default function Onboarding() {
     return () => clearTimeout(timer);
   }, [contactInfo.email]);
 
-  // O4: Keyboard shortcuts — use ref to step container for robust button lookup
   const stepContainerRef = React.useRef<HTMLDivElement>(null);
-  React.useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement).tagName)) {
-        if (!(e.ctrlKey && e.key === 'Enter')) return;
-      }
-
-      if (e.ctrlKey && e.key === 'Enter') {
-        if (isLastStep) {
-          globalThis.dispatchEvent(new CustomEvent('onboarding:complete'));
-        } else {
-          const nextBtn = stepContainerRef.current?.querySelector<HTMLButtonElement>('[data-onboarding-next]:not([disabled])');
-          if (nextBtn) nextBtn.click();
-          else globalThis.dispatchEvent(new CustomEvent('onboarding:next'));
-        }
-      } else if (e.altKey && e.key === 'ArrowLeft') {
-        if (!isFirstStep) globalThis.dispatchEvent(new CustomEvent('onboarding:prev'));
-      } else if (e.altKey && e.key === 'ArrowRight') {
-        const nextBtn = stepContainerRef.current?.querySelector<HTMLButtonElement>('[data-onboarding-next]:not([disabled])');
-        if (nextBtn) nextBtn.click();
-      }
-    };
-
-    globalThis.addEventListener('keydown', handleKeyDown);
-    return () => globalThis.removeEventListener('keydown', handleKeyDown);
-  }, [isLastStep, isFirstStep]);
 
   // Onboarding completion guard - redirect if already completed
   React.useEffect(() => {
@@ -1074,7 +1053,7 @@ export default function Onboarding() {
     }
   };
 
-  // #19: Ctrl+Enter / Cmd+Enter to continue to next step
+  // #19: Ctrl+Enter / Cmd+Enter to continue; Alt+Arrow for prev/next (single handler to avoid double-submit)
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
@@ -1091,13 +1070,30 @@ export default function Onboarding() {
         else if (stepId === "work-style") handleSaveWorkStyle();
         else if (stepId === "career-goals") handleSaveCareerGoals();
         else if (stepId === "ready") handleComplete();
+      } else if (e.altKey && e.key === "ArrowLeft" && !isFirstStep) {
+        e.preventDefault();
+        prevStep();
+      } else if (e.altKey && e.key === "ArrowRight") {
+        if (isSavingPreferences || isSavingContact || isSavingSkills || isSavingWorkStyle || isSavingCareerGoals || isCompleting) return;
+        e.preventDefault();
+        const stepId = currentStepData?.id;
+        if (stepId === "welcome") nextStep();
+        else if (stepId === "resume") (showParsingPreview && parsedResume ? handleConfirmParsing : handleResumeNext)();
+        else if (stepId === "skill-review") handleSaveSkills();
+        else if (stepId === "confirm-contact") handleSaveContact();
+        else if (stepId === "preferences") handleSavePreferences();
+        else if (stepId === "work-style") handleSaveWorkStyle();
+        else if (stepId === "career-goals") handleSaveCareerGoals();
+        else if (stepId === "ready") handleComplete();
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [
     currentStepData?.id,
+    isFirstStep,
     nextStep,
+    prevStep,
     handleResumeNext,
     handleConfirmParsing,
     handleSaveSkills,

@@ -82,28 +82,37 @@ async def assemble_profile(
         )
 
     # Merge skills from profile_data.skills (onboarding / resume parse)
+    # Skills can be: list of str/dict, or dict { technical: [...], soft: [...] }
     pd_skills = profile_data.get("skills") or []
+    skills_to_merge: list[str | dict] = []
     if isinstance(pd_skills, list):
-        for s in pd_skills:
-            if isinstance(s, str):
-                skill_name = s.strip()
-            elif isinstance(s, dict):
-                skill_name = (s.get("name") or s.get("skill") or "").strip()
-            else:
-                continue
-            if not skill_name or skill_name.lower() in seen_skills:
-                continue
-            seen_skills.add(skill_name.lower())
-            conf = 0.6
-            if isinstance(s, dict) and "confidence" in s:
-                conf = float(s.get("confidence", 0.6))
-            competency_graph.append(
-                RichSkill(
-                    skill=skill_name,
-                    confidence=conf,
-                    source="profile",
-                )
+        skills_to_merge = pd_skills
+    elif isinstance(pd_skills, dict):
+        for key in ("technical", "soft", "skills"):
+            arr = pd_skills.get(key)
+            if isinstance(arr, list):
+                skills_to_merge.extend(arr)
+
+    for s in skills_to_merge:
+        if isinstance(s, str):
+            skill_name = s.strip()
+        elif isinstance(s, dict):
+            skill_name = (s.get("name") or s.get("skill") or "").strip()
+        else:
+            continue
+        if not skill_name or skill_name.lower() in seen_skills:
+            continue
+        seen_skills.add(skill_name.lower())
+        conf = 0.6
+        if isinstance(s, dict) and "confidence" in s:
+            conf = float(s.get("confidence", 0.6))
+        competency_graph.append(
+            RichSkill(
+                skill=skill_name,
+                confidence=conf,
+                source="profile",
             )
+        )
 
     # Load work_style from work_style_profiles table (preferred) or profile_data
     work_style: WorkStyleProfile | None = None

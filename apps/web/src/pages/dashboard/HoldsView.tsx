@@ -83,10 +83,10 @@ export default function HoldsView() {
               <div className="bg-brand-gray border-b border-brand-border p-3 sm:p-4 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-xl bg-brand-primary flex items-center justify-center text-white font-bold text-xs">
-                    {app.company.charAt(0)}
+                    {(app.company ?? "").charAt(0) || "?"}
                   </div>
                   <div>
-                    <h3 className="font-bold text-brand-text text-sm">{app.company}</h3>
+                    <h3 className="font-bold text-brand-text text-sm">{app.company ?? "Unknown"}</h3>
                     <p className="text-[10px] text-brand-muted font-medium uppercase tracking-wider">{app.job_title}</p>
                   </div>
                 </div>
@@ -103,7 +103,7 @@ export default function HoldsView() {
 
                 <div className="space-y-4">
                   <label htmlFor={`hold-answer-${app.id}`} className="sr-only">
-                    Your response for {app.company} — {app.job_title}
+                    Your response for {app.company ?? "Unknown"} — {app.job_title}
                   </label>
                   <textarea
                     id={`hold-answer-${app.id}`}

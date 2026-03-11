@@ -301,16 +301,18 @@ async def get_queue_stats(
         if not user_applying:
             return {"applications": [], "queue_ahead": 0, "eta_minutes": 0}
 
-        # For each user app, count how many QUEUED apps are ahead (higher priority or same+earlier)
+        # For each user app, count how many QUEUED apps are ahead (same tenant only)
         first = user_applying[0]
         ahead = await conn.fetchval(
             """
             SELECT COUNT(*) FROM public.applications
             WHERE status = 'QUEUED'
+              AND tenant_id = $3
               AND (priority_score > $1 OR (priority_score = $1 AND created_at < $2))
             """,
             first["priority_score"],
             first["created_at"],
+            ctx.tenant_id,
         )
         # Avg ~2 min per application (worker + LLM)
         avg_min_per_app = 2
@@ -595,15 +597,16 @@ async def undo_application(
         ):
             raise HTTPException(status_code=400, detail="Undo window has expired")
 
-        # Delete the application record
-        # nosemgrep: python.lang.security.audit.sqli.asyncpg-sqli.asyncpg-sqli - parameterized $1,$2
+        # Delete the application record (tenant_id for defense in depth)
+        # nosemgrep: python.lang.security.audit.sqli.asyncpg-sqli.asyncpg-sqli - parameterized
         await conn.execute(
             """
             DELETE FROM public.applications
-            WHERE user_id = $1 AND job_id = $2
+            WHERE user_id = $1 AND job_id = $2 AND (tenant_id = $3 OR $3 IS NULL)
             """,
             ctx.user_id,
             job_id,
+            ctx.tenant_id,
         )
 
         return {"status": "undone", "job_id": job_id}
