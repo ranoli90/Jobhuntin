@@ -421,7 +421,7 @@ async def create_application(
     if body.decision != "ACCEPT":
         # H-3: Persist rejection with REJECTED status (not FAILED) to avoid
         # inflating failure metrics while still preventing job resurfacing.
-        async with db.acquire() as conn:
+        async with db_transaction(db) as conn:
             # Check for existing application first
             existing_app = await conn.fetchrow(
                 """
