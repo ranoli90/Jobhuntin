@@ -3,10 +3,10 @@
 -- Purpose: Add missing composite indexes identified in audit
 
 -- MEDIUM: Composite index for job search with filters
--- Improves performance of filtered job queries (location, remote, job_type)
+-- Improves performance of filtered job queries (location, is_remote, job_type)
 CREATE INDEX IF NOT EXISTS idx_jobs_search_composite 
-ON public.jobs (is_active, location, remote, job_type, created_at DESC)
-WHERE is_active = true;
+ON public.jobs (location, is_remote, job_type, created_at DESC)
+WHERE is_remote = true;
 
 -- MEDIUM: Composite index for application status queries with tenant
 -- Improves performance of application listing by status and tenant

@@ -17,14 +17,6 @@ CREATE TABLE IF NOT EXISTS tenants (
     updated_at TIMESTAMPTZ DEFAULT now()
 );
 
-CREATE TABLE IF NOT EXISTS tenant_members (
-    tenant_id UUID REFERENCES tenants(id) ON DELETE CASCADE,
-    user_id UUID NOT NULL,
-    role VARCHAR(50) DEFAULT 'MEMBER',
-    created_at TIMESTAMPTZ DEFAULT now(),
-    PRIMARY KEY (tenant_id, user_id)
-);
-
 CREATE TABLE IF NOT EXISTS users (
     id UUID PRIMARY KEY,
     email VARCHAR(255) UNIQUE NOT NULL,
@@ -35,6 +27,14 @@ CREATE TABLE IF NOT EXISTS users (
     profile_completeness INTEGER DEFAULT 0,
     created_at TIMESTAMPTZ DEFAULT now(),
     updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS tenant_members (
+    tenant_id UUID REFERENCES tenants(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    role VARCHAR(50) DEFAULT 'MEMBER',
+    created_at TIMESTAMPTZ DEFAULT now(),
+    PRIMARY KEY (tenant_id, user_id)
 );
 
 CREATE TABLE IF NOT EXISTS profiles (
@@ -141,11 +141,14 @@ CREATE TABLE IF NOT EXISTS applications (
     priority_score INTEGER DEFAULT 0,
     stage VARCHAR(50) DEFAULT 'new',
     priority INTEGER DEFAULT 0,
+    attempt_count INTEGER NOT NULL DEFAULT 0,
     notes_count INTEGER DEFAULT 0,
     reminders_count INTEGER DEFAULT 0,
     notes TEXT,
     applied_date DATE,
     snoozed_until TIMESTAMPTZ,
+    available_at TIMESTAMPTZ,
+    locked_at TIMESTAMPTZ,
     created_at TIMESTAMPTZ DEFAULT now(),
     updated_at TIMESTAMPTZ DEFAULT now(),
     UNIQUE(user_id, job_id)
@@ -166,7 +169,7 @@ CREATE TABLE IF NOT EXISTS application_events (
     application_id UUID NOT NULL REFERENCES applications(id) ON DELETE CASCADE,
     event_type application_event_type NOT NULL,
     payload JSONB,
-    tenant_id UUID,
+    tenant_id UUID REFERENCES tenants(id) ON DELETE SET NULL,
     created_at TIMESTAMPTZ DEFAULT now()
 );
 
@@ -188,15 +191,15 @@ CREATE TABLE IF NOT EXISTS events (
     application_id UUID REFERENCES applications(id) ON DELETE CASCADE,
     event_type VARCHAR(100) NOT NULL,
     data JSONB,
-    tenant_id UUID,
+    tenant_id UUID REFERENCES tenants(id) ON DELETE SET NULL,
     created_at TIMESTAMPTZ DEFAULT now()
 );
 
 CREATE TABLE IF NOT EXISTS application_notes (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     application_id UUID NOT NULL REFERENCES applications(id) ON DELETE CASCADE,
-    user_id UUID NOT NULL,
-    tenant_id UUID,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    tenant_id UUID REFERENCES tenants(id) ON DELETE SET NULL,
     content TEXT NOT NULL,
     note_type VARCHAR(50) DEFAULT 'general',
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
@@ -206,8 +209,8 @@ CREATE TABLE IF NOT EXISTS application_notes (
 CREATE TABLE IF NOT EXISTS follow_up_reminders (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     application_id UUID NOT NULL REFERENCES applications(id) ON DELETE CASCADE,
-    user_id UUID NOT NULL,
-    tenant_id UUID,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    tenant_id UUID REFERENCES tenants(id) ON DELETE SET NULL,
     remind_at TIMESTAMPTZ NOT NULL,
     message TEXT,
     status VARCHAR(20) DEFAULT 'pending',
@@ -316,7 +319,6 @@ CREATE INDEX IF NOT EXISTS idx_jobs_source ON jobs(source);
 CREATE INDEX IF NOT EXISTS idx_jobs_last_synced ON jobs(last_synced_at);
 CREATE INDEX IF NOT EXISTS idx_applications_user_id ON applications(user_id);
 CREATE INDEX IF NOT EXISTS idx_applications_status ON applications(status);
-CREATE INDEX IF NOT EXISTS idx_applications_tenant ON applications(tenant_id);
 CREATE INDEX IF NOT EXISTS idx_applications_tenant_id ON applications(tenant_id);
 CREATE INDEX IF NOT EXISTS idx_applications_user_id_status ON applications(user_id, status);
 CREATE INDEX IF NOT EXISTS idx_applications_tenant_user ON applications(tenant_id, user_id);
@@ -334,7 +336,10 @@ CREATE INDEX IF NOT EXISTS idx_sync_runs_started ON job_sync_runs(started_at);
 CREATE INDEX IF NOT EXISTS idx_billing_customers_tenant ON billing_customers(tenant_id);
 CREATE INDEX IF NOT EXISTS idx_billing_customers_user ON billing_customers(user_id);
 CREATE INDEX IF NOT EXISTS idx_saved_jobs_user ON saved_jobs(user_id);
+CREATE INDEX IF NOT EXISTS idx_saved_jobs_job_id ON saved_jobs(job_id);
 CREATE INDEX IF NOT EXISTS idx_cover_letters_user ON cover_letters(user_id);
+CREATE INDEX IF NOT EXISTS idx_cover_letters_job_id ON cover_letters(job_id) WHERE job_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_tenant_members_user_id ON tenant_members(user_id);
 
 -- ============================================================
 -- Performance Indexes (C6: Database Indexes - Audit Fix)

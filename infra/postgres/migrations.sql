@@ -45,13 +45,36 @@ CREATE INDEX IF NOT EXISTS idx_job_dead_letter_queue_application ON public.job_d
 CREATE INDEX IF NOT EXISTS idx_job_dead_letter_queue_tenant ON public.job_dead_letter_queue(tenant_id);
 CREATE INDEX IF NOT EXISTS idx_job_dead_letter_queue_created ON public.job_dead_letter_queue(created_at DESC);
 
--- 015: tenants.slug, jobs.external_id, jobs.application_url, applications.attempt_count (schema alignment for tests)
+-- 015: tenants.slug, jobs.external_id, jobs.application_url, applications columns (schema alignment)
 ALTER TABLE public.tenants ADD COLUMN IF NOT EXISTS slug VARCHAR(255);
 CREATE UNIQUE INDEX IF NOT EXISTS idx_tenants_slug ON public.tenants(slug) WHERE slug IS NOT NULL;
 ALTER TABLE public.jobs ADD COLUMN IF NOT EXISTS external_id TEXT;
 ALTER TABLE public.jobs ADD COLUMN IF NOT EXISTS application_url TEXT;
 CREATE UNIQUE INDEX IF NOT EXISTS idx_jobs_external_id ON public.jobs(external_id) WHERE external_id IS NOT NULL;
 ALTER TABLE public.applications ADD COLUMN IF NOT EXISTS attempt_count INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE public.applications ADD COLUMN IF NOT EXISTS locked_at TIMESTAMPTZ;
+ALTER TABLE public.applications ADD COLUMN IF NOT EXISTS available_at TIMESTAMPTZ;
+
+-- Worker claim function (claim_next_prioritized)
+CREATE OR REPLACE FUNCTION public.claim_next_prioritized(p_max_attempts int DEFAULT 3)
+RETURNS SETOF public.applications AS $$
+BEGIN
+  RETURN QUERY
+  UPDATE public.applications
+  SET status = 'PROCESSING', locked_at = now(), updated_at = now()
+  WHERE id = (
+    SELECT id FROM public.applications
+    WHERE (status = 'QUEUED' OR (status = 'PROCESSING' AND locked_at < now() - interval '10 minutes'))
+      AND (snoozed_until IS NULL OR snoozed_until < now())
+      AND (available_at IS NULL OR available_at <= now())
+      AND attempt_count < p_max_attempts
+    ORDER BY priority_score DESC, created_at ASC
+    LIMIT 1
+    FOR UPDATE SKIP LOCKED
+  )
+  RETURNING *;
+END;
+$$ LANGUAGE plpgsql;
 
 -- Stripe webhook idempotency: prevent duplicate processing on retries
 CREATE TABLE IF NOT EXISTS public.processed_stripe_events (
