@@ -205,7 +205,7 @@ class BackupManager:
 
         try:
             # Get database connection info
-            db_info = await self._get_database_info()
+            db_info = self._get_database_info()
 
             # Generate backup file path
             timestamp = datetime.fromtimestamp(backup.start_time).strftime(
@@ -275,17 +275,53 @@ class BackupManager:
             logger.error(f"Backup error: {backup.backup_id} - {str(e)}")
             return backup
 
-    async def _get_database_info(self) -> Dict[str, str]:
-        """Get database connection information."""
-        # This should be configured based on your environment
-        # For security, these should come from environment variables
-        return {
-            "host": os.getenv("DB_HOST", "localhost"),
-            "port": os.getenv("DB_PORT", "5432"),
-            "database": os.getenv("DB_NAME", "jobhuntin"),
-            "username": os.getenv("DB_USER", "jobhuntin_user"),
+    def _get_database_info(self) -> Dict[str, str]:
+        """Get database connection information from DATABASE_URL or individual env vars.
+        In prod/staging, rejects localhost defaults to avoid accidental prod backup to dev DB.
+        """
+        from urllib.parse import urlparse
+
+        db_url = os.getenv("DATABASE_URL")
+        env = os.environ.get("ENV", os.environ.get("env", "local")).lower()
+
+        if db_url:
+            try:
+                parsed = urlparse(db_url)
+                host = parsed.hostname or "localhost"
+                port = str(parsed.port or 5432)
+                database = (parsed.path or "/").lstrip("/") or "postgres"
+                username = parsed.username or "postgres"
+                password = parsed.password or ""
+                return {
+                    "host": host,
+                    "port": port,
+                    "database": database,
+                    "username": username,
+                    "password": password,
+                }
+            except Exception as e:
+                logger.warning("Failed to parse DATABASE_URL: %s, falling back to individual vars", e)
+
+        # Individual vars - use dev defaults only when ENV=local
+        defaults = (
+            {"host": "localhost", "port": "5432", "database": "jobhuntin", "username": "jobhuntin_user"}
+            if env == "local"
+            else {}
+        )
+        info = {
+            "host": os.getenv("DB_HOST", defaults.get("host", "")),
+            "port": os.getenv("DB_PORT", defaults.get("port", "5432")),
+            "database": os.getenv("DB_NAME", defaults.get("database", "")),
+            "username": os.getenv("DB_USER", defaults.get("username", "")),
             "password": os.getenv("DB_PASSWORD", ""),
         }
+        if env in ("prod", "staging"):
+            if not info["host"] or info["host"] == "localhost":
+                raise RuntimeError(
+                    "DATABASE_URL or DB_HOST must be set for production backups. "
+                    "Do not use localhost in prod/staging."
+                )
+        return info
 
     def _build_backup_command(
         self, db_info: Dict[str, str], config: BackupConfig, backup_file: Path
@@ -481,7 +517,7 @@ class BackupManager:
             raise ValueError(f"Backup file not found: {backup.file_path}")
 
         # Get database info
-        db_info = await self._get_database_info()
+        db_info = self._get_database_info()
         if target_database:
             db_info["database"] = target_database
 

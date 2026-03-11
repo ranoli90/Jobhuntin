@@ -366,8 +366,10 @@ class Settings(BaseSettings):
             if not self.llm_api_key:
                 missing.append("LLM_API_KEY")
 
-            if not self.app_base_url:
-                missing.append("APP_BASE_URL")
+            if not self.app_base_url or self.app_base_url.strip() == "[REDACTED]":
+                missing.append("APP_BASE_URL (must be set, not placeholder)")
+            if not self.api_public_url or self.api_public_url.strip() == "[REDACTED]":
+                missing.append("API_PUBLIC_URL (required for magic-link redirect in prod)")
             if not self.csrf_secret:
                 missing.append("CSRF_SECRET")
             elif "dev-" in self.csrf_secret or "change-in-production" in self.csrf_secret:

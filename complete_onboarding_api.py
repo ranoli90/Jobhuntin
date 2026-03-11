@@ -9,10 +9,14 @@ from playwright.async_api import async_playwright
 USER_ID = "1ddf977a-a6c6-4d30-8782-eb806bad6050"
 EMAIL = "testuser_2252d514@test.com"
 
-# Get JWT_SECRET from env or use a test secret
+# Get JWT_SECRET from env - required (no dev default to avoid accidental prod use)
 import os
 
-JWT_SECRET = os.getenv("JWT_SECRET", "dev-secret-change-in-production")
+JWT_SECRET = os.getenv("JWT_SECRET")
+if not JWT_SECRET:
+    raise RuntimeError(
+        "JWT_SECRET must be set. Copy .env.example to .env and set JWT_SECRET for local dev."
+    )
 
 
 async def create_auth_token():

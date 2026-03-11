@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import os
 from typing import Any
 
 import asyncpg
@@ -175,13 +174,13 @@ async def billing_usage(
 
 def _validate_redirect_url(url: str, param_name: str, settings: Settings) -> None:
     """Validate that redirect URL starts with an allowed origin."""
-    app_url = getattr(settings, "app_base_url", None) or os.getenv(
-        "APP_PUBLIC_URL", "https://jobhuntin.com"
-    )
-    if app_url and app_url != "[REDACTED]":
-        allowed_origins = [app_url.rstrip("/"), "http://localhost:5173"]
-    else:
-        allowed_origins = ["https://jobhuntin.com", "http://localhost:5173"]
+    app_url = (settings.app_base_url or "").strip()
+    if not app_url or app_url == "[REDACTED]":
+        raise HTTPException(
+            status_code=503,
+            detail="APP_BASE_URL not configured. Cannot validate redirect URL.",
+        )
+    allowed_origins = [app_url.rstrip("/"), "http://localhost:5173"]
     if not any(url.startswith(origin) for origin in allowed_origins):
         raise HTTPException(status_code=400, detail=f"Invalid {param_name}")
 
@@ -421,7 +420,12 @@ async def team_checkout(
         raise HTTPException(status_code=503, detail="Team pricing not configured")
 
     # BILL-003/BILL-004: Use body URLs if provided, else build from app_base_url
-    app_url = getattr(settings, "app_base_url", None) or os.getenv("APP_PUBLIC_URL", "https://jobhuntin.com")
+    app_url = (settings.app_base_url or "").strip()
+    if not app_url or app_url == "[REDACTED]":
+        raise HTTPException(
+            status_code=503,
+            detail="APP_BASE_URL not configured. Set APP_BASE_URL for billing redirects.",
+        )
     success_url = body.success_url or f"{app_url.rstrip('/')}/app/billing?success=true"
     cancel_url = body.cancel_url or f"{app_url.rstrip('/')}/app/billing?canceled=true"
     _validate_redirect_url(success_url, "success_url", settings)
