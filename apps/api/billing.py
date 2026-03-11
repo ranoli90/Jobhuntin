@@ -387,12 +387,13 @@ async def list_invoices(
         invoices = protected_stripe_call(
             lambda: stripe.Invoice.list(customer=customer_id, limit=20)
         )
-        return [
+            return [
             {
                 "id": inv.id,
                 "number": inv.number,
                 "amount_due": inv.amount_due,
                 "amount_paid": inv.amount_paid,
+                "total": inv.total or inv.amount_paid or inv.amount_due,
                 "currency": inv.currency,
                 "status": inv.status,
                 "created": inv.created,

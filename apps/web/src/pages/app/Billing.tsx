@@ -29,7 +29,9 @@ import { telemetry } from "../../lib/telemetry";
 interface Invoice {
   id: string;
   created: number;
-  total: number;
+  total?: number;
+  amount_due?: number;
+  amount_paid?: number;
   invoice_pdf: string;
 }
 
@@ -327,7 +329,7 @@ export default function Billing() {
                             })}
                           </TableCell>
                           <TableCell className="font-bold text-slate-900 dark:text-slate-100">
-                            ${(invoice.total / 100).toFixed(2)}
+                            ${((invoice.total ?? invoice.amount_paid ?? invoice.amount_due ?? 0) / 100).toFixed(2)}
                           </TableCell>
                           <TableCell className="text-right">
                             <a
