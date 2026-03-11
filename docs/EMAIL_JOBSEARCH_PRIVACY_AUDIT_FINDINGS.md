@@ -29,10 +29,11 @@
 
 | ID | Audit | File:Line | Description | Status |
 |----|-------|-----------|-------------|--------|
-| F006 | Job | vectordb.py:310-348 | PgVector fallback OOM on large tables | deferred |
-| F008 | Job | vectordb.py:420-424 | Pinecone sync API in async methods | deferred |
-| F009 | Job | job_search.py:146-155 | recently_matched sort same as match_score | deferred |
-| PRIV-004 | Privacy | ccpa.py | CCPA data access returns limited fields | pending |
+| F006 | Job | vectordb.py:310-348 | PgVector fallback OOM on large tables | fixed |
+| F008 | Job | vectordb.py:420-424 | Pinecone sync API in async methods | fixed |
+| F009 | Job | job_search.py:146-155 | recently_matched sort same as match_score | fixed |
+| F004 | Job | match_score_precompute.py | Pre-computed scores never read | fixed |
+| PRIV-004 | Privacy | ccpa.py | CCPA data access returns limited fields | fixed |
 | PRIV-005 | Privacy | gdpr.py | GDPR export vs deletion table mismatch | pending |
 | PRIV-006 | Privacy | ccpa.py, main.py | CCPA router has no prefix | fixed |
 | PRIV-007 | Privacy | data_retention.py:96-106 | Applications hard-deleted, not archived | deferred |

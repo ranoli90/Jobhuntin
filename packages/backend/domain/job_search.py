@@ -132,12 +132,29 @@ async def search_and_list_jobs(
         t0 = time.monotonic()
         async with db_pool.acquire() as conn:
             profile = await assemble_profile(conn, user_id)
+            # F004: Use pre-computed scores from match_scores when available
+            job_ids = [str(j.get("id")) for j in result if j.get("id")]
+            precomputed: dict[str, float] = {}
+            if job_ids:
+                precomputed_rows = await conn.fetch(
+                    """
+                    SELECT job_id, score FROM public.match_scores
+                    WHERE user_id = $1 AND job_id = ANY($2::uuid[])
+                    """,
+                    user_id,
+                    job_ids,
+                )
+                precomputed = {str(r["job_id"]): float(r["score"]) for r in precomputed_rows}
         if profile:
             result = apply_dealbreaker_filters(result, profile.dealbreakers)
             for job in result:
-                # Ensure job has keys expected by score_job_match
-                job.setdefault("requirements", job.get("skills") or [])
-                score_job_match(job, profile)
+                job_id = str(job.get("id")) if job.get("id") else None
+                if job_id and job_id in precomputed:
+                    job["match_score"] = precomputed[job_id]
+                    job["match_reasoning"] = "(pre-computed)"
+                else:
+                    job.setdefault("requirements", job.get("skills") or [])
+                    score_job_match(job, profile)
             duration = time.monotonic() - t0
             observe("job_search.match_scoring_latency_seconds", duration)
             incr("job_search.jobs_scored", {"user_id": user_id}, value=len(result))
@@ -147,14 +164,21 @@ async def search_and_list_jobs(
                     j for j in result if (j.get("match_score") or 0) >= min_match_score
                 ]
             # MEDIUM: Optimize match score sorting for large datasets
-            # Note: For very large result sets, consider pre-computing and storing match scores
-            # in the database and using SQL ORDER BY instead of in-memory sorting
-            if sort_by in ("match_score", "recently_matched"):
-                # Use stable sort with proper type handling
+            # F009: recently_matched = recency first (newest jobs among matches);
+            # match_score = score first (best matches)
+            if sort_by == "match_score":
                 result.sort(
                     key=lambda j: (
-                        float(j.get("match_score") or 0),  # Ensure numeric comparison
-                        j.get("date_posted") or "",  # String comparison for dates
+                        float(j.get("match_score") or 0),
+                        j.get("date_posted") or "",
+                    ),
+                    reverse=True,
+                )
+            elif sort_by == "recently_matched":
+                result.sort(
+                    key=lambda j: (
+                        j.get("date_posted") or "",
+                        float(j.get("match_score") or 0),
                     ),
                     reverse=True,
                 )

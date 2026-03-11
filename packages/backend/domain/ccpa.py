@@ -1,29 +1,86 @@
+# PRIV-004: Expanded data inventory for CCPA "Right to Know" — align with GDPR export
 DATA_INVENTORY = {
-    "users": ["email", "full_name", "headline", "bio", "resume_url"],
-    "applications": ["status", "created_at", "submitted_at"],
+    "users": [
+        "id",
+        "email",
+        "full_name",
+        "headline",
+        "bio",
+        "resume_url",
+        "created_at",
+        "updated_at",
+    ],
+    "applications": [
+        "id",
+        "application_url",
+        "status",
+        "created_at",
+        "updated_at",
+        "submitted_at",
+        "job_id",
+        "job_title",
+        "company",
+    ],
+    "profiles": ["user_id", "profile_data", "resume_url", "preferences", "updated_at"],
+    "saved_jobs": ["user_id", "job_id", "saved_at"],
+    "cover_letters": ["user_id", "job_id", "content", "created_at"],
+    "user_preferences": [
+        "user_id",
+        "min_salary",
+        "max_salary",
+        "preferred_locations",
+        "remote_only",
+    ],
 }
 
 
 class CCPAComplianceManager:
     @staticmethod
+    def _filter_by_inventory(data: dict | list, inventory_keys: list[str]) -> dict | list:
+        """Filter dict or list of dicts to only include allowed keys."""
+        if isinstance(data, dict):
+            return {k: v for k, v in data.items() if k in inventory_keys}
+        return [
+            {k: v for k, v in item.items() if k in inventory_keys}
+            for item in data
+        ]
+
+    @staticmethod
     def handle_data_access_request(
-        user_id: str, user_data: dict | None, application_data: list[dict] | None
+        user_id: str,
+        user_data: dict | None = None,
+        application_data: list[dict] | None = None,
+        profile_data: dict | None = None,
+        saved_jobs: list[dict] | None = None,
+        cover_letters: list[dict] | None = None,
+        user_preferences: dict | None = None,
     ):
         """Handles a data access request by returning all data associated with the user."""
-        if not user_data:
-            user_data = {}
-        if not application_data:
-            application_data = []
-
-        return {
-            "user": {
-                k: v for k, v in user_data.items() if k in DATA_INVENTORY["users"]
-            },
-            "applications": [
-                {k: v for k, v in app.items() if k in DATA_INVENTORY["applications"]}
-                for app in application_data
-            ],
+        result: dict = {
+            "user": CCPAComplianceManager._filter_by_inventory(
+                user_data or {}, DATA_INVENTORY["users"]
+            ),
+            "applications": CCPAComplianceManager._filter_by_inventory(
+                application_data or [], DATA_INVENTORY["applications"]
+            ),
         }
+        if profile_data:
+            result["profiles"] = CCPAComplianceManager._filter_by_inventory(
+                profile_data, DATA_INVENTORY["profiles"]
+            )
+        if saved_jobs:
+            result["saved_jobs"] = CCPAComplianceManager._filter_by_inventory(
+                saved_jobs, DATA_INVENTORY["saved_jobs"]
+            )
+        if cover_letters:
+            result["cover_letters"] = CCPAComplianceManager._filter_by_inventory(
+                cover_letters, DATA_INVENTORY["cover_letters"]
+            )
+        if user_preferences:
+            result["user_preferences"] = CCPAComplianceManager._filter_by_inventory(
+                user_preferences, DATA_INVENTORY["user_preferences"]
+            )
+        return result
 
     @staticmethod
     async def handle_data_deletion_request(user_id: str, db_pool):

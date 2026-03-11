@@ -12,6 +12,7 @@ instead of storing as JSON for slow similarity search.
 
 from __future__ import annotations
 
+import asyncio
 import json
 import os
 from abc import ABC, abstractmethod
@@ -308,7 +309,8 @@ class PgVectorBackend(VectorDBBackend):
                 for row in rows
             ]
         else:
-            # Fallback: fetch all and compute similarity in Python
+            # Fallback: fetch and compute similarity in Python. F006: LIMIT to avoid OOM
+            _FALLBACK_MAX_ROWS = 5000
             where_clauses = ["namespace = $1"]
             params: list[Any] = [namespace]
 
@@ -319,10 +321,13 @@ class PgVectorBackend(VectorDBBackend):
                     where_clauses.append(f"metadata->>${key_param} = ${val_param}")
                     params.extend([key, str(value)])
 
+            limit_param = len(params) + 1
+            params.append(_FALLBACK_MAX_ROWS)
             query = f"""
                 SELECT id, embedding, metadata
                 FROM {table_name}
                 WHERE {" AND ".join(where_clauses)}
+                LIMIT ${limit_param}
             """
 
             rows = await self._conn.fetch(query, *params)
@@ -478,8 +483,9 @@ class PineconeBackend(VectorDBBackend):
         metadata: dict[str, Any] | None = None,
         namespace: str = "default",
     ) -> None:
-        """Insert or update a vector."""
-        self._index.upsert(
+        """Insert or update a vector. F008: run sync Pinecone API in thread pool."""
+        await asyncio.to_thread(
+            self._index.upsert,
             vectors=[(id, embedding, metadata or {})],
             namespace=namespace,
         )
@@ -489,14 +495,15 @@ class PineconeBackend(VectorDBBackend):
         items: list[dict[str, Any]],
         namespace: str = "default",
     ) -> None:
-        """Insert or update multiple vectors."""
+        """Insert or update multiple vectors. F008: run sync Pinecone API in thread pool."""
         vectors = [
             (item["id"], item["embedding"], item.get("metadata", {})) for item in items
         ]
-        # Pinecone recommends batches of 100
         for i in range(0, len(vectors), 100):
             batch = vectors[i : i + 100]
-            self._index.upsert(vectors=batch, namespace=namespace)
+            await asyncio.to_thread(
+                self._index.upsert, vectors=batch, namespace=namespace
+            )
 
     async def search(
         self,
@@ -505,8 +512,9 @@ class PineconeBackend(VectorDBBackend):
         filters: dict[str, Any] | None = None,
         namespace: str = "default",
     ) -> list[dict[str, Any]]:
-        """Search for similar vectors."""
-        results = self._index.query(
+        """Search for similar vectors. F008: run sync Pinecone API in thread pool."""
+        results = await asyncio.to_thread(
+            self._index.query,
             vector=query_embedding,
             top_k=top_k,
             include_metadata=True,
@@ -527,17 +535,18 @@ class PineconeBackend(VectorDBBackend):
         id: str,
         namespace: str = "default",
     ) -> None:
-        """Delete a vector by ID."""
-        self._index.delete(ids=[id], namespace=namespace)
+        """Delete a vector by ID. F008: run sync Pinecone API in thread pool."""
+        await asyncio.to_thread(self._index.delete, ids=[id], namespace=namespace)
 
     async def delete_by_filter(
         self,
         filters: dict[str, Any],
         namespace: str = "default",
     ) -> int:
-        """Delete vectors matching filters."""
-        # Pinecone requires a metadata filter for delete
-        self._index.delete(filter=filters, namespace=namespace)
+        """Delete vectors matching filters. F008: run sync Pinecone API in thread pool."""
+        await asyncio.to_thread(
+            self._index.delete, filter=filters, namespace=namespace
+        )
         return -1  # Pinecone doesn't return count
 
     async def get(
@@ -545,8 +554,10 @@ class PineconeBackend(VectorDBBackend):
         id: str,
         namespace: str = "default",
     ) -> dict[str, Any] | None:
-        """Get a vector by ID."""
-        results = self._index.fetch(ids=[id], namespace=namespace)
+        """Get a vector by ID. F008: run sync Pinecone API in thread pool."""
+        results = await asyncio.to_thread(
+            self._index.fetch, ids=[id], namespace=namespace
+        )
         if id in results.vectors:
             v = results.vectors[id]
             return {
