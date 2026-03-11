@@ -1358,7 +1358,7 @@ class FormAgent:
         """
         import tempfile
 
-        from backend.domain.masking import strip_pii_for_llm
+        from packages.backend.domain.masking import strip_pii_for_llm
 
         user_id = ctx.get("user_id")
         job_id = ctx.get("job_id")
