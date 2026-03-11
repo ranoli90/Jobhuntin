@@ -120,7 +120,7 @@ PYTHONPATH=apps:packages:. mypy apps/api/ apps/worker/ packages/backend/ shared/
 ### 3.3 Job Application (Agent)
 | ID | Description | Priority |
 |----|-------------|----------|
-| HTTP-first for Greenhouse/Lever | Try API apply before Playwright | High |
+| ~~HTTP-first for Greenhouse/Lever~~ | ✅ Done: try_http_apply_first before Playwright; apply_strategy=auto | Fixed |
 | ~~Integrate ATS handlers~~ | ✅ Done: pre-fill, custom selectors, skip selectors wired into agent | — |
 | Proxy rotation for agent | Add `agent_proxies`; rotate on 429/403 | Medium |
 | OAuth session persistence | Store cookies per (user, domain) | Medium |
@@ -161,7 +161,7 @@ PYTHONPATH=apps:packages:. mypy apps/api/ apps/worker/ packages/backend/ shared/
 |------|-------------|
 | Mypy | ~351 errors remaining (pre-existing) |
 | Ruff | ~838 errors remaining (pre-existing) |
-| npm audit | May have high/critical; run `npm audit fix` |
+| npm audit | Crit/high in mobile/expo (remix, cookie, ip); fix requires --force (breaking) |
 
 ---
 
@@ -267,7 +267,7 @@ Worker/cron → JobSyncService.sync_all_sources()
 Read docs/SESSION_HANDOFF_DOCUMENT.md in full. Then:
 
 1. Prioritize and fix the highest-impact remaining items from Section 3 (REMAINING).
-2. Start with PRIV-006 (gdpr_requests table), then items 22, 24–32.
+2. Start with PRIV-006 (gdpr_requests table), then items 22, 24–32 (Section 3.5).
 3. Use the coding standards in Section 4. Run tests after each fix.
 4. Document what you fix in docs/PRODUCTION_READINESS_FIXES.md or create a new audit doc.
 5. Commit and push when done.

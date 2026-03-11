@@ -100,6 +100,11 @@
   - `click_next_button`: custom next selectors from ATS handlers (Greenhouse, Lever, Workday, SmartRecruiters)
   - `submit_form`: merge ATS submit selectors with blueprint selectors
   - Greenhouse/Lever/Workday/SmartRecruiters handlers now used for pre-fill, custom selectors, skip selectors
+- **HTTP-first for Greenhouse/Lever** (Section 3.3 High)
+  - `packages/backend/domain/http_apply.py`: try_http_apply_first() — form-based HTTP submission before Playwright
+  - For Greenhouse/Lever URLs: GET page, parse form, POST with profile + resume; fall back to browser on failure
+  - `config.apply_strategy`: "auto" (default) try HTTP first; "browser_only" skip
+  - agent.py: build ctx before browser; if HTTP succeeds, _handle_success without opening Playwright
 
 ## Environment Checklist for Production
 

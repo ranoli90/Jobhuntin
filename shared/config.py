@@ -281,6 +281,8 @@ class Settings(BaseSettings):
     # ── Agent guardrails ──────────────────────────────────────────
     agent_enabled: bool = True  # set False to emergency-stop the worker
     prompt_version_override: str = ""  # e.g. "v2" to force a specific prompt version
+    # apply_strategy: auto = try HTTP first for Greenhouse/Lever; browser_only = skip
+    apply_strategy: str = "auto"
 
     # ── Logging ──────────────────────────────────────────────────
     log_level: str = "INFO"

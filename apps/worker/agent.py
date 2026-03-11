@@ -31,6 +31,7 @@ from packages.backend.domain.ats_handlers import (
 from packages.backend.domain.ats_handlers import (
     detect_captcha as detect_captcha_ats,
 )
+from packages.backend.domain.http_apply import try_http_apply_first
 
 # CAPTCHA types we cannot solve; escalate to user immediately
 UNSUPPORTED_CAPTCHA_TYPES = frozenset(
@@ -1082,6 +1083,16 @@ class FormAgent:
             blueprint_key,
         )
 
+        # HTTP-first: try form submission for Greenhouse/Lever before Playwright (Section 3.3 High)
+        ctx = await self._build_context(task)
+        if _settings.apply_strategy == "auto":
+            if await try_http_apply_first(ctx):
+                await self._emit_started(ctx)
+                await self._handle_success(task, ctx, None)
+                await concurrent_tracker.end_task(app_id)
+                LogContext.clear()
+                return True
+
         context: BrowserContext = await self._context_factory()
         self.oauth_handler = OAuthHandler(context)
         page = await context.new_page()
@@ -1983,12 +1994,15 @@ class FormAgent:
         # Capture screenshot after submission
         await self.capture_screenshot(page, ctx, "post_submit", success=True)
 
-    async def _handle_success(self, task: dict, ctx: dict, page: Page) -> None:
-        # Capture success screenshot
-        try:
-            await self.capture_screenshot(page, ctx, "success", success=True)
-        except Exception as e:
-            logger.warning("Failed to capture success screenshot: %s", e)
+    async def _handle_success(
+        self, task: dict, ctx: dict, page: Page | None
+    ) -> None:
+        # Capture success screenshot (skip when page is None, e.g. HTTP-first apply)
+        if page is not None:
+            try:
+                await self.capture_screenshot(page, ctx, "success", success=True)
+            except Exception as e:
+                logger.warning("Failed to capture success screenshot: %s", e)
 
         async with self.pool.acquire() as conn:
             final_status = await ctx["blueprint"].on_task_completed(
