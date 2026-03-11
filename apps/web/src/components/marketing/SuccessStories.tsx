@@ -125,7 +125,7 @@ const SuccessStories: React.FC = () => {
             Success Stories
           </h2>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            See how professionals like you transformed their job search with JobHuntin AI
+            See how professionals like you transformed their job search with JobHuntin
           </p>
         </div>
 

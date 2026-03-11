@@ -9,9 +9,9 @@ export default function Privacy() {
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900 selection:bg-primary-500/20 selection:text-primary-700">
       <SEO
-        title="Privacy Policy | JobHuntin AI"
+        title="Privacy Policy | JobHuntin"
         description="Comprehensive details on how JobHuntin collects, uses, and protects your personal data. Compliant with GDPR, CCPA, and global privacy standards."
-        ogTitle="Privacy Policy | JobHuntin AI"
+        ogTitle="Privacy Policy | JobHuntin"
         canonicalUrl="https://jobhuntin.com/privacy"
       />
 
@@ -34,7 +34,7 @@ export default function Privacy() {
           <section>
             <h2>1. Introduction</h2>
             <p>
-              This Privacy Policy explains how <strong>JobHuntin AI</strong> ("we") collects, uses, and protects your data while operating the <strong>Sorce</strong> platform. This policy is strictly aligned with our technical architecture to ensure essentially "Zero-Defect" compliance with strict 2026 regulations (CCPA, Colorado AI Act, GDPR).
+              This Privacy Policy explains how <strong>JobHuntin</strong> ("we") collects, uses, and protects your data while operating the <strong>Sorce</strong> platform. This policy is strictly aligned with our technical architecture to ensure essentially "Zero-Defect" compliance with strict 2026 regulations (CCPA, Colorado AI Act, GDPR).
             </p>
           </section>
 
@@ -168,8 +168,23 @@ export default function Privacy() {
             </div>
           </section>
 
+          <section id="cookies">
+            <h2>7. Cookies & Tracking</h2>
+            <p>
+              We use cookies and similar technologies to provide and improve our services. You can manage your preferences at any time.
+            </p>
+            <ul>
+              <li><strong>Essential:</strong> Required for authentication, security, and core functionality. These cannot be disabled.</li>
+              <li><strong>Analytics:</strong> Help us understand how visitors use our site (e.g., page views, flows). No personal data is shared with third parties.</li>
+              <li><strong>Marketing:</strong> Used for advertising and remarketing. May share data with partners. You can opt out at any time.</li>
+            </ul>
+            <p>
+              Use the &quot;Cookie preferences&quot; link in our footer or in Settings to update your choices. Consent is stored for 12 months and can be withdrawn at any time.
+            </p>
+          </section>
+
           <section>
-            <h2>7. Contact</h2>
+            <h2>8. Contact</h2>
             <p>
               For privacy requests or "Bias Audit" results, email us at <a href="mailto:privacy@jobhuntin.com">privacy@jobhuntin.com</a>.
             </p>

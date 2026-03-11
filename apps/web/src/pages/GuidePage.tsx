@@ -68,7 +68,7 @@ export default function GuidePage() {
       "tool": [
         {
           "@type": "HowToTool",
-          "name": "JobHuntin AI Agent"
+          "name": "JobHuntin Agent"
         }
       ]
     };
@@ -92,7 +92,7 @@ export default function GuidePage() {
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900 selection:bg-primary-500/20 selection:text-primary-700">
       <SEO
         title={`${guide.title} | JobHuntin Playbook`}
-        description={`Deep dive into ${guide.title.toLowerCase()}. Part of the JobHuntin AI automation playbook.`}
+        description={`Deep dive into ${guide.title.toLowerCase()}. Part of the JobHuntin automation playbook.`}
         ogTitle={`${guide.title} | JobHuntin Playbook`}
         ogImage={`${config.urls.og}/api/og?job=${encodeURIComponent(guide.title)}&company=JobHuntin&score=100&location=Global`}
         canonicalUrl={`${config.urls.homepage}/guides/${guideSlug}`}
@@ -101,7 +101,7 @@ export default function GuidePage() {
             "@context": "https://schema.org",
             "@type": "Article",
             "headline": guide.title,
-            "description": `Deep dive into ${guide.title.toLowerCase()}. Part of the JobHuntin AI automation playbook.`,
+            "description": `Deep dive into ${guide.title.toLowerCase()}. Part of the JobHuntin automation playbook.`,
             "url": `https://jobhuntin.com/guides/${guideSlug}`,
             "about": guide.category,
             "author": author ? {

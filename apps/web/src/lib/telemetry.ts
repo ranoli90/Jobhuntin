@@ -1,5 +1,5 @@
-// Telemetry tracking utility - respects cookie consent
-const CONSENT_KEY = 'jobhuntin-cookie-consent';
+// Telemetry tracking utility - respects cookie consent (must match CookieConsent.tsx)
+const CONSENT_KEY = 'jobhuntin-cookie-consent-v2';
 
 function hasAnalyticsConsent(): boolean {
   if (typeof window === 'undefined') return false;
@@ -7,7 +7,7 @@ function hasAnalyticsConsent(): boolean {
     const consent = localStorage.getItem(CONSENT_KEY);
     if (!consent) return false;
     const parsed = JSON.parse(consent);
-    return parsed.analytics !== false;
+    return parsed?.analytics === true;
   } catch {
     return false;
   }

@@ -586,6 +586,13 @@ export default function Settings() {
             {t("settings.exportDescription", locale)}{" "}
             <a href="/privacy" className="underline hover:text-brand-ink">{t("cookies.privacyPolicy", locale)}</a> {t("settings.exportForDetails", locale)}
           </p>
+          <button
+            type="button"
+            onClick={() => window.dispatchEvent(new CustomEvent('showCookiePreferences'))}
+            className="text-sm text-brand-primary hover:underline font-medium"
+          >
+            {t("cookies.managePreferences", locale)}
+          </button>
           <div className="space-y-3">
             <Button variant="outline" onClick={handleExportData} disabled={isExporting}>
               {isExporting ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <Download className="h-4 w-4" aria-hidden />}

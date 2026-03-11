@@ -250,22 +250,15 @@ function generateAdvancedSchema(role: string, location: string, locationData: an
       }
     },
     'baseSalary': {
-      '@type': 'MonetaryRange',
+      '@type': 'MonetaryAmount',
       'currency': 'USD',
-      'minValue': salaryMin * 100,
-      'maxValue': salaryMax * 100,
-      'unitText': 'YEAR'
+      'value': {
+        '@type': 'QuantitativeValue',
+        'minValue': salaryMin,
+        'maxValue': salaryMax,
+        'unitText': 'YEAR'
+      }
     },
-    'estimatedSalary': {
-        '@type': 'MonetaryAmount',
-        'currency': 'USD',
-        'value': {
-          '@type': 'QuantitativeValue',
-          'minValue': salaryMin,
-          'maxValue': salaryMax,
-          'unitText': 'YEAR'
-        }
-      },
     'jobLocationType': locationData?.remotePercentage > 50 ? 'TELECOMMUTE' : 'OFFER',
     'directApply': true,
     'applicantLocationRequirements': {
@@ -530,15 +523,14 @@ export function generateSemanticLinking(currentRole: string, currentLocation: st
     }
   }
 
-  // If no category found, use intelligent semantic matching
+  // If no category found, use deterministic semantic matching (no Math.random for SEO stability)
   if (relatedRoles.length === 0) {
     relatedRoles = allRoles.filter(role => {
       if (role === currentRole) return false;
-      // Semantic similarity based on common terms
       const currentWords = currentRole.toLowerCase().split(' ');
       const roleWords = role.toLowerCase().split(' ');
       const commonWords = currentWords.filter(word => roleWords.includes(word));
-      return commonWords.length > 0 || Math.random() > 0.7; // Some randomness for diversity
+      return commonWords.length > 0 || (stableHash(role) % 10) < 3; // Deterministic: ~30% of non-matching roles included
     }).slice(0, 4);
   }
 
@@ -551,11 +543,10 @@ export function generateSemanticLinking(currentRole: string, currentLocation: st
     // Related tech hubs
     relatedLocations = techHubs.filter(city => city !== currentLocation).slice(0, 4);
   } else {
-    // Semantic location matching
+    // Deterministic location matching (no Math.random for SEO stability)
     relatedLocations = allLocations.filter(location => {
       if (location === currentLocation) return false;
-      // Mix of nearby cities and similar markets
-      return Math.random() > 0.6;
+      return (stableHash(location) % 10) < 4; // Deterministic: ~40% of locations included
     }).slice(0, 4);
   }
 

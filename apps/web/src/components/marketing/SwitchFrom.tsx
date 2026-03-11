@@ -61,7 +61,7 @@ const SwitchFrom: React.FC<SwitchFromProps> = ({ className }) => {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7m0 13h-1m-1 0h-1m1 0v-4h-1v4m0-10h-1v4h1m0-10v4h1" />
                   </svg>
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">JobHuntin AI</h3>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">JobHuntin</h3>
                 <p className="text-gray-600">AI-powered platform with automated applications</p>
               </div>
               

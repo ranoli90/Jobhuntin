@@ -27,8 +27,9 @@ export default function NotFound() {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 font-sans text-slate-900 dark:text-slate-100 selection:bg-primary-500/20 selection:text-primary-700">
       <SEO 
-        title="404 | This Page Doesn't Exist, But Your Dream Job Does | JobHuntin"
-        description="Wrong turn? While you're here, JobHuntin's AI agent is applying to jobs for thousands of people. Start free and never miss a role again."
+        title="404 | Page Not Found | JobHuntin"
+        description="This page doesn't exist. Return to JobHuntin to find your next role."
+        noindex
       />
       
       <main className="flex flex-col items-center justify-center min-h-screen px-6 text-center relative overflow-hidden">

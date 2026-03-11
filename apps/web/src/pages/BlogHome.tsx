@@ -186,6 +186,7 @@ export default function BlogHome() {
                       src={post.heroImage}
                       alt=""
                       aria-hidden
+                      loading="lazy"
                       className="w-[50%] max-w-[200px] h-auto object-contain opacity-60 group-hover:opacity-80 transition-opacity"
                     />
                   </div>
@@ -235,7 +236,7 @@ export default function BlogHome() {
                 >
                   <div className="flex items-start gap-4 sm:gap-6">
                     <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl flex-shrink-0 flex items-center justify-center overflow-hidden" style={{ background: post.heroGradient }}>
-                      <img src={post.heroImage} alt="" aria-hidden className="w-[70%] h-[70%] object-contain opacity-60" />
+                      <img src={post.heroImage} alt="" aria-hidden loading="lazy" className="w-[70%] h-[70%] object-contain opacity-60" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-sm text-[#787774] mb-1.5">

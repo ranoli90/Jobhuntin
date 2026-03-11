@@ -11,12 +11,17 @@ export function useGoogleAnalytics() {
     // Grant consent on mount if user previously accepted (so initial pageview can fire)
     useEffect(() => {
         if (!window.gtag) return;
-        const consent = localStorage.getItem('jobhuntin-cookie-consent');
+        const consent = localStorage.getItem('jobhuntin-cookie-consent-v2');
         if (consent) {
             try {
                 const parsed = JSON.parse(consent);
-                if (parsed.analytics !== false) {
-                    window.gtag!('consent', 'update', { analytics_storage: 'granted' });
+                if (parsed?.analytics === true) {
+                    window.gtag!('consent', 'update', {
+                        analytics_storage: 'granted',
+                        ad_storage: parsed?.marketing ? 'granted' : 'denied',
+                        ad_user_data: parsed?.marketing ? 'granted' : 'denied',
+                        ad_personalization: parsed?.marketing ? 'granted' : 'denied',
+                    });
                 }
             } catch {
                 // No valid consent = keep denied
@@ -29,11 +34,11 @@ export function useGoogleAnalytics() {
         if (!window.gtag) return;
 
         // Respect cookie consent - only send pageviews if user accepted
-        const consent = localStorage.getItem('jobhuntin-cookie-consent');
+        const consent = localStorage.getItem('jobhuntin-cookie-consent-v2');
         if (consent) {
             try {
                 const parsed = JSON.parse(consent);
-                if (parsed.analytics === false) return;
+                if (parsed?.analytics !== true) return;
             } catch {
                 return; // No valid consent = don't track
             }

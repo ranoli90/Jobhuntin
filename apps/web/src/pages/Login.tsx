@@ -22,6 +22,7 @@ import { t, formatT, getLocale } from '../lib/i18n';
 import { SocialLoginGroup, SocialLoginDivider } from '../components/auth/SocialLogin';
 import { CaptchaField } from '../components/ui/Captcha';
 import { SkipLink } from '../components/SkipLink';
+import { SEO } from '../components/marketing/SEO';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -225,7 +226,9 @@ export default function Login() {
 
   if (successState) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-6" style={{ background: 'linear-gradient(165deg, #0F1729 0%, #1A2744 50%, #0d1320 100%)' }}>
+      <>
+        <SEO title="Check Your Email | JobHuntin" description="We sent you a magic link. Check your inbox to sign in." noindex />
+        <div className="min-h-screen flex items-center justify-center p-6" style={{ background: 'linear-gradient(165deg, #0F1729 0%, #1A2744 50%, #0d1320 100%)' }}>
         {/* M6: Skip link for keyboard navigation */}
         <SkipLink href="#login-form">Skip to login form</SkipLink>
         <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse 80% 50% at 50% 0%, rgba(69,93,211,0.12) 0%, transparent 60%)' }} />
@@ -326,13 +329,16 @@ export default function Login() {
           </div>
         </motion.div>
       </div>
+      </>
     );
   }
 
   // H9: Loading States - Show loading overlay during token verification
   if (isVerifying) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: 'linear-gradient(165deg, #0F1729 0%, #1A2744 50%, #0d1320 100%)' }} role="status" aria-live="polite" aria-label="Verifying your sign-in link">
+      <>
+        <SEO title="Verifying | JobHuntin" description="Verifying your sign-in link." noindex />
+        <div className="min-h-screen flex items-center justify-center" style={{ background: 'linear-gradient(165deg, #0F1729 0%, #1A2744 50%, #0d1320 100%)' }} role="status" aria-live="polite" aria-label="Verifying your sign-in link">
         <div className="text-center space-y-4 max-w-sm px-6">
           <Loader2 className="w-14 h-14 text-[#7DD3CF] animate-spin mx-auto" aria-hidden />
           <h2 className="text-xl font-bold text-white">Verifying your magic link...</h2>
@@ -342,11 +348,13 @@ export default function Login() {
           </div>
         </div>
       </div>
+      </>
     );
   }
 
   return (
     <>
+      <SEO title="Sign In | JobHuntin" description="Sign in to JobHuntin to access your job search dashboard." noindex />
       <a href="#login-form" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-[#455DD3] focus:text-white focus:rounded-lg focus:font-medium">
         Skip to login form
       </a>

@@ -2,6 +2,7 @@ import React from 'react';
 import { useParams, Link } from 'react-router-dom';
 import authors from '../data/authors.json';
 import guides from '../data/guides.json';
+import { SEO } from '../components/marketing/SEO';
 
 export default function AuthorPage() {
   const { authorId } = useParams<{ authorId: string }>();
@@ -18,8 +19,16 @@ export default function AuthorPage() {
     );
   }
 
+  const title = `${author.name} | JobHuntin Blog Author`;
+  const description = `${author.bio} Explore guides and articles by ${author.name}.`;
+
   return (
     <div className="min-h-screen bg-slate-50">
+      <SEO
+        title={title}
+        description={description}
+        canonicalUrl={`https://jobhuntin.com/authors/${authorId}`}
+      />
       <div className="max-w-4xl mx-auto px-6 py-16 sm:py-20">
         <div className="flex items-center mb-12">
           <img src={author.image} alt={author.name} className="w-32 h-32 rounded-full mr-8" />

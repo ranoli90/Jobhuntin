@@ -9,9 +9,9 @@ export default function Terms() {
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900 selection:bg-primary-500/20 selection:text-primary-700">
       <SEO
-        title="Terms of Service | JobHuntin AI"
+        title="Terms of Service | JobHuntin"
         description="Read the terms and conditions for using JobHuntin's AI job hunting services. Understanding your rights and responsibilities."
-        ogTitle="Terms of Service | JobHuntin AI"
+        ogTitle="Terms of Service | JobHuntin"
         canonicalUrl="https://jobhuntin.com/terms"
       />
 
@@ -22,7 +22,7 @@ export default function Terms() {
           </div>
           <h1 className="text-4xl md:text-5xl font-sans font-black text-slate-900 mb-6 tracking-tight">Terms of Service</h1>
           <p className="text-lg text-slate-500 max-w-2xl mx-auto">
-            Please read these terms carefully before using our service. They govern your relationship with JobHuntin AI.
+            Please read these terms carefully before using our service. They govern your relationship with JobHuntin.
           </p>
           <p className="text-sm text-slate-400 mt-4 font-mono">Last Updated: {lastUpdated}</p>
         </div>
@@ -45,7 +45,7 @@ export default function Terms() {
             <h2>2. Agency & "Human-in-the-Loop"</h2>
             <h3>2.1 Limited Power of Attorney</h3>
             <p>
-              By enabling the "Auto-Apply" feature, you grant <strong>JobHuntin AI</strong> a specific, limited power of attorney to act as your digital agent: to access job boards, complete forms, and electronically sign applications in your name.
+              By enabling the "Auto-Apply" feature, you grant <strong>JobHuntin</strong> a specific, limited power of attorney to act as your digital agent: to access job boards, complete forms, and electronically sign applications in your name.
             </p>
 
             <h3>2.2 Your Responsibility (The "Review Queue")</h3>

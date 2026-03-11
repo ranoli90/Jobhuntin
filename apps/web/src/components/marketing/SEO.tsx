@@ -3,7 +3,7 @@ import { Helmet } from 'react-helmet-async';
 
 const BASE_URL = 'https://jobhuntin.com';
 const SITE_NAME = 'JobHuntin';
-const DEFAULT_OG_IMAGE = 'https://jobhuntin.com/og-default.png';
+const DEFAULT_OG_IMAGE = 'https://jobhuntin.com/og-image.png';
 const TWITTER_SITE = '@jobhuntin';
 const DEFAULT_LOCALE = 'en_US';
 
@@ -29,7 +29,7 @@ export interface SEOProps {
   schema?: object | object[];
   /** Breadcrumbs for BreadcrumbList schema */
   breadcrumbs?: BreadcrumbItem[];
-  /** Meta keywords */
+  /** @deprecated Meta keywords ignored by Google; kept for backwards compatibility but not rendered */
   keywords?: string | string[];
   /** Set noindex, nofollow */
   noindex?: boolean;
@@ -106,13 +106,10 @@ export const SEO: React.FC<SEOProps> = ({
     ...(breadcrumbs && breadcrumbs.length > 0 ? [buildBreadcrumbSchema(breadcrumbs)] : []),
   ];
 
-  const keywordsStr = Array.isArray(keywords) ? keywords.join(', ') : keywords;
-
   return (
     <Helmet>
       <title>{title}</title>
       <meta name="description" content={description} />
-      {keywordsStr && <meta name="keywords" content={keywordsStr} />}
       {noindex && <meta name="robots" content="noindex, nofollow" />}
 
       {/* Canonical */}

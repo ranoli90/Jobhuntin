@@ -2,8 +2,10 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Briefcase, Twitter, Linkedin, Github, Heart } from 'lucide-react';
 
+type FooterLink = { name: string; path: string; isCookieTrigger?: boolean };
+
 export function MarketingFooter() {
-  const footerSections = [
+  const footerSections: { title: string; links: FooterLink[] }[] = [
     {
       title: "Platform",
       links: [
@@ -41,6 +43,7 @@ export function MarketingFooter() {
       links: [
         { name: "About Us", path: "/about" },
         { name: "Privacy Policy", path: "/privacy" },
+        { name: "Cookie preferences", path: "#", isCookieTrigger: true },
         { name: "Terms of Service", path: "/terms" },
         { name: "Do Not Sell My Info", path: "/privacy#ccpa" },
         { name: "Contact", path: "/contact" },
@@ -109,12 +112,22 @@ export function MarketingFooter() {
               <ul className="space-y-2.5">
                 {section.links.map((link) => (
                   <li key={link.name}>
-                    <Link
-                      to={link.path}
-                      className="text-[#787774] dark:text-slate-400 hover:text-[#2D2A26] dark:hover:text-slate-100 transition-colors text-sm font-medium"
-                    >
-                      {link.name}
-                    </Link>
+                    {link.isCookieTrigger ? (
+                      <button
+                        type="button"
+                        onClick={() => window.dispatchEvent(new CustomEvent('showCookiePreferences'))}
+                        className="text-[#787774] dark:text-slate-400 hover:text-[#2D2A26] dark:hover:text-slate-100 transition-colors text-sm font-medium text-left"
+                      >
+                        {link.name}
+                      </button>
+                    ) : (
+                      <Link
+                        to={link.path}
+                        className="text-[#787774] dark:text-slate-400 hover:text-[#2D2A26] dark:hover:text-slate-100 transition-colors text-sm font-medium"
+                      >
+                        {link.name}
+                      </Link>
+                    )}
                   </li>
                 ))}
               </ul>

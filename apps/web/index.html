@@ -14,10 +14,12 @@
     window.dataLayer = window.dataLayer || [];
     function gtag() { dataLayer.push(arguments); }
     gtag('js', new Date());
-    // Default: deny analytics until cookie consent is given (GDPR)
+    // Default: deny analytics and ads until cookie consent is given (GDPR / Consent Mode v2)
     gtag('consent', 'default', {
       'analytics_storage': 'denied',
-      'ad_storage': 'denied'
+      'ad_storage': 'denied',
+      'ad_user_data': 'denied',
+      'ad_personalization': 'denied'
     });
     gtag('config', 'G-P1QLYH3M13');
   </script>

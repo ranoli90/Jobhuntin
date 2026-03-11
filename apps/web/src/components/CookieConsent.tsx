@@ -74,6 +74,13 @@ export function CookieConsent() {
     return () => document.body.classList.remove('cookie-consent-visible');
   }, [visible]);
 
+  // Allow reopening preferences from footer/settings
+  useEffect(() => {
+    const handler = () => setShowPreferences(true);
+    window.addEventListener('showCookiePreferences', handler);
+    return () => window.removeEventListener('showCookiePreferences', handler);
+  }, []);
+
   const saveConsent = useCallback((prefs: ConsentPreferences) => {
     localStorage.setItem(CONSENT_KEY, JSON.stringify({
       analytics: prefs.analytics,
@@ -135,6 +142,8 @@ export function CookieConsent() {
 
   if (!visible && !showPreferences) return null;
 
+  const locale = getLocale();
+
   if (showPreferences) {
     return (
       <FocusTrap
@@ -154,7 +163,7 @@ export function CookieConsent() {
             onKeyDown={handleKeyDown}
           >
             <h2 id="cookie-preferences-title" className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-4">
-              {t("cookies.managePreferences", getLocale())}
+              {t("cookies.managePreferences", locale) || "Manage preferences"}
             </h2>
 
             <div className="space-y-4 mb-6">
@@ -164,14 +173,14 @@ export function CookieConsent() {
                   id="essential"
                   checked={preferences.essential}
                   disabled
-                  className="mt-1 rounded border-slate-300"
+                  className="mt-1.5 h-4 w-4 rounded border-slate-300 text-[#455DD3] focus:ring-[#455DD3]"
                 />
                 <div className="flex-1">
                   <label htmlFor="essential" className="font-medium text-slate-900 dark:text-slate-100">
-                    {t("cookies.essential", getLocale())}
+                    {t("cookies.essential", locale) || "Essential"}
                   </label>
                   <p className="text-sm text-slate-500 dark:text-slate-400">
-                    {t("cookies.essentialDescription", getLocale())}
+                    {t("cookies.essentialDescription", locale) || "Required for the site to function."}
                   </p>
                 </div>
               </div>
@@ -182,14 +191,14 @@ export function CookieConsent() {
                   id="analytics"
                   checked={preferences.analytics}
                   onChange={(e) => setPreferences(prev => ({ ...prev, analytics: e.target.checked }))}
-                  className="mt-1 rounded border-slate-300"
+                  className="mt-1.5 h-4 w-4 rounded border-slate-300 text-[#455DD3] focus:ring-[#455DD3]"
                 />
                 <div className="flex-1">
                   <label htmlFor="analytics" className="font-medium text-slate-900 dark:text-slate-100">
-                    {t("cookies.analytics", getLocale())}
+                    {t("cookies.analytics", locale) || "Analytics"}
                   </label>
                   <p className="text-sm text-slate-500 dark:text-slate-400">
-                    {t("cookies.analyticsDescription", getLocale())}
+                    {t("cookies.analyticsDescription", locale) || "Helps us understand site usage."}
                   </p>
                 </div>
               </div>
@@ -200,25 +209,25 @@ export function CookieConsent() {
                   id="marketing"
                   checked={preferences.marketing}
                   onChange={(e) => setPreferences(prev => ({ ...prev, marketing: e.target.checked }))}
-                  className="mt-1 rounded border-slate-300"
+                  className="mt-1.5 h-4 w-4 rounded border-slate-300 text-[#455DD3] focus:ring-[#455DD3]"
                 />
                 <div className="flex-1">
                   <label htmlFor="marketing" className="font-medium text-slate-900 dark:text-slate-100">
-                    {t("cookies.marketing", getLocale())}
+                    {t("cookies.marketing", locale) || "Marketing"}
                   </label>
                   <p className="text-sm text-slate-500 dark:text-slate-400">
-                    {t("cookies.marketingDescription", getLocale())}
+                    {t("cookies.marketingDescription", locale) || "Used for advertising and remarketing."}
                   </p>
                 </div>
               </div>
             </div>
 
             <div className="flex gap-3">
-              <Button variant="outline" onClick={() => setShowPreferences(false)} className="flex-1">
-                {t("cookies.cancel", getLocale())}
+              <Button variant="outline" onClick={() => setShowPreferences(false)} className="flex-1 min-h-[44px]">
+                {t("cookies.cancel", locale) || "Cancel"}
               </Button>
-              <Button onClick={saveCustomPreferences} className="flex-1">
-                {t("cookies.savePreferences", getLocale())}
+              <Button onClick={saveCustomPreferences} className="flex-1 min-h-[44px] bg-[#455DD3] hover:bg-[#3A4FB8]">
+                {t("cookies.savePreferences", locale) || "Save preferences"}
               </Button>
             </div>
           </div>
@@ -247,23 +256,23 @@ export function CookieConsent() {
         className="fixed bottom-0 left-0 right-0 z-50 p-4 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-700 shadow-lg md:flex md:items-center md:justify-between md:px-8"
         onKeyDown={handleKeyDown}
       >
-        <p id="cookie-consent-title" className="sr-only">{t("cookies.title", getLocale())}</p>
-        <p id="cookie-consent-description" className="text-sm text-slate-600 dark:text-slate-400 mb-3 md:mb-0 md:mr-6">
-          {t("cookies.description", getLocale())}{' '}
-          <a href="/privacy#cookies" className="underline text-brand-accent hover:text-brand-ink">
-            {t("cookies.privacyPolicy", getLocale())}
+        <p id="cookie-consent-title" className="sr-only">{t("cookies.title", locale) || "Cookie consent"}</p>
+        <p id="cookie-consent-description" className="text-sm text-slate-600 dark:text-slate-400 mb-4 md:mb-0 md:mr-6 flex-1 max-w-2xl">
+          {t("cookies.description", locale)}{' '}
+          <a href="/privacy#cookies" className="underline text-[#455DD3] hover:text-[#3A4FB8] font-medium">
+            {t("cookies.privacyPolicy", locale)}
           </a>{' '}
-          {t("cookies.forDetails", getLocale())}
+          {t("cookies.forDetails", locale)}
         </p>
-        <div className="flex flex-wrap gap-2 shrink-0">
-          <Button variant="outline" size="sm" onClick={acceptEssentialOnly} data-consent-reject aria-label={t("cookies.rejectAll", getLocale())}>
-            {t("cookies.rejectAll", getLocale())}
+        <div className="flex flex-wrap gap-2 shrink-0 items-center">
+          <Button variant="outline" size="sm" onClick={acceptEssentialOnly} data-consent-reject aria-label={t("cookies.rejectAll", locale)} className="min-h-[44px]">
+            {t("cookies.rejectAll", locale)}
           </Button>
-          <Button variant="outline" size="sm" onClick={() => setShowPreferences(true)} aria-label={t("cookies.managePreferences", getLocale())}>
-            {t("cookies.managePreferences", getLocale())}
+          <Button variant="outline" size="sm" onClick={() => setShowPreferences(true)} aria-label={t("cookies.managePreferences", locale)} className="min-h-[44px]">
+            {t("cookies.managePreferences", locale)}
           </Button>
-          <Button variant="primary" size="sm" onClick={acceptAll} aria-label={t("cookies.acceptAll", getLocale())}>
-            {t("cookies.acceptAll", getLocale())}
+          <Button variant="primary" size="sm" onClick={acceptAll} data-consent-accept aria-label={t("cookies.acceptAll", locale)} className="min-h-[44px] bg-[#455DD3] hover:bg-[#3A4FB8]">
+            {t("cookies.acceptAll", locale)}
           </Button>
         </div>
       </div>
