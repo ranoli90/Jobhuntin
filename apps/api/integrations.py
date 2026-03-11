@@ -51,7 +51,10 @@ def _decrypt_token(encrypted: str) -> str:
 
         f = Fernet(_get_encryption_key())
         return f.decrypt(encrypted.encode()).decode()
-    except Exception:
+    except Exception as e:
+        logger.warning(
+            "OAuth token decryption failed (legacy unencrypted?): %s", e
+        )
         return encrypted  # Return as-is if decryption fails (legacy unencrypted token)
 
 
