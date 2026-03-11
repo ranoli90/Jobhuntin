@@ -1,4 +1,5 @@
 import React, { useState, useRef } from "react";
+import { getAuthToken } from "@/lib/api";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
@@ -68,7 +69,7 @@ export const ScreenshotCapture: React.FC<ScreenshotCaptureProperties> = ({
         {
           method: "POST",
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            Authorization: `Bearer ${getAuthToken()}`,
             "Content-Type": "application/json",
           },
           body: JSON.stringify({

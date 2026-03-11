@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { getAuthToken } from "@/lib/api";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
@@ -136,7 +137,7 @@ const NotificationManager: React.FC = () => {
         `/api/communications/notifications?${parameters}`,
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            Authorization: `Bearer ${getAuthToken()}`,
           },
         },
       );
@@ -159,7 +160,7 @@ const NotificationManager: React.FC = () => {
     try {
       const response = await fetch("/api/communications/preferences", {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          Authorization: `Bearer ${getAuthToken()}`,
         },
       });
 
@@ -189,7 +190,7 @@ const NotificationManager: React.FC = () => {
     try {
       const response = await fetch("/api/communications/notifications/stats", {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          Authorization: `Bearer ${getAuthToken()}`,
         },
       });
 
@@ -208,7 +209,7 @@ const NotificationManager: React.FC = () => {
       const response = await fetch("/api/communications/notifications/send", {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          Authorization: `Bearer ${getAuthToken()}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify(composeForm),
@@ -242,7 +243,7 @@ const NotificationManager: React.FC = () => {
       const response = await fetch("/api/communications/preferences", {
         method: "PUT",
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          Authorization: `Bearer ${getAuthToken()}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify(preferencesForm),
@@ -269,7 +270,7 @@ const NotificationManager: React.FC = () => {
         {
           method: "PUT",
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            Authorization: `Bearer ${getAuthToken()}`,
           },
         },
       );
@@ -296,7 +297,7 @@ const NotificationManager: React.FC = () => {
         {
           method: "PUT",
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            Authorization: `Bearer ${getAuthToken()}`,
           },
         },
       );
@@ -321,7 +322,7 @@ const NotificationManager: React.FC = () => {
         {
           method: "DELETE",
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            Authorization: `Bearer ${getAuthToken()}`,
           },
         },
       );

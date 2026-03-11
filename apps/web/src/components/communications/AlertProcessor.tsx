@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { getAuthToken } from "@/lib/api";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
@@ -129,7 +130,7 @@ const AlertProcessor: React.FC = () => {
         `/api/communications/alerts/history?${parameters}`,
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            Authorization: `Bearer ${getAuthToken()}`,
           },
         },
       );
@@ -150,7 +151,7 @@ const AlertProcessor: React.FC = () => {
     try {
       const response = await fetch("/api/communications/alerts/rules", {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          Authorization: `Bearer ${getAuthToken()}`,
         },
       });
 
@@ -168,7 +169,7 @@ const AlertProcessor: React.FC = () => {
     try {
       const response = await fetch("/api/communications/alerts/stats", {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          Authorization: `Bearer ${getAuthToken()}`,
         },
       });
 
@@ -187,7 +188,7 @@ const AlertProcessor: React.FC = () => {
       const response = await fetch("/api/communications/alerts/process", {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          Authorization: `Bearer ${getAuthToken()}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify(alertForm),
@@ -219,7 +220,7 @@ const AlertProcessor: React.FC = () => {
       const response = await fetch("/api/communications/alerts/rules", {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          Authorization: `Bearer ${getAuthToken()}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify(ruleForm),
@@ -253,7 +254,7 @@ const AlertProcessor: React.FC = () => {
         {
           method: "PUT",
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            Authorization: `Bearer ${getAuthToken()}`,
             "Content-Type": "application/json",
           },
           body: JSON.stringify({ enabled }),
@@ -279,7 +280,7 @@ const AlertProcessor: React.FC = () => {
         {
           method: "DELETE",
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            Authorization: `Bearer ${getAuthToken()}`,
           },
         },
       );

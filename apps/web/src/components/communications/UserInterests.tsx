@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { getAuthToken } from "@/lib/api";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
@@ -112,7 +113,7 @@ const UserInterests: React.FC = () => {
     try {
       const response = await fetch("/api/communications/interests", {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          Authorization: `Bearer ${getAuthToken()}`,
         },
       });
 
@@ -134,7 +135,7 @@ const UserInterests: React.FC = () => {
         "/api/communications/interests/top?limit=10&min_score=0.1",
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            Authorization: `Bearer ${getAuthToken()}`,
           },
         },
       );
@@ -227,7 +228,7 @@ const UserInterests: React.FC = () => {
       const response = await fetch("/api/communications/interests/update", {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          Authorization: `Bearer ${getAuthToken()}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
@@ -274,7 +275,7 @@ const UserInterests: React.FC = () => {
         {
           method: "POST",
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            Authorization: `Bearer ${getAuthToken()}`,
             "Content-Type": "application/json",
           },
           body: JSON.stringify({

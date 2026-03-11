@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { getAuthToken } from "@/lib/api";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
@@ -74,7 +75,7 @@ export const DLQDashboard: React.FC<DLQDashboardProperties> = ({
       // Fetch DLQ items
       const dlqResponse = await fetch("/api/admin/dlq/items", {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          Authorization: `Bearer ${getAuthToken()}`,
         },
       });
       if (!dlqResponse.ok) throw new Error("Failed to fetch DLQ items");
@@ -86,7 +87,7 @@ export const DLQDashboard: React.FC<DLQDashboardProperties> = ({
         "/api/admin/dlq/concurrent-usage",
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            Authorization: `Bearer ${getAuthToken()}`,
           },
         },
       );
@@ -101,7 +102,7 @@ export const DLQDashboard: React.FC<DLQDashboardProperties> = ({
       // Fetch stats
       const statsResponse = await fetch("/api/admin/dlq/stats", {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          Authorization: `Bearer ${getAuthToken()}`,
         },
       });
       if (!statsResponse.ok) throw new Error("Failed to fetch stats");
@@ -156,7 +157,7 @@ export const DLQDashboard: React.FC<DLQDashboardProperties> = ({
         {
           method: "POST",
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            Authorization: `Bearer ${getAuthToken()}`,
           },
         },
       );
@@ -177,7 +178,7 @@ export const DLQDashboard: React.FC<DLQDashboardProperties> = ({
       const response = await fetch("/api/admin/dlq/retry", {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          Authorization: `Bearer ${getAuthToken()}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
@@ -204,7 +205,7 @@ export const DLQDashboard: React.FC<DLQDashboardProperties> = ({
       const response = await fetch(`/api/admin/dlq/items/${itemId}`, {
         method: "DELETE",
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          Authorization: `Bearer ${getAuthToken()}`,
         },
       });
 

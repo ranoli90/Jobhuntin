@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { getAuthToken } from "@/lib/api";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
@@ -112,7 +113,7 @@ const EmailManager: React.FC = () => {
     try {
       const response = await fetch("/api/communications/email/history", {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          Authorization: `Bearer ${getAuthToken()}`,
         },
       });
 
@@ -132,7 +133,7 @@ const EmailManager: React.FC = () => {
     try {
       const response = await fetch("/api/communications/email/preferences", {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          Authorization: `Bearer ${getAuthToken()}`,
         },
       });
 
@@ -160,7 +161,7 @@ const EmailManager: React.FC = () => {
     try {
       const response = await fetch("/api/communications/email/templates", {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          Authorization: `Bearer ${getAuthToken()}`,
         },
       });
 
@@ -179,7 +180,7 @@ const EmailManager: React.FC = () => {
       const response = await fetch("/api/communications/email/send", {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          Authorization: `Bearer ${getAuthToken()}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify(composeForm),
@@ -210,7 +211,7 @@ const EmailManager: React.FC = () => {
       const response = await fetch("/api/communications/email/preferences", {
         method: "PUT",
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          Authorization: `Bearer ${getAuthToken()}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify(preferencesForm),

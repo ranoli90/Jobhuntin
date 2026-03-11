@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { getAuthToken } from "@/lib/api";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
@@ -76,7 +77,7 @@ const DocumentProcessor: React.FC = () => {
 
       const response = await fetch("/api/document-tracking/list", {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          Authorization: `Bearer ${getAuthToken()}`,
         },
       });
 
@@ -96,7 +97,7 @@ const DocumentProcessor: React.FC = () => {
     try {
       const response = await fetch("/api/document-tracking/stats", {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          Authorization: `Bearer ${getAuthToken()}`,
         },
       });
 
@@ -167,7 +168,7 @@ const DocumentProcessor: React.FC = () => {
       const response = await fetch("/api/document-tracking/track", {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          Authorization: `Bearer ${getAuthToken()}`,
         },
         body: formData,
       });
@@ -195,7 +196,7 @@ const DocumentProcessor: React.FC = () => {
       const response = await fetch(`/api/document-tracking/${trackingId}`, {
         method: "DELETE",
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          Authorization: `Bearer ${getAuthToken()}`,
         },
       });
 

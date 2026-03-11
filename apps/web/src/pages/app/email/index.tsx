@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { getAuthToken } from "@/lib/api";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
@@ -94,7 +95,7 @@ const EmailPage: React.FC = () => {
         `/api/communications/email/history?${parameters}`,
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            Authorization: `Bearer ${getAuthToken()}`,
           },
         },
       );
@@ -115,7 +116,7 @@ const EmailPage: React.FC = () => {
     try {
       const response = await fetch("/api/communications/email/preferences", {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          Authorization: `Bearer ${getAuthToken()}`,
         },
       });
 
@@ -137,7 +138,7 @@ const EmailPage: React.FC = () => {
       const response = await fetch("/api/communications/email/send", {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          Authorization: `Bearer ${getAuthToken()}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify(composeForm),
@@ -165,7 +166,7 @@ const EmailPage: React.FC = () => {
         {
           method: "PUT",
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            Authorization: `Bearer ${getAuthToken()}`,
           },
         },
       );
@@ -188,7 +189,7 @@ const EmailPage: React.FC = () => {
       const response = await fetch(`/api/communications/email/${emailId}`, {
         method: "DELETE",
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          Authorization: `Bearer ${getAuthToken()}`,
         },
       });
 
@@ -209,7 +210,7 @@ const EmailPage: React.FC = () => {
       const response = await fetch("/api/communications/email/preferences", {
         method: "PUT",
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          Authorization: `Bearer ${getAuthToken()}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify(preferencesForm),
@@ -293,6 +294,10 @@ const EmailPage: React.FC = () => {
           </p>
         </div>
         <div className="flex space-x-2">
+          <Button onClick={() => setShowCompose(true)}>
+            <Send className="h-4 w-4 mr-2" />
+            Compose
+          </Button>
           <Button onClick={() => setShowPreferences(true)}>
             <Settings className="h-4 w-4 mr-2" />
             Preferences
@@ -442,7 +447,9 @@ const EmailPage: React.FC = () => {
                       >
                         <Switch
                           id={`category-${category}`}
-                          checked={enabled}
+                          checked={
+                            preferencesForm?.categories?.[category] ?? enabled
+                          }
                           onCheckedChange={(checked) => {
                             setPreferencesForm({
                               ...preferencesForm,

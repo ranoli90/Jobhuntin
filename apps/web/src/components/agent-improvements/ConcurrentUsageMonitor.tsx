@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { getAuthToken } from "@/lib/api";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
@@ -76,7 +77,7 @@ const ConcurrentUsageMonitor: React.FC = () => {
     try {
       const response = await fetch("/api/concurrent-usage/stats", {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          Authorization: `Bearer ${getAuthToken()}`,
         },
       });
 
@@ -94,7 +95,7 @@ const ConcurrentUsageMonitor: React.FC = () => {
     try {
       const response = await fetch("/api/concurrent-usage/sessions", {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          Authorization: `Bearer ${getAuthToken()}`,
         },
       });
 
@@ -161,7 +162,7 @@ const ConcurrentUsageMonitor: React.FC = () => {
       const response = await fetch("/api/concurrent-usage/complete-session", {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          Authorization: `Bearer ${getAuthToken()}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
@@ -186,7 +187,7 @@ const ConcurrentUsageMonitor: React.FC = () => {
       const response = await fetch("/api/concurrent-usage/fail-session", {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          Authorization: `Bearer ${getAuthToken()}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
