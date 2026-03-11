@@ -18,6 +18,9 @@ from shared.logging_config import get_logger
 
 logger = get_logger("sorce.index_analyzer")
 
+# Strict allowlist for table/index identifiers (prevents SQL injection)
+_TABLE_NAME_RE = re.compile(r"^[a-zA-Z_][a-zA-Z0-9_]*$")
+
 
 class IndexType(Enum):
     """Types of database indexes."""
@@ -911,6 +914,7 @@ class IndexAnalyzer:
     async def _calculate_fragmentation_score(self, table_name: str) -> float:
         """Calculate index fragmentation score."""
         try:
+            _validate_table_name(table_name)
             # Get table and index statistics
             query = """
                 SELECT
@@ -1349,6 +1353,10 @@ class IndexAnalyzer:
     ) -> Dict[str, Any]:
         """Implement CREATE INDEX recommendation."""
         try:
+            _validate_table_name(recommendation.table_name)
+            _validate_sql_statement(
+                recommendation.sql_statement, ("CREATE INDEX",)
+            )
             if dry_run:
                 return {
                     "success": True,
@@ -1377,6 +1385,12 @@ class IndexAnalyzer:
     ) -> Dict[str, Any]:
         """Implement DROP INDEX recommendation."""
         try:
+            if recommendation.index_name:
+                _validate_table_name(recommendation.index_name)
+            _validate_table_name(recommendation.table_name)
+            _validate_sql_statement(
+                recommendation.sql_statement, ("DROP INDEX",)
+            )
             if dry_run:
                 return {
                     "success": True,
@@ -1405,6 +1419,13 @@ class IndexAnalyzer:
     ) -> Dict[str, Any]:
         """Implement REINDEX INDEX recommendation."""
         try:
+            if recommendation.index_name:
+                _validate_table_name(recommendation.index_name)
+            _validate_table_name(recommendation.table_name)
+            _validate_sql_statement(
+                recommendation.sql_statement,
+                ("REINDEX INDEX", "REINDEX TABLE"),
+            )
             if dry_run:
                 return {
                     "success": True,
@@ -1440,15 +1461,7 @@ class IndexAnalyzer:
                     "sql": recommendation.sql_statement,
                 }
 
-            # SECURITY: Validate table_name to prevent SQL injection
-            import re
-
-            if not recommendation.table_name or not re.match(
-                r"^[a-zA-Z_][a-zA-Z0-9_]*$", recommendation.table_name
-            ):
-                raise ValueError(
-                    "Invalid table_name: must be alphanumeric with underscores only"
-                )
+            _validate_table_name(recommendation.table_name)
 
             # For reorganization, we typically use VACUUM FULL or REINDEX
             async with self.db_pool.acquire() as conn:
@@ -1534,6 +1547,25 @@ class IndexAnalyzer:
 
         except Exception as e:
             logger.error(f"Failed to check index issues: {e}")
+
+
+def _validate_table_name(table_name: str) -> None:
+    """Validate table_name against strict allowlist. Raises ValueError if invalid."""
+    if not table_name or not _TABLE_NAME_RE.match(table_name):
+        raise ValueError(
+            "Invalid table_name: must match ^[a-zA-Z_][a-zA-Z0-9_]*$"
+        )
+
+
+def _validate_sql_statement(sql: str | None, allowed_prefixes: tuple[str, ...]) -> None:
+    """Validate sql_statement starts with an allowed prefix. Raises ValueError if invalid."""
+    if not sql or not sql.strip():
+        raise ValueError("sql_statement is required")
+    normalized = sql.strip().upper()
+    if not any(normalized.startswith(p.upper()) for p in allowed_prefixes):
+        raise ValueError(
+            f"sql_statement must start with one of: {allowed_prefixes}"
+        )
 
 
 # Factory function
