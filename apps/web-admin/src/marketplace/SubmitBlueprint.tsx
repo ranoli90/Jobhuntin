@@ -1,30 +1,5 @@
 import { useState } from "react";
-
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8000";
-
-async function authHeaders(): Promise<Record<string, string>> {
-  // SECURITY: Use httpOnly cookie-based authentication instead of localStorage tokens
-  // This prevents XSS attacks from stealing auth tokens
-  const h: Record<string, string> = { "Content-Type": "application/json" };
-  // No Authorization header needed - token is sent via httpOnly cookie
-  return h;
-}
-
-async function request<T>(method: string, path: string, body?: unknown): Promise<T> {
-  const headers = await authHeaders();
-  const opts: RequestInit = { 
-    method, 
-    headers,
-    credentials: "include"  // SECURITY: Include httpOnly cookies for authentication
-  };
-  if (body) opts.body = JSON.stringify(body);
-  const resp = await fetch(`${API_BASE}${path}`, opts);
-  if (!resp.ok) {
-    const text = await resp.text();
-    throw new Error(`API ${resp.status}: ${text}`);
-  }
-  return resp.json() as Promise<T>;
-}
+import { apiRequest } from "../lib/api";
 
 const CATEGORIES = ["job-applications", "grants", "vendor-onboarding", "scholarships", "compliance", "hr-forms", "insurance", "general"];
 
@@ -44,23 +19,12 @@ export default function SubmitBlueprint() {
     }
     setSubmitting(true);
     try {
-      const h = await authHeaders();
-      const r = await fetch(`${API_BASE}/marketplace/blueprints/submit`, {
-        method: "POST", 
-        headers: h,
-        credentials: "include",  // SECURITY: Include httpOnly cookies for authentication
-        body: JSON.stringify({
-          name: name.trim(), slug: slug.trim().toLowerCase().replace(/\s+/g, "-"),
-          description: description.trim(), long_description: longDesc.trim(),
-          category, price_cents: Math.round(price * 100),
-        }),
+      await apiRequest("POST", "/marketplace/blueprints/submit", {
+        name: name.trim(), slug: slug.trim().toLowerCase().replace(/\s+/g, "-"),
+        description: description.trim(), long_description: longDesc.trim(),
+        category, price_cents: Math.round(price * 100),
       });
-      if (r.ok) {
-        setSubmitted(true);
-      } else {
-        const e = await r.json().catch(() => ({}));
-        alert(e.detail || "Submission failed");
-      }
+      setSubmitted(true);
     } catch (e) { alert(String(e)); }
     finally { setSubmitting(false); }
   };

@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8000";
+import { apiRequest } from "../lib/api";
 
 interface AuthorBlueprint {
   id: string; slug: string; name: string; version: string;
@@ -13,30 +12,6 @@ interface Earnings {
   paid_out_cents: number; total_payouts: number; total_installs: number;
 }
 
-async function authHeaders(): Promise<Record<string, string>> {
-  // SECURITY: Use httpOnly cookie-based authentication instead of localStorage tokens
-  // This prevents XSS attacks from stealing auth tokens
-  const h: Record<string, string> = { "Content-Type": "application/json" };
-  // No Authorization header needed - token is sent via httpOnly cookie
-  return h;
-}
-
-async function request<T>(method: string, path: string, body?: unknown): Promise<T> {
-  const headers = await authHeaders();
-  const opts: RequestInit = { 
-    method, 
-    headers,
-    credentials: "include"  // SECURITY: Include httpOnly cookies for authentication
-  };
-  if (body) opts.body = JSON.stringify(body);
-  const resp = await fetch(`${API_BASE}${path}`, opts);
-  if (!resp.ok) {
-    const text = await resp.text();
-    throw new Error(`API ${resp.status}: ${text}`);
-  }
-  return resp.json() as Promise<T>;
-}
-
 export default function AuthorDashboard() {
   const [blueprints, setBlueprints] = useState<AuthorBlueprint[]>([]);
   const [earnings, setEarnings] = useState<Earnings | null>(null);
@@ -46,8 +21,8 @@ export default function AuthorDashboard() {
     (async () => {
       try {
         const [bpResp, eResp] = await Promise.all([
-          request<AuthorBlueprint[]>("GET", "/marketplace/author/blueprints"),
-          request<Earnings>("GET", "/marketplace/author/earnings"),
+          apiRequest<AuthorBlueprint[]>("GET", "/marketplace/author/blueprints"),
+          apiRequest<Earnings>("GET", "/marketplace/author/earnings"),
         ]);
         if (bpResp) setBlueprints(bpResp);
         if (eResp) setEarnings(eResp);

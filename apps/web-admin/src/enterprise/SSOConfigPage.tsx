@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8000";
+import { apiRequest, getApiBase } from "../lib/api";
 
 interface SSOConfig {
   tenant_id: string;
@@ -8,30 +7,6 @@ interface SSOConfig {
   is_active: boolean;
   entity_id: string;
   sso_url: string;
-}
-
-async function authHeaders(): Promise<Record<string, string>> {
-  // SECURITY: Use httpOnly cookie-based authentication instead of localStorage tokens
-  // This prevents XSS attacks from stealing auth tokens
-  const h: Record<string, string> = { "Content-Type": "application/json" };
-  // No Authorization header needed - token is sent via httpOnly cookie
-  return h;
-}
-
-async function request<T>(method: string, path: string, body?: unknown): Promise<T> {
-  const headers = await authHeaders();
-  const opts: RequestInit = { 
-    method, 
-    headers,
-    credentials: "include"  // SECURITY: Include httpOnly cookies for authentication
-  };
-  if (body) opts.body = JSON.stringify(body);
-  const resp = await fetch(`${API_BASE}${path}`, opts);
-  if (!resp.ok) {
-    const text = await resp.text();
-    throw new Error(`API ${resp.status}: ${text}`);
-  }
-  return resp.json() as Promise<T>;
 }
 
 export default function SSOConfigPage() {
@@ -47,7 +22,7 @@ export default function SSOConfigPage() {
   useEffect(() => {
     (async () => {
       try {
-        const c: SSOConfig = await request("GET", "/sso/config");
+        const c: SSOConfig = await apiRequest("GET", "/sso/config");
         setConfig(c);
         setProvider(c.provider || "saml");
         setEntityId(c.entity_id);
@@ -60,7 +35,7 @@ export default function SSOConfigPage() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const c = await request<SSOConfig>("POST", "/sso/config", {
+      const c = await apiRequest<SSOConfig>("POST", "/sso/config", {
         provider, entity_id: entityId, sso_url: ssoUrl, certificate
       });
       setConfig(c);
@@ -118,9 +93,9 @@ export default function SSOConfigPage() {
         </div>
 
         <div className="bg-muted/50 rounded-lg p-3 text-xs text-muted-foreground space-y-1">
-          <p><strong>SP Metadata URL:</strong> {API_BASE}/sso/saml/metadata</p>
-          <p><strong>ACS URL:</strong> {API_BASE}/sso/saml/acs</p>
-          <p><strong>Entity ID:</strong> {API_BASE}/sso/saml/metadata</p>
+          <p><strong>SP Metadata URL:</strong> {getApiBase()}/sso/saml/metadata</p>
+          <p><strong>ACS URL:</strong> {getApiBase()}/sso/saml/acs</p>
+          <p><strong>Entity ID:</strong> {getApiBase()}/sso/saml/metadata</p>
         </div>
 
         <button onClick={handleSave} disabled={saving}

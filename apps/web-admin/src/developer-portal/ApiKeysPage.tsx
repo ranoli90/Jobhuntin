@@ -1,35 +1,10 @@
 import { useEffect, useState } from "react";
-
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8000";
+import { apiRequest } from "../lib/api";
 
 interface ApiKey {
   id: string; name: string; key_prefix: string; tier: string;
   rate_limit_rpm: number; monthly_quota: number; calls_this_month: number;
   is_active: boolean; last_used_at: string | null; created_at: string;
-}
-
-async function authHeaders(): Promise<Record<string, string>> {
-  // SECURITY: Use httpOnly cookie-based authentication instead of localStorage tokens
-  // This prevents XSS attacks from stealing auth tokens
-  const h: Record<string, string> = { "Content-Type": "application/json" };
-  // No Authorization header needed - token is sent via httpOnly cookie
-  return h;
-}
-
-async function request<T>(method: string, path: string, body?: unknown): Promise<T> {
-  const headers = await authHeaders();
-  const opts: RequestInit = { 
-    method, 
-    headers,
-    credentials: "include"  // SECURITY: Include httpOnly cookies for authentication
-  };
-  if (body) opts.body = JSON.stringify(body);
-  const resp = await fetch(`${API_BASE}${path}`, opts);
-  if (!resp.ok) {
-    const text = await resp.text();
-    throw new Error(`API ${resp.status}: ${text}`);
-  }
-  return resp.json() as Promise<T>;
 }
 
 export default function ApiKeysPage() {
@@ -42,7 +17,7 @@ export default function ApiKeysPage() {
 
   const load = async () => {
     try {
-      const data = await request<ApiKey[]>("GET", "/developer/api-keys");
+      const data = await apiRequest<ApiKey[]>("GET", "/developer/api-keys");
       setKeys(data);
     } catch (e) {
       alert(String(e));
@@ -56,7 +31,7 @@ export default function ApiKeysPage() {
   const createKey = async () => {
     setCreating(true);
     try {
-      const data = await request<{ raw_key?: string }>("POST", "/developer/api-keys", {
+      const data = await apiRequest<{ raw_key?: string }>("POST", "/developer/api-keys", {
         name: newKeyName, tier: newKeyTier
       });
       setCreatedKey(data.raw_key ?? null);
@@ -67,7 +42,7 @@ export default function ApiKeysPage() {
 
   const revokeKey = async (id: string) => {
     if (!confirm("Revoke this API key? This cannot be undone.")) return;
-    await request("DELETE", `/developer/api-keys/${id}`);
+    await apiRequest("DELETE", `/developer/api-keys/${id}`);
     load();
   };
 

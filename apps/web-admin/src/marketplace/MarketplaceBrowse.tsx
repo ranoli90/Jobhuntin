@@ -1,36 +1,11 @@
 import { useEffect, useState } from "react";
-
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8000";
+import { apiRequest } from "../lib/api";
 
 interface Blueprint {
   id: string; slug: string; name: string; description: string;
   category: string; author_name: string; version: string;
   install_count: number; rating_avg: number; rating_count: number;
   price_cents: number; is_featured: boolean; icon_url: string | null;
-}
-
-async function authHeaders(): Promise<Record<string, string>> {
-  // SECURITY: Use httpOnly cookie-based authentication instead of localStorage tokens
-  // This prevents XSS attacks from stealing auth tokens
-  const h: Record<string, string> = { "Content-Type": "application/json" };
-  // No Authorization header needed - token is sent via httpOnly cookie
-  return h;
-}
-
-async function request<T>(method: string, path: string, body?: unknown): Promise<T> {
-  const headers = await authHeaders();
-  const opts: RequestInit = { 
-    method, 
-    headers,
-    credentials: "include"  // SECURITY: Include httpOnly cookies for authentication
-  };
-  if (body) opts.body = JSON.stringify(body);
-  const resp = await fetch(`${API_BASE}${path}`, opts);
-  if (!resp.ok) {
-    const text = await resp.text();
-    throw new Error(`API ${resp.status}: ${text}`);
-  }
-  return resp.json() as Promise<T>;
 }
 
 export default function MarketplaceBrowse() {
@@ -48,11 +23,11 @@ export default function MarketplaceBrowse() {
       if (search) params.set("search", search);
       if (category) params.set("category", category);
       const [bpResp, catResp] = await Promise.all([
-        fetch(`${API_BASE}/marketplace/blueprints?${params}`, { credentials: "include" }),
-        fetch(`${API_BASE}/marketplace/categories`, { credentials: "include" }),
+        apiRequest<{ blueprints?: Blueprint[] }>("GET", `/marketplace/blueprints?${params}`),
+        apiRequest<Array<{ category: string; count: number }>>("GET", "/marketplace/categories"),
       ]);
-      if (bpResp.ok) { const d = await bpResp.json(); setBlueprints(d.blueprints || []); }
-      if (catResp.ok) setCategories(await catResp.json());
+      if (bpResp) setBlueprints(bpResp.blueprints || []);
+      if (catResp) setCategories(catResp);
     } catch (e) { console.error(e); }
     finally { setLoading(false); }
   };
@@ -62,15 +37,9 @@ export default function MarketplaceBrowse() {
   const handleInstall = async (id: string) => {
     setInstalling(id);
     try {
-      const h = await authHeaders();
-      const r = await fetch(`${API_BASE}/marketplace/blueprints/${id}/install`, {
-        method: "POST", 
-        headers: h, 
-        credentials: "include",  // SECURITY: Include httpOnly cookies for authentication
-        body: JSON.stringify({ config: {} }),
-      });
-      if (r.ok) { alert("Blueprint installed!"); load(); }
-      else { const e = await r.json().catch(() => ({})); alert(e.detail || "Install failed"); }
+      await apiRequest("POST", `/marketplace/blueprints/${id}/install`, { config: {} });
+      alert("Blueprint installed!");
+      load();
     } catch (e) { alert(String(e)); }
     finally { setInstalling(null); }
   };

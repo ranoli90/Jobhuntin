@@ -1,31 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8000";
-
-async function authHeaders(): Promise<Record<string, string>> {
-  // SECURITY: Use httpOnly cookie-based authentication instead of localStorage tokens
-  // This prevents XSS attacks from stealing auth tokens
-  const h: Record<string, string> = { "Content-Type": "application/json" };
-  // No Authorization header needed - token is sent via httpOnly cookie
-  return h;
-}
-
-async function request<T>(method: string, path: string, body?: unknown): Promise<T> {
-  const headers = await authHeaders();
-  const opts: RequestInit = { 
-    method, 
-    headers,
-    credentials: "include"  // SECURITY: Include httpOnly cookies for authentication
-  };
-  if (body) opts.body = JSON.stringify(body);
-  const resp = await fetch(`${API_BASE}${path}`, opts);
-  if (!resp.ok) {
-    const text = await resp.text();
-    throw new Error(`API ${resp.status}: ${text}`);
-  }
-  return resp.json() as Promise<T>;
-}
+import { apiRequest } from "../lib/api";
 
 interface HealthSummary {
   status: string;
@@ -368,7 +343,7 @@ export default function Dashboard() {
 
   const { data: overview, isLoading: loadingOverview } = useQuery({
     queryKey: ["dashboard", "overview"],
-    queryFn: () => request<HealthSummary>("GET", "/admin/dashboard/overview"),
+    queryFn: () => apiRequest<HealthSummary>("GET", "/admin/dashboard/overview"),
     refetchInterval: 30000,
   });
 
@@ -378,24 +353,24 @@ export default function Dashboard() {
     error: alertsErrorDetail,
   } = useQuery({
     queryKey: ["dashboard", "alerts"],
-    queryFn: () => request<AlertItem[]>("GET", "/admin/dashboard/alerts?status=firing"),
+    queryFn: () => apiRequest<AlertItem[]>("GET", "/admin/dashboard/alerts?status=firing"),
     refetchInterval: 10000,
   });
 
   const { data: tenants = [] } = useQuery({
     queryKey: ["dashboard", "tenants"],
-    queryFn: () => request<TenantActivity[]>("GET", "/admin/dashboard/tenants"),
+    queryFn: () => apiRequest<TenantActivity[]>("GET", "/admin/dashboard/tenants"),
     refetchInterval: 60000,
   });
 
   const { data: trends = [] } = useQuery({
     queryKey: ["dashboard", "performance"],
-    queryFn: () => request<PerformanceTrend[]>("GET", "/admin/dashboard/performance"),
+    queryFn: () => apiRequest<PerformanceTrend[]>("GET", "/admin/dashboard/performance"),
     refetchInterval: 30000,
   });
 
   const acknowledgeMutation = useMutation({
-    mutationFn: (alertId: string) => request<{ status: string }>("POST", `/admin/dashboard/alerts/${alertId}/acknowledge`),
+    mutationFn: (alertId: string) => apiRequest<{ status: string }>("POST", `/admin/dashboard/alerts/${alertId}/acknowledge`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["dashboard", "alerts"] });
     },

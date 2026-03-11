@@ -1,5 +1,9 @@
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
+export function getApiBase(): string {
+  return API_BASE;
+}
+
 function getAuthToken(): string | null {
   try {
     return sessionStorage.getItem("auth_token");
@@ -8,14 +12,41 @@ function getAuthToken(): string | null {
   }
 }
 
+/** Read csrf cookie set by backend (starlette-csrf) */
+function getCsrfToken(): string | null {
+  if (typeof document === "undefined") return null;
+  const match = document.cookie.match(/(?:^|; )csrftoken=([^;]*)/);
+  return match ? decodeURIComponent(match[1]) : null;
+}
+
+let csrfPreparePromise: Promise<void> | null = null;
+
+/** Call before first mutation to obtain CSRF cookie from backend. */
+async function ensureCsrfCookie(): Promise<void> {
+  if (csrfPreparePromise) return csrfPreparePromise;
+  csrfPreparePromise = (async () => {
+    try {
+      const base = API_BASE.replace(/\/$/, "");
+      await fetch(`${base}/csrf/prepare`, { method: "GET", credentials: "include" });
+    } catch (e) {
+      console.warn("CSRF cookie preflight failed", e);
+    }
+  })();
+  return csrfPreparePromise;
+}
+
 async function authHeaders(): Promise<Record<string, string>> {
   const token = getAuthToken();
+  const csrf = getCsrfToken();
   const h: Record<string, string> = { "Content-Type": "application/json" };
   if (token) h["Authorization"] = `Bearer ${token}`;
+  if (csrf) h["x-csrftoken"] = csrf;
   return h;
 }
 
 async function request<T>(method: string, path: string, body?: unknown): Promise<T> {
+  const isMutation = ["POST", "PUT", "PATCH", "DELETE"].includes(method.toUpperCase());
+  if (isMutation) await ensureCsrfCookie();
   const headers = await authHeaders();
   const opts: RequestInit = { method, headers, credentials: "include" };
   if (body) opts.body = JSON.stringify(body);
@@ -34,6 +65,11 @@ async function request<T>(method: string, path: string, body?: unknown): Promise
     throw new Error(`API ${resp.status}: ${text}`);
   }
   return resp.json() as Promise<T>;
+}
+
+/** Generic API request with CSRF support. Use for endpoints not covered by specific exports. */
+export async function apiRequest<T>(method: string, path: string, body?: unknown): Promise<T> {
+  return request<T>(method, path, body);
 }
 
 // ── Billing / Team ──────────────────────────────────────────

@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8000";
+import { apiRequest, getApiBase } from "../lib/api";
 
 interface AuditEntry {
   id: string;
@@ -11,30 +10,6 @@ interface AuditEntry {
   details: Record<string, unknown>;
   ip_address: string | null;
   created_at: string;
-}
-
-async function authHeaders(): Promise<Record<string, string>> {
-  // SECURITY: Use httpOnly cookie-based authentication instead of localStorage tokens
-  // This prevents XSS attacks from stealing auth tokens
-  const h: Record<string, string> = { "Content-Type": "application/json" };
-  // No Authorization header needed - token is sent via httpOnly cookie
-  return h;
-}
-
-async function request<T>(method: string, path: string, body?: unknown): Promise<T> {
-  const headers = await authHeaders();
-  const opts: RequestInit = { 
-    method, 
-    headers,
-    credentials: "include"  // SECURITY: Include httpOnly cookies for authentication
-  };
-  if (body) opts.body = JSON.stringify(body);
-  const resp = await fetch(`${API_BASE}${path}`, opts);
-  if (!resp.ok) {
-    const text = await resp.text();
-    throw new Error(`API ${resp.status}: ${text}`);
-  }
-  return resp.json() as Promise<T>;
 }
 
 export default function AuditLogPage() {
@@ -50,7 +25,7 @@ export default function AuditLogPage() {
     try {
       const params = new URLSearchParams({ limit: String(pageSize), offset: String(p * pageSize) });
       if (action) params.set("action", action);
-      const resp = await request<{ logs?: AuditEntry[]; total?: number }>("GET", `/billing/audit-log?${params}`);
+      const resp = await apiRequest<{ logs?: AuditEntry[]; total?: number }>("GET", `/billing/audit-log?${params}`);
       setLogs(resp.logs || []);
       setTotal(resp.total || 0);
     } catch (e) { console.error(e); }
@@ -62,7 +37,7 @@ export default function AuditLogPage() {
   const handleFilter = () => { setPage(0); load(0, actionFilter); };
   const handleExport = async () => {
     try {
-      const resp = await fetch(`${API_BASE}/billing/audit-log/export?days=90`, {
+      const resp = await fetch(`${getApiBase()}/billing/audit-log/export?days=90`, {
         credentials: "include"  // SECURITY: Include httpOnly cookies for authentication
       });
       if (resp.ok) {

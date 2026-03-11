@@ -1,34 +1,9 @@
 import { useEffect, useState } from "react";
-
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8000";
+import { apiRequest } from "../lib/api";
 
 interface Webhook {
   id: string; url: string; events: string[]; is_active: boolean;
   failure_count: number; last_success_at: string | null; created_at: string;
-}
-
-async function authHeaders(): Promise<Record<string, string>> {
-  // SECURITY: Use httpOnly cookie-based authentication instead of localStorage tokens
-  // This prevents XSS attacks from stealing auth tokens
-  const h: Record<string, string> = { "Content-Type": "application/json" };
-  // No Authorization header needed - token is sent via httpOnly cookie
-  return h;
-}
-
-async function request<T>(method: string, path: string, body?: unknown): Promise<T> {
-  const headers = await authHeaders();
-  const opts: RequestInit = { 
-    method, 
-    headers,
-    credentials: "include"  // SECURITY: Include httpOnly cookies for authentication
-  };
-  if (body) opts.body = JSON.stringify(body);
-  const resp = await fetch(`${API_BASE}${path}`, opts);
-  if (!resp.ok) {
-    const text = await resp.text();
-    throw new Error(`API ${resp.status}: ${text}`);
-  }
-  return resp.json() as Promise<T>;
 }
 
 const EVENT_OPTIONS = [
@@ -44,7 +19,7 @@ export default function WebhooksPage() {
   const [createdSecret, setCreatedSecret] = useState<string | null>(null);
 
   const load = async () => {
-    const data = await request<Webhook[]>("GET", "/developer/webhooks");
+    const data = await apiRequest<Webhook[]>("GET", "/developer/webhooks");
     setHooks(data);
     setLoading(false);
   };
@@ -53,14 +28,14 @@ export default function WebhooksPage() {
 
   const create = async () => {
     if (!url.trim()) return;
-    const data = await request<{ secret?: string }>("POST", "/developer/webhooks", { url, events });
+    const data = await apiRequest<{ secret?: string }>("POST", "/developer/webhooks", { url, events });
     setCreatedSecret(data.secret ?? null);
     setUrl("");
     load();
   };
 
   const remove = async (id: string) => {
-    await request("DELETE", `/developer/webhooks/${id}`);
+    await apiRequest("DELETE", `/developer/webhooks/${id}`);
     load();
   };
 

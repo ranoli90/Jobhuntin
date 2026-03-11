@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8000";
+import { apiRequest } from "../lib/api";
 
 interface Campaign {
   id: string;
@@ -13,30 +12,6 @@ interface Campaign {
   created_at: string;
   started_at: string | null;
   completed_at: string | null;
-}
-
-async function authHeaders(): Promise<Record<string, string>> {
-  // SECURITY: Use httpOnly cookie-based authentication instead of localStorage tokens
-  // This prevents XSS attacks from stealing auth tokens
-  const h: Record<string, string> = { "Content-Type": "application/json" };
-  // No Authorization header needed - token is sent via httpOnly cookie
-  return h;
-}
-
-async function request<T>(method: string, path: string, body?: unknown): Promise<T> {
-  const headers = await authHeaders();
-  const opts: RequestInit = { 
-    method, 
-    headers,
-    credentials: "include"  // SECURITY: Include httpOnly cookies for authentication
-  };
-  if (body) opts.body = JSON.stringify(body);
-  const resp = await fetch(`${API_BASE}${path}`, opts);
-  if (!resp.ok) {
-    const text = await resp.text();
-    throw new Error(`API ${resp.status}: ${text}`);
-  }
-  return resp.json() as Promise<T>;
 }
 
 export default function BulkCampaignsPage() {
@@ -52,7 +27,7 @@ export default function BulkCampaignsPage() {
 
   const load = async () => {
     try {
-      const r = await request<Campaign[]>("GET", "/bulk/campaigns");
+      const r = await apiRequest<Campaign[]>("GET", "/bulk/campaigns");
       setCampaigns(r);
     } catch (e) { console.error(e); }
     finally { setLoading(false); }
@@ -64,7 +39,7 @@ export default function BulkCampaignsPage() {
     if (!name.trim()) return;
     setCreating(true);
     try {
-      await request("POST", "/bulk/campaigns", {
+      await apiRequest("POST", "/bulk/campaigns", {
         name: name.trim(),
         filters: { title: title.trim(), location: location.trim() },
       });
@@ -75,7 +50,7 @@ export default function BulkCampaignsPage() {
   };
 
   const handleStart = async (id: string) => {
-    await request("POST", `/bulk/campaigns/${id}/start`);
+    await apiRequest("POST", `/bulk/campaigns/${id}/start`);
     load();
   };
 
