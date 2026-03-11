@@ -313,6 +313,7 @@ async def create_portal(
     tenant_ctx: Any = Depends(_get_tenant_ctx),
 ):
     """Create a Stripe customer portal session."""
+    _validate_redirect_url(body.return_url, "return_url", settings)
     stripe = get_stripe()
 
     async with db.acquire() as conn:
