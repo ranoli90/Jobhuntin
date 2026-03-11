@@ -11,7 +11,7 @@ from __future__ import annotations
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from backend.domain.vector_db import (
     JOBS_NAMESPACE,
@@ -27,28 +27,28 @@ router = APIRouter(prefix="/v1/vector", tags=["vector-db"])
 
 
 class VectorUpsertRequest(BaseModel):
-    id: str
-    vector: list[float]
-    metadata: dict[str, Any] = {}
-    namespace: str = "default"
+    id: str = Field(..., max_length=256)
+    vector: list[float] = Field(..., max_length=10000)
+    metadata: dict[str, Any] = Field(default_factory=dict, max_length=50)
+    namespace: str = Field(default="default", max_length=100)
 
 
 class VectorBatchUpsertRequest(BaseModel):
-    items: list[dict[str, Any]]
-    namespace: str = "default"
+    items: list[dict[str, Any]] = Field(..., max_length=100)
+    namespace: str = Field(default="default", max_length=100)
 
 
 class VectorQueryRequest(BaseModel):
-    vector: list[float]
-    top_k: int = 10
-    namespace: str = "default"
-    filter: dict[str, Any] | None = None
+    vector: list[float] = Field(..., max_length=10000)
+    top_k: int = Field(default=10, ge=1, le=1000)
+    namespace: str = Field(default="default", max_length=100)
+    filter: dict[str, Any] | None = Field(None, max_length=50)
     include_metadata: bool = True
 
 
 class VectorDeleteRequest(BaseModel):
-    ids: list[str]
-    namespace: str = "default"
+    ids: list[str] = Field(..., max_length=100)
+    namespace: str = Field(default="default", max_length=100)
 
 
 class VectorQueryResponse(BaseModel):

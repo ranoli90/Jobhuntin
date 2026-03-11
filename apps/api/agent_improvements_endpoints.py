@@ -8,7 +8,7 @@ from __future__ import annotations
 from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from packages.backend.domain.agent_improvements import (
     AgentImprovementsManager,
@@ -47,56 +47,56 @@ def get_agent_improvements_manager():
 
 
 class ButtonDetectionRequest(BaseModel):
-    page_source: str
-    screenshot_data: Optional[str] = None  # Base64 encoded
-    context: Optional[Dict[str, Any]] = None
-    detection_strategies: List[str] = ["text", "attributes", "visual", "ml"]
+    page_source: str = Field(..., max_length=500_000)
+    screenshot_data: Optional[str] = Field(None, max_length=2_000_000)  # Base64
+    context: Optional[Dict[str, Any]] = Field(None, max_length=50)
+    detection_strategies: List[str] = Field(default=["text", "attributes", "visual", "ml"], max_length=10)
 
 
 class FormFieldDetectionRequest(BaseModel):
-    page_source: str
-    form_context: Optional[Dict[str, Any]] = None
-    detection_strategies: List[str] = ["html", "custom", "dynamic"]
+    page_source: str = Field(..., max_length=500_000)
+    form_context: Optional[Dict[str, Any]] = Field(None, max_length=50)
+    detection_strategies: List[str] = Field(default=["html", "custom", "dynamic"], max_length=10)
 
 
 class OAuthFlowRequest(BaseModel):
     provider: OAuthProvider
-    redirect_url: str
-    context: Optional[Dict[str, Any]] = None
+    redirect_url: str = Field(..., max_length=2048)
+    context: Optional[Dict[str, Any]] = Field(None, max_length=50)
 
 
 class ScreenshotCaptureRequest(BaseModel):
-    application_id: str
-    step_number: int
-    step_description: str
-    page_context: Optional[Dict[str, Any]] = None
+    application_id: str = Field(..., min_length=36, max_length=36)
+    step_number: int = Field(..., ge=0, le=1000)
+    step_description: str = Field(..., max_length=500)
+    page_context: Optional[Dict[str, Any]] = Field(None, max_length=50)
     full_page: bool = False
-    highlight_elements: Optional[List[str]] = None
+    highlight_elements: Optional[List[str]] = Field(None, max_length=50)
 
 
 class ConcurrentUsageSessionRequest(BaseModel):
-    application_id: Optional[str] = None
-    total_steps: int = 0
+    application_id: Optional[str] = Field(None, max_length=36)
+    total_steps: int = Field(default=0, ge=0, le=1000)
 
 
 class DLQAddRequest(BaseModel):
-    application_id: str
-    failure_reason: str
-    error_details: Dict[str, Any]
-    payload: Dict[str, Any]
-    max_retries: int = 3
-    priority: int = 0
+    application_id: str = Field(..., min_length=36, max_length=36)
+    failure_reason: str = Field(..., max_length=500)
+    error_details: Dict[str, Any] = Field(..., max_length=50)
+    payload: Dict[str, Any] = Field(..., max_length=100)
+    max_retries: int = Field(default=3, ge=0, le=10)
+    priority: int = Field(default=0, ge=-100, le=100)
 
 
 class RetryRequest(BaseModel):
-    item_ids: List[str]
+    item_ids: List[str] = Field(..., max_length=100)
     force: bool = False
 
 
 class BulkDeleteRequest(BaseModel):
-    tenant_id: Optional[str] = None
-    failure_reason: Optional[str] = None
-    older_than_days: int = 7
+    tenant_id: Optional[str] = Field(None, max_length=36)
+    failure_reason: Optional[str] = Field(None, max_length=500)
+    older_than_days: int = Field(default=7, ge=1, le=365)
 
 
 # Button detection endpoints

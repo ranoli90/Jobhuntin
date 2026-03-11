@@ -37,17 +37,17 @@ router = APIRouter(tags=["voice_interviews"])
 class CreateVoiceSessionRequest(BaseModel):
     """Request for creating voice interview session."""
 
-    user_id: str = Field(..., description="User identifier")
-    job_id: str = Field(..., description="Job identifier")
-    company: str = Field(..., description="Company name")
-    job_title: str = Field(..., description="Job title")
-    job_description: str = Field(..., description="Job description")
-    user_profile: Dict[str, Any] = Field(..., description="User profile data")
-    interview_type: str = Field(default="general", description="Interview type")
-    difficulty: str = Field(default="medium", description="Question difficulty")
-    question_count: int = Field(default=10, description="Number of questions")
+    user_id: str = Field(..., max_length=36, description="User identifier")
+    job_id: str = Field(..., max_length=36, description="Job identifier")
+    company: str = Field(..., max_length=200, description="Company name")
+    job_title: str = Field(..., max_length=200, description="Job title")
+    job_description: str = Field(..., max_length=50000, description="Job description")
+    user_profile: Dict[str, Any] = Field(..., max_length=100, description="User profile data")
+    interview_type: str = Field(default="general", max_length=50, description="Interview type")
+    difficulty: str = Field(default="medium", max_length=50, description="Question difficulty")
+    question_count: int = Field(default=10, ge=1, le=100, description="Number of questions")
     voice_settings: Optional[Dict[str, Any]] = Field(
-        default=None, description="Voice configuration settings"
+        default=None, max_length=50, description="Voice configuration settings"
     )
 
 
@@ -65,9 +65,9 @@ class CreateVoiceSessionResponse(BaseModel):
 class StartVoiceQuestionRequest(BaseModel):
     """Request for starting voice question."""
 
-    session_id: str = Field(..., description="Session identifier")
+    session_id: str = Field(..., max_length=36, description="Session identifier")
     question_index: Optional[int] = Field(
-        default=None, description="Question index (defaults to current)"
+        default=None, ge=0, le=1000, description="Question index (defaults to current)"
     )
 
 
@@ -90,9 +90,9 @@ class StartVoiceQuestionResponse(BaseModel):
 class TranscribeVoiceRequest(BaseModel):
     """Request for voice transcription."""
 
-    session_id: str = Field(..., description="Session identifier")
-    audio_data: bytes = Field(..., description="Audio data bytes")
-    audio_format: str = Field(default="mp3", description="Audio format")
+    session_id: str = Field(..., max_length=36, description="Session identifier")
+    audio_data: bytes = Field(..., max_length=10_000_000, description="Audio data bytes")
+    audio_format: str = Field(default="mp3", max_length=20, description="Audio format")
 
 
 class TranscribeVoiceResponse(BaseModel):
@@ -139,8 +139,8 @@ class VoiceSessionResponse(BaseModel):
 class VoiceSettingsUpdateRequest(BaseModel):
     """Request for updating voice settings."""
 
-    session_id: str = Field(..., description="Session identifier")
-    voice_settings: Dict[str, Any] = Field(..., description="New voice settings")
+    session_id: str = Field(..., max_length=36, description="Session identifier")
+    voice_settings: Dict[str, Any] = Field(..., max_length=50, description="New voice settings")
 
 
 class VoiceSettingsResponse(BaseModel):

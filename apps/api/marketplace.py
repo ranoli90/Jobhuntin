@@ -10,7 +10,7 @@ from typing import Any
 
 import asyncpg
 from fastapi import APIRouter, Depends, HTTPException, Query
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from backend.domain.audit import record_audit_event
 from backend.domain.tenant import TenantContext, TenantScopeError, require_system_admin
@@ -37,24 +37,24 @@ def _get_tenant_ctx() -> TenantContext:
 
 
 class SubmitBlueprintRequest(BaseModel):
-    name: str
-    slug: str
-    description: str
-    long_description: str = ""
-    category: str = "general"
-    version: str = "1.0.0"
-    source_code: dict[str, Any] = {}
-    config_schema: dict[str, Any] = {}
-    price_cents: int = 0
+    name: str = Field(..., max_length=200)
+    slug: str = Field(..., max_length=100)
+    description: str = Field(..., max_length=500)
+    long_description: str = Field(default="", max_length=10000)
+    category: str = Field(default="general", max_length=50)
+    version: str = Field(default="1.0.0", max_length=50)
+    source_code: dict[str, Any] = Field(default_factory=dict, max_length=100)
+    config_schema: dict[str, Any] = Field(default_factory=dict, max_length=100)
+    price_cents: int = Field(default=0, ge=0, le=999999)
 
 
 class InstallBlueprintRequest(BaseModel):
-    config: dict[str, Any] = {}
+    config: dict[str, Any] = Field(default_factory=dict, max_length=100)
 
 
 class ReviewRequest(BaseModel):
-    rating: int
-    review_text: str = ""
+    rating: int = Field(..., ge=1, le=5)
+    review_text: str = Field(default="", max_length=2000)
 
 
 class BlueprintResponse(BaseModel):

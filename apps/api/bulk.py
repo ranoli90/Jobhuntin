@@ -10,7 +10,7 @@ from typing import Any
 
 import asyncpg
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from backend.domain.audit import record_audit_event
 from backend.domain.repositories import db_transaction
@@ -42,8 +42,8 @@ def _get_tenant_ctx() -> TenantContext:
 
 
 class CreateCampaignRequest(BaseModel):
-    name: str
-    filters: dict[str, str] = {}  # title, location, company, blueprint_key
+    name: str = Field(..., max_length=200)
+    filters: dict[str, str] = Field(default_factory=dict, max_length=20)
 
 
 class StartCampaignRequest(BaseModel):

@@ -7,7 +7,7 @@ from typing import Any, Dict, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, Field, field_validator
 
 from apps.api.dependencies import (
     _is_admin,
@@ -25,28 +25,36 @@ router = APIRouter(prefix="/feedback", tags=["feedback"])
 class FeedbackRequest(BaseModel):
     """Feedback request model."""
 
-    feedback_type: str
-    rating: int
-    category: str
-    title: str
-    message: str
-    page_url: Optional[str] = None
+    feedback_type: str = Field(..., max_length=50)
+    rating: int = Field(..., ge=1, le=5)
+    category: str = Field(..., max_length=100)
+    title: str = Field(..., max_length=200)
+    message: str = Field(..., max_length=2000)
+    page_url: Optional[str] = Field(None, max_length=2048)
     is_public: bool = False
 
-    @field_validator("title", "message")
+    @field_validator("title")
     @classmethod
-    def sanitize_text(cls, v: str) -> str:
+    def sanitize_title(cls, v: str) -> str:
         """MEDIUM: Sanitize HTML in user input to prevent XSS."""
         from packages.backend.domain.sanitization import sanitize_text_input
 
-        return sanitize_text_input(v)
+        return sanitize_text_input(v, max_length=200)
+
+    @field_validator("message")
+    @classmethod
+    def sanitize_message(cls, v: str) -> str:
+        """MEDIUM: Sanitize HTML in user input to prevent XSS."""
+        from packages.backend.domain.sanitization import sanitize_text_input
+
+        return sanitize_text_input(v, max_length=2000)
 
 
 class NPSRequest(BaseModel):
     """NPS feedback request model."""
 
-    score: int
-    reason: Optional[str] = None
+    score: int = Field(..., ge=0, le=10)
+    reason: Optional[str] = Field(None, max_length=1000)
 
 
 @router.post("/collect")

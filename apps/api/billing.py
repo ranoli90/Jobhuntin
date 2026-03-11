@@ -6,7 +6,7 @@ from typing import Any
 
 import asyncpg
 from fastapi import APIRouter, Depends, HTTPException, Request
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from backend.domain.billing import ensure_stripe_customer, update_subscription_state
 from backend.domain.stripe_client import get_stripe, protected_stripe_call
@@ -54,13 +54,13 @@ async def _get_tenant_ctx() -> TenantContext:
 
 
 class CheckoutRequest(BaseModel):
-    success_url: str
-    cancel_url: str
-    billing_period: str = "monthly"  # monthly or annual
+    success_url: str = Field(..., max_length=2048)
+    cancel_url: str = Field(..., max_length=2048)
+    billing_period: str = Field(default="monthly", max_length=20)
 
 
 class PortalRequest(BaseModel):
-    return_url: str
+    return_url: str = Field(..., max_length=2048)
 
 
 @router.get("/tiers")
@@ -409,9 +409,9 @@ async def list_invoices(
 
 
 class TeamCheckoutRequest(BaseModel):
-    seats: int = 1
-    success_url: str | None = None
-    cancel_url: str | None = None
+    seats: int = Field(default=1, ge=1, le=500)
+    success_url: str | None = Field(None, max_length=2048)
+    cancel_url: str | None = Field(None, max_length=2048)
 
 
 @router.post("/team-checkout")

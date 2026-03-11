@@ -8,7 +8,7 @@ from typing import Any, Dict, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from apps.api.dependencies import get_current_user, get_db_pool, get_tenant_id
 from packages.backend.domain.ux_metrics_collector import (
@@ -23,25 +23,25 @@ router = APIRouter(prefix="/ux-metrics", tags=["ux-metrics"])
 class MetricRequest(BaseModel):
     """Metric collection request model."""
 
-    metric_type: str
-    metric_category: str
-    metric_name: str
-    value: float
-    unit: str
-    context: Optional[Dict[str, Any]] = None
-    metadata: Optional[Dict[str, Any]] = None
+    metric_type: str = Field(..., max_length=100)
+    metric_category: str = Field(..., max_length=100)
+    metric_name: str = Field(..., max_length=200)
+    value: float = Field(...)
+    unit: str = Field(..., max_length=50)
+    context: Optional[Dict[str, Any]] = Field(None, max_length=50)
+    metadata: Optional[Dict[str, Any]] = Field(None, max_length=50)
 
 
 class MetricDefinitionRequest(BaseModel):
     """Metric definition request model."""
 
-    name: str
-    description: str
-    metric_type: str
-    metric_category: str
-    unit: str
-    calculation_method: str
-    thresholds: Optional[Dict[str, float]] = None
+    name: str = Field(..., max_length=200)
+    description: str = Field(..., max_length=1000)
+    metric_type: str = Field(..., max_length=100)
+    metric_category: str = Field(..., max_length=100)
+    unit: str = Field(..., max_length=50)
+    calculation_method: str = Field(..., max_length=100)
+    thresholds: Optional[Dict[str, float]] = Field(None, max_length=20)
     is_active: bool = True
 
 

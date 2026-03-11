@@ -15,7 +15,7 @@ import httpx
 import jwt as pyjwt
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import JSONResponse, RedirectResponse
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 
 from backend.domain.session_manager import SessionManager
 from shared.config import Settings, settings_dependency
@@ -150,8 +150,8 @@ async def _revoke_session_token(jti: str, settings: Settings) -> None:
 
 class MagicLinkRequest(BaseModel):
     email: EmailStr
-    return_to: str | None = None
-    captcha_token: str | None = None
+    return_to: str | None = Field(None, max_length=512, description="Path to redirect after login")
+    captcha_token: str | None = Field(None, max_length=2000, description="reCAPTCHA token")
 
 
 class MagicLinkResponse(BaseModel):

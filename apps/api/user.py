@@ -357,7 +357,7 @@ async def get_queue_stats(
 
 
 class CreateApplicationBody(BaseModel):
-    job_id: str
+    job_id: str = Field(..., min_length=32, max_length=36, description="Job UUID")
     decision: Literal["ACCEPT", "REJECT"]
 
 
@@ -851,6 +851,7 @@ class UpdateApplicationStatusBody(BaseModel):
 
     status: str = Field(
         ...,
+        max_length=50,
         description="New status: 'INTERVIEW_SCHEDULED', 'OFFER_RECEIVED', 'ACCEPTED', 'REJECTED'",
     )
     notes: str | None = Field(
@@ -1146,16 +1147,30 @@ async def get_profile(
 
 
 class Preferences(BaseModel):
-    location: str | None = None
-    role_type: str | None = None
+    location: str | None = Field(None, max_length=200)
+    role_type: str | None = Field(None, max_length=100)
     salary_min: int | None = None
     salary_max: int | None = None
     remote_only: bool | None = None
     onsite_only: bool | None = None
     work_authorized: bool | None = None
     visa_sponsorship: bool | None = None
-    excluded_companies: list[str] | None = None
-    excluded_keywords: list[str] | None = None
+    excluded_companies: list[str] | None = Field(None, max_length=100)
+    excluded_keywords: list[str] | None = Field(None, max_length=50)
+
+    @field_validator("excluded_companies")
+    @classmethod
+    def _validate_companies(cls, v: list[str] | None) -> list[str] | None:
+        if v is None:
+            return None
+        return [str(x).strip()[:100] for x in v[:100] if x]
+
+    @field_validator("excluded_keywords")
+    @classmethod
+    def _validate_keywords(cls, v: list[str] | None) -> list[str] | None:
+        if v is None:
+            return None
+        return [str(x).strip()[:100] for x in v[:50] if x]
 
     @model_validator(mode="after")
     def _validate_salary_range(self) -> "Preferences":
@@ -1170,7 +1185,7 @@ class Preferences(BaseModel):
 
 
 class ProfileUpdate(BaseModel):
-    full_name: str | None = None
+    full_name: str | None = Field(None, max_length=200)
     headline: str | None = None
     bio: str | None = None
     has_completed_onboarding: bool | None = None
@@ -1238,11 +1253,15 @@ class ProfileUpdate(BaseModel):
         from packages.backend.domain.sanitization import sanitize_text_input
         return sanitize_text_input(v, max_length=5000)
 
-    @field_validator("avatar_url")
+    @field_validator("avatar_url", "resume_url")
     @classmethod
-    def _validate_avatar(cls, value: str | None) -> str | None:
-        if value and not value.startswith("http"):
-            raise ValueError("avatar_url must be a full URL")
+    def _validate_url(cls, value: str | None) -> str | None:
+        if not value:
+            return None
+        if not value.startswith("http"):
+            raise ValueError("URL must be a full http(s) URL")
+        if len(value) > 2048:
+            raise ValueError("URL must be at most 2048 characters")
         return value
 
     @field_validator("work_style")

@@ -214,15 +214,15 @@ class SalarySuggestionRequest(BaseModel):
     """Request body for salary suggestions."""
 
     profile: dict = Field(..., description="Parsed resume profile data")
-    target_role: str = Field(..., description="Target job role")
-    location: str = Field(default="Remote", description="Preferred work location")
+    target_role: str = Field(..., max_length=200, description="Target job role")
+    location: str = Field(default="Remote", max_length=200, description="Preferred work location")
 
 
 class LocationSuggestionRequest(BaseModel):
     """Request body for location suggestions."""
 
     profile: dict = Field(..., description="Parsed resume profile data")
-    current_location: str = Field(default="", description="Current location if any")
+    current_location: str = Field(default="", max_length=200, description="Current location if any")
 
 
 class JobMatchRequest(BaseModel):
@@ -274,12 +274,12 @@ class GeneratedCoverLetter(BaseModel):
 
 
 class CoverLetterGenerationRequest(BaseModel):
-    job_id: str
-    template_id: str = "professional_standard"
-    tone: str = "professional"
-    length: str = "standard"
-    focus_areas: list[str] = []
-    custom_instructions: str = ""
+    job_id: str = Field(..., min_length=36, max_length=36)
+    template_id: str = Field(default="professional_standard", max_length=100)
+    tone: str = Field(default="professional", max_length=50)
+    length: str = Field(default="standard", max_length=50)
+    focus_areas: list[str] = Field(default_factory=list, max_length=20)
+    custom_instructions: str = Field(default="", max_length=2000)
 
 
 class OnboardingQuestionsRequest(BaseModel):

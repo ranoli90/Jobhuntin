@@ -8,7 +8,7 @@ from typing import Any
 
 import asyncpg
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from backend.domain.google_drive_integration import GoogleDriveIntegrationManager
 from backend.domain.notion_integration import (
@@ -80,20 +80,20 @@ slack_router = APIRouter(prefix="/slack", tags=["slack"])
 
 
 class SlackConnectRequest(BaseModel):
-    team_id: str
-    access_token: str
-    bot_user_id: str | None = None
-    default_channel: str | None = None
+    team_id: str = Field(..., max_length=50)
+    access_token: str = Field(..., max_length=500)
+    bot_user_id: str | None = Field(None, max_length=50)
+    default_channel: str | None = Field(None, max_length=100)
 
 
 class SlackNotificationRequest(BaseModel):
-    message_type: str
-    template_vars: dict[str, Any]
-    channel: str | None = None
+    message_type: str = Field(..., max_length=100)
+    template_vars: dict[str, Any] = Field(..., max_length=50)
+    channel: str | None = Field(None, max_length=100)
 
 
 class SlackEnabledNotificationsRequest(BaseModel):
-    notification_types: list[str]
+    notification_types: list[str] = Field(..., max_length=50)
 
 
 @slack_router.post("/connect")
@@ -188,18 +188,18 @@ notion_router = APIRouter(prefix="/notion", tags=["notion"])
 
 
 class NotionConnectRequest(BaseModel):
-    access_token: str
-    workspace_id: str | None = None
-    database_id: str | None = None
+    access_token: str = Field(..., max_length=500)
+    workspace_id: str | None = Field(None, max_length=100)
+    database_id: str | None = Field(None, max_length=100)
 
 
 class NotionExportRequest(BaseModel):
-    application: dict[str, Any]
+    application: dict[str, Any] = Field(..., max_length=100)
 
 
 class NotionCreateDatabaseRequest(BaseModel):
-    parent_page_id: str
-    title: str = "Job Applications"
+    parent_page_id: str = Field(..., max_length=100)
+    title: str = Field(default="Job Applications", max_length=200)
 
 
 @notion_router.post("/connect")
@@ -310,13 +310,13 @@ gdrive_router = APIRouter(prefix="/google-drive", tags=["google-drive"])
 
 
 class GoogleDriveConnectRequest(BaseModel):
-    access_token: str
-    refresh_token: str | None = None
+    access_token: str = Field(..., max_length=500)
+    refresh_token: str | None = Field(None, max_length=500)
 
 
 class GoogleDriveBackupRequest(BaseModel):
-    file_name: str = "resume.pdf"
-    content_base64: str
+    file_name: str = Field(default="resume.pdf", max_length=255)
+    content_base64: str = Field(..., max_length=10_000_000)
 
 
 @gdrive_router.post("/connect")
@@ -420,13 +420,13 @@ zapier_router = APIRouter(prefix="/zapier", tags=["zapier"])
 
 
 class ZapierSubscribeRequest(BaseModel):
-    webhook_url: str
-    event_types: list[str]
+    webhook_url: str = Field(..., max_length=2048)
+    event_types: list[str] = Field(..., max_length=20)
 
 
 class ZapierTriggerRequest(BaseModel):
-    event_type: str
-    payload: dict[str, Any]
+    event_type: str = Field(..., max_length=100)
+    payload: dict[str, Any] = Field(..., max_length=100)
 
 
 @zapier_router.post("/hooks")

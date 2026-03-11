@@ -20,7 +20,7 @@ from typing import Any
 
 import asyncpg
 from fastapi import APIRouter, Depends, HTTPException, Request
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, Field, field_validator
 
 from shared.config import get_settings
 from shared.logging_config import get_logger
@@ -53,24 +53,24 @@ async def _get_api_key(request: Request) -> dict[str, Any]:
 
 
 class SubmitApplicationRequest(BaseModel):
-    job_url: str
-    blueprint_key: str = "job-app"
-    resume_text: str = ""
-    resume_url: str = ""
-    metadata: dict[str, Any] = {}
+    job_url: str = Field(..., max_length=2048, description="Job posting URL")
+    blueprint_key: str = Field(default="job-app", max_length=100)
+    resume_text: str = Field(default="", max_length=100_000)
+    resume_url: str = Field(default="", max_length=2048)
+    metadata: dict[str, Any] = Field(default_factory=dict, max_length=50)
 
 
 class BatchSubmitRequest(BaseModel):
-    applications: list[SubmitApplicationRequest]
+    applications: list[SubmitApplicationRequest] = Field(..., max_length=100)
 
 
 class StaffingBulkRequest(BaseModel):
-    client_name: str
-    client_portal: str
-    role_title: str
-    role_description: str = ""
-    candidates: list[dict[str, Any]]
-    priority: str = "normal"
+    client_name: str = Field(..., max_length=200)
+    client_portal: str = Field(..., max_length=2048)
+    role_title: str = Field(..., max_length=200)
+    role_description: str = Field(default="", max_length=10_000)
+    candidates: list[dict[str, Any]] = Field(..., max_length=500)
+    priority: str = Field(default="normal", max_length=50)
 
 
 ALLOWED_WEBHOOK_EVENTS = frozenset({

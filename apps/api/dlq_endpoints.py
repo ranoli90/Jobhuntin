@@ -92,7 +92,7 @@ class DLQItemResponse(BaseModel):
 
 
 class RetryRequest(BaseModel):
-    item_ids: List[str] = Field(..., description="List of DLQ item IDs to retry")
+    item_ids: List[str] = Field(..., max_length=100, description="List of DLQ item IDs to retry")
     force: bool = Field(
         False, description="Force retry even if application not in FAILED status"
     )
@@ -105,10 +105,10 @@ class RetryResponse(BaseModel):
 
 
 class BulkDeleteRequest(BaseModel):
-    tenant_id: Optional[str] = None
-    failure_reason: Optional[str] = None
+    tenant_id: Optional[str] = Field(None, max_length=36)
+    failure_reason: Optional[str] = Field(None, max_length=500)
     older_than_days: Optional[int] = Field(
-        None, ge=1, description="Delete items older than N days"
+        None, ge=1, le=365, description="Delete items older than N days"
     )
 
 

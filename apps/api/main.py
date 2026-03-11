@@ -1280,7 +1280,7 @@ class AnswerItem(BaseModel):
 
 
 class ResumeTaskRequest(BaseModel):
-    application_id: str = Field(..., description="Application identifier")
+    application_id: str = Field(..., min_length=36, max_length=36, description="Application identifier")
     answers: list[AnswerItem] = Field(
         ...,
         max_length=100,  # HIGH: Limit to prevent DoS

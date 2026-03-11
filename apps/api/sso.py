@@ -9,7 +9,7 @@ from typing import Any
 
 import asyncpg
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from backend.domain.audit import record_audit_event
 from backend.domain.tenant import TenantContext, TenantScopeError, require_role
@@ -60,13 +60,13 @@ def _get_tenant_ctx() -> TenantContext:
 class SSOConfigRequest(BaseModel):
     """Payload for configuring SSO."""
 
-    provider: str = "saml"  # saml or oidc
-    entity_id: str = ""
-    sso_url: str = ""
-    certificate: str = ""
-    oidc_client_id: str = ""
-    oidc_client_secret: str = ""
-    oidc_issuer: str = ""
+    provider: str = Field(default="saml", max_length=20)
+    entity_id: str = Field(default="", max_length=512)
+    sso_url: str = Field(default="", max_length=2048)
+    certificate: str = Field(default="", max_length=4096)
+    oidc_client_id: str = Field(default="", max_length=512)
+    oidc_client_secret: str = Field(default="", max_length=512)
+    oidc_issuer: str = Field(default="", max_length=512)
 
 
 class SSOConfigResponse(BaseModel):

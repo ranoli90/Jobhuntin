@@ -14,7 +14,7 @@ from typing import Any
 
 import asyncpg
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from backend.domain.repositories import db_transaction
 from shared.logging_config import get_logger
@@ -28,10 +28,17 @@ router = APIRouter(prefix="/gdpr", tags=["GDPR Compliance"])
 class DataExportRequest(BaseModel):
     """Request for GDPR data export."""
 
-    format: str = Field(default="json", description="Export format: json or csv")
+    format: str = Field(default="json", max_length=20, description="Export format: json or csv")
     include_analytics: bool = Field(
         default=True, description="Include analytics events"
     )
+
+    @field_validator("format")
+    @classmethod
+    def validate_format(cls, v: str) -> str:
+        if v.lower() not in ("json", "csv"):
+            raise ValueError("format must be 'json' or 'csv'")
+        return v.lower()
 
 
 class DataExportResponse(BaseModel):
@@ -49,7 +56,7 @@ class DeletionRequest(BaseModel):
     """Request for GDPR data deletion."""
 
     confirm: bool = Field(..., description="User must confirm deletion")
-    reason: str | None = Field(default=None, description="Optional reason for deletion")
+    reason: str | None = Field(default=None, max_length=500, description="Optional reason for deletion")
 
 
 class DeletionResponse(BaseModel):

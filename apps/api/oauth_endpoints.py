@@ -29,46 +29,46 @@ class OAuthInitiateRequest(BaseModel):
     """OAuth initiate request."""
 
     provider: str = Field(
-        ..., description="OAuth provider (google, linkedin, microsoft, github)"
+        ..., max_length=50, description="OAuth provider (google, linkedin, microsoft, github)"
     )
-    client_id: str = Field(..., description="OAuth client ID")
-    redirect_uri: str = Field(..., description="OAuth redirect URI")
-    scopes: List[str] = Field(default=[], description="OAuth scopes")
+    client_id: str = Field(..., max_length=512, description="OAuth client ID")
+    redirect_uri: str = Field(..., max_length=2048, description="OAuth redirect URI")
+    scopes: List[str] = Field(default=[], max_length=20, description="OAuth scopes")
     context: Optional[Dict[str, Any]] = Field(
-        default=None, description="Additional context"
+        default=None, max_length=50, description="Additional context"
     )
 
 
 class OAuthCallbackRequest(BaseModel):
     """OAuth callback request."""
 
-    provider: str = Field(..., description="OAuth provider")
-    client_id: str = Field(..., description="OAuth client ID")
-    client_secret: str = Field(..., description="OAuth client secret")
-    redirect_uri: str = Field(..., description="OAuth redirect URI")
-    scopes: List[str] = Field(default=[], description="OAuth scopes")
-    authorization_code: str = Field(..., description="OAuth authorization code")
+    provider: str = Field(..., max_length=50, description="OAuth provider")
+    client_id: str = Field(..., max_length=512, description="OAuth client ID")
+    client_secret: str = Field(..., max_length=512, description="OAuth client secret")
+    redirect_uri: str = Field(..., max_length=2048, description="OAuth redirect URI")
+    scopes: List[str] = Field(default=[], max_length=20, description="OAuth scopes")
+    authorization_code: str = Field(..., max_length=2000, description="OAuth authorization code")
 
 
 class OAuthTokenRequest(BaseModel):
     """OAuth token request."""
 
-    provider: str = Field(..., description="OAuth provider")
-    client_id: str = Field(..., description="OAuth client ID")
-    client_secret: str = Field(..., description="OAuth client secret")
-    redirect_uri: str = Field(..., description="OAuth redirect URI")
-    scopes: List[str] = Field(default=[], description="OAuth scopes")
-    authorization_code: str = Field(..., description="OAuth authorization code")
+    provider: str = Field(..., max_length=50, description="OAuth provider")
+    client_id: str = Field(..., max_length=512, description="OAuth client ID")
+    client_secret: str = Field(..., max_length=512, description="OAuth client secret")
+    redirect_uri: str = Field(..., max_length=2048, description="OAuth redirect URI")
+    scopes: List[str] = Field(default=[], max_length=20, description="OAuth scopes")
+    authorization_code: str = Field(..., max_length=2000, description="OAuth authorization code")
 
 
 class OAuthCredentialsRequest(BaseModel):
     """OAuth credentials storage request."""
 
-    provider: str = Field(..., description="OAuth provider")
-    client_id: str = Field(..., description="OAuth client ID")
-    client_secret: str = Field(..., description="OAuth client secret")
-    redirect_uri: str = Field(..., description="OAuth redirect URI")
-    scopes: List[str] = Field(default=[], description="OAuth scopes")
+    provider: str = Field(..., max_length=50, description="OAuth provider")
+    client_id: str = Field(..., max_length=512, description="OAuth client ID")
+    client_secret: str = Field(..., max_length=512, description="OAuth client secret")
+    redirect_uri: str = Field(..., max_length=2048, description="OAuth redirect URI")
+    scopes: List[str] = Field(default=[], max_length=20, description="OAuth scopes")
 
 
 # Dependency injection functions

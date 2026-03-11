@@ -60,35 +60,35 @@ class NotificationPreferences(BaseModel):
 
 class UserInterests(BaseModel):
     interests: List[str] = Field(
-        ..., description="List of user interests for semantic matching"
+        ..., max_length=50, description="List of user interests for semantic matching"
     )
 
 
 class SendEmailRequest(BaseModel):
-    user_id: str
-    email_type: str
-    subject: Optional[str] = None
-    custom_message: Optional[str] = None
-    metadata: Dict[str, Any] = Field(default_factory=dict)
+    user_id: str = Field(..., max_length=36)
+    email_type: str = Field(..., max_length=100)
+    subject: Optional[str] = Field(None, max_length=500)
+    custom_message: Optional[str] = Field(None, max_length=5000)
+    metadata: Dict[str, Any] = Field(default_factory=dict, max_length=50)
 
 
 class SendNotificationRequest(BaseModel):
-    user_id: str
-    title: str
-    body: str
-    category: str
-    priority: str = "medium"
-    data: Dict[str, Any] = Field(default_factory=dict)
-    action_url: Optional[str] = None
-    action_text: Optional[str] = None
+    user_id: str = Field(..., max_length=36)
+    title: str = Field(..., max_length=200)
+    body: str = Field(..., max_length=2000)
+    category: str = Field(..., max_length=100)
+    priority: str = Field(default="medium", max_length=20)
+    data: Dict[str, Any] = Field(default_factory=dict, max_length=50)
+    action_url: Optional[str] = Field(None, max_length=2048)
+    action_text: Optional[str] = Field(None, max_length=100)
     force_send: bool = False
 
 
 class ProcessAlertRequest(BaseModel):
-    alert_type: str
-    user_id: str
-    alert_data: Dict[str, Any]
-    tenant_id: Optional[str] = None
+    alert_type: str = Field(..., max_length=100)
+    user_id: str = Field(..., max_length=36)
+    alert_data: Dict[str, Any] = Field(..., max_length=50)
+    tenant_id: Optional[str] = Field(None, max_length=36)
 
 
 class CommunicationStats(BaseModel):
