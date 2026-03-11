@@ -171,7 +171,7 @@ class CalendarService:
                 },
             }
 
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(timeout=15.0) as client:
             response = await client.post(
                 "https://www.googleapis.com/calendar/v3/calendars/primary/events",
                 json=event_body,
@@ -230,7 +230,7 @@ class CalendarService:
             "Content-Type": "application/json",
         }
 
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(timeout=15.0) as client:
             response = await client.post(
                 "https://graph.microsoft.com/v1.0/me/events",
                 json=event_body,
@@ -282,7 +282,7 @@ class CalendarService:
             "items": [{"id": "primary"}],
         }
 
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(timeout=15.0) as client:
             response = await client.post(
                 "https://www.googleapis.com/calendar/v3/freeBusy",
                 json=body,
@@ -322,7 +322,7 @@ class CalendarService:
 
         import httpx
 
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(timeout=15.0) as client:
             response = await client.post(
                 "https://graph.microsoft.com/v1.0/me/calendar/getSchedule",
                 json={
@@ -495,7 +495,7 @@ async def refresh_google_token(
     """
     import httpx
 
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(timeout=15.0) as client:
         response = await client.post(
             "https://oauth2.googleapis.com/token",
             data={
@@ -543,7 +543,7 @@ async def refresh_microsoft_token(
     """
     import httpx
 
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(timeout=15.0) as client:
         response = await client.post(
             f"https://login.microsoftonline.com/{tenant_id}/oauth2/v2.0/token",
             data={

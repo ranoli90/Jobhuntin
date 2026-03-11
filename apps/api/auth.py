@@ -1156,30 +1156,46 @@ async def _verify_captcha(settings: Settings, token: str, client_ip: str) -> boo
         logger.warning("RECAPTCHA_SECRET_KEY not set, skipping verification.")
         return True
 
-    async with httpx.AsyncClient() as client:
+    max_retries = 2
+    for attempt in range(max_retries + 1):
         try:
-            response = await client.post(
-                "https://www.google.com/recaptcha/api/siteverify",
-                data={
-                    "secret": settings.recaptcha_secret_key,
-                    "response": token,
-                    "remoteip": client_ip,
-                },
-            )
-            response.raise_for_status()
-            result = response.json()
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                response = await client.post(
+                    "https://www.google.com/recaptcha/api/siteverify",
+                    data={
+                        "secret": settings.recaptcha_secret_key,
+                        "response": token,
+                        "remoteip": client_ip,
+                    },
+                )
+                response.raise_for_status()
+                result = response.json()
 
-            if result.get("success") and result.get("score", 0.0) >= 0.5:
-                logger.info(
-                    "reCAPTCHA verification successful with score: %s",
-                    result.get("score"),
-                )
-                return True
-            else:
+                if result.get("success") and result.get("score", 0.0) >= 0.5:
+                    logger.info(
+                        "reCAPTCHA verification successful with score: %s",
+                        result.get("score"),
+                    )
+                    return True
+                else:
+                    logger.warning(
+                        "reCAPTCHA verification failed: %s",
+                        result.get("error-codes", "No error codes"),
+                    )
+                    return False
+        except (httpx.TimeoutException, httpx.ConnectError) as e:
+            if attempt < max_retries:
+                delay = 0.5 * (2**attempt)
                 logger.warning(
-                    "reCAPTCHA verification failed: %s",
-                    result.get("error-codes", "No error codes"),
+                    "reCAPTCHA transient error (attempt %d/%d), retrying in %.1fs: %s",
+                    attempt + 1,
+                    max_retries + 1,
+                    delay,
+                    e,
                 )
+                await asyncio.sleep(delay)
+            else:
+                logger.error("reCAPTCHA verification failed after retries: %s", e)
                 return False
         except httpx.HTTPStatusError as e:
             logger.error("HTTP error while verifying reCAPTCHA token: %s", e)
@@ -1189,6 +1205,7 @@ async def _verify_captcha(settings: Settings, token: str, client_ip: str) -> boo
                 "An unexpected error occurred during reCAPTCHA verification: %s", e
             )
             return False
+    return False
 
 
 @router.post("/magic-link", response_model=MagicLinkResponse)

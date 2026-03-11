@@ -22,7 +22,7 @@ def fetch_render_env():
     # 1. List services to find the API/Worker service ID
     try:
         print("\nChecking services...")
-        response = httpx.get("https://api.render.com/v1/services", headers=headers)
+        response = httpx.get("https://api.render.com/v1/services", headers=headers, timeout=30)
         response.raise_for_status()
         services = response.json()
 
@@ -39,6 +39,7 @@ def fetch_render_env():
             sg_resp = httpx.get(
                 f"https://api.render.com/v1/services/{service_id}/secret-groups",
                 headers=headers,
+                timeout=30,
             )
             if sg_resp.status_code == 200:
                 sgs = sg_resp.json()
@@ -49,6 +50,7 @@ def fetch_render_env():
                     sg_env_resp = httpx.get(
                         f"https://api.render.com/v1/secret-groups/{sg['id']}/env-vars",
                         headers=headers,
+                        timeout=30,
                     )
                     if sg_env_resp.status_code == 200:
                         sg_envs = sg_env_resp.json()

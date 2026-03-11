@@ -38,7 +38,7 @@ async def complete_onboarding_via_api():
     """Complete onboarding by calling API endpoints directly."""
     token = await create_auth_token()
 
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(timeout=15.0) as client:
         headers = {
             "Authorization": f"Bearer {token}",
             "Content-Type": "application/json",

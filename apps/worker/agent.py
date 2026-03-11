@@ -1520,8 +1520,8 @@ class FormAgent:
 
                     import httpx
 
-                    async with httpx.AsyncClient() as client:
-                        resp = await client.get(portfolio_url, timeout=30.0)
+                    async with httpx.AsyncClient(timeout=35.0) as client:
+                        resp = await client.get(portfolio_url)
                         resp.raise_for_status()
 
                         fd, path = tempfile.mkstemp(suffix=".pdf", prefix="portfolio_")
@@ -1579,8 +1579,8 @@ class FormAgent:
 
                             import httpx
 
-                            async with httpx.AsyncClient() as client:
-                                resp = await client.get(doc_url, timeout=30.0)
+                            async with httpx.AsyncClient(timeout=35.0) as client:
+                                resp = await client.get(doc_url)
                                 resp.raise_for_status()
 
                                 # Determine file extension from content-type or URL

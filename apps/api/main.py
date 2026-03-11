@@ -164,6 +164,9 @@ async def lifespan(app: FastAPI):
 API_VERSION = "v1"
 SUPPORTED_VERSIONS = ["v1", "v2"]
 
+# Deprecated path prefixes: (prefix, sunset_YYYY-MM-DD). Per API_VERSIONING.md: 6+ months notice.
+DEPRECATED_PATHS: list[tuple[str, str]] = []
+
 app = FastAPI(
     title="Sorce API",
     version="0.4.0",
@@ -261,46 +264,62 @@ async def api_versioning_middleware(request: Request, call_next):
     """Add API version headers and handle version negotiation.
 
     Headers added:
-    - X-API-Version: Current API version (v1)
+    - X-API-Version: Actual API version used (v1 or v2)
     - X-Supported-Versions: Comma-separated list of supported versions
+    - Deprecation, Sunset: For deprecated endpoints (per RFC 8594)
+    - X-API-Deprecated, X-API-Sunset-Date: Custom deprecation headers (per API_VERSIONING.md)
 
     Version negotiation:
-    - Accept-Version header can specify desired version (e.g., "v2")
-    - If version not supported, returns 400 with supported versions
+    - URL /api/v2/* implies v2; otherwise Accept-Version header or default v1
+    - If Accept-Version not supported, returns 400 with supported versions
     """
-    # Handle version negotiation via Accept-Version header (before processing request)
-    requested_version = request.headers.get("Accept-Version")
-    if requested_version:
-        requested_version = requested_version.strip().lower()
-        if requested_version not in SUPPORTED_VERSIONS:
-            return JSONResponse(
-                status_code=400,
-                content={
-                    "error": {
-                        "code": "UNSUPPORTED_API_VERSION",
-                        "message": f"API version '{requested_version}' is not supported",
-                        "detail": f"Supported versions: {', '.join(SUPPORTED_VERSIONS)}",
-                        "requested_version": requested_version,
-                        "supported_versions": SUPPORTED_VERSIONS,
-                    }
-                },
-                headers={
-                    "X-API-Version": API_VERSION,
-                    "X-Supported-Versions": ",".join(SUPPORTED_VERSIONS),
-                },
-            )
-        # Store requested version in request state for use by endpoints
-        request.state.api_version = requested_version
+    # Infer version from path: /api/v2/* always uses v2
+    path = request.url.path
+    if path.startswith("/api/v2/"):
+        effective_version = "v2"
+        request.state.api_version = "v2"
     else:
-        # Default to current version
-        request.state.api_version = API_VERSION
+        requested_version = request.headers.get("Accept-Version")
+        if requested_version:
+            requested_version = requested_version.strip().lower()
+            if requested_version not in SUPPORTED_VERSIONS:
+                return JSONResponse(
+                    status_code=400,
+                    content={
+                        "error": {
+                            "code": "UNSUPPORTED_API_VERSION",
+                            "message": f"API version '{requested_version}' is not supported",
+                            "detail": f"Supported versions: {', '.join(SUPPORTED_VERSIONS)}",
+                            "requested_version": requested_version,
+                            "supported_versions": SUPPORTED_VERSIONS,
+                        }
+                    },
+                    headers={
+                        "X-API-Version": API_VERSION,
+                        "X-Supported-Versions": ",".join(SUPPORTED_VERSIONS),
+                    },
+                )
+            request.state.api_version = requested_version
+            effective_version = requested_version
+        else:
+            request.state.api_version = API_VERSION
+            effective_version = API_VERSION
 
     # Process request
     response = await call_next(request)
 
-    # Add API version headers to response
-    response.headers["X-API-Version"] = API_VERSION
+    # Add API version headers to response (reflect actual version used)
+    response.headers["X-API-Version"] = effective_version
     response.headers["X-Supported-Versions"] = ",".join(SUPPORTED_VERSIONS)
+
+    # Deprecation headers per API_VERSIONING.md and RFC 8594
+    for prefix, sunset_date in DEPRECATED_PATHS:
+        if path.startswith(prefix):
+            response.headers["Deprecation"] = "true"
+            response.headers["Sunset"] = sunset_date
+            response.headers["X-API-Deprecated"] = "true"
+            response.headers["X-API-Sunset-Date"] = sunset_date
+            break
 
     return response
 
@@ -712,8 +731,17 @@ app.add_middleware(
         "X-CSRF-Token",
         "x-csrftoken",
         "Idempotency-Key",
+        "Accept-Version",
     ],
-    expose_headers=["X-Request-ID"],
+    expose_headers=[
+        "X-Request-ID",
+        "X-API-Version",
+        "X-Supported-Versions",
+        "Deprecation",
+        "Sunset",
+        "X-API-Deprecated",
+        "X-API-Sunset-Date",
+    ],
     max_age=3600,
 )
 

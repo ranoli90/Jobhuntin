@@ -339,17 +339,26 @@ class VersionMiddleware:
         # Add version headers to response
         response.headers[self.config.version_header] = str(version)
 
-        # Add deprecation warning if needed
+        # Add deprecation warning if needed (Sunset must be HTTP-date per RFC 8594)
         if self.config.enable_deprecation_warnings:
             version_manager = VersionManager(self.config)
             if version_manager.is_version_deprecated(version):
                 response.headers["Deprecation"] = "true"
-                response.headers["Sunset"] = (
-                    version.deprecated
-                    or version_manager.get_latest_version().sunset_date.isoformat()
-                    if version_manager.get_latest_version().sunset_date
-                    else ""
+                sunset_date = (
+                    version.sunset_date
+                    or version.deprecation_date
+                    or (
+                        version_manager.get_latest_version().sunset_date
+                        if version_manager.get_latest_version().sunset_date
+                        else None
+                    )
                 )
+                if sunset_date:
+                    response.headers["Sunset"] = (
+                        sunset_date.isoformat()
+                        if hasattr(sunset_date, "isoformat")
+                        else str(sunset_date)
+                    )
 
         return response
 
@@ -536,11 +545,19 @@ class VersionDocumentation:
         version_manager = VersionManager(self.config)
         if version_manager.is_version_deprecated(version):
             spec["info"]["x-deprecated"] = True
+            sunset_date = (
+                version.sunset_date
+                or version.deprecation_date
+                or (
+                    version_manager.get_latest_version().sunset_date
+                    if version_manager.get_latest_version().sunset_date
+                    else None
+                )
+            )
             spec["info"]["x-sunset"] = (
-                version.deprecated
-                or version_manager.get_latest_version().sunset_date.isoformat()
-                if version_manager.get_latest_version().sunset_date
-                else ""
+                sunset_date.isoformat()
+                if sunset_date and hasattr(sunset_date, "isoformat")
+                else (str(sunset_date) if sunset_date else "")
             )
 
         return spec
@@ -581,12 +598,21 @@ def create_versioned_response(
     version_manager = VersionManager(config)
     if version_manager.is_version_deprecated(version):
         response.headers["Deprecation"] = "true"
-        response.headers["Sunset"] = (
-            version.deprecated
-            or version_manager.get_latest_version().sunset_date.isoformat()
-            if version_manager.get_latest_version().sunset_date
-            else ""
+        sunset_date = (
+            version.sunset_date
+            or version.deprecation_date
+            or (
+                version_manager.get_latest_version().sunset_date
+                if version_manager.get_latest_version().sunset_date
+                else None
+            )
         )
+        if sunset_date:
+            response.headers["Sunset"] = (
+                sunset_date.isoformat()
+                if hasattr(sunset_date, "isoformat")
+                else str(sunset_date)
+            )
 
     # Add compatibility headers
     if request and config.enable_backward_compatibility:

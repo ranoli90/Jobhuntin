@@ -306,12 +306,19 @@ async def upload_to_supabase_storage(
         "Content-Type": content_type,
         "x-upsert": "true",
     }
-    async with httpx.AsyncClient() as client:
-        resp = await client.post(url, content=data, headers=headers)
-        resp.raise_for_status()
-
-    # Return the internal storage path (not a public URL) — use generate_signed_url() for access
-    return f"{bucket}/{path}"
+    import asyncio
+    max_retries = 2
+    for attempt in range(max_retries + 1):
+        try:
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                resp = await client.post(url, content=data, headers=headers)
+                resp.raise_for_status()
+                return f"{bucket}/{path}"
+        except (httpx.TimeoutException, httpx.ConnectError) as e:
+            if attempt < max_retries:
+                await asyncio.sleep(1.0 * (2**attempt))
+            else:
+                raise
 
 
 async def generate_signed_url(storage_path: str, ttl_seconds: int | None = None) -> str:

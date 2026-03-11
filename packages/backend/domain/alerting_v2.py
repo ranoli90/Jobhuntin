@@ -6,6 +6,7 @@ Extends observability.py with multi-channel alert dispatch.
 
 from __future__ import annotations
 
+import asyncio
 from typing import Any
 
 import asyncpg
@@ -48,19 +49,27 @@ async def send_pagerduty_event(
                 "custom_details": details or {},
             },
         }
-        async with httpx.AsyncClient() as client:
-            resp = await client.post(
-                "https://events.pagerduty.com/v2/enqueue",
-                json=payload,
-                timeout=10,
-            )
-            if resp.status_code == 202:
-                data = resp.json()
-                logger.info("PagerDuty event created: %s", data.get("dedup_key"))
-                return data.get("dedup_key")
-            else:
-                logger.error("PagerDuty error %d: %s", resp.status_code, resp.text)
-                return None
+        max_retries = 2
+        for attempt in range(max_retries + 1):
+            try:
+                async with httpx.AsyncClient(timeout=15.0) as client:
+                    resp = await client.post(
+                        "https://events.pagerduty.com/v2/enqueue",
+                        json=payload,
+                    )
+                    if resp.status_code == 202:
+                        data = resp.json()
+                        logger.info("PagerDuty event created: %s", data.get("dedup_key"))
+                        return data.get("dedup_key")
+                    else:
+                        logger.error("PagerDuty error %d: %s", resp.status_code, resp.text)
+                        return None
+            except (httpx.TimeoutException, httpx.ConnectError) as e:
+                if attempt < max_retries:
+                    await asyncio.sleep(0.5 * (2**attempt))
+                else:
+                    logger.error("PagerDuty send failed after retries: %s", e)
+                    return None
     except ImportError:
         logger.warning("httpx not installed — PagerDuty disabled")
         return None
@@ -124,21 +133,29 @@ async def send_opsgenie_alert(
             "Content-Type": "application/json",
         }
 
-        async with httpx.AsyncClient() as client:
-            resp = await client.post(
-                s.opsgenie_api_url,
-                json=payload,
-                headers=headers,
-                timeout=10,
-            )
-            if resp.status_code in (200, 201, 202):
-                data = resp.json()
-                alert_id = data.get("data", {}).get("alertId") or data.get("requestId")
-                logger.info("Opsgenie alert created: %s", alert_id)
-                return alert_id
-            else:
-                logger.error("Opsgenie error %d: %s", resp.status_code, resp.text)
-                return None
+        max_retries = 2
+        for attempt in range(max_retries + 1):
+            try:
+                async with httpx.AsyncClient(timeout=15.0) as client:
+                    resp = await client.post(
+                        s.opsgenie_api_url,
+                        json=payload,
+                        headers=headers,
+                    )
+                    if resp.status_code in (200, 201, 202):
+                        data = resp.json()
+                        alert_id = data.get("data", {}).get("alertId") or data.get("requestId")
+                        logger.info("Opsgenie alert created: %s", alert_id)
+                        return alert_id
+                    else:
+                        logger.error("Opsgenie error %d: %s", resp.status_code, resp.text)
+                        return None
+            except (httpx.TimeoutException, httpx.ConnectError) as e:
+                if attempt < max_retries:
+                    await asyncio.sleep(0.5 * (2**attempt))
+                else:
+                    logger.error("Opsgenie send failed after retries: %s", e)
+                    return None
     except ImportError:
         logger.warning("httpx not installed — Opsgenie disabled")
         return None
@@ -173,12 +190,21 @@ async def send_slack_message(
         if blocks:
             payload["blocks"] = blocks
 
-        async with httpx.AsyncClient() as client:
-            resp = await client.post(webhook_url, json=payload, timeout=10)
-            ok = resp.status_code == 200
-            if not ok:
-                logger.error("Slack error %d: %s", resp.status_code, resp.text)
-            return ok
+        max_retries = 2
+        for attempt in range(max_retries + 1):
+            try:
+                async with httpx.AsyncClient(timeout=15.0) as client:
+                    resp = await client.post(webhook_url, json=payload)
+                    ok = resp.status_code == 200
+                    if not ok:
+                        logger.error("Slack error %d: %s", resp.status_code, resp.text)
+                    return ok
+            except (httpx.TimeoutException, httpx.ConnectError) as e:
+                if attempt < max_retries:
+                    await asyncio.sleep(0.5 * (2**attempt))
+                else:
+                    logger.error("Slack send failed after retries: %s", e)
+                    return False
     except ImportError:
         logger.warning("httpx not installed — Slack disabled")
         return False

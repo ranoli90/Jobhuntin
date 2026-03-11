@@ -53,7 +53,7 @@ Major version increments indicate breaking changes:
 ### Backward Compatibility
 
 - **Deprecation Period**: Endpoints/features are deprecated for at least 6 months before removal
-- **Deprecation Headers**: Deprecated endpoints include `X-API-Deprecated: true` and `X-API-Sunset-Date: YYYY-MM-DD` headers
+- **Deprecation Headers**: Deprecated endpoints include `X-API-Deprecated: true` and `X-API-Sunset-Date: YYYY-MM-DD`, plus RFC 8594 `Deprecation: true` and `Sunset: <date>`
 - **Migration Guides**: Breaking changes include migration guides in the changelog
 
 ## URL-Based Versioning

@@ -4,6 +4,7 @@ OAuth/SSO Handler for Phase 12.1 Agent Improvements
 
 from __future__ import annotations
 
+import asyncio
 import uuid
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -184,10 +185,23 @@ class OAuthHandler:
             else:
                 token_url = f"/oauth/token?provider={provider}"
 
-            async with httpx.AsyncClient() as client:
-                response = await client.post(token_url, data=token_data)
-                response.raise_for_status()
-                token_data = response.json()
+            max_retries = 2
+            for attempt in range(max_retries + 1):
+                try:
+                    async with httpx.AsyncClient(timeout=15.0) as client:
+                        response = await client.post(token_url, data=token_data)
+                        response.raise_for_status()
+                        token_data = response.json()
+                    break
+                except (httpx.TimeoutException, httpx.ConnectError) as e:
+                    if attempt < max_retries:
+                        await asyncio.sleep(0.5 * (2**attempt))
+                    else:
+                        logger.error("OAuth token exchange failed after retries: %s", e)
+                        raise HTTPException(
+                            status_code=504,
+                            detail="OAuth provider temporarily unavailable",
+                        ) from e
 
             token_response = OAuthTokenResponse(
                 access_token=token_data["access_token"],
@@ -232,10 +246,23 @@ class OAuthHandler:
 
             headers = {"Authorization": f"Bearer {access_token}"}
 
-            async with httpx.AsyncClient() as client:
-                response = await client.get(user_url, headers=headers)
-                response.raise_for_status()
-                user_data = response.json()
+            max_retries = 2
+            for attempt in range(max_retries + 1):
+                try:
+                    async with httpx.AsyncClient(timeout=15.0) as client:
+                        response = await client.get(user_url, headers=headers)
+                        response.raise_for_status()
+                        user_data = response.json()
+                    break
+                except (httpx.TimeoutException, httpx.ConnectError) as e:
+                    if attempt < max_retries:
+                        await asyncio.sleep(0.5 * (2**attempt))
+                    else:
+                        logger.error("OAuth user info failed after retries: %s", e)
+                        raise HTTPException(
+                            status_code=504,
+                            detail=f"OAuth provider temporarily unavailable",
+                        ) from e
 
             user_info = OAuthUserInfo(
                 id=user_data.get("id"),
@@ -266,10 +293,23 @@ class OAuthHandler:
                 f"/oauth/token?grant_type=refresh_token&refresh_token={refresh_token}"
             )
 
-            async with httpx.AsyncClient() as client:
-                response = await client.post(token_url)
-                response.raise_for_status()
-                token_data = response.json()
+            max_retries = 2
+            for attempt in range(max_retries + 1):
+                try:
+                    async with httpx.AsyncClient(timeout=15.0) as client:
+                        response = await client.post(token_url)
+                        response.raise_for_status()
+                        token_data = response.json()
+                    break
+                except (httpx.TimeoutException, httpx.ConnectError) as e:
+                    if attempt < max_retries:
+                        await asyncio.sleep(0.5 * (2**attempt))
+                    else:
+                        logger.error("OAuth token refresh failed after retries: %s", e)
+                        raise HTTPException(
+                            status_code=504,
+                            detail="OAuth provider temporarily unavailable",
+                        ) from e
 
             token_response = OAuthTokenResponse(
                 access_token=token_data["access_token"],

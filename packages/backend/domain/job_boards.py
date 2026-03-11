@@ -49,7 +49,7 @@ class AdzunaClient:
         results: list[dict[str, Any]] = []
         countries = [self.default_country, *self.additional_countries]
 
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(timeout=15.0) as client:
             for country in countries:
                 for page in range(1, self.max_pages + 1):
                     if not self.rate_limiter.allow():

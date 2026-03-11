@@ -116,12 +116,11 @@ async def _deliver_webhook(
     }
 
     try:
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(timeout=15.0) as client:
             resp = await client.post(
                 endpoint["url"],
                 content=payload,
                 headers=headers,
-                timeout=10,
             )
 
         status_code = resp.status_code
