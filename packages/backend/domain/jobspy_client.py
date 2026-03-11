@@ -155,11 +155,15 @@ class JobSpyClient:
 
         start_time = time.time()
         max_retries = getattr(self.settings, "jobspy_retry_count", 2)
+        timeout_sec = getattr(self.settings, "jobspy_timeout_seconds", 120)
         last_error: Exception | None = None
 
         for attempt in range(max_retries + 1):
             try:
-                df = await loop.run_in_executor(executor, func)
+                df = await asyncio.wait_for(
+                    loop.run_in_executor(executor, func),
+                    timeout=timeout_sec,
+                )
                 jobs = self._normalize_jobs(df)
                 duration_ms = int((time.time() - start_time) * 1000)
 
