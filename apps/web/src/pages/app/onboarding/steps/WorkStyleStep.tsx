@@ -222,15 +222,18 @@ export function WorkStyleStep({
                             {question.question}
                         </h3>
 
-                        <div className="space-y-2 md:space-y-3">
+                        <div className="space-y-2 md:space-y-3" role="radiogroup" aria-label={question.question}>
                             {"options" in question && question.options.length > 0 && (
                                 (question.options as { value: string; label: string }[]).map((option) => {
                                     const isSelected = answers[question.maps_to] === option.value;
                                     return (
                                         <button
                                             key={option.value}
+                                            type="button"
+                                            role="radio"
+                                            aria-checked={isSelected}
                                             onClick={() => handleAnswer(question.id, option.value, question.maps_to)}
-                                            className={`w-full p-3 md:p-4 rounded-xl text-left transition-all border-2 ${isSelected
+                                            className={`w-full min-h-[44px] p-3 md:p-4 rounded-xl text-left transition-all border-2 ${isSelected
                                                 ? "border-emerald-500 bg-emerald-50 scale-[1.02] shadow-md"
                                                 : "border-slate-100 bg-white hover:border-slate-200 hover:bg-slate-50 active:scale-[0.98]"
                                                 }`}

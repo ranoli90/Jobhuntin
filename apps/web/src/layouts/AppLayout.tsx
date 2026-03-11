@@ -283,7 +283,7 @@ export default function AppLayout() {
         <header className="flex h-16 sm:h-20 items-center justify-between border-b border-brand-border bg-white/95 dark:border-slate-800 dark:bg-slate-900/80 backdrop-blur-2xl px-4 sm:px-6 shrink-0 z-50 sticky top-0">
           <div className="flex items-center gap-3 sm:gap-4">
             <button
-              className="lg:hidden p-2 text-brand-text/70 bg-brand-gray rounded-xl active:scale-95 transition-all outline-none focus:ring-2 focus:ring-brand-primary"
+              className="lg:hidden min-h-[44px] min-w-[44px] p-2 flex items-center justify-center text-brand-text/70 bg-brand-gray rounded-xl active:scale-95 transition-all outline-none focus:ring-2 focus:ring-brand-primary"
               onClick={() => setMobileMenuOpen(true)}
               aria-label="Open menu"
               aria-expanded={mobileMenuOpen}

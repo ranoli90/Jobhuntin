@@ -120,10 +120,10 @@ export function ConfirmModal({
             </h3>
           </div>
 
-          {/* Description */}
-          <p id="modal-description" className="text-gray-600 mb-6 leading-relaxed">
+          {/* Description - div supports ReactNode (string, div, fragment, etc.) */}
+          <div id="modal-description" className="text-gray-600 mb-6 leading-relaxed" role="document">
             {description}
-          </p>
+          </div>
 
           {/* Actions */}
           <div className="flex gap-3">

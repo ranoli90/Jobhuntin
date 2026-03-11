@@ -99,11 +99,12 @@ export function ConfirmContactStep({
             <div className="grid gap-4 md:gap-6">
                 <div className="grid grid-cols-2 gap-3 md:gap-4">
                     <div>
-                        <label className="mb-2 flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                        <label htmlFor="onboarding-first-name" className="mb-2 flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                             <div className="w-1 h-1 rounded-full bg-[#17BEBB]" />
                             {t("onboarding.firstName", locale)} <span className="text-red-400">*</span>
                         </label>
                         <Input
+                            id="onboarding-first-name"
                             icon={<User className="h-4 w-4 md:h-5 md:w-5" />}
                             type="text"
                             placeholder={t("onboarding.firstNamePlaceholder", locale) || "John"}
@@ -115,11 +116,12 @@ export function ConfirmContactStep({
                         />
                     </div>
                     <div>
-                        <label className="mb-2 flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                        <label htmlFor="onboarding-last-name" className="mb-2 flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                             <div className="w-1 h-1 rounded-full bg-[#17BEBB]" />
                             {t("onboarding.lastName", locale)} <span className="text-red-400">*</span>
                         </label>
                         <Input
+                            id="onboarding-last-name"
                             icon={<User className="h-4 w-4 md:h-5 md:w-5" />}
                             type="text"
                             placeholder={t("onboarding.lastNamePlaceholder", locale) || "Doe"}
@@ -133,13 +135,16 @@ export function ConfirmContactStep({
                 </div>
 
                 <div>
-                    <label className="mb-2 flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                    <label htmlFor="onboarding-email" className="mb-2 flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                         <div className="w-1 h-1 rounded-full bg-emerald-500" />
                         {t("onboarding.email", locale)} <span className="text-red-400">*</span>
                     </label>
                     <Input
+                        id="onboarding-email"
                         icon={<Mail className="h-4 w-4 md:h-5 md:w-5" />}
                         type="email"
+                        inputMode="email"
+                        autoComplete="email"
                         placeholder={t("onboarding.emailPlaceholder", locale) || "john@example.com"}
                         value={contactInfo.email}
                         onChange={(e) => handleFieldChange('email', e.target.value)}
@@ -169,13 +174,16 @@ export function ConfirmContactStep({
                 </div>
 
                 <div>
-                    <label className="mb-2 flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                    <label htmlFor="onboarding-phone" className="mb-2 flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                         <div className="w-1 h-1 rounded-full bg-emerald-500" />
                         {t("onboarding.phone", locale)}
                     </label>
                     <Input
+                        id="onboarding-phone"
                         icon={<Phone className="h-4 w-4 md:h-5 md:w-5" />}
                         type="tel"
+                        inputMode="tel"
+                        autoComplete="tel"
                         placeholder={t("onboarding.phonePlaceholder", locale) || "+1 (555) 123-4567"}
                         value={contactInfo.phone}
                         onChange={(e) => handlePhoneChange(e.target.value)}

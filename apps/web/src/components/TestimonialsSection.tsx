@@ -1,5 +1,5 @@
 import * as React from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { Quote, ChevronLeft, ChevronRight, Star } from "lucide-react";
 import { cn } from "../lib/utils";
 
@@ -61,7 +61,7 @@ export function TestimonialsSection({ className }: TestimonialsSectionProps) {
   const [currentIndex, setCurrentIndex] = React.useState(0);
   const [direction, setDirection] = React.useState(0);
   const [isPaused, setIsPaused] = React.useState(false);
-  const prefersReducedMotion = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const prefersReducedMotion = useReducedMotion();
 
   const slideVariants = {
     enter: (direction: number) => ({
@@ -121,14 +121,14 @@ export function TestimonialsSection({ className }: TestimonialsSectionProps) {
           <div className="absolute top-6 right-6 flex gap-2">
             <button
               onClick={() => paginate(-1)}
-              className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 transition-colors"
+              className="min-h-[44px] min-w-[44px] rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 transition-colors"
               aria-label="Previous testimonial"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
             <button
               onClick={() => paginate(1)}
-              className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 transition-colors"
+              className="min-h-[44px] min-w-[44px] rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 transition-colors"
               aria-label="Next testimonial"
             >
               <ChevronRight className="w-5 h-5" />
@@ -196,12 +196,13 @@ export function TestimonialsSection({ className }: TestimonialsSectionProps) {
                   setCurrentIndex(index);
                 }}
                 className={cn(
-                  "w-2 h-2 rounded-full transition-all focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2",
+                  "p-5 rounded-full transition-all focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 flex items-center justify-center min-h-[44px] min-w-[44px]",
                   index === currentIndex
                     ? "w-6 bg-primary-600"
-                    : "bg-slate-300 hover:bg-slate-400"
+                    : "w-2 h-2 bg-slate-300 hover:bg-slate-400"
                 )}
                 aria-label={`Go to testimonial ${index + 1}`}
+                aria-current={index === currentIndex ? "true" : undefined}
               />
             ))}
           </div>

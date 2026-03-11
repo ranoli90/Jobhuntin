@@ -9,13 +9,13 @@
 
 html {
   scroll-behavior: smooth;
+  overflow-x: hidden;
 }
 
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  overflow-x: hidden;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   line-height: 1.5;
@@ -25,7 +25,7 @@ body {
 /* Root Variables */
 :root {
   /* Colors */
-  --color-primary: #2563eb;
+  --color-primary: #455DD3;
   --color-primary-foreground: white;
   --color-secondary: #64748b;
   --color-secondary-foreground: white;
@@ -37,7 +37,7 @@ body {
   --color-destructive-foreground: white;
   --color-border: #e2e8f0;
   --color-input: #ffffff;
-  --color-ring: #2563eb;
+  --color-ring: #455DD3;
   --color-background: #ffffff;
   --color-foreground: #2D2A26;
   --color-card: #ffffff;
@@ -47,7 +47,7 @@ body {
   --color-foreground-secondary: #5A5653;
   
   /* Warm color palette */
-  --color-warm-primary: #2563eb;
+  --color-warm-primary: #455DD3;
   --color-warm-secondary: #64748b;
   --color-warm-accent: #f59e0b;
   --color-warm-background: #ffffff;
@@ -107,7 +107,7 @@ body {
     --color-card-foreground: #f8fafc;
     --color-popover: #1e293b;
     --color-popover-foreground: #f8fafc;
-    --color-primary: #3b82f6;
+    --color-primary: #5B6FDB;
     --color-primary-foreground: white;
     --color-secondary: #64748b;
     --color-secondary-foreground: white;
@@ -119,8 +119,8 @@ body {
     --color-destructive-foreground: white;
     --color-border: #334155;
     --color-input: #1e293b;
-    --color-ring: #3b82f6;
-    --color-warm-primary: #3b82f6;
+    --color-ring: #5B6FDB;
+    --color-warm-primary: #5B6FDB;
     --color-warm-secondary: #94a3b8;
     --color-warm-accent: #fbbf24;
     --color-warm-background: #0f172a;
@@ -143,10 +143,10 @@ body {
   outline-offset: 2px;
 }
 
-/* Selection Styles */
+/* Branded selection - subtle tint for crisp, distinctive feel */
 ::selection {
-  background-color: var(--color-primary);
-  color: var(--color-primary-foreground);
+  background-color: rgba(69, 93, 211, 0.2);
+  color: #2D2A26;
 }
 
 /* Scrollbar Styles */

@@ -175,11 +175,12 @@ export function PreferencesStep({
             <div className="grid gap-4 md:gap-6">
                 {/* Location */}
                 <div>
-                    <label className="mb-2 flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                    <label htmlFor="onboarding-location" className="mb-2 flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                         <MapPin className="w-3 h-3" />
                         {t("onboarding.location", locale)} <span className="text-red-400">*</span>
                     </label>
                     <AutoCompleteInput
+                        id="onboarding-location"
                         value={preferences.location}
                         onChange={handleLocationChange}
                         suggestions={CITIES}
@@ -194,11 +195,12 @@ export function PreferencesStep({
 
                 {/* Role Type */}
                 <div>
-                    <label className="mb-2 flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                    <label htmlFor="onboarding-role-type" className="mb-2 flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                         <Briefcase className="w-3 h-3" />
                         {t("onboarding.roleType", locale)} <span className="text-red-400">*</span>
                     </label>
                     <AutoCompleteInput
+                        id="onboarding-role-type"
                         value={preferences.role_type}
                         onChange={handleRoleTypeChange}
                         suggestions={JOB_TITLES}
@@ -214,12 +216,14 @@ export function PreferencesStep({
                 {/* Salary Range */}
                 <div className="grid grid-cols-2 gap-3 md:gap-4">
                     <div>
-                        <label className="mb-2 flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                        <label htmlFor="onboarding-salary-min" className="mb-2 flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                             <DollarSign className="w-3 h-3" />
                             {t("onboarding.minSalary", locale)}
                         </label>
                         <Input
+                            id="onboarding-salary-min"
                             type="number"
+                            inputMode="numeric"
                             placeholder="80000"
                             value={preferences.salary_min}
                             onChange={(e) => handleSalaryChange('salary_min', e.target.value)}
@@ -235,12 +239,14 @@ export function PreferencesStep({
                         )}
                     </div>
                     <div>
-                        <label className="mb-2 flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                        <label htmlFor="onboarding-salary-max" className="mb-2 flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                             <DollarSign className="w-3 h-3" />
                             {t("onboarding.maxSalary", locale)}
                         </label>
                         <Input
+                            id="onboarding-salary-max"
                             type="number"
+                            inputMode="numeric"
                             placeholder="150000"
                             value={preferences.salary_max || ''}
                             onChange={(e) => handleSalaryChange('salary_max', e.target.value)}
@@ -332,11 +338,12 @@ export function PreferencesStep({
 
                 {/* Excluded Companies */}
                 <div>
-                    <label className="mb-2 flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                    <label htmlFor="onboarding-excluded-companies" className="mb-2 flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                         <Building2 className="w-3 h-3" />
                         {t("onboarding.excludedCompanies", locale)}
                     </label>
                     <Input
+                        id="onboarding-excluded-companies"
                         type="text"
                         placeholder={t("onboarding.excludedCompaniesPlaceholder", locale) || "Company A, Company B, ..."}
                         value={localExcludedCompanies}
@@ -351,11 +358,12 @@ export function PreferencesStep({
 
                 {/* Excluded Keywords */}
                 <div>
-                    <label className="mb-2 flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                    <label htmlFor="onboarding-excluded-keywords" className="mb-2 flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                         <Ban className="w-3 h-3" />
                         {t("onboarding.excludedKeywords", locale)}
                     </label>
                     <Input
+                        id="onboarding-excluded-keywords"
                         type="text"
                         placeholder={t("onboarding.excludedKeywordsPlaceholder", locale) || "keyword1, keyword2, ..."}
                         value={localExcludedKeywords}

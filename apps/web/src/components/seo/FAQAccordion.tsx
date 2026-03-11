@@ -43,9 +43,11 @@ export function FAQAccordion({ items, competitorName }: FAQAccordionProps) {
                             className="rounded-xl border border-[#E9E9E7] bg-white overflow-hidden transition-all duration-200 hover:border-[#E3E2E0]"
                         >
                             <button
+                                id={`faq-accordion-question-${i}`}
                                 onClick={() => setOpenIndex(openIndex === i ? null : i)}
                                 className="w-full flex items-center justify-between gap-4 px-5 sm:px-6 py-4 sm:py-5 text-left group"
                                 aria-expanded={openIndex === i}
+                                aria-controls={`faq-accordion-answer-${i}`}
                             >
                                 <span className="text-[15px] sm:text-[16px] font-semibold text-[#2D2A26] group-hover:text-[#455DD3] transition-colors pr-2">
                                     {item.question}
@@ -57,7 +59,7 @@ export function FAQAccordion({ items, competitorName }: FAQAccordionProps) {
                                 )}
                             </button>
                             {openIndex === i && (
-                                <div className="px-5 sm:px-6 pb-5 pt-0 text-[15px] text-[#787774] leading-[1.6] border-t border-[#F1F1EF]">
+                                <div id={`faq-accordion-answer-${i}`} role="region" aria-labelledby={`faq-accordion-question-${i}`} className="px-5 sm:px-6 pb-5 pt-0 text-[15px] text-[#787774] leading-[1.6] border-t border-[#F1F1EF]">
                                     <p>{item.answer}</p>
                                 </div>
                             )}

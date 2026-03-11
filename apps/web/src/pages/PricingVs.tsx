@@ -271,8 +271,8 @@ export default function PricingVs() {
                     className="mb-20"
                 >
                     <h2 className="text-2xl font-bold text-slate-900 mb-6">What You Get for Your Money</h2>
-                    <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
-                        <table className="w-full">
+                    <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden overflow-x-auto">
+                        <table className="w-full min-w-[480px]">
                             <thead>
                                 <tr className="border-b border-slate-100 bg-slate-50/50">
                                     <th className="px-6 py-4 text-left text-sm font-bold text-slate-500">Included Feature</th>

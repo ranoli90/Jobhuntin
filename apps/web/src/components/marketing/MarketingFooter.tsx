@@ -21,7 +21,7 @@ export function MarketingFooter() {
         { name: "AI Resume Tailoring", path: "/#features" },
         { name: "Auto-Apply Engine", path: "/#features" },
         { name: "ATS Optimization", path: "/#features" },
-        { name: "Application Tracking", path: "/#dashboard" },
+        { name: "Application Tracking", path: "/app/dashboard" },
         { name: "Interview Prep", path: "/#features" },
         { name: "Job Search Guides", path: "/guides" },
       ]
@@ -67,7 +67,7 @@ export function MarketingFooter() {
               <div className="bg-[#2D2A26] p-2 rounded-xl shadow-lg shadow-[#2D2A26]/10 group-hover:bg-[#3D3A36] transition-colors duration-300">
                 <Briefcase className="text-white w-5 h-5" aria-hidden />
               </div>
-              <span className="text-lg font-black text-[#2D2A26] dark:text-slate-100 tracking-tight">JobHuntin</span>
+              <span className="font-display text-lg font-black text-[#2D2A26] dark:text-slate-100 tracking-tight">JobHuntin</span>
             </Link>
             <p className="text-[#787774] dark:text-slate-400 text-sm mb-6 max-w-xs leading-relaxed font-medium">
               The automation platform for job seekers.

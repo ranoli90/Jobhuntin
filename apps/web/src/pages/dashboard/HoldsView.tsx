@@ -97,7 +97,7 @@ export default function HoldsView() {
                 <div id={`hold-question-${app.id}`} className="bg-amber-50 rounded-2xl p-4 sm:p-6 border border-amber-100 relative">
                   <Quote className="absolute top-4 left-4 w-12 h-12 text-amber-200/50 -z-0" />
                   <p className="text-amber-900 font-medium leading-relaxed relative z-10">
-                    "I've encountered a specific question on the portal: <span className="font-black italic">'{app.hold_question}'</span>. How should I proceed?"
+                    "I've encountered a specific question on the portal: <span className="font-black italic">'{app.hold_question ?? "No question provided"}'</span>. How should I proceed?"
                   </p>
                 </div>
 

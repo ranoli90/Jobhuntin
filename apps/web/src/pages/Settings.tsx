@@ -322,7 +322,7 @@ export default function Settings() {
                     {initials}
                   </div>
                 )}
-                <label className="absolute -bottom-2 -right-2 inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-brand-ink text-white shadow" aria-label="Upload profile photo">
+                <label className="absolute -bottom-2 -right-2 inline-flex min-h-[44px] min-w-[44px] cursor-pointer items-center justify-center rounded-full bg-brand-ink text-white shadow" aria-label="Upload profile photo">
                   {isAvatarUploading ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <Camera className="h-4 w-4" aria-hidden />}
                   <input type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={handleAvatarUpload} disabled={isAvatarUploading} />
                 </label>
@@ -489,7 +489,7 @@ export default function Settings() {
                       }`}
                   >
                     <div className="flex items-center gap-3">
-                      <span className="sr-only">, {t(preferences[key] ? "settings.toggleOn" : "settings.toggleOff", locale)}</span>
+                      <span className="sr-only"> {t(preferences[key] ? "settings.toggleOn" : "settings.toggleOff", locale)}</span>
                     <span className="text-sm font-semibold">{t(labelKey, locale)}</span>
                       <span className="text-xs text-brand-ink/60">{t(descKey, locale)}</span>
                     </div>
@@ -508,7 +508,7 @@ export default function Settings() {
             </div>
             <div>
               <label htmlFor="settings-excluded-companies" className="mb-1.5 flex items-center gap-2 text-sm font-medium text-brand-ink">
-                <Ban className="h-4 w-4" aria-hidden /> Excluded companies
+                <Ban className="h-4 w-4" aria-hidden /> {t("settings.excludedCompanies", locale) || "Excluded companies"}
               </label>
               <input
                 id="settings-excluded-companies"
@@ -527,7 +527,7 @@ export default function Settings() {
             </div>
             <div>
               <label htmlFor="settings-excluded-keywords" className="mb-1.5 flex items-center gap-2 text-sm font-medium text-brand-ink">
-                <Tag className="h-4 w-4" aria-hidden /> Excluded keywords
+                <Tag className="h-4 w-4" aria-hidden /> {t("settings.excludedKeywords", locale) || "Excluded keywords"}
               </label>
               <input
                 id="settings-excluded-keywords"

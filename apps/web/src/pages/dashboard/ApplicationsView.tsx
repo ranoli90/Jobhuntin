@@ -222,7 +222,7 @@ export default function ApplicationsView() {
           {searchTerm && (
             <button
               onClick={() => setSearchTerm('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+              className="absolute right-3 top-1/2 -translate-y-1/2 min-h-[44px] min-w-[44px] flex items-center justify-center text-slate-400 hover:text-slate-600 transition-colors rounded-lg"
               aria-label="Clear search"
             >
               <X className="w-3.5 h-3.5" />
@@ -232,12 +232,12 @@ export default function ApplicationsView() {
       </div>
 
       {/* Status filter tabs */}
-      <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
+      <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar" style={{ WebkitOverflowScrolling: 'touch' }}>
         {STATUS_FILTERS.map(({ label, value }) => (
           <button
             key={label}
             onClick={() => setStatusFilter(value)}
-            className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all border ${statusFilter === value
+            className={`min-h-[44px] px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all border flex items-center ${statusFilter === value
               ? 'bg-slate-900 text-white border-slate-900'
               : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300 hover:bg-slate-50'
               }`}

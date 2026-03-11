@@ -143,32 +143,45 @@ function AddSkillForm({ onAdd, onCancel, locale }: AddSkillFormProps) {
                 <span className="font-bold text-emerald-800 text-sm">{t("onboarding.addSkill", locale) || "Add a Skill"}</span>
             </div>
             <div className="grid gap-2 md:grid-cols-3">
-                <Input
-                    type="text"
-                    placeholder={t("onboarding.skillNamePlaceholder", locale) || "Skill name"}
-                    value={skillName}
-                    onChange={(e) => setSkillName(e.target.value)}
-                    className="bg-white text-sm"
-                />
-                <Input
-                    type="number"
-                    placeholder={t("onboarding.yearsPlaceholder", locale) || "Years"}
-                    value={years}
-                    onChange={(e) => setYears(e.target.value)}
-                    className="bg-white text-sm"
-                    min="0"
-                    max="50"
-                    step="0.5"
-                    aria-label={t("onboarding.yearsExperience", locale) || "Years of experience"}
-                    aria-valuetext={years ? `${years} ${t("onboarding.years", locale) || "years"}` : undefined}
-                />
-                <Input
-                    type="text"
-                    placeholder={t("onboarding.contextPlaceholder", locale) || "Context (optional)"}
-                    value={context}
-                    onChange={(e) => setContext(e.target.value)}
-                    className="bg-white text-sm"
-                />
+                <div>
+                    <label htmlFor="add-skill-name" className="sr-only">{t("onboarding.skillNamePlaceholder", locale) || "Skill name"}</label>
+                    <Input
+                        id="add-skill-name"
+                        type="text"
+                        placeholder={t("onboarding.skillNamePlaceholder", locale) || "Skill name"}
+                        value={skillName}
+                        onChange={(e) => setSkillName(e.target.value)}
+                        className="bg-white text-sm"
+                    />
+                </div>
+                <div>
+                    <label htmlFor="add-skill-years" className="sr-only">{t("onboarding.yearsPlaceholder", locale) || "Years"}</label>
+                    <Input
+                        id="add-skill-years"
+                        type="number"
+                        placeholder={t("onboarding.yearsPlaceholder", locale) || "Years"}
+                        value={years}
+                        onChange={(e) => setYears(e.target.value)}
+                        className="bg-white text-sm"
+                        min="0"
+                        max="50"
+                        step="0.5"
+                        inputMode="numeric"
+                        aria-label={t("onboarding.yearsExperience", locale) || "Years of experience"}
+                        aria-valuetext={years ? `${years} ${t("onboarding.years", locale) || "years"}` : undefined}
+                    />
+                </div>
+                <div>
+                    <label htmlFor="add-skill-context" className="sr-only">{t("onboarding.contextPlaceholder", locale) || "Context (optional)"}</label>
+                    <Input
+                        id="add-skill-context"
+                        type="text"
+                        placeholder={t("onboarding.contextPlaceholder", locale) || "Context (optional)"}
+                        value={context}
+                        onChange={(e) => setContext(e.target.value)}
+                        className="bg-white text-sm"
+                    />
+                </div>
             </div>
             <div className="flex flex-col sm:flex-row justify-end gap-2">
                 <Button type="button" variant="ghost" onClick={onCancel} className="min-h-[44px] h-11 sm:h-12 text-xs touch-manipulation">

@@ -20,7 +20,7 @@ interface Invoice {
 }
 
 export default function Billing() {
-  const { status, plan, usage, tiers, upgrade, addSeats, manageBilling, loading: billingLoading, error } = useBilling();
+  const { status, plan, usage, tiers, upgrade, addSeats, manageBilling, refetch, loading: billingLoading, error } = useBilling();
   const shouldReduceMotion = useReducedMotion();
 
   const { data: invoices = [], isLoading: invoicesLoading } = useQuery<Invoice[]>({
@@ -64,7 +64,7 @@ export default function Billing() {
               <div className="p-6 border border-slate-200 dark:border-slate-800 rounded-2xl animate-pulse">
                 <div className="h-6 w-32 bg-slate-200 dark:bg-slate-700 rounded mb-4" />
                 <div className="h-4 w-full bg-slate-100 dark:bg-slate-800 rounded mb-2" />
-                <div className="h-4 w-3/4 bg-slate-100 dark:bg-slate-800 rounded" />
+                <div className="h-4 w-[75%] bg-slate-100 dark:bg-slate-800 rounded" />
               </div>
             </div>
           </div>
@@ -106,6 +106,9 @@ export default function Billing() {
               <p className="font-bold text-sm">Unable to load billing data</p>
               <p className="text-xs text-red-600 dark:text-red-300 mt-0.5">{error}</p>
             </div>
+            <Button variant="outline" size="sm" onClick={() => refetch()} className="shrink-0">
+              Retry
+            </Button>
           </div>
         )}
 

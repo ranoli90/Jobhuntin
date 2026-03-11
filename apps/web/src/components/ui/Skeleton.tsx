@@ -50,8 +50,8 @@ export function ResumeStepSkeleton() {
         <div className="space-y-6">
             {/* Header */}
             <div className="space-y-2">
-                <Skeleton className="h-8 w-3/4" />
-                <Skeleton className="h-4 w-1/2" />
+                <Skeleton className="h-8 w-[75%]" />
+                <Skeleton className="h-4 w-[50%]" />
             </div>
 
             {/* Upload Area */}
@@ -102,7 +102,7 @@ export function ResumeStepSkeleton() {
                 <div className="p-4 space-y-3">
                     <Skeleton className="h-5 w-32" />
                     <Skeleton className="h-4 w-full" />
-                    <Skeleton className="h-4 w-3/4" />
+                    <Skeleton className="h-4 w-[75%]" />
                     <div className="pt-3 border-t border-slate-100">
                         <Skeleton className="h-4 w-24 mb-2" />
                         <div className="flex flex-wrap gap-2">
@@ -123,8 +123,8 @@ export function PreferencesStepSkeleton() {
         <div className="space-y-6">
             {/* Header */}
             <div className="space-y-2">
-                <Skeleton className="h-8 w-3/4" />
-                <Skeleton className="h-4 w-1/2" />
+                <Skeleton className="h-8 w-[75%]" />
+                <Skeleton className="h-4 w-[50%]" />
             </div>
 
             {/* AI Suggestions */}
@@ -192,8 +192,8 @@ export function SkillReviewStepSkeleton() {
         <div className="space-y-6">
             {/* Header */}
             <div className="space-y-2">
-                <Skeleton className="h-8 w-3/4" />
-                <Skeleton className="h-4 w-1/2" />
+                <Skeleton className="h-8 w-[75%]" />
+                <Skeleton className="h-4 w-[50%]" />
             </div>
 
             {/* Skills Grid */}
@@ -235,8 +235,8 @@ export function WorkStyleStepSkeleton() {
         <div className="space-y-6">
             {/* Header */}
             <div className="space-y-2">
-                <Skeleton className="h-8 w-3/4" />
-                <Skeleton className="h-4 w-1/2" />
+                <Skeleton className="h-8 w-[75%]" />
+                <Skeleton className="h-4 w-[50%]" />
             </div>
 
             {/* Questions */}
@@ -279,7 +279,7 @@ export function JobCardSkeleton() {
                 </div>
                 <div className="space-y-3">
                     <Skeleton className="h-4 w-full" />
-                    <Skeleton className="h-4 w-3/4" />
+                    <Skeleton className="h-4 w-[75%]" />
                     <Skeleton className="h-20 w-full rounded-xl" />
                 </div>
                 <div className="flex gap-2 mt-4">
@@ -408,7 +408,7 @@ export function PricingSkeleton() {
                         {Array.from({ length: 4 }).map((_, i) => (
                             <div key={i} className="border-b border-[#E9E9E7] pb-6">
                                 <Skeleton className="h-6 w-full mb-2" />
-                                <Skeleton className="h-4 w-3/4" />
+                                <Skeleton className="h-4 w-[75%]" />
                             </div>
                         ))}
                     </div>

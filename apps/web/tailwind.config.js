@@ -8,7 +8,8 @@ export default {
     extend: {
       fontFamily: {
         sans: ["Inter", ...fontFamily.sans],
-        serif: ["'Merriweather'", "'Playfair Display'", ...fontFamily.serif],
+        serif: ["'Instrument Serif'", "'Merriweather'", ...fontFamily.serif],
+        display: ["'Instrument Serif'", "Georgia", "serif"],
         body: ["Inter", ...fontFamily.sans],
       },
       colors: {

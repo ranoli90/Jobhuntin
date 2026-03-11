@@ -217,7 +217,7 @@ export function ReadyStep({
                                 </div>
                                 <div className="space-y-4 md:space-y-6">
                                     {[
-                                        { label: t("onboarding.yourDetails", locale) || "Your Details", value: `${contactInfo.first_name} ${contactInfo.last_name}`, sub: contactInfo.email, icon: User },
+                                        { label: t("onboarding.yourDetails", locale) || "Your Details", value: `${(contactInfo.first_name ?? "").trim()} ${(contactInfo.last_name ?? "").trim()}`.trim() || (t("onboarding.notProvided", locale) || "Not provided"), sub: contactInfo.email, icon: User },
                                         { label: t("onboarding.yourLocation", locale) || "Your Location", value: preferences.location || (t("onboarding.globalPriority", locale) || "Global Priority"), icon: MapPin },
                                         { label: t("onboarding.targetRole", locale) || "Target Role", value: preferences.role_type || (t("onboarding.seniorImpactRole", locale) || "Senior Impact Role"), icon: Briefcase },
                                     ].map((item, i) => (

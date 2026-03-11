@@ -78,7 +78,7 @@ export default function TeamView() {
                         <div className="divide-y divide-slate-100 italic">
                             <div className="px-8 py-6 flex items-center justify-between bg-white">
                                 <div className="flex items-center gap-4">
-                                    <div className="w-10 h-10 rounded-full bg-primary-500 flex items-center justify-center text-white font-bold">{status?.tenant_id?.slice(0, 2).toUpperCase() || 'ME'}</div>
+                                    <div className="w-10 h-10 rounded-full bg-primary-500 flex items-center justify-center text-white font-bold">{(status?.tenant_id ?? '').slice(0, 2).toUpperCase() || 'ME'}</div>
                                     <div>
                                         <p className="font-bold text-slate-900">You (Owner)</p>
                                         <p className="text-xs text-slate-500 font-medium">Workspace Owner</p>

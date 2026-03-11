@@ -247,8 +247,8 @@ export default function Dashboard() {
                 <div className="space-y-3">
                   {isLoading ? (
                     <div className="rounded-xl bg-white/50 p-4 border border-slate-100">
-                      <div className="h-4 w-3/4 rounded bg-slate-100 animate-pulse"></div>
-                      <div className="mt-2 h-3 w-1/2 rounded bg-slate-50 animate-pulse"></div>
+                      <div className="h-4 w-[75%] rounded bg-slate-100 animate-pulse"></div>
+                      <div className="mt-2 h-3 w-[50%] rounded bg-slate-50 animate-pulse"></div>
                     </div>
                   ) : holdApplications.length === 0 ? (
                     <div className="rounded-xl border border-dashed border-amber-200 bg-amber-50/30 p-6 text-center">

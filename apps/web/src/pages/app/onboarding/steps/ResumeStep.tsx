@@ -333,7 +333,10 @@ export function ResumeStep({
                     </span>
                     <div className="h-px flex-1 bg-slate-200" />
                 </div>
+                <label htmlFor="resume-linkedin-url" className="sr-only">{t("onboarding.linkedinPlaceholder", locale) || "LinkedIn profile URL"}</label>
                 <Input
+                    id="resume-linkedin-url"
+                    aria-label={t("onboarding.linkedinPlaceholder", locale) || "LinkedIn profile URL"}
                     icon={<User className="h-5 w-5" />}
                     type="url"
                     placeholder={t("onboarding.linkedinPlaceholder", locale)}

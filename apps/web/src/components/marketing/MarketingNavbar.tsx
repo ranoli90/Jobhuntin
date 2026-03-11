@@ -151,7 +151,7 @@ export function MarketingNavbar() {
 
         <button
           className={cn(
-            "lg:hidden p-2 -mr-2 rounded-lg transition-colors touch-manipulation",
+            "lg:hidden min-h-[44px] min-w-[44px] p-2 -mr-2 rounded-lg transition-colors touch-manipulation flex items-center justify-center",
             inHeroZone ? "text-white hover:bg-white/10" : "text-[#57534E] hover:bg-[#F5F5F4]"
           )}
           onClick={() => setIsMobileMenuOpen((prev) => !prev)}

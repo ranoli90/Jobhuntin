@@ -327,8 +327,8 @@ export default function Homepage() {
         <div className="relative max-w-[1080px] mx-auto px-6 pt-[140px] sm:pt-[180px] pb-[60px]">
           <div className="max-w-[680px] mx-auto text-center">
             <Reveal>
-              <h1 className="text-white text-[clamp(2.5rem,6vw,64px)] font-bold" style={{ lineHeight: '1', letterSpacing: '-2.125px' }}>
-                Your job hunt, <span className="text-[#7DD3CF] whitespace-nowrap">on autopilot.</span>
+              <h1 className="font-display text-white text-[clamp(2.5rem,6vw,64px)] font-bold" style={{ lineHeight: '1', letterSpacing: '-2.125px' }}>
+                Your job hunt, <span className="text-[#7DD3CF] sm:whitespace-nowrap">on autopilot.</span>
               </h1>
             </Reveal>
             <Reveal delay={60}>
@@ -507,8 +507,8 @@ export default function Homepage() {
                     </div>
                   </div>
                   <div className="p-[24px] sm:p-[32px] flex items-center relative">
-                    <img src="/illustrations/a-moment-to-relax.svg" alt="" aria-hidden loading="lazy" className="w-[200px] sm:w-[260px] mx-auto opacity-30" />
-                    <div className="absolute inset-0 flex items-end p-[24px]">
+                    <img src="/illustrations/a-moment-to-relax.svg" alt="" aria-hidden loading="lazy" className="relative z-10 w-[200px] sm:w-[260px] mx-auto opacity-30" />
+                    <div className="absolute inset-0 flex items-end p-[24px] pointer-events-none">
                       <div className="w-full bg-white/5 rounded-[8px] p-[16px]">
                         <div className="flex items-end gap-[4px] h-[80px]">
                           {[35, 52, 44, 68, 58, 85, 72, 90, 65, 78, 95, 82].map((h, i) => (
@@ -535,8 +535,8 @@ export default function Homepage() {
         <div className="max-w-[1080px] mx-auto px-6">
           <Reveal>
             <div className="text-center max-w-[520px] mx-auto mb-[48px] sm:mb-[64px]">
-              <p className="text-[12px] font-medium text-[#9B9A97] uppercase tracking-wider mb-[8px]">How it works</p>
-              <h2 className="text-[clamp(2rem,4vw,48px)] font-bold text-[#2D2A26] leading-[1]" style={{ letterSpacing: '-1.5px' }}>
+              <p className="text-[12px] font-semibold text-[#9B9A97] uppercase tracking-[0.2em] mb-[8px]">How it works</p>
+              <h2 className="font-display text-[clamp(2rem,4vw,48px)] font-bold text-[#2D2A26] leading-[1]" style={{ letterSpacing: '-1.5px' }}>
                 Set up in two minutes.
               </h2>
             </div>
@@ -551,7 +551,7 @@ export default function Homepage() {
               <Reveal key={step.n} delay={i * 80}>
                 <div className="rounded-[12px] overflow-hidden bg-white h-full flex flex-col hover:-translate-y-[2px] transition-transform duration-300">
                   <div className="p-[24px] flex-1">
-                    <div className="text-[36px] font-bold text-[#E8E7E4] leading-none mb-[16px]">{step.n}</div>
+                    <div className="text-[36px] font-bold text-[#9B9A97] leading-none mb-[16px]">{step.n}</div>
                     <h3 className="text-[18px] font-bold text-[#2D2A26] leading-[1.3] mb-[6px]">{step.title}</h3>
                     <p className="text-[14px] text-[#787774] leading-[22px]">{step.desc}</p>
                   </div>
@@ -586,7 +586,7 @@ export default function Homepage() {
           ═══════════════════════════════════════════ */}
       <section className="bg-white py-[80px] sm:py-[120px]">
         <div className="max-w-[720px] mx-auto px-6 text-center relative">
-          <img src="/illustrations/appreciate-it.svg" alt="" aria-hidden loading="lazy" className="absolute -left-[100px] top-[50%] -translate-y-1/2 w-[140px] opacity-[0.12] pointer-events-none hidden xl:block" />
+          <img src="/illustrations/appreciate-it.svg" alt="" aria-hidden loading="lazy" className="absolute left-0 top-[50%] -translate-x-full -translate-y-1/2 w-[140px] opacity-[0.12] pointer-events-none hidden xl:block" />
           <Reveal>
             <blockquote className="text-[clamp(1.25rem,3vw,28px)] font-medium text-[#2D2A26] leading-[1.4]" style={{ letterSpacing: '-0.5px' }}>
               "That first week I literally did nothing and got 4 interview callbacks. This changed how I think about job hunting."
@@ -709,7 +709,7 @@ export default function Homepage() {
 
       {stickyVisible && (
         <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-white/95 backdrop-blur-md border-t border-[#E3E2E0] p-4 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-[0_-4px_20px_rgba(0,0,0,0.06)]">
-          <Link to="/login" className="flex items-center justify-center gap-2 w-full h-[36px] rounded-[8px] text-[16px] font-medium bg-[#455DD3] text-white hover:bg-[#3A4FB8] transition-colors active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-[#455DD3] focus-visible:ring-offset-2 focus-visible:outline-none">
+          <Link to="/login" className="flex items-center justify-center gap-2 w-full min-h-[44px] rounded-[8px] text-[16px] font-medium bg-[#455DD3] text-white hover:bg-[#3A4FB8] transition-colors active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-[#455DD3] focus-visible:ring-offset-2 focus-visible:outline-none">
             Start applying free <ArrowRight className="w-4 h-4" />
           </Link>
         </div>

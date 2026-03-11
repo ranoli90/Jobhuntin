@@ -334,15 +334,15 @@ export default function JobsView() {
                                 )}
                             </div>
                             <p className="text-brand-text/90 text-sm line-clamp-4 my-3">
-                                {job.description}
+                                {job.description ?? "No description provided"}
                             </p>
                             <div className="flex justify-between items-center text-xs text-brand-muted">
                                 <span>
-                                    {job.salary_min && job.salary_max
+                                    {job.salary_min != null && job.salary_max != null
                                         ? `$${(job.salary_min / 1000).toFixed(0)}k – $${(job.salary_max / 1000).toFixed(0)}k`
-                                        : job.salary_min
+                                        : job.salary_min != null
                                             ? `From $${(job.salary_min / 1000).toFixed(0)}k`
-                                            : ""}
+                                            : "Salary not specified"}
                                 </span>
                                 <span>{job.job_type || ""}</span>
                             </div>

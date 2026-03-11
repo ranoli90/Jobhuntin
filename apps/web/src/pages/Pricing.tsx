@@ -9,6 +9,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useBilling } from '../hooks/useBilling';
 import { telemetry } from '../lib/telemetry';
 import { PricingSkeleton } from '../components/ui/Skeleton';
+import { cn } from '../lib/utils';
 
 function ExitIntentPopup({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const contentRef = useRef<HTMLDivElement>(null);
@@ -56,7 +57,7 @@ function ExitIntentPopup({ isOpen, onClose }: { isOpen: boolean; onClose: () => 
           >
             <button
               onClick={onClose}
-              className="absolute top-4 right-4 p-2 text-white/50 hover:text-white hover:bg-white/10 rounded-full transition-colors"
+              className="absolute top-4 right-4 min-h-[44px] min-w-[44px] p-2 flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 rounded-full transition-colors"
               aria-label="Close popup"
             >
               <X className="w-5 h-5" />
@@ -87,7 +88,7 @@ function ExitIntentPopup({ isOpen, onClose }: { isOpen: boolean; onClose: () => 
 
                 <button
                   onClick={onClose}
-                  className="block w-full h-12 text-white/60 font-medium hover:text-white transition-colors"
+                  className="block w-full h-12 text-white/60 font-medium hover:text-white transition-colors focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#2D2A26] focus-visible:outline-none rounded-lg"
                 >
                   Maybe later
                 </button>
@@ -283,7 +284,7 @@ export default function Pricing() {
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">
             <div>
               <p className="text-xs font-bold uppercase tracking-widest text-[#787774] mb-2">Free forever</p>
-              <h2 id="pricing-free-heading" className="text-3xl sm:text-4xl font-bold text-[#2D2A26] mb-3" style={{ letterSpacing: '-1px' }}>
+              <h2 id="pricing-free-heading" className="font-display text-3xl sm:text-4xl font-bold text-[#2D2A26] mb-3" style={{ letterSpacing: '-1px' }}>
                 20 applications per week
               </h2>
               <p className="text-[#787774] font-medium mb-6 max-w-md">
@@ -326,7 +327,7 @@ export default function Pricing() {
                 <p className="text-xs font-bold uppercase tracking-widest text-white/50">Pro</p>
                 <Zap className="w-4 h-4 text-[#7DD3CF]" />
               </div>
-              <h2 id="pricing-pro-heading" className="text-2xl sm:text-3xl font-bold text-white mb-3" style={{ letterSpacing: '-1px' }}>
+              <h2 id="pricing-pro-heading" className="font-display text-2xl sm:text-3xl font-bold text-white mb-3" style={{ letterSpacing: '-1px' }}>
                 Unlimited applications
               </h2>
               <p className="text-white/70 font-medium mb-6 max-w-md">
@@ -351,8 +352,14 @@ export default function Pricing() {
               </p>
               <button
                 onClick={handleProCta}
+                disabled={isProOrHigher}
                 aria-label={isProOrHigher ? "View current plan in billing" : "Get unlimited applications"}
-                className="w-full h-12 rounded-lg font-semibold bg-white text-[#2D2A26] hover:bg-white/90 transition-colors active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#2D2A26] focus-visible:outline-none"
+                className={cn(
+                  "w-full h-12 rounded-lg font-semibold transition-colors active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#2D2A26] focus-visible:outline-none",
+                  isProOrHigher
+                    ? "bg-white/50 text-[#2D2A26]/70 cursor-default"
+                    : "bg-white text-[#2D2A26] hover:bg-white/90"
+                )}
               >
                 {getProCtaLabel()}
               </button>

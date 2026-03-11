@@ -116,8 +116,8 @@ export default function ApplicationDetailPage() {
               {app.company?.charAt(0) ?? "?"}
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-slate-900">{app.company}</h1>
-              <p className="text-slate-600 font-medium">{app.job_title}</p>
+              <h1 className="text-2xl font-bold text-slate-900">{app.company ?? "Unknown"}</h1>
+              <p className="text-slate-600 font-medium">{app.job_title ?? "Unknown"}</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
