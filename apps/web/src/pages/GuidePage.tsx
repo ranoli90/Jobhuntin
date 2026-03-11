@@ -49,6 +49,27 @@ export default function GuidePage() {
   >([]);
   const shouldReduceMotion = useReducedMotion();
 
+  const handleShare = async () => {
+    const url = guideSlug
+      ? `${window.location.origin}/guides/${guideSlug}`
+      : window.location.href;
+    const title = guide?.title ?? "Guide";
+    try {
+      if (navigator.share) {
+        await navigator.share({ title, url });
+      } else {
+        await navigator.clipboard.writeText(url);
+      }
+    } catch {
+      // Fallback: copy to clipboard
+      try {
+        await navigator.clipboard.writeText(url);
+      } catch {
+        /* ignore */
+      }
+    }
+  };
+
   // Extract headings for navigation (sanitize to prevent XSS from CMS content)
   useEffect(() => {
     if (guide) {
@@ -283,7 +304,9 @@ export default function GuidePage() {
               </div>
             </div>
             <button
-              className="p-2 hover:bg-slate-100 rounded-full transition-colors text-slate-400 hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+              type="button"
+              onClick={handleShare}
+              className="p-2 hover:bg-slate-100 rounded-full transition-colors text-slate-400 hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 min-h-[44px] min-w-[44px] flex items-center justify-center"
               aria-label="Share this guide"
             >
               <Share2 className="w-5 h-5" />

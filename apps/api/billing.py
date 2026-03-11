@@ -384,26 +384,26 @@ async def list_invoices(
             user_email = user_row["email"] if user_row else None
 
             customer_id = await ensure_stripe_customer(conn, ctx.tenant_id, user_email)
-        invoices = protected_stripe_call(
-            lambda: stripe.Invoice.list(customer=customer_id, limit=20)
-        )
+            invoices = protected_stripe_call(
+                lambda: stripe.Invoice.list(customer=customer_id, limit=20)
+            )
             return [
-            {
-                "id": inv.id,
-                "number": inv.number,
-                "amount_due": inv.amount_due,
-                "amount_paid": inv.amount_paid,
-                "total": inv.total or inv.amount_paid or inv.amount_due,
-                "currency": inv.currency,
-                "status": inv.status,
-                "created": inv.created,
-                "period_start": inv.period_start,
-                "period_end": inv.period_end,
-                "invoice_pdf": inv.invoice_pdf,
-                "hosted_invoice_url": inv.hosted_invoice_url,
-            }
-            for inv in invoices.auto_paging_iter()
-        ][:20]
+                {
+                    "id": inv.id,
+                    "number": inv.number,
+                    "amount_due": inv.amount_due,
+                    "amount_paid": inv.amount_paid,
+                    "total": inv.total or inv.amount_paid or inv.amount_due,
+                    "currency": inv.currency,
+                    "status": inv.status,
+                    "created": inv.created,
+                    "period_start": inv.period_start,
+                    "period_end": inv.period_end,
+                    "invoice_pdf": inv.invoice_pdf,
+                    "hosted_invoice_url": inv.hosted_invoice_url,
+                }
+                for inv in invoices.auto_paging_iter()
+            ][:20]
     except Exception as e:
         logger.warning("Failed to fetch invoices: %s", e)
         return []
