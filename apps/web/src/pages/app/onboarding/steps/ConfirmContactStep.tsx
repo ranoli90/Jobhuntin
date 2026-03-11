@@ -161,7 +161,7 @@ export function ConfirmContactStep({
                                     onClick={() => onApplyEmailSuggestion(emailTypoSuggestion)}
                                     className="text-xs font-bold text-primary-600 hover:text-primary-700 underline"
                                 >
-                                    {t("onboarding.didYouMean", locale)} <span className="italic">{contactInfo.email.split('@')[0]}@{emailTypoSuggestion}</span>?
+                                    {t("onboarding.didYouMean", locale)} <span className="italic">{(contactInfo.email ?? "").split('@')[0]}@{emailTypoSuggestion}</span>?
                                 </button>
                             </motion.div>
                         )}

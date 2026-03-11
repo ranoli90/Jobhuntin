@@ -156,9 +156,10 @@ class CaptchaSolver:
 
     def __init__(self):
         self.settings = get_settings()
+        val = getattr(self.settings, "captcha_solvers", None)
         self.enabled_solvers = (
-            getattr(self.settings, "captcha_solvers", {}).split(",")
-            if getattr(self.settings, "captcha_solvers", None)
+            [s.strip() for s in val.split(",") if s.strip()]
+            if isinstance(val, str)
             else []
         )
 

@@ -1353,7 +1353,7 @@ export default function Onboarding() {
                             onApplyEmailSuggestion={(suggestion) => {
                               setContactInfo(prev => ({
                                 ...prev,
-                                email: `${prev.email.split('@')[0]}@${suggestion}`
+                                email: `${(prev.email ?? "").split('@')[0]}@${suggestion}`
                               }));
                               setEmailTypoSuggestion(null);
                             }}

@@ -1638,7 +1638,7 @@ async def upload_avatar(
             detail="Invalid image format - file content does not match declared type",
         )
     ext = Path(file.filename or "").suffix.lower()
-    fallback_ext = allowed_types[file.content_type.lower()]  # type: ignore[operator]
+    fallback_ext = allowed_types[(file.content_type or "image/png").lower()]
     suffix = ext if ext in allowed_types.values() else fallback_ext
     storage_path = f"avatars/{ctx.user_id}/{uuid.uuid4()}{suffix}"
 

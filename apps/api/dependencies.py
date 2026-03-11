@@ -79,8 +79,9 @@ class DatabasePoolManager:
         s = get_settings()
         from backend.blueprints.registry import load_default_blueprints
 
+        enabled_raw = getattr(s, "enabled_blueprints", None) or ""
         enabled = [
-            slug.strip() for slug in s.enabled_blueprints.split(",") if slug.strip()
+            slug.strip() for slug in enabled_raw.split(",") if slug.strip()
         ]
         load_default_blueprints(enabled_slugs=enabled or None)
 

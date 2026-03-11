@@ -320,7 +320,8 @@ class DLQManager:
                     "DELETE FROM public.job_dead_letter_queue WHERE id = $1", item_id
                 )
 
-                deleted = (result or "").split()[-1] == "1"
+                parts = (result or "").split()
+                deleted = parts[-1] == "1" if parts else False
                 if deleted:
                     logger.info("Deleted DLQ item %s", item_id)
                 else:

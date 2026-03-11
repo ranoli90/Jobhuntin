@@ -107,7 +107,7 @@ async def archive_old_applications(
             """
         )
 
-        archived = int(result.split()[-1]) if "DELETE" in result else 0
+        archived = int(result.split()[-1]) if result and "DELETE" in result else 0
         total_archived += archived
 
         if archived == 0:
@@ -131,7 +131,7 @@ async def cleanup_application_events(
         WHERE created_at < NOW() - INTERVAL '{days_old} days'
         """
     )
-    deleted = int(result.split()[-1]) if "DELETE" in result else 0
+    deleted = int(result.split()[-1]) if result and "DELETE" in result else 0
     if deleted > 0:
         logger.info(
             "Cleaned up %d application events older than %d days", deleted, days_old
@@ -150,7 +150,7 @@ async def cleanup_analytics_events(
         WHERE created_at < NOW() - INTERVAL '{days_old} days'
         """
     )
-    deleted = int(result.split()[-1]) if "DELETE" in result else 0
+    deleted = int(result.split()[-1]) if result and "DELETE" in result else 0
     if deleted > 0:
         logger.info(
             "Cleaned up %d analytics events older than %d days", deleted, days_old
@@ -169,7 +169,7 @@ async def cleanup_email_digest_logs(
         WHERE sent_at < NOW() - INTERVAL '{days_old} days'
         """
     )
-    deleted = int(result.split()[-1]) if "DELETE" in result else 0
+    deleted = int(result.split()[-1]) if result and "DELETE" in result else 0
     if deleted > 0:
         logger.info(
             "Cleaned up %d email digest logs older than %d days", deleted, days_old
@@ -187,7 +187,7 @@ async def cleanup_job_alert_logs(
         WHERE sent_at < NOW() - INTERVAL '{days_old} days'
         """
     )
-    deleted = int(result.split()[-1]) if "DELETE" in result else 0
+    deleted = int(result.split()[-1]) if result and "DELETE" in result else 0
     if deleted > 0:
         logger.info(
             "Cleaned up %d job alert logs older than %d days", deleted, days_old
@@ -253,7 +253,7 @@ async def cleanup_audit_logs(
         WHERE created_at < NOW() - INTERVAL '{days_old} days'
         """
     )
-    deleted = int(delete_result.split()[-1]) if "DELETE" in delete_result else 0
+    deleted = int(delete_result.split()[-1]) if delete_result and "DELETE" in delete_result else 0
     result["deleted"] = deleted
     if deleted > 0:
         logger.info(
