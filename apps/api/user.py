@@ -32,6 +32,7 @@ from fastapi import Path as FastAPIPath
 from pydantic import BaseModel, Field, field_validator, model_validator
 
 from backend.domain.document_processor import create_document_processor
+from backend.domain.masking import mask_email
 from backend.domain.quotas import QuotaExceededError, check_can_create_application
 from backend.domain.repositories import (
     ApplicationRepo,
@@ -44,7 +45,7 @@ from backend.domain.repositories import (
 from backend.domain.resume import process_resume_upload
 from backend.domain.tenant import TenantContext
 from shared.config import get_settings
-from shared.logging_config import get_logger
+from shared.logging_config import get_logger, sanitize_for_log
 from shared.metrics import RateLimiter
 from shared.storage import get_storage_service
 
@@ -1116,7 +1117,7 @@ async def get_profile(
         "[PROFILE] Profile fetched successfully",
         extra={
             "user_id": str(ctx.user_id),
-            "email": user_row["email"],
+            "email": mask_email(user_row["email"] or ""),
             "has_completed_onboarding": has_completed_onboarding,
             "has_resume": bool(resume_url),
             "has_preferences": bool(prefs),
@@ -1306,7 +1307,7 @@ async def update_profile(
         "[PROFILE] Update requested",
         extra={
             "user_id": str(ctx.user_id),
-            "updates": body.model_dump(exclude_none=True),
+            "updates": sanitize_for_log(body.model_dump(exclude_none=True)),
         },
     )
 

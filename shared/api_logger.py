@@ -23,6 +23,16 @@ from shared.logging_config import LogContext, get_logger, sanitize_for_log
 logger = get_logger("sorce.api_logger")
 
 
+def _mask_ip_for_log(ip: str) -> str:
+    """Mask IP for PII-safe logging. Uses backend masking when available."""
+    try:
+        from packages.backend.domain.masking import mask_ip
+
+        return mask_ip(ip)
+    except ImportError:
+        return ip[:8] + "***" if len(ip) > 8 else "***"
+
+
 class LogLevel(Enum):
     """Log levels for different types of events."""
 
@@ -295,6 +305,7 @@ class APILogger:
             "cookie",
             "session",
             "csrf",
+            "email",
         }
 
     def start_monitoring(self) -> None:
@@ -533,11 +544,12 @@ class APILoggingMiddleware(BaseHTTPMiddleware):
         # Extract request information
         start_time = time.time()
 
-        # Get client IP
+        # Get client IP (masked for PII-safe logging)
         client_ip = request.client.host if request.client else "unknown"
         forwarded_for = request.headers.get("x-forwarded-for")
         if forwarded_for:
             client_ip = forwarded_for.split(",")[0].strip()
+        ip_masked = _mask_ip_for_log(client_ip)
 
         # Create request object
         api_request = APIRequest(
@@ -548,7 +560,7 @@ class APILoggingMiddleware(BaseHTTPMiddleware):
             query_params=dict(request.query_params),
             headers=dict(request.headers),
             user_agent=request.headers.get("user-agent", ""),
-            ip_address=client_ip,
+            ip_address=ip_masked,
             content_type=request.headers.get("content-type"),
             content_length=request.headers.get("content-length"),
         )

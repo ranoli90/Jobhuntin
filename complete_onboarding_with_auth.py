@@ -1,22 +1,28 @@
 #!/usr/bin/env python3
-"""Complete onboarding by first authenticating via verify-magic, then completing all steps."""
+"""Complete onboarding by first authenticating via verify-magic, then completing all steps.
+
+Usage: MAGIC_LINK_TOKEN=<jwt> python complete_onboarding_with_auth.py
+Obtain JWT from magic link email (token param) or from auth flow.
+"""
 
 import asyncio
+import os
 import httpx
 from playwright.async_api import async_playwright
 
-FRESH_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxZGRmOTc3YS1hNmM2LTRkMzAtODc4Mi1lYjgwNmJhZDYwNTAiLCJlbWFpbCI6InRlc3R1c2VyXzIyNTJkNTE0QHRlc3QuY29tIiwiYXVkIjoiYXV0aGVudGljYXRlZCIsImp0aSI6ImZjMjc0NjJmLWRjMGQtNDVmNy05ZjczLWZjNzY3MmU1OTViMCIsImlhdCI6MTc3MzEyMDA1MCwibmJmIjoxNzczMTIwMDUwLCJleHAiOjE3NzMyMDY0NTAsIm5ld191c2VyIjpmYWxzZX0.jdR8ghZ96AbXtCpCHPndrU6GzXiL-2RhnSPzdkjCs2Q"
-
 
 async def authenticate_and_complete():
+    token = os.environ.get("MAGIC_LINK_TOKEN")
+    if not token:
+        print("ERROR: Set MAGIC_LINK_TOKEN env var (JWT from magic link)")
+        return
+
     # Step 1: Authenticate via verify-magic to get session cookie
     async with httpx.AsyncClient(follow_redirects=False, timeout=10.0) as client:
         resp = await client.get(
-            f"http://localhost:8000/api/auth/verify-magic?token={FRESH_TOKEN}&returnTo=/app/onboarding"
+            f"http://localhost:8000/api/auth/verify-magic?token={token}&returnTo=/app/onboarding"
         )
         print(f"Auth response status: {resp.status_code}")
-        print(f"Auth cookies: {resp.cookies}")
-        print(f"Auth headers: {dict(resp.headers)}")
 
         # Get the session cookie
         session_cookie = resp.cookies.get("jobhuntin_auth") or resp.cookies.get(
@@ -26,7 +32,6 @@ async def authenticate_and_complete():
 
         if not session_cookie:
             print("ERROR: No session cookie received!")
-            print(f"All cookies: {resp.cookies}")
             return
 
     # Step 2: Use Playwright with the session cookie
