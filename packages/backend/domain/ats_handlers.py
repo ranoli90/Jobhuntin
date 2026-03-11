@@ -126,6 +126,16 @@ ATS_CONTENT_PATTERNS: dict[ATSPlatform, list[str]] = {
         "iCIMS",
         "data-icims",
     ],
+    ATSPlatform.TALENTSOFT: [
+        "talentsoft",
+        "ts-",
+        "data-talentsoft",
+    ],
+    ATSPlatform.BRASSRING: [
+        "brassring",
+        "kenexa",
+        "tm-brassring",
+    ],
 }
 
 # CAPTCHA detection selectors
@@ -424,12 +434,95 @@ class SmartRecruitersHandler(ATSSpecificHandler):
         }
 
 
+class IcimsHandler(ATSSpecificHandler):
+    """Handler for iCIMS application forms."""
+
+    platform = ATSPlatform.ICIMS
+
+    def get_custom_selectors(self) -> dict[str, list[str]]:
+        return {
+            "submit": [
+                ".iCIMS_ActionButton",
+                'button[type="submit"]',
+                'button:has-text("Submit")',
+                'button:has-text("Apply")',
+                'input[type="submit"]',
+            ],
+            "next": [
+                'button:has-text("Next")',
+                'button:has-text("Continue")',
+                ".iCIMS_ActionButton",
+            ],
+        }
+
+    def get_skip_selectors(self) -> list[str]:
+        return [
+            'input[name*="referral"]',
+            'input[name*="source"]',
+        ]
+
+
+class TalentSoftHandler(ATSSpecificHandler):
+    """Handler for TalentSoft application forms."""
+
+    platform = ATSPlatform.TALENTSOFT
+
+    def get_custom_selectors(self) -> dict[str, list[str]]:
+        return {
+            "submit": [
+                'button[type="submit"]',
+                'button:has-text("Submit")',
+                'button:has-text("Apply")',
+                ".ts-submit",
+            ],
+            "next": [
+                'button:has-text("Next")',
+                'button:has-text("Continue")',
+            ],
+        }
+
+    def get_skip_selectors(self) -> list[str]:
+        return [
+            'input[name*="referral"]',
+            'input[name*="source"]',
+        ]
+
+
+class BrassringHandler(ATSSpecificHandler):
+    """Handler for BrassRing (IBM Kenexa) application forms."""
+
+    platform = ATSPlatform.BRASSRING
+
+    def get_custom_selectors(self) -> dict[str, list[str]]:
+        return {
+            "submit": [
+                'button[type="submit"]',
+                'button:has-text("Submit")',
+                'button:has-text("Apply")',
+                'input[type="submit"]',
+            ],
+            "next": [
+                'button:has-text("Next")',
+                'button:has-text("Continue")',
+            ],
+        }
+
+    def get_skip_selectors(self) -> list[str]:
+        return [
+            'input[name*="referral"]',
+            'input[name*="source"]',
+        ]
+
+
 # Handler registry
 ATS_HANDLERS: dict[ATSPlatform, type[ATSSpecificHandler]] = {
     ATSPlatform.GREENHOUSE: GreenhouseHandler,
     ATSPlatform.LEVER: LeverHandler,
     ATSPlatform.WORKDAY: WorkdayHandler,
     ATSPlatform.SMARTRECRUITERS: SmartRecruitersHandler,
+    ATSPlatform.ICIMS: IcimsHandler,
+    ATSPlatform.TALENTSOFT: TalentSoftHandler,
+    ATSPlatform.BRASSRING: BrassringHandler,
 }
 
 

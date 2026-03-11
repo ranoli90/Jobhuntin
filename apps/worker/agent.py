@@ -25,8 +25,14 @@ from playwright.async_api import BrowserContext, Page, async_playwright
 from packages.backend.blueprints.registry import get_blueprint, load_default_blueprints
 from packages.backend.domain.ats_handlers import (
     detect_ats_platform,
+    detect_captcha as detect_captcha_ats,
     get_handler,
     ATSPlatform,
+)
+
+# CAPTCHA types we cannot solve; escalate to user immediately
+UNSUPPORTED_CAPTCHA_TYPES = frozenset(
+    {"cloudflare", "turnstile", "arkose", "friendly_captcha"}
 )
 from packages.backend.domain.email_communications import get_email_communication_manager
 from packages.backend.domain.enhanced_notifications import (
@@ -742,10 +748,57 @@ async def _fill_checkbox(el: Any, value: str) -> None:
         await el.uncheck()
 
 
+SUCCESS_INDICATORS = (
+    "thank you",
+    "application received",
+    "submitted",
+    "success",
+    "confirmation",
+    "application complete",
+    "we've received",
+    "thank you for applying",
+    "your application has been",
+)
+ERROR_INDICATORS = (
+    "please correct",
+    "invalid",
+    "required field",
+    "error submitting",
+    "submission failed",
+)
+
+
+async def _verify_submit_success(page: Page, strict: bool = False) -> bool:
+    """Check page content for success/error indicators after submit.
+
+    strict: when True (no navigation occurred), require success indicators.
+    When False (navigation completed), require no error indicators.
+    """
+    try:
+        content = (await page.content()).lower()
+        for ind in ERROR_INDICATORS:
+            if ind in content:
+                logger.warning("Error indicator on post-submit page: %r", ind)
+                return False
+        for ind in SUCCESS_INDICATORS:
+            if ind in content:
+                return True
+        if strict:
+            logger.warning(
+                "Submit click completed but no success indicator found; treating as uncertain"
+            )
+            return False
+        return True  # No error indicators; assume success when navigation completed
+    except Exception as e:
+        logger.debug("Could not verify submit success: %s", e)
+        return not strict
+
+
 async def submit_form(page: Page, selectors: list[str] | None = None) -> bool:
     """Click the submit button and wait for navigation or network idle.
 
     HIGH: Implements retry logic for transient submission failures.
+    Verifies success indicators on post-submit page.
     """
     submit_selectors = selectors or [
         'button[type="submit"]',
@@ -769,8 +822,7 @@ async def submit_form(page: Page, selectors: list[str] | None = None) -> bool:
                         wait_until="networkidle", timeout=30_000
                     ):
                         await btn.click()
-                    # Success - form submitted
-                    return True
+                    return await _verify_submit_success(page)
                 except Exception as e:
                     last_error = e
                     # Check if error is retryable
@@ -801,10 +853,7 @@ async def submit_form(page: Page, selectors: list[str] | None = None) -> bool:
                         try:
                             await btn.click()
                             await page.wait_for_timeout(3000)
-                            content = (await page.content()).lower()
-                            success_indicators = ("thank you", "application received", "submitted", "success")
-                            if any(ind in content for ind in success_indicators):
-                                return True
+                            return await _verify_submit_success(page, strict=True)
                             logger.warning(
                                 "Submit click completed but no success indicator found; treating as uncertain"
                             )
@@ -1323,6 +1372,20 @@ class FormAgent:
             ctx["application_url"], wait_until="networkidle", timeout=PAGE_TIMEOUT_MS
         )
 
+        # CAPTCHA: detect unsupported types and escalate before form fill
+        try:
+            captcha_det = await detect_captcha_ats(page)
+            if captcha_det.detected and captcha_det.captcha_type:
+                ct = (captcha_det.captcha_type or "").lower()
+                if ct in UNSUPPORTED_CAPTCHA_TYPES:
+                    raise CaptchaRequiredError(
+                        f"Unsupported CAPTCHA ({ct}) detected; human verification required"
+                    )
+        except CaptchaRequiredError:
+            raise
+        except Exception as e:
+            logger.debug("CAPTCHA pre-check before fill: %s", e)
+
         max_step = max((f["step_index"] for f in form_fields), default=0)
         ats_handler = ctx.get("ats_handler")
         for step in range(max_step + 1):
@@ -1832,6 +1895,20 @@ class FormAgent:
 
         HIGH: Integrates CAPTCHA detection and solving before submission.
         """
+        # Check for unsupported CAPTCHA types first (escalate immediately)
+        try:
+            captcha_det = await detect_captcha_ats(page)
+            if captcha_det.detected and captcha_det.captcha_type:
+                ct = (captcha_det.captcha_type or "").lower()
+                if ct in UNSUPPORTED_CAPTCHA_TYPES:
+                    raise CaptchaRequiredError(
+                        f"Unsupported CAPTCHA ({ct}) detected; human verification required"
+                    )
+        except CaptchaRequiredError:
+            raise
+        except Exception as e:
+            logger.debug("CAPTCHA pre-check before submit: %s", e)
+
         # HIGH: Detect and solve CAPTCHA before form submission
         try:
             from packages.backend.domain.captcha_handler import CaptchaHandler

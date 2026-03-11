@@ -9,9 +9,12 @@ from backend.domain.ats_handlers import (
     ATSDetectionResult,
     ATSPlatform,
     CAPTCHADetection,
+    BrassringHandler,
     GreenhouseHandler,
+    IcimsHandler,
     LeverHandler,
     SmartRecruitersHandler,
+    TalentSoftHandler,
     WorkdayHandler,
     detect_ats_platform,
     get_handler,
@@ -43,6 +46,21 @@ class TestDetectATSPlatform:
         """SmartRecruiters URL should be detected."""
         result = detect_ats_platform("https://jobs.smartrecruiters.com/company/12345")
         assert result.platform == ATSPlatform.SMARTRECRUITERS
+
+    def test_detect_icims_url(self) -> None:
+        """iCIMS URL should be detected."""
+        result = detect_ats_platform("https://careers.icims.com/jobs/12345")
+        assert result.platform == ATSPlatform.ICIMS
+
+    def test_detect_talentsoft_url(self) -> None:
+        """TalentSoft URL should be detected."""
+        result = detect_ats_platform("https://company.talentsoft.com/careers/12345")
+        assert result.platform == ATSPlatform.TALENTSOFT
+
+    def test_detect_brassring_url(self) -> None:
+        """BrassRing URL should be detected."""
+        result = detect_ats_platform("https://tm.brassring.com/jobs/12345")
+        assert result.platform == ATSPlatform.BRASSRING
 
     def test_detect_unknown_platform(self) -> None:
         """Unknown URLs should return UNKNOWN platform."""
@@ -111,6 +129,24 @@ class TestATSHandlers:
         handler = get_handler(ATSPlatform.SMARTRECRUITERS)
         assert isinstance(handler, SmartRecruitersHandler)
         assert handler.platform == ATSPlatform.SMARTRECRUITERS
+
+    def test_get_icims_handler(self) -> None:
+        """Should get IcimsHandler for iCIMS platform."""
+        handler = get_handler(ATSPlatform.ICIMS)
+        assert isinstance(handler, IcimsHandler)
+        assert handler.platform == ATSPlatform.ICIMS
+
+    def test_get_talentsoft_handler(self) -> None:
+        """Should get TalentSoftHandler for TalentSoft platform."""
+        handler = get_handler(ATSPlatform.TALENTSOFT)
+        assert isinstance(handler, TalentSoftHandler)
+        assert handler.platform == ATSPlatform.TALENTSOFT
+
+    def test_get_brassring_handler(self) -> None:
+        """Should get BrassringHandler for BrassRing platform."""
+        handler = get_handler(ATSPlatform.BRASSRING)
+        assert isinstance(handler, BrassringHandler)
+        assert handler.platform == ATSPlatform.BRASSRING
 
     def test_get_unknown_handler(self) -> None:
         """Should return None for unknown platform."""

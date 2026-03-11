@@ -110,10 +110,23 @@ async def fetch_from_proxy_list(url: str, timeout: float = 10.0) -> str | None:
     return None
 
 
+def normalize_proxy_url(proxy: str) -> str:
+    """Ensure proxy has http:// or https:// prefix for httpx."""
+    p = proxy.strip()
+    if not p:
+        return p
+    if p.startswith(("http://", "https://", "socks5://")):
+        return p
+    return f"http://{p}"
+
+
 async def validate_proxy(proxy: str, timeout: float = 5.0) -> bool:
     """Quick health check: proxy can reach a simple endpoint."""
+    url = normalize_proxy_url(proxy)
+    if not url:
+        return False
     try:
-        async with httpx.AsyncClient(proxy=f"http://{proxy}", timeout=timeout) as client:
+        async with httpx.AsyncClient(proxy=url, timeout=timeout) as client:
             r = await client.get("http://httpbin.org/ip")
             return r.status_code == 200
     except Exception:

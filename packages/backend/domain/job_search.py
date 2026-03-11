@@ -205,17 +205,17 @@ def _build_job_search_query(
     *,
     sort_by: str = "date_posted",
 ) -> tuple[str, list[Any]]:
-    # Support both legacy (url, remote_policy, posted_date, experience_level) and
     # JobSpy schema (application_url, is_remote, date_posted, job_level)
+    # schema.sql is canonical; legacy url/remote_policy/posted_date/experience_level not in schema
     query = """
         SELECT id, title, company, description, location,
                salary_min, salary_max,
-               COALESCE(application_url, url) as application_url,
+               application_url,
                COALESCE(source, '') as source,
-               COALESCE(is_remote, (remote_policy IN ('remote', 'hybrid'))) as is_remote,
+               COALESCE(is_remote, FALSE) as is_remote,
                COALESCE(job_type, '') as job_type,
-               COALESCE(date_posted, posted_date) as date_posted,
-               COALESCE(job_level, experience_level) as job_level,
+               date_posted,
+               job_level,
                COALESCE(company_industry, '') as company_industry,
                COALESCE(company_logo_url, '') as company_logo_url,
                COALESCE(raw_data, '{}'::jsonb) as raw_data,
@@ -250,11 +250,10 @@ def _build_job_search_query(
 
     if is_remote is not None:
         n += 1
-        # Support both is_remote (boolean) and legacy remote_policy
         if is_remote:
-            query += " AND (is_remote = TRUE OR remote_policy IN ('remote', 'hybrid'))"
+            query += " AND is_remote = TRUE"
         else:
-            query += " AND (is_remote = FALSE OR remote_policy = 'onsite')"
+            query += " AND is_remote = FALSE"
 
     if job_type:
         n += 1
@@ -324,10 +323,9 @@ def _map_job_row(r: Any) -> dict[str, Any]:
         "salary_max": float(r["salary_max"]) if r["salary_max"] is not None else None,
         "url": r.get("application_url"),
         "source": r.get("source"),
-        "is_remote": r.get("is_remote") if r.get("is_remote") is not None
-        else (r.get("remote_policy") in ("remote", "hybrid") if r.get("remote_policy") else None),
+        "is_remote": r.get("is_remote") or False,
         "job_type": r.get("job_type"),
-        "date_posted": _fmt_date(r.get("date_posted") or r.get("posted_date")),
+        "date_posted": _fmt_date(r.get("date_posted")),
         "job_level": r.get("job_level"),
         "company_industry": r.get("company_industry"),
         "logo_url": logo_url,

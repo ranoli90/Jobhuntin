@@ -15,9 +15,13 @@ from typing import Any
 
 from shared.config import get_settings
 from shared.logging_config import get_logger
-from shared.metrics import incr, observe
+from shared.metrics import incr, observe, RateLimiter
 
-from backend.domain.proxy_fetcher import fetch_free_proxy, get_random_user_agent
+from backend.domain.proxy_fetcher import (
+    fetch_free_proxy,
+    get_random_user_agent,
+    normalize_proxy_url,
+)
 
 logger = get_logger("sorce.jobspy")
 
@@ -58,6 +62,8 @@ class JobSpyClient:
         self.proxies = self._parse_proxies()
         self._circuit_breaker_state: dict[str, dict] = {}
         self._proxy_index = 0
+        rpm = getattr(self.settings, "jobspy_rate_limit_per_minute", 12)
+        self._rate_limiter = RateLimiter(max_calls=rpm, window_seconds=60, name="jobspy")
 
     def _parse_sources(self) -> list[str]:
         if not getattr(self.settings, "jobspy_enabled", True):
@@ -74,9 +80,11 @@ class JobSpyClient:
         return [p.strip() for p in proxies_str.split(",") if p.strip()]
 
     def _get_proxy(self) -> str | None:
-        """Round-robin over configured proxies."""
+        """Round-robin over configured proxies when jobspy_proxy_rotation=True."""
         if not self.proxies:
             return None
+        if not getattr(self.settings, "jobspy_proxy_rotation", True):
+            return self.proxies[0]
         idx = self._proxy_index % len(self.proxies)
         self._proxy_index += 1
         return self.proxies[idx]
@@ -129,12 +137,19 @@ class JobSpyClient:
             logger.warning("All sources have circuit breakers open")
             return []
 
+        # Proactive rate limiting before fetch
+        if not self._rate_limiter.allow():
+            wait_s = self._rate_limiter.next_available_in()
+            if wait_s > 0:
+                logger.debug("JobSpy rate limit, waiting %.1fs", wait_s)
+                await asyncio.sleep(wait_s)
+
         # Resolve proxy: configured list (round-robin) or fetch from free API
         proxy = self._get_proxy()
         if proxy is None and getattr(self.settings, "jobspy_use_free_proxies", False):
             validate = getattr(self.settings, "jobspy_validate_proxies", False)
             proxy = await fetch_free_proxy(validate=validate)
-        proxies_list = [proxy] if proxy else None
+        proxies_list = [normalize_proxy_url(proxy)] if proxy else None
 
         loop = asyncio.get_running_loop()
         executor = _get_executor()

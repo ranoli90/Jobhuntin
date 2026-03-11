@@ -180,6 +180,7 @@ class Settings(BaseSettings):
     jobspy_description_max_length: int = 50000
     jobspy_quality_min_desc_length: int = 50
     jobspy_retry_count: int = 2  # Retries with exponential backoff on transient failures
+    jobspy_rate_limit_per_minute: int = 12  # Proactive throttling between fetches (1 per ~5s)
 
     # ── Stripe / Billing ─────────────────────────────────────────
     stripe_secret_key: str = ""
