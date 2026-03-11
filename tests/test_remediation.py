@@ -79,7 +79,7 @@ def test_retry_backoff_formula():
 
 
 @pytest.mark.asyncio
-async def test_job_match_cache_repo(db_pool):
+async def test_job_match_cache_repo(db_pool, clean_db):
     """Test Put/Get roundtrip for JobMatchCacheRepo.
     Skipped if no DB available.
     """

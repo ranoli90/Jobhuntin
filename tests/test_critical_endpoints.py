@@ -32,13 +32,15 @@ async def async_client(db_pool):
         return db_pool
 
     app.dependency_overrides[get_pool] = _override
-    async with LifespanManager(app):
-        async with AsyncClient(
-            transport=ASGITransport(app=app),
-            base_url="http://test",
-        ) as ac:
-            yield ac
-    app.dependency_overrides.pop(get_pool, None)
+    try:
+        async with LifespanManager(app):
+            async with AsyncClient(
+                transport=ASGITransport(app=app),
+                base_url="http://test",
+            ) as ac:
+                yield ac
+    finally:
+        app.dependency_overrides.pop(get_pool, None)
 
 
 @pytest.fixture

@@ -11,7 +11,7 @@ from backend.domain.profile_assembly import assemble_profile
 
 
 @pytest.mark.asyncio
-async def test_assemble_profile_no_user(db_pool):
+async def test_assemble_profile_no_user(db_pool, clean_db):
     """Assemble returns None when user has no profile."""
     user_id = str(uuid.uuid4())
     async with db_pool.acquire() as conn:
@@ -23,7 +23,7 @@ async def test_assemble_profile_no_user(db_pool):
 
 
 @pytest.mark.asyncio
-async def test_assemble_profile_minimal(db_pool):
+async def test_assemble_profile_minimal(db_pool, clean_db):
     """Assemble builds DeepProfile from minimal profile_data."""
     user_id = str(uuid.uuid4())
     async with db_pool.acquire() as conn:

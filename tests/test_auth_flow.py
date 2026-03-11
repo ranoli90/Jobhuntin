@@ -100,8 +100,10 @@ def mock_db_pool():
         return MockPool()
 
     app.dependency_overrides[auth_mod._get_pool] = _get_mock_pool
-    yield
-    app.dependency_overrides.pop(auth_mod._get_pool, None)
+    try:
+        yield
+    finally:
+        app.dependency_overrides.pop(auth_mod._get_pool, None)
 
 
 class TestMagicLinkRequest:
@@ -131,7 +133,9 @@ class TestMagicLinkRequest:
         self, client, mock_redis, mock_generate_magic_link, mock_db_pool
     ):
         """Test rate limiting on magic link requests."""
-        email = "ratelimit@example.com"
+        import uuid
+
+        email = f"ratelimit-{uuid.uuid4().hex}@example.com"
 
         # Make requests up to the limit
         get_settings()
@@ -232,7 +236,7 @@ class TestMagicLinkVerification:
             assert "/app/dashboard" in response.headers.get("Location", "")
 
     @pytest.mark.skip(reason="Requires full app stack")
-    def test_magic_link_expired_token(self, client, mock_redis, db_pool):
+    def test_magic_link_expired_token(self, client, mock_redis, clean_db, db_pool):
         """Test verification with expired token."""
         settings = get_settings()
         if not settings.jwt_secret:
@@ -268,7 +272,7 @@ class TestMagicLinkVerification:
             assert "error=auth_failed" in response.headers.get("Location", "")
 
     @pytest.mark.skip(reason="Requires full app stack")
-    def test_magic_link_replay_attack(self, client, mock_redis, db_pool):
+    def test_magic_link_replay_attack(self, client, mock_redis, clean_db, db_pool):
         """Test that consumed tokens cannot be reused."""
         settings = get_settings()
         if not settings.jwt_secret:
@@ -318,7 +322,7 @@ class TestMagicLinkVerification:
 class TestSessionTokenRevocation:
     """Tests for session token revocation (C1 fix)."""
 
-    def test_session_revocation_on_logout(self, client, mock_redis, db_pool):
+    def test_session_revocation_on_logout(self, client, mock_redis, clean_db, db_pool):
         """Test that session token is revoked on logout."""
         settings = get_settings()
         if not settings.jwt_secret:
@@ -427,7 +431,7 @@ class TestIdempotency:
         assert response.status_code in [200, 201, 400]  # Depends on endpoint
 
     @pytest.mark.skip(reason="Requires /me/skills endpoint with tenant context")
-    def test_idempotency_key_validation(self, client, db_pool):
+    def test_idempotency_key_validation(self, client, clean_db, db_pool):
         """Test that invalid idempotency keys are rejected."""
         # Key too long
         response = client.post(

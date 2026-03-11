@@ -202,10 +202,6 @@ async def hold_form_server():
 # Database helpers (use conftest.py's db_pool fixture)
 # ---------------------------------------------------------------------------
 
-DATABASE_URL = os.environ.get(
-    "DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/postgres"
-)
-
 
 async def _ensure_test_schema(pool) -> None:
     """Create minimal tables if they don't exist (for CI environments)."""
@@ -268,7 +264,7 @@ async def _insert_test_application(
 
 
 @pytest.mark.asyncio
-async def test_agent_claim_navigate_fill_submit(form_server, db_pool):
+async def test_agent_claim_navigate_fill_submit(form_server, db_pool, clean_db):
     """End-to-end test: insert QUEUED app → agent claims it → navigates to form →
     extracts fields → LLM maps profile → fills form → submits → status = APPLIED.
     """
@@ -365,19 +361,6 @@ async def test_agent_claim_navigate_fill_submit(form_server, db_pool):
         assert "Successfully" in resp.text
 
     assert len(server.submissions) == 1
-
-    # Cleanup
-    async with db_pool.acquire() as conn:
-        await conn.execute("DELETE FROM public.applications WHERE id = $1", app_id)
-        await conn.execute("DELETE FROM public.jobs WHERE id = $1", job_id)
-        await conn.execute(
-            "DELETE FROM public.profiles WHERE user_id = $1", test_user_id
-        )
-        await conn.execute(
-            "DELETE FROM public.tenant_members WHERE tenant_id = $1", test_tenant_id
-        )
-        await conn.execute("DELETE FROM public.tenants WHERE id = $1", test_tenant_id)
-        await conn.execute("DELETE FROM public.users WHERE id = $1", test_user_id)
 
 
 @pytest.mark.asyncio
