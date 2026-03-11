@@ -20,7 +20,7 @@ def audit_missing_components():
     domain_managers = [
         "packages/backend/domain/oauth_handler.py",
         "packages/backend/domain/concurrent_tracker.py",
-        "packages/backend/domain/dlq_manager.py",
+        "apps/worker/dlq_manager.py",
     ]
 
     print("Missing Domain Managers:")

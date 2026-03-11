@@ -690,7 +690,7 @@ class ComprehensivePhaseAudit:
             "packages/backend/domain/agent_improvements.py",
             "packages/backend/domain/oauth_handler.py",
             "packages/backend/domain/concurrent_tracker.py",
-            "packages/backend/domain/dlq_manager.py",
+            "apps/worker/dlq_manager.py",
         ]
 
         print("Checking agent domain components...")

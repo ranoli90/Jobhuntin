@@ -17,6 +17,20 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
 from backend.domain.tenant import TenantContext
+from shared.config import get_settings
+from shared.logging_config import get_logger
+
+try:
+    from apps.worker.dlq_manager import DLQItem, RetryResult, get_dlq_manager
+except ImportError:
+    get_dlq_manager = None
+    DLQItem = None
+    RetryResult = None
+
+try:
+    from apps.worker.concurrent_tracker import get_concurrent_tracker
+except ImportError:
+    get_concurrent_tracker = None
 
 
 # Stub DLQ manager returned when real implementation is not available.
@@ -31,21 +45,6 @@ class _StubDLQManager:
 
 async def get_tenant_context() -> TenantContext:
     raise NotImplementedError("Tenant context dependency not injected")
-
-
-try:
-    from apps.worker.dlq_manager import DLQItem, RetryResult, get_dlq_manager
-except ImportError:
-    get_dlq_manager = None
-    DLQItem = None
-    RetryResult = None
-
-try:
-    from apps.worker.concurrent_tracker import get_concurrent_tracker
-except ImportError:
-    get_concurrent_tracker = None
-from shared.config import get_settings
-from shared.logging_config import get_logger
 
 logger = get_logger("sorce.dlq_api")
 
@@ -92,7 +91,9 @@ class DLQItemResponse(BaseModel):
 
 
 class RetryRequest(BaseModel):
-    item_ids: List[str] = Field(..., max_length=100, description="List of DLQ item IDs to retry")
+    item_ids: List[str] = Field(
+        ..., max_length=100, description="List of DLQ item IDs to retry"
+    )
     force: bool = Field(
         False, description="Force retry even if application not in FAILED status"
     )
@@ -595,9 +596,12 @@ async def dlq_health_check(
         oldest_item = stats.get("oldest_item")
         oldest_item_age_hours: Optional[float] = None
         if oldest_item:
-            delta = datetime.now(timezone.utc) - (
-                oldest_item if oldest_item.tzinfo else oldest_item.replace(tzinfo=timezone.utc)
+            ts = (
+                oldest_item
+                if oldest_item.tzinfo
+                else oldest_item.replace(tzinfo=timezone.utc)
             )
+            delta = datetime.now(timezone.utc) - ts
             oldest_item_age_hours = round(delta.total_seconds() / 3600, 1)
 
         return {

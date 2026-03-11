@@ -22,7 +22,7 @@ def audit_phase_12_1():
         "packages/backend/domain/agent_improvements.py",
         "packages/backend/domain/oauth_handler.py",
         "packages/backend/domain/concurrent_tracker.py",
-        "packages/backend/domain/dlq_manager.py",
+        "apps/worker/dlq_manager.py",
         "packages/backend/domain/document_processor.py",
         "packages/backend/domain/skills_taxonomy.py",
     ]

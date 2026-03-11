@@ -540,8 +540,8 @@ def audit_all_phases():
                     check_file_exists("packages/backend/domain/concurrent_tracker.py"),
                 ),
                 (
-                    "packages/backend/domain/dlq_manager.py",
-                    check_file_exists("packages/backend/domain/dlq_manager.py"),
+                    "apps/worker/dlq_manager.py",
+                    check_file_exists("apps/worker/dlq_manager.py"),
                 ),
             ],
         ),

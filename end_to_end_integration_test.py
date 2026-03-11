@@ -647,7 +647,7 @@ class EndToEndIntegrationTester:
     def test_dead_letter_queue(self) -> bool:
         """Test dead letter queue."""
         dlq_files = [
-            "packages/backend/domain/dlq_manager.py",
+            "apps/worker/dlq_manager.py",
             "apps/api/dlq_endpoints.py",
         ]
         return all(os.path.exists(f) for f in dlq_files)
