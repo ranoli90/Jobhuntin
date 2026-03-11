@@ -16,6 +16,9 @@
 | F001 | Job | user.py:1416-1424 | _hydrate_job_matches does not pass user_id to search_and_list_jobs | fixed |
 | F005 | Job | semantic_matching.py:261-262 | IndexError when tech_skills empty | fixed |
 | F007 | Job | job_search.py:196-197, 206-208 | ILIKE wildcard injection | fixed |
+| F002 | Job | match_feedback.py:141-159 | get_job_stats CROSS JOIN drops empty feedback_tags | fixed |
+| F003 | Job | match_feedback.py:186 | compute_adjusted_match_score not in migrations | documented (fallback) |
+| F004 | Job | match_score_precompute.py | Pre-computed scores never read | deferred |
 | PRIV-001 | Privacy | gdpr.py:251-254 | GDPR status endpoint IDOR | fixed |
 | PRIV-002 | Privacy | gdpr.py, ccpa.py | Resume files not deleted on user deletion | fixed |
 | PRIV-003 | Privacy | gdpr.py, ccpa.py | Vector DB profile embeddings not removed on deletion | fixed |

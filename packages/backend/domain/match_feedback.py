@@ -139,21 +139,24 @@ class MatchFeedbackRepo:
         job_id: str,
     ) -> MatchFeedbackStats | None:
         """Get aggregate feedback statistics for a job."""
+        # F002: Aggregate from match_feedback directly; subquery for common_tags includes empty
         row = await conn.fetchrow(
             """
             SELECT
-                job_id,
+                m.job_id,
                 COUNT(*) AS total_feedback,
-                SUM(CASE WHEN rating = 1 THEN 1 ELSE 0 END) AS thumbs_up,
-                SUM(CASE WHEN rating = -1 THEN 1 ELSE 0 END) AS thumbs_down,
-                AVG(match_score) AS avg_match_score,
-                AVG(CASE WHEN rating = 1 THEN match_score ELSE NULL END) AS avg_score_positive,
-                AVG(CASE WHEN rating = -1 THEN match_score ELSE NULL END) AS avg_score_negative,
-                ARRAY_AGG(DISTINCT tag) FILTER (WHERE tag IS NOT NULL) AS common_tags
-            FROM public.match_feedback
-            CROSS JOIN LATERAL unnest(feedback_tags) AS tag
-            WHERE job_id = $1
-            GROUP BY job_id
+                SUM(CASE WHEN m.rating = 1 THEN 1 ELSE 0 END) AS thumbs_up,
+                SUM(CASE WHEN m.rating = -1 THEN 1 ELSE 0 END) AS thumbs_down,
+                AVG(m.match_score) AS avg_match_score,
+                AVG(CASE WHEN m.rating = 1 THEN m.match_score ELSE NULL END) AS avg_score_positive,
+                AVG(CASE WHEN m.rating = -1 THEN m.match_score ELSE NULL END) AS avg_score_negative,
+                (SELECT array_agg(DISTINCT t.tag)
+                 FROM public.match_feedback m2
+                 CROSS JOIN LATERAL unnest(COALESCE(m2.feedback_tags, ARRAY[]::text[])) AS t(tag)
+                 WHERE m2.job_id = m.job_id AND t.tag IS NOT NULL) AS common_tags
+            FROM public.match_feedback m
+            WHERE m.job_id = $1
+            GROUP BY m.job_id
             """,
             job_id,
         )
@@ -180,7 +183,9 @@ class MatchFeedbackRepo:
         job_id: str,
         base_score: float,
     ) -> float:
-        """Get feedback-adjusted match score for a job."""
+        """Get feedback-adjusted match score for a job.
+        F003: compute_adjusted_match_score may not exist in DB; fallback to base_score.
+        """
         try:
             result = await conn.fetchval(
                 "SELECT public.compute_adjusted_match_score($1, $2)",
