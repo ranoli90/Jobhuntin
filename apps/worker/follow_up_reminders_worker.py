@@ -60,14 +60,20 @@ async def run_reminders_loop() -> None:
                     pending = await manager.claim_pending_reminders(conn, limit=50)
                     if pending:
                         logger.info("Processing %d pending reminders", len(pending))
+                        # WORK-006: Send in parallel (batches of 5) so one slow send doesn't block others
+                        batch_size = 5
                         sent = 0
-                        for reminder in pending:
-                            try:
-                                ok = await manager.send_reminder(reminder.id, conn=conn)
-                                if ok:
+                        for i in range(0, len(pending), batch_size):
+                            batch = pending[i : i + batch_size]
+                            results = await asyncio.gather(
+                                *[manager.send_reminder(r.id, conn=conn) for r in batch],
+                                return_exceptions=True,
+                            )
+                            for j, res in enumerate(results):
+                                if res is True:
                                     sent += 1
-                            except Exception as e:
-                                logger.error("Failed to send reminder %s: %s", reminder.id, e)
+                                elif isinstance(res, Exception):
+                                    logger.error("Failed to send reminder %s: %s", batch[j].id, res)
                         if sent:
                             logger.info("Sent %d reminders", sent)
         except Exception as e:

@@ -65,7 +65,7 @@ export function TestimonialsSection({ className }: TestimonialsSectionProps) {
 
   const slideVariants = {
     enter: (direction: number) => ({
-      x: direction > 0 ? 300 : -300,
+      x: direction > 0 ? "100%" : "-100%",
       opacity: 0
     }),
     center: {
@@ -73,7 +73,7 @@ export function TestimonialsSection({ className }: TestimonialsSectionProps) {
       opacity: 1
     },
     exit: (direction: number) => ({
-      x: direction < 0 ? 300 : -300,
+      x: direction < 0 ? "100%" : "-100%",
       opacity: 0
     })
   };
@@ -111,7 +111,7 @@ export function TestimonialsSection({ className }: TestimonialsSectionProps) {
           </p>
         </div>
 
-        <div className="relative bg-white dark:bg-slate-800 rounded-3xl shadow-xl p-8 md:p-12">
+        <div className="relative bg-white dark:bg-slate-800 rounded-3xl shadow-xl p-8 md:p-12 overflow-hidden">
           {/* Quote icon */}
           <div className="absolute top-6 left-6 w-12 h-12 bg-primary-50 dark:bg-primary-900/20 rounded-xl flex items-center justify-center">
             <Quote className="w-6 h-6 text-primary-600" />
@@ -135,8 +135,8 @@ export function TestimonialsSection({ className }: TestimonialsSectionProps) {
             </button>
           </div>
 
-          {/* Testimonial content */}
-          <div className="pt-8 min-h-[280px] flex flex-col" onMouseEnter={() => setIsPaused(true)} onMouseLeave={() => setIsPaused(false)}>
+          {/* Testimonial content — overflow-hidden so swipe exits through edge, not on top */}
+          <div className="pt-8 min-h-[280px] flex flex-col overflow-hidden" onMouseEnter={() => setIsPaused(true)} onMouseLeave={() => setIsPaused(false)}>
             <AnimatePresence mode="wait" custom={direction}>
               <motion.div
                 key={current.id}
@@ -186,7 +186,7 @@ export function TestimonialsSection({ className }: TestimonialsSectionProps) {
             </AnimatePresence>
           </div>
 
-          {/* Dots indicator */}
+          {/* Dots indicator — compact, inactive dots small */}
           <div className="flex justify-center gap-2 mt-8">
             {testimonials.map((_, index) => (
               <button
@@ -196,9 +196,9 @@ export function TestimonialsSection({ className }: TestimonialsSectionProps) {
                   setCurrentIndex(index);
                 }}
                 className={cn(
-                  "p-5 rounded-full transition-all focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 flex items-center justify-center min-h-[44px] min-w-[44px]",
+                  "rounded-full transition-all focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 flex items-center justify-center p-2",
                   index === currentIndex
-                    ? "w-6 bg-primary-600"
+                    ? "w-5 h-5 bg-primary-600"
                     : "w-2 h-2 bg-slate-300 hover:bg-slate-400"
                 )}
                 aria-label={`Go to testimonial ${index + 1}`}

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Zap, ArrowRight, Check } from 'lucide-react';
+import { ArrowRight, Check } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { magicLinkService } from '../../services/magicLinkService';
 import { ValidationUtils } from '../../lib/validation';
@@ -41,21 +41,21 @@ export function ConversionCTA({
     const headlines: Record<ConversionCTAVariant, string> = {
         switch: `Ready to upgrade from ${competitorName || 'your current tool'}?`,
         compare: `See why job hunters switch from ${competitorName || 'other tools'} to JobHuntin`,
-        default: 'Stop grinding. Start interviewing.',
+        default: 'Get more interviews. Spend less time applying.',
         topic: `Ready to land more interviews${topicName ? ` with ${topicName}` : ''}?`,
         guide: `Put this into action${guideName ? `: ${guideName}` : ''}`,
         location: `Hunting in ${locationName || 'your city'}? Let AI do the heavy lifting.`,
-        blog: 'Start your job hunt on autopilot — free.',
+        blog: 'Start your job hunt on autopilot.',
     };
 
     const subtitles: Record<ConversionCTAVariant, string> = {
-        switch: `Join thousands who already switched from ${competitorName || 'other tools'} to JobHuntin's autonomous AI agent. Set it up in 2 minutes.`,
-        compare: `Our AI agent tailors every resume, writes every cover letter, and applies autonomously — while you sleep.`,
-        default: `Let our AI agent hunt for roles, tailor your resume, and auto-apply to hundreds of jobs daily.`,
-        topic: `JobHuntin's AI applies to hundreds of roles for you — tailored resumes, cover letters, and one-click setup.`,
-        guide: `Upload your resume once. Our AI matches, tailors, and applies to hundreds of jobs every day.`,
-        location: `Our AI agent finds roles in ${locationName || 'your area'}, tailors your applications, and applies while you focus on interviews.`,
-        blog: `Upload your resume once. JobHuntin matches, tailors, and auto-applies to hundreds of jobs — every single day.`,
+        switch: `Join thousands who switched from ${competitorName || 'other tools'}. Set up in about 2 minutes.`,
+        compare: `Our AI tailors your resume and cover letter for each role, then applies for you.`,
+        default: `Upload your resume once. We match you to roles, tailor each application, and apply — so you can focus on interviews.`,
+        topic: `JobHuntin matches you to roles, tailors your applications, and applies. One setup, hundreds of applications.`,
+        guide: `Upload your resume once. Our AI matches, tailors, and applies to jobs that fit.`,
+        location: `We find roles in ${locationName || 'your area'}, tailor your applications, and apply while you focus on interviews.`,
+        blog: `Upload your resume once. JobHuntin matches, tailors, and applies to jobs that fit your profile.`,
     };
 
     const validateEmail = (e: string) => ValidationUtils.validate.email(e.trim()).isValid;
@@ -127,33 +127,16 @@ export function ConversionCTA({
                 <div className="relative z-10">
                     {/* Trust signals */}
                     <div
-                        className="flex flex-wrap items-center justify-center gap-6 md:gap-8 mb-6 text-sm text-white/70"
+                        className="flex flex-wrap items-center justify-center gap-4 md:gap-6 mb-6 text-sm text-white/70"
                         role="list"
                         aria-label="Trust signals"
                     >
                         <span className="flex items-center gap-1.5" role="listitem">
-                            <span className="font-semibold text-white">thousands of</span>
-                            job seekers trust us
-                        </span>
-                        <span className="flex items-center gap-1.5" role="listitem">
-                            <span className="font-semibold text-amber-400">4.9★</span>
-                            rating
-                        </span>
-                        <span className="flex items-center gap-1.5" role="listitem">
                             No credit card required
                         </span>
-                    </div>
-
-                    <div
-                        className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-bold mb-6 border"
-                        style={{
-                            background: 'rgba(69,93,211,0.2)',
-                            color: 'rgba(167,139,250,1)',
-                            borderColor: 'rgba(69,93,211,0.2)',
-                        }}
-                    >
-                        <Zap className="w-4 h-4" aria-hidden />
-                        Free to start
+                        <span className="flex items-center gap-1.5" role="listitem">
+                            Cancel anytime
+                        </span>
                     </div>
 
                     <h2
@@ -270,21 +253,20 @@ export function ConversionCTA({
                         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
                             <Button
                                 asChild
-                                className="bg-[#455DD3] hover:bg-[#3A4FB8] text-white px-10 py-6 h-auto rounded-2xl font-bold text-xl shadow-xl border-none"
-                                style={{ boxShadow: '0 10px 40px rgba(69,93,211,0.3)' }}
+                                className="bg-[#455DD3] hover:bg-[#3A4FB8] text-white px-8 py-5 h-auto rounded-xl font-semibold text-lg shadow-lg border-none"
                             >
                                 <Link
                                     to="/login"
-                                    aria-label="Start hunting for jobs free"
+                                    aria-label="Start hunting for jobs"
                                 >
-                                    Start Hunting Free
-                                    <ArrowRight className="w-5 h-5 ml-2" aria-hidden />
+                                    Get Started
+                                    <ArrowRight className="w-4 h-4 ml-2" aria-hidden />
                                 </Link>
                             </Button>
 
                             <Button
                                 asChild
-                                className="bg-white/10 hover:bg-white/20 text-white px-8 py-6 h-auto rounded-2xl font-bold text-lg border border-white/20"
+                                className="bg-white/10 hover:bg-white/20 text-white px-6 py-5 h-auto rounded-xl font-semibold text-base border border-white/20"
                             >
                                 <Link to="/pricing" aria-label="View pricing plans">
                                     View Pricing
@@ -293,34 +275,8 @@ export function ConversionCTA({
                         </div>
                     )}
 
-                    {/* Social proof + urgency */}
-                    <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-6 text-sm">
-                        <div className="flex items-center gap-3" aria-label="Recent signups">
-                            <div className="flex -space-x-2" aria-hidden>
-                                {[1, 2, 3, 4].map((i) => (
-                                    <div
-                                        key={i}
-                                        className="w-8 h-8 rounded-full border-2 border-[#0F1729] bg-gradient-to-br from-slate-500 to-slate-600 flex items-center justify-center text-xs font-bold text-white"
-                                    >
-                                        {String.fromCharCode(64 + i)}
-                                    </div>
-                                ))}
-                            </div>
-                            <span className="text-slate-400 font-medium">
-                                <span className="text-white font-semibold">+2,847</span> joined this
-                                week
-                            </span>
-                        </div>
-                        <span
-                            className="text-slate-500 font-medium"
-                            aria-label="Average time to first interview"
-                        >
-                            Average time to first interview: <span className="text-emerald-400 font-semibold">12 days</span>
-                        </span>
-                    </div>
-
-                    <p className="mt-6 text-slate-500 text-sm font-medium">
-                        Average user lands 3x more interviews within 14 days
+                    <p className="mt-8 text-slate-500 text-sm font-medium">
+                        Upload your resume once. We handle the rest.
                     </p>
                 </div>
             </div>

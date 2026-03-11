@@ -526,14 +526,9 @@ class AuthMiddleware:
         )
 
     def _get_client_ip(self, request: Request) -> str:
-        """Get client IP address from request."""
-        # Check for forwarded IP (behind proxy/load balancer)
-        forwarded_for = request.headers.get("x-forwarded-for")
-        if forwarded_for:
-            return forwarded_for.split(",")[0].strip()
-
-        # Get direct connection IP
-        return request.client.host if request.client else "unknown"
+        """Get client IP — use shared.middleware for consistency (AUTH-003)."""
+        from shared.middleware import get_client_ip
+        return get_client_ip(request)
 
     async def _is_rate_limited(self, client_ip: str) -> bool:
         """Check if client IP is rate limited."""

@@ -186,6 +186,16 @@ def _validate_redirect_url(url: str, param_name: str, settings: Settings) -> Non
         raise HTTPException(status_code=400, detail=f"Invalid {param_name}")
 
 
+def _handle_stripe_error(e: Exception) -> None:
+    """Re-raise Stripe 4xx as HTTPException for better UX (BILL-006)."""
+    stripe_mod = get_stripe()
+    if hasattr(stripe_mod, "error") and isinstance(e, stripe_mod.error.StripeError):
+        status = getattr(e, "http_status", 400)
+        if 400 <= status < 500:
+            msg = "Your card was declined. Please try a different payment method." if status == 402 else (getattr(e, "user_message", None) or str(e))[:200]
+            raise HTTPException(status_code=status, detail=msg)
+
+
 @router.post("/checkout")
 async def create_checkout(
     request: Request,
@@ -199,92 +209,99 @@ async def create_checkout(
     _validate_redirect_url(body.cancel_url, "cancel_url", settings)
     stripe = get_stripe()
 
-    async with db.acquire() as conn:
-        # Ensure customer exists (user_email not available in TenantContext, will be updated after checkout)
-        customer_id = await ensure_stripe_customer(conn, tenant_ctx.tenant_id, None)
+    try:
+        async with db.acquire() as conn:
+            # Ensure customer exists (user_email not available in TenantContext, will be updated after checkout)
+            customer_id = await ensure_stripe_customer(conn, tenant_ctx.tenant_id, None)
 
-        # Determine price ID based on billing period
-        if body.billing_period == "annual":
-            price_id = settings.stripe_pro_annual_price_id
-        else:
-            price_id = settings.stripe_pro_price_id
+            # Determine price ID based on billing period
+            if body.billing_period == "annual":
+                price_id = settings.stripe_pro_annual_price_id
+            else:
+                price_id = settings.stripe_pro_price_id
 
-        if not price_id:
-            raise HTTPException(
-                status_code=500, detail="Stripe price ID not configured"
-            )
-
-        # Create checkout session with optional first month promotion
-        # Apply coupon if configured and valid
-        coupon_id = getattr(settings, "first_month_coupon", None)
-
-        # Validate coupon exists in Stripe before applying (optional but safer)
-        discounts = []
-        if coupon_id:
-            try:
-                # Verify coupon exists before applying
-                coupon = protected_stripe_call(
-                    lambda: stripe.Coupon.retrieve(coupon_id)
+            if not price_id:
+                raise HTTPException(
+                    status_code=500, detail="Stripe price ID not configured"
                 )
-                if coupon:
-                    discounts = [{"coupon": coupon_id}]
-                    logger.info(
-                        f"Applying coupon {coupon_id} for tenant {tenant_ctx.tenant_id}"
+
+            # Create checkout session with optional first month promotion
+            # Apply coupon if configured and valid
+            coupon_id = getattr(settings, "first_month_coupon", None)
+
+            # Validate coupon exists in Stripe before applying (optional but safer)
+            discounts = []
+            if coupon_id:
+                try:
+                    # Verify coupon exists before applying
+                    coupon = protected_stripe_call(
+                        lambda: stripe.Coupon.retrieve(coupon_id)
                     )
-                else:
+                    if coupon:
+                        discounts = [{"coupon": coupon_id}]
+                        logger.info(
+                            f"Applying coupon {coupon_id} for tenant {tenant_ctx.tenant_id}"
+                        )
+                    else:
+                        logger.warning(
+                            f"Coupon {coupon_id} not found in Stripe, proceeding without discount"
+                        )
+                except Exception as e:
                     logger.warning(
-                        f"Coupon {coupon_id} not found in Stripe, proceeding without discount"
+                        f"Failed to validate coupon {coupon_id}: {e}, proceeding without discount"
                     )
-            except Exception as e:
-                logger.warning(
-                    f"Failed to validate coupon {coupon_id}: {e}, proceeding without discount"
-                )
 
-        checkout_session = protected_stripe_call(
-            lambda: stripe.checkout.Session.create(
-                customer=customer_id,
-                payment_method_types=["card"],
-                line_items=[
-                    {
-                        "price": price_id,
-                        "quantity": 1,
-                    }
-                ],
-                mode="subscription",
-                success_url=body.success_url,
-                cancel_url=body.cancel_url,
-                discounts=discounts,
-                subscription_data={
-                    "trial_period_days": (
-                        settings.stripe_free_trial_days
-                        if settings.stripe_free_trial_days > 0
-                        else None
-                    ),
-                    "metadata": {
+            checkout_session = protected_stripe_call(
+                lambda: stripe.checkout.Session.create(
+                    customer=customer_id,
+                    payment_method_types=["card"],
+                    line_items=[
+                        {
+                            "price": price_id,
+                            "quantity": 1,
+                        }
+                    ],
+                    mode="subscription",
+                    success_url=body.success_url,
+                    cancel_url=body.cancel_url,
+                    discounts=discounts,
+                    subscription_data={
+                        "trial_period_days": (
+                            settings.stripe_free_trial_days
+                            if settings.stripe_free_trial_days > 0
+                            else None
+                        ),
+                        "metadata": {
+                            "tenant_id": tenant_ctx.tenant_id,
+                            "plan": "PRO",
+                        },
+                    },
+                    metadata={
                         "tenant_id": tenant_ctx.tenant_id,
                         "plan": "PRO",
+                        "billing_period": body.billing_period,
                     },
-                },
-                metadata={
-                    "tenant_id": tenant_ctx.tenant_id,
-                    "plan": "PRO",
-                    "billing_period": body.billing_period,
-                },
-            )
-        )
-
-        if not checkout_session:
-            raise HTTPException(
-                status_code=503, detail="Payment service temporarily unavailable"
+                )
             )
 
-        logger.info(
-            "Checkout session created for tenant %s: %s",
-            tenant_ctx.tenant_id,
-            checkout_session.id,
-        )
+            if not checkout_session:
+                raise HTTPException(
+                    status_code=503, detail="Payment service temporarily unavailable"
+                )
 
-        return {"checkout_url": checkout_session.url}
+            logger.info(
+                "Checkout session created for tenant %s: %s",
+                tenant_ctx.tenant_id,
+                checkout_session.id,
+            )
+
+            return {"checkout_url": checkout_session.url}
+    except HTTPException:
+        raise
+    except Exception as e:
+        _handle_stripe_error(e)
+        logger.error("Checkout creation failed: %s", e)
+        raise HTTPException(status_code=503, detail="Payment service temporarily unavailable")
 
 
 @router.post("/portal")
@@ -382,6 +399,8 @@ async def list_invoices(
 
 class TeamCheckoutRequest(BaseModel):
     seats: int = 1
+    success_url: str | None = None
+    cancel_url: str | None = None
 
 
 @router.post("/team-checkout")
@@ -399,6 +418,13 @@ async def team_checkout(
     stripe = get_stripe()
     if not settings.stripe_team_base_price_id:
         raise HTTPException(status_code=503, detail="Team pricing not configured")
+
+    # BILL-003/BILL-004: Use body URLs if provided, else build from app_base_url
+    app_url = getattr(settings, "app_base_url", None) or os.getenv("APP_PUBLIC_URL", "https://jobhuntin.com")
+    success_url = body.success_url or f"{app_url.rstrip('/')}/app/billing?success=true"
+    cancel_url = body.cancel_url or f"{app_url.rstrip('/')}/app/billing?canceled=true"
+    _validate_redirect_url(success_url, "success_url", settings)
+    _validate_redirect_url(cancel_url, "cancel_url", settings)
 
     try:
         async with db.acquire() as conn:
@@ -422,8 +448,8 @@ async def team_checkout(
                 customer=customer_id,
                 mode="subscription",
                 line_items=line_items,
-                success_url=f"{settings.app_base_url}/app/billing?success=true",
-                cancel_url=f"{settings.app_base_url}/app/billing?canceled=true",
+                success_url=success_url,
+                cancel_url=cancel_url,
                 metadata={
                     "tenant_id": str(ctx.tenant_id),
                     "plan": "TEAM",
@@ -439,6 +465,10 @@ async def team_checkout(
     except HTTPException:
         raise
     except Exception as e:
+        try:
+            _handle_stripe_error(e)
+        except HTTPException:
+            raise
         logger.error("Team checkout creation failed: %s", e)
         raise HTTPException(
             status_code=503, detail="Payment service temporarily unavailable"
@@ -509,6 +539,7 @@ async def stripe_webhook(
                 await handle_subscription_cancelled(conn, data_obj)
             elif event["type"] == "customer.subscription.updated":
                 await handle_subscription_updated(conn, data_obj)
+            # BILL-005: Both handlers run in same transaction; idempotent and order-independent
 
     return {"status": "ok"}
 

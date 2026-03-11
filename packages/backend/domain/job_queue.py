@@ -75,6 +75,7 @@ JobHandler = Callable[[dict[str, Any]], Coroutine[Any, Any, JobResult]]
 class JobQueueConfig:
     DEFAULT_RETRY_DELAYS = [60, 300, 900]  # 1min, 5min, 15min
     MAX_RETRY_ATTEMPTS = 3
+    # WORK-005: Jobs running >5min may be reclaimed by another worker
     CLAIM_TIMEOUT_SECONDS = 300
     BATCH_SIZE = 10
     POLL_INTERVAL_SECONDS = 5
@@ -262,11 +263,21 @@ class JobQueueRepo:
 
     @staticmethod
     def _row_to_model(row: asyncpg.Record) -> Job:
+        # WORK-003: Defensive JSON parse to avoid worker crash on malformed data
+        def _safe_json(val, default):
+            if not val:
+                return default
+            try:
+                return json.loads(val)
+            except (json.JSONDecodeError, TypeError) as e:
+                logger.warning("Malformed JSON in job queue row: %s", e)
+                return default
+
         return Job(
             id=str(row["id"]),
             queue=row["queue"],
             job_type=row["job_type"],
-            payload=json.loads(row["payload"]) if row["payload"] else {},
+            payload=_safe_json(row["payload"], {}),
             status=JobStatus(row["status"]),
             priority=JobPriority(row["priority"]),
             attempts=row["attempts"],
@@ -275,7 +286,7 @@ class JobQueueRepo:
             started_at=row["started_at"],
             completed_at=row["completed_at"],
             error_message=row["error_message"],
-            result=json.loads(row["result"]) if row["result"] else None,
+            result=_safe_json(row["result"], None),
             dedup_key=row["dedup_key"],
             tenant_id=str(row["tenant_id"]) if row["tenant_id"] else None,
             created_at=row["created_at"],
@@ -364,6 +375,7 @@ class BackgroundJobQueue:
                     else:
                         retry_after = None
                         if job.attempts < job.max_attempts:
+                            # WORK-002: attempts is 1-based; retry_idx 0 = first retry, 1 = second, etc.
                             retry_idx = min(
                                 job.attempts - 1,
                                 len(JobQueueConfig.DEFAULT_RETRY_DELAYS) - 1,
@@ -381,6 +393,7 @@ class BackgroundJobQueue:
                     logger.exception("Job %s failed with exception", job.id)
                     retry_after = None
                     if job.attempts < job.max_attempts:
+                        # WORK-002: same indexing — attempts 1 → retry_idx 0 (first retry)
                         retry_idx = min(
                             job.attempts - 1,
                             len(JobQueueConfig.DEFAULT_RETRY_DELAYS) - 1,

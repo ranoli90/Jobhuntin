@@ -69,13 +69,24 @@ async def run_queue_loop() -> None:
 
     logger.info("Job queue worker started (poll every %ds)", POLL_INTERVAL_SEC)
 
+    consecutive_errors = 0
     while not _shutdown:
         try:
             processed = await queue.process_jobs(batch_size=5)
             if processed:
                 logger.info("Processed %d jobs", processed)
+                consecutive_errors = 0
         except Exception as e:
+            consecutive_errors += 1
             logger.error("Job queue loop error: %s", e)
+            # WORK-004: Backoff on repeated failure (e.g. external API down)
+            backoff = min(60, 5 * (2 ** min(consecutive_errors - 1, 4)))
+            logger.info("Backing off %ds before next poll", backoff)
+            for _ in range(backoff):
+                if _shutdown:
+                    break
+                await asyncio.sleep(1)
+            continue
 
         for _ in range(POLL_INTERVAL_SEC):
             if _shutdown:

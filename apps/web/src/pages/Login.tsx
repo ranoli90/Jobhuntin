@@ -408,6 +408,8 @@ export default function Login() {
 
         {/* Right — Form (homepage white section style) */}
         <div className="w-full lg:w-[52%] xl:w-[55%] flex flex-col p-6 sm:p-8 lg:p-12 xl:p-16 bg-[#F7F6F3] dark:bg-slate-900 relative">
+          {/* Mobile: subtle top gradient for visual interest */}
+          <div className="lg:hidden absolute top-0 left-0 right-0 h-32 pointer-events-none bg-gradient-to-b from-[#455DD3]/5 to-transparent dark:from-[#455DD3]/10" aria-hidden />
           {/* Top bar: controls right (navbar has logo, avoid duplicate) */}
           <div className="absolute top-6 left-6 right-6 flex items-center justify-end z-10">
             <div className="flex items-center gap-2">
@@ -417,9 +419,13 @@ export default function Login() {
           </div>
 
           <div className="w-full max-w-[400px] mx-auto flex-1 flex flex-col justify-center pt-16 lg:pt-0">
-            <div className="lg:hidden text-center mb-6">
-              <p className="text-[#787774] text-sm">
-                Sign in to continue your job hunt
+            <div className="lg:hidden text-center mb-8">
+              <Logo to="/" variant="light" size="sm" className="mb-6 justify-center" />
+              <h1 className="text-2xl font-bold text-[#2D2A26] dark:text-slate-100 mb-2 tracking-tight" style={{ letterSpacing: '-0.5px' }}>
+                Sign in
+              </h1>
+              <p className="text-[#787774] dark:text-slate-400 text-sm">
+                Enter your email to continue your job hunt
               </p>
             </div>
 

@@ -109,15 +109,14 @@ async def _mark_token_consumed(jti: str, settings: Settings) -> bool:
                 "Redis consumed-token check failed, falling back to in-memory: %s", e
             )
 
-    # In-memory fallback (single-instance only) - NOT safe for multi-worker deployments
-    if settings.env.value == "prod":
-        # CRITICAL: Fail fast in production without Redis to prevent security vulnerability
+    # AUTH-008: In-memory fallback unsafe for multi-instance — require Redis in prod/staging
+    if settings.env.value in ("prod", "staging"):
         logger.critical(
-            "Redis not available in production - magic link token replay protection disabled. "
+            "Redis not available - magic link token replay protection disabled. "
             "Set REDIS_URL for multi-instance deployments. This is a security risk."
         )
         raise RuntimeError(
-            "Redis required for production token replay protection. "
+            "Redis required for token replay protection in prod/staging. "
             "Set REDIS_URL environment variable."
         )
 
@@ -175,9 +174,8 @@ async def _is_session_token_revoked(jti: str, settings: Settings) -> bool:
         return bool(exists)
     except Exception as e:
         logger.warning("Failed to check session token revocation: %s", e)
-        # Fail open in case of Redis errors (don't block legitimate users)
-        # But log the error for monitoring
-        return False
+        # AUTH-002: Fail closed — when Redis is down, treat token as revoked (reject)
+        return True
 
 
 class MagicLinkRequest(BaseModel):
@@ -323,7 +321,12 @@ def _sanitize_return_to(value: str | None) -> str | None:
         "/app/admin/sources",
     }
 
-    if path_only not in allowed:
+    # AUTH-007: Allow exact match or subpaths (e.g. /app/onboarding/complete)
+    if path_only in allowed:
+        pass
+    elif any(path_only.startswith(p + "/") for p in allowed):
+        pass
+    else:
         return None
 
     # Re-append query string if present (safe: path is whitelisted)
@@ -967,36 +970,40 @@ async def verify_magic_link(
                 str(tenant_row["tenant_id"]) if tenant_row["tenant_id"] else None
             )
 
-    # Create session with device fingerprinting
+    # Create session with device fingerprinting (AUTH-001: retry once, then fail)
     session_manager = SessionManager(db)
-    try:
-        session_info = await session_manager.create_session(
-            user_id=user_id,
-            tenant_id=tenant_id,
-            ip_address=client_ip,
-            user_agent=user_agent,
-            metadata={"source": "magic_link", "is_new_user": is_new_user_flag},
-        )
-
-        # Check for suspicious activity
-        suspicious_check = await session_manager.detect_suspicious_activity(
-            user_id=user_id,
-            ip_address=client_ip,
-            user_agent=user_agent,
-        )
-    except Exception as exc:
-        # If session creation fails, log but continue with authentication
-        # This allows login to work even if session tracking is broken
-        logger.error(
-            "[MAGIC_LINK] Session creation failed, continuing without session tracking: %s",
-            exc,
-            exc_info=True,
-        )
-        # Create a minimal session_info for the JWT
-        import uuid as _uuid_mod
-
-        session_info = type("SessionInfo", (), {"session_id": str(_uuid_mod.uuid4())})()
-        suspicious_check = {"suspicious": False, "reasons": []}
+    session_info = None
+    suspicious_check = {"suspicious": False, "reasons": []}
+    for attempt in range(2):
+        try:
+            session_info = await session_manager.create_session(
+                user_id=user_id,
+                tenant_id=tenant_id,
+                ip_address=client_ip,
+                user_agent=user_agent,
+                metadata={"source": "magic_link", "is_new_user": is_new_user_flag},
+            )
+            suspicious_check = await session_manager.detect_suspicious_activity(
+                user_id=user_id,
+                ip_address=client_ip,
+                user_agent=user_agent,
+            )
+            break
+        except Exception as exc:
+            logger.warning(
+                "[MAGIC_LINK] Session creation attempt %d failed: %s",
+                attempt + 1,
+                exc,
+            )
+            if attempt == 0:
+                import asyncio
+                await asyncio.sleep(0.5)
+            else:
+                logger.exception("[MAGIC_LINK] Session creation failed after retry")
+                raise HTTPException(
+                    status_code=503,
+                    detail="Session service temporarily unavailable. Please try again.",
+                ) from exc
 
     if suspicious_check["suspicious"]:
         logger.warning(
@@ -1050,11 +1057,18 @@ async def verify_magic_link(
     }
     session_token = _jwt.encode(session_payload, settings.jwt_secret, algorithm="HS256")
 
-    # Store jti in session metadata so revoke can blacklist the JWT in Redis
-    try:
-        await session_manager.update_session_jti(session_info.session_id, jti)
-    except Exception as e:
-        logger.warning("Failed to store jti in session metadata: %s", e)
+    # Store jti in session metadata so revoke can blacklist the JWT in Redis (AUTH-004: retry once)
+    for attempt in range(2):
+        try:
+            await session_manager.update_session_jti(session_info.session_id, jti)
+            break
+        except Exception as e:
+            logger.warning("Failed to store jti in session metadata (attempt %d): %s", attempt + 1, e)
+            if attempt == 0:
+                import asyncio
+                await asyncio.sleep(0.3)
+            else:
+                logger.error("JTI not stored — logout may not fully revoke this token")
 
     # Revoke any previous session tokens for this user (optional - for session rotation)
     # This ensures only one active session per user at a time
@@ -1305,39 +1319,76 @@ class ResendWebhookPayload(BaseModel):
 @router.post("/webhooks/resend")
 async def resend_webhook(
     request: Request,
-    payload: ResendWebhookPayload,
     settings: Settings = Depends(settings_dependency),
 ) -> JSONResponse:
     """
     Handle Resend email delivery webhooks.
 
     Tracks: delivered, bounced, complained, opened, clicked
-    Resend docs: https://resend.com/docs/dashboard/webhooks
+    Resend uses Svix for signing: svix-id, svix-timestamp, svix-signature
     """
-    # Verify webhook signature if configured (#1: Email delivery confirmation)
-    # Resend signs webhooks with RESEND_WEBHOOK_SECRET when configured in dashboard
+    # AUTH-006: Get raw body first — never parse before verification
+    body = await request.body()
+
     webhook_secret = settings.resend_webhook_secret
     if webhook_secret:
-        signature = request.headers.get("resend-signature")
-        if not signature:
-            logger.warning("Resend webhook missing signature")
-            raise HTTPException(status_code=401, detail="Missing signature")
+        # AUTH-005: Resend uses Svix format (svix-id, svix-timestamp, svix-signature)
+        svix_id = request.headers.get("svix-id")
+        svix_timestamp = request.headers.get("svix-timestamp")
+        svix_signature = request.headers.get("svix-signature")
 
-        # Verify the signature using HMAC-SHA256
-        # Resend signs the request body with the webhook secret
-        import hashlib
-        import hmac
+        if svix_id and svix_timestamp and svix_signature:
+            import base64
+            import hashlib
+            import hmac
 
-        # Get the raw request body for verification
-        body = await request.body()
-        expected_signature = hmac.new(
-            webhook_secret.encode(), body, hashlib.sha256
-        ).hexdigest()
+            # Secret may have whsec_ prefix; decode base64 part
+            secret_b64 = webhook_secret
+            if secret_b64.startswith("whsec_"):
+                secret_b64 = secret_b64[6:]
+            try:
+                secret_bytes = base64.b64decode(secret_b64)
+            except Exception:
+                logger.warning("Resend webhook secret invalid base64")
+                raise HTTPException(status_code=401, detail="Invalid webhook config")
 
-        # Use constant-time comparison to prevent timing attacks
-        if not hmac.compare_digest(signature, expected_signature):
-            logger.warning("Resend webhook signature verification failed")
-            raise HTTPException(status_code=401, detail="Invalid signature")
+            signed_content = f"{svix_id}.{svix_timestamp}.".encode() + body
+            expected_sig = base64.b64encode(
+                hmac.new(secret_bytes, signed_content, hashlib.sha256).digest()
+            ).decode()
+
+            # svix-signature can be "v1,sig1 v1,sig2" — check any match
+            valid = False
+            for part in svix_signature.split():
+                if "," in part:
+                    _, sig = part.split(",", 1)
+                    if hmac.compare_digest(sig, expected_sig):
+                        valid = True
+                        break
+            if not valid:
+                logger.warning("Resend webhook Svix signature verification failed")
+                raise HTTPException(status_code=401, detail="Invalid signature")
+        else:
+            # Fallback: legacy resend-signature (simple HMAC of body)
+            legacy_sig = request.headers.get("resend-signature")
+            if not legacy_sig:
+                logger.warning("Resend webhook missing signature")
+                raise HTTPException(status_code=401, detail="Missing signature")
+            import hashlib
+            import hmac
+            expected = hmac.new(
+                webhook_secret.encode(), body, hashlib.sha256
+            ).hexdigest()
+            if not hmac.compare_digest(legacy_sig, expected):
+                logger.warning("Resend webhook legacy signature verification failed")
+                raise HTTPException(status_code=401, detail="Invalid signature")
+
+    # Parse after verification
+    try:
+        payload = ResendWebhookPayload.model_validate_json(body)
+    except Exception as e:
+        logger.warning("Resend webhook invalid payload: %s", e)
+        raise HTTPException(status_code=400, detail="Invalid payload")
 
     event_type = payload.type
     data = payload.data

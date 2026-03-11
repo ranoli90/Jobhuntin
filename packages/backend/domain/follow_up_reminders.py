@@ -278,7 +278,7 @@ class FollowUpManager:
             WHERE status = 'pending' AND scheduled_for <= NOW()
             """
         params = []
-        param_idx = 1
+        param_idx = 1  # WORK-007: integer only — values go in params; never interpolate user input
 
         if tenant_id:
             query += f" AND tenant_id = ${param_idx}"

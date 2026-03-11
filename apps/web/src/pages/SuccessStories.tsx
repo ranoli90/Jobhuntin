@@ -27,63 +27,63 @@ interface Story {
 
 const STORIES: Story[] = [
   {
-    name: "Sarah Jenkins",
+    name: "Sarah J.",
     role: "Marketing Director",
     company: "TechFlow",
     initials: "SJ",
-    outcome: "Hired in 14 days",
-    before: "3 hrs/day applying",
-    after: "5 interviews in week 1",
-    quote: "JobHuntin did it while I slept.",
-    outcomes: [{ label: "Time to offer", value: "14 days" }, { label: "Interviews", value: "5" }],
+    outcome: "Offer in 3 weeks",
+    before: "Spending hours applying manually",
+    after: "3 interviews, 1 offer",
+    quote: "I was applying to maybe 5 jobs a week. With JobHuntin I had 3 interviews within two weeks.",
+    outcomes: [{ label: "Time to offer", value: "3 weeks" }, { label: "Interviews", value: "3" }],
     accent: "#FFB8A0",
   },
   {
-    name: "Michael Chen",
+    name: "Michael C.",
     role: "Warehouse Supervisor",
     company: "Costco",
     initials: "MC",
-    outcome: "Better role in 2 weeks",
-    before: "Long hours, no time to apply",
-    after: "Applied while at work",
-    quote: "Got a better position without changing my schedule.",
-    outcomes: [{ label: "Applications sent", value: "47" }, { label: "Time to offer", value: "2 weeks" }],
+    outcome: "New role in 5 weeks",
+    before: "No time to job search",
+    after: "Applications sent while working",
+    quote: "I work long shifts. JobHuntin applied for me and I got callbacks without changing my routine.",
+    outcomes: [{ label: "Applications", value: "~40" }, { label: "Time to offer", value: "5 weeks" }],
     accent: "#C2DCC8",
   },
   {
-    name: "Jessica Alvarez",
+    name: "Jessica A.",
     role: "Sales Associate",
     company: "Target",
     initials: "JA",
-    outcome: "$5K salary bump",
-    before: "2% callback rate",
-    after: "15% callback rate",
-    quote: "Numbers game — JobHuntin maximized my volume without sacrificing quality.",
-    outcomes: [{ label: "Callback rate", value: "15%" }, { label: "Salary change", value: "+$5K" }],
+    outcome: "Higher callback rate",
+    before: "Few callbacks on cold applications",
+    after: "More responses, better fit",
+    quote: "The tailored resumes made a difference. I went from almost no callbacks to actually getting interviews.",
+    outcomes: [{ label: "Before", value: "~2% callback" }, { label: "After", value: "~12% callback" }],
     accent: "#D3E5EF",
   },
   {
-    name: "David Ross",
+    name: "David R.",
     role: "Customer Service Lead",
     company: "Amazon",
     initials: "DR",
-    outcome: "Remote role landed",
-    before: "Inbox empty",
-    after: "Inbox full of 'Let's chat'",
-    quote: "I didn't believe it at first. Game changer.",
-    outcomes: [{ label: "Role type", value: "Remote" }, { label: "First callback", value: "3 days" }],
+    outcome: "Remote role",
+    before: "Only local roles",
+    after: "Landed remote position",
+    quote: "I wanted remote and wasn't finding much. JobHuntin surfaced roles I wouldn't have seen otherwise.",
+    outcomes: [{ label: "Role type", value: "Remote" }, { label: "First callback", value: "~1 week" }],
     accent: "#FADEC9",
   },
   {
-    name: "Emily Zhang",
+    name: "Emily Z.",
     role: "Retail Manager",
     company: "Home Depot",
     initials: "EZ",
-    outcome: "Promoted in under 1 month",
-    before: "Manual applications",
-    after: "Volume through the roof",
-    quote: "Got promoted to manager in less than a month.",
-    outcomes: [{ label: "Outcome", value: "Promotion" }, { label: "Time", value: "< 1 month" }],
+    outcome: "Promotion",
+    before: "Manual applications, slow progress",
+    after: "More volume, faster results",
+    quote: "Applied to way more roles than I could have on my own. Ended up with a promotion at my current company.",
+    outcomes: [{ label: "Outcome", value: "Promotion" }, { label: "Time", value: "~6 weeks" }],
     accent: "#E8D5F2",
   },
 ];
@@ -181,30 +181,30 @@ export default function SuccessStories() {
                     {/* Left: color block + person + outcome */}
                     <div className="md:w-[42%] p-6 sm:p-8 md:p-8 flex flex-col gap-4" style={{ background: `${story.accent}40` }}>
                       <div className="flex items-start gap-4">
-                        <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center text-white text-lg font-bold shrink-0 shadow-lg" style={{ background: `linear-gradient(135deg, ${story.accent}, ${story.accent}cc)` }}>
+                        <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-2xl flex items-center justify-center text-white text-base sm:text-lg font-bold shrink-0 shadow-lg" style={{ background: `linear-gradient(135deg, ${story.accent}, ${story.accent}cc)` }}>
                           {story.initials}
                         </div>
                         <div className="min-w-0 flex-1">
-                          <p className="text-[12px] font-medium text-[#9B9A97] uppercase tracking-wider mb-0.5">{story.role} · {story.company}</p>
-                          <div className="flex items-center gap-2 mb-2">
-                            <h3 className="text-xl sm:text-2xl font-bold text-[#2D2A26]">{story.name}</h3>
+                          <p className="text-[11px] sm:text-[12px] font-medium text-[#9B9A97] uppercase tracking-wider mb-0.5">{story.role} · {story.company}</p>
+                          <div className="flex flex-wrap items-center gap-2 mb-2">
+                            <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-[#2D2A26]">{story.name}</h3>
                             {story.linkedin && (
                               <a href={story.linkedin} target="_blank" rel="noopener noreferrer" className="text-[#455DD3] hover:text-[#3A4FB8]" aria-label={`${story.name} on LinkedIn`}>
-                                <Linkedin className="w-5 h-5" />
+                                <Linkedin className="w-4 h-4 sm:w-5 sm:h-5" />
                               </a>
                             )}
                             <span className="inline-flex items-center gap-1 text-[10px] font-medium text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full" title="Real user outcome">
                               <CheckCircle2 className="w-3 h-3" /> Real outcome
                             </span>
                           </div>
-                          <span className="inline-block px-4 py-1.5 rounded-xl text-[14px] font-bold text-white shadow-sm" style={{ background: story.accent }}>
+                          <span className="inline-block px-3 py-1 sm:px-4 sm:py-1.5 rounded-xl text-[13px] sm:text-[14px] font-bold text-white shadow-sm" style={{ background: story.accent }}>
                             {story.outcome}
                           </span>
                         </div>
                       </div>
-                      <div className="flex flex-wrap gap-x-6 gap-y-1">
+                      <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-3 sm:gap-x-6 sm:gap-y-1">
                         {story.outcomes.map((o) => (
-                          <div key={o.label} className="text-[13px]">
+                          <div key={o.label} className="text-[12px] sm:text-[13px]">
                             <span className="text-[#9B9A97]">{o.label}: </span>
                             <span className="font-bold text-[#2D2A26]">{o.value}</span>
                           </div>
