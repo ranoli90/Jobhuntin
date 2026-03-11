@@ -10,7 +10,7 @@
 
 import * as LocalAuthentication from 'expo-local-authentication';
 import { Platform } from 'react-native';
-import * as SecureStore from 'expo-secure-store';
+import { secureGetItemAsync, secureSetItemAsync, secureDeleteItemAsync } from './secureStorage';
 import { supabase } from './supabase';
 
 // Storage keys
@@ -87,7 +87,7 @@ export async function getBiometricCapabilities(): Promise<BiometricCapabilities>
  */
 export async function isBiometricAuthEnabled(): Promise<boolean> {
   try {
-    const enabled = await SecureStore.getItemAsync(BIOMETRIC_ENABLED_KEY);
+    const enabled = await secureGetItemAsync(BIOMETRIC_ENABLED_KEY);
     return enabled === 'true';
   } catch {
     return false;
@@ -135,8 +135,8 @@ export async function enableBiometricAuth(
     }
 
     // Store only the refresh token securely - never the password
-    await SecureStore.setItemAsync(BIOMETRIC_TOKEN_KEY, token);
-    await SecureStore.setItemAsync(BIOMETRIC_ENABLED_KEY, 'true');
+    await secureSetItemAsync(BIOMETRIC_TOKEN_KEY, token);
+    await secureSetItemAsync(BIOMETRIC_ENABLED_KEY, 'true');
 
     return { success: true };
   } catch (error) {
@@ -153,8 +153,8 @@ export async function enableBiometricAuth(
  */
 export async function disableBiometricAuth(): Promise<void> {
   try {
-    await SecureStore.deleteItemAsync(BIOMETRIC_ENABLED_KEY);
-    await SecureStore.deleteItemAsync(BIOMETRIC_TOKEN_KEY);
+    await secureDeleteItemAsync(BIOMETRIC_ENABLED_KEY);
+    await secureDeleteItemAsync(BIOMETRIC_TOKEN_KEY);
   } catch (error) {
     console.error('Error disabling biometric auth:', error);
   }
@@ -176,7 +176,7 @@ export async function loginWithBiometrics(): Promise<BiometricAuthResult> {
     }
 
     // Get stored refresh token
-    const refreshToken = await SecureStore.getItemAsync(BIOMETRIC_TOKEN_KEY);
+    const refreshToken = await secureGetItemAsync(BIOMETRIC_TOKEN_KEY);
     if (!refreshToken) {
       return {
         success: false,
@@ -193,15 +193,13 @@ export async function loginWithBiometrics(): Promise<BiometricAuthResult> {
       return authResult;
     }
 
-    // Use refresh token to get new session
-    const { error } = await supabase.auth.refreshSession({
-      refresh_token: refreshToken,
-    });
+    // Use refresh token to get new session (pass string directly, not object)
+    const { error } = await supabase.auth.refreshSession(refreshToken);
 
     if (error) {
       // Clear stored token if it's invalid
-      await SecureStore.deleteItemAsync(BIOMETRIC_TOKEN_KEY);
-      await SecureStore.deleteItemAsync(BIOMETRIC_ENABLED_KEY);
+      await secureDeleteItemAsync(BIOMETRIC_TOKEN_KEY);
+      await secureDeleteItemAsync(BIOMETRIC_ENABLED_KEY);
       return {
         success: false,
         error: 'Session expired. Please log in with email and password.',
@@ -284,7 +282,7 @@ export async function updateBiometricCredentials(
       token = session.refresh_token;
     }
 
-    await SecureStore.setItemAsync(BIOMETRIC_TOKEN_KEY, token);
+    await secureSetItemAsync(BIOMETRIC_TOKEN_KEY, token);
   } catch (error) {
     console.error('Error updating biometric credentials:', error);
   }

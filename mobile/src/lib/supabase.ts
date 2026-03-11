@@ -2,13 +2,13 @@
  * Authentication utilities for the mobile app using the Render API backend.
  *
  * Uses direct API calls to the Render backend (no Supabase).
- * All auth tokens are stored securely using expo-secure-store.
+ * All auth tokens are stored securely (SecureStore on native, AsyncStorage on web).
  *
  * NOTE: reCAPTCHA Enterprise Mobile SDK integration required for production.
  * See: https://cloud.google.com/recaptcha-enterprise/docs/instrument-mobile-apps
  */
 
-import * as SecureStore from 'expo-secure-store';
+import { secureGetItemAsync, secureSetItemAsync, secureDeleteItemAsync } from './secureStorage';
 import { API_BASE_URL } from './config';
 
 const AUTH_TOKEN_KEY = 'auth_token';
@@ -28,7 +28,7 @@ export interface Session {
  * Get the current auth token from secure storage.
  */
 export async function getAuthToken(): Promise<string | null> {
-  return SecureStore.getItemAsync(AUTH_TOKEN_KEY);
+  return secureGetItemAsync(AUTH_TOKEN_KEY);
 }
 
 /**
@@ -36,8 +36,8 @@ export async function getAuthToken(): Promise<string | null> {
  */
 export async function getSession(): Promise<{ session: Session | null }> {
   const token = await getAuthToken();
-  const refreshToken = await SecureStore.getItemAsync(REFRESH_TOKEN_KEY);
-  const userId = await SecureStore.getItemAsync(USER_ID_KEY);
+  const refreshToken = await secureGetItemAsync(REFRESH_TOKEN_KEY);
+  const userId = await secureGetItemAsync(USER_ID_KEY);
   
   if (!token || !userId) {
     return { session: null };
@@ -154,9 +154,9 @@ export async function signInWithPassword(email: string, password: string): Promi
     const data = await response.json();
     
     // Store tokens securely
-    await SecureStore.setItemAsync(AUTH_TOKEN_KEY, data.access_token);
-    await SecureStore.setItemAsync(REFRESH_TOKEN_KEY, data.refresh_token);
-    await SecureStore.setItemAsync(USER_ID_KEY, data.user.id);
+    await secureSetItemAsync(AUTH_TOKEN_KEY, data.access_token);
+    await secureSetItemAsync(REFRESH_TOKEN_KEY, data.refresh_token);
+    await secureSetItemAsync(USER_ID_KEY, data.user.id);
     
     return {
       data: {
@@ -193,9 +193,9 @@ export async function signOut(): Promise<{ error: Error | null }> {
     }
     
     // Clear stored tokens
-    await SecureStore.deleteItemAsync(AUTH_TOKEN_KEY);
-    await SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY);
-    await SecureStore.deleteItemAsync(USER_ID_KEY);
+    await secureDeleteItemAsync(AUTH_TOKEN_KEY);
+    await secureDeleteItemAsync(REFRESH_TOKEN_KEY);
+    await secureDeleteItemAsync(USER_ID_KEY);
     
     return { error: null };
   } catch (error) {
@@ -224,8 +224,8 @@ export async function refreshSession(refreshToken: string): Promise<{ data: { se
     const data = await response.json();
     
     // Store new tokens
-    await SecureStore.setItemAsync(AUTH_TOKEN_KEY, data.access_token);
-    await SecureStore.setItemAsync(REFRESH_TOKEN_KEY, data.refresh_token);
+    await secureSetItemAsync(AUTH_TOKEN_KEY, data.access_token);
+    await secureSetItemAsync(REFRESH_TOKEN_KEY, data.refresh_token);
     
     return {
       data: {
