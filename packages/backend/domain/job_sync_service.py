@@ -66,6 +66,7 @@ class JobSyncService:
         self.settings = settings or get_settings()
         self.jobspy = JobSpyClient(self.settings)
         self._running = False
+        self._running_lock = asyncio.Lock()
 
     async def sync_adzuna(
         self,
@@ -158,11 +159,13 @@ class JobSyncService:
             max_concurrent: Max number of concurrent source scrapes.
 
         """
-        if self._running:
-            logger.warning("Sync already in progress, skipping")
-            return []
+        async with self._running_lock:
+            if self._running:
+                logger.warning("Sync already in progress, skipping")
+                return []
 
-        self._running = True
+            self._running = True
+
         queries = search_queries or await self._get_search_queries()
         results: list[SyncResult] = []
 
@@ -205,7 +208,8 @@ class JobSyncService:
             incr("jobspy.sync_complete", 1)
 
         finally:
-            self._running = False
+            async with self._running_lock:
+                self._running = False
 
         return results
 
@@ -398,6 +402,30 @@ class JobSyncService:
 
             await self._update_source_config(source, success=False, error=str(e))
 
+            return SyncResult(
+                source=source,
+                search_term=search_term,
+                location=location,
+                status="failed",
+                jobs_fetched=0,
+                jobs_new=0,
+                jobs_updated=0,
+                jobs_skipped=0,
+                error=str(e),
+                duration_ms=duration_ms,
+                sync_run_id=sync_run_id,
+            )
+
+        except Exception as e:
+            duration_ms = int((time.time() - start_time) * 1000)
+            logger.error("Sync failed for %s: %s", source, e, exc_info=True)
+            await self._record_sync_complete(
+                sync_run_id=sync_run_id,
+                status="failed",
+                error_message=str(e),
+                duration_ms=duration_ms,
+            )
+            await self._update_source_config(source, success=False, error=str(e))
             return SyncResult(
                 source=source,
                 search_term=search_term,
