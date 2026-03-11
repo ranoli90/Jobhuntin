@@ -2276,7 +2276,7 @@ export function ApplicationsView() {
             Active Applications
           </h2>
           <p
-            id="applications-search-hint"
+            id="dashboard-applications-search-hint"
             className="text-slate-500 font-medium"
           >
             Tracking {applications.length} automated application threads.
@@ -2287,7 +2287,7 @@ export function ApplicationsView() {
             type="text"
             placeholder="Search company or title..."
             aria-label="Search applications by company or title"
-            aria-describedby="applications-search-hint"
+            aria-describedby="dashboard-applications-search-hint"
             className="w-full px-10 py-3 rounded-2xl border border-slate-200 text-sm focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-all bg-white dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100 font-medium shadow-sm"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}

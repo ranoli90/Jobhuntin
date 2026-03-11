@@ -494,7 +494,7 @@ const EmailManager: React.FC = () => {
                 <h4 className="font-medium">Quiet Hours</h4>
                 <div className="flex items-center space-x-2">
                   <Switch
-                    id="quiet-hours-enabled"
+                    id="manager-quiet-hours-enabled"
                     checked={preferencesForm.quiet_hours_enabled}
                     onCheckedChange={(checked) =>
                       setPreferencesForm({
@@ -503,7 +503,7 @@ const EmailManager: React.FC = () => {
                       })
                     }
                   />
-                  <Label htmlFor="quiet-hours-enabled">
+                  <Label htmlFor="manager-quiet-hours-enabled">
                     Enable Quiet Hours
                   </Label>
                 </div>
@@ -511,9 +511,9 @@ const EmailManager: React.FC = () => {
                 {preferencesForm.quiet_hours_enabled && (
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="quiet-hours-start">Start Time</Label>
+                      <Label htmlFor="manager-quiet-hours-start">Start Time</Label>
                       <Input
-                        id="quiet-hours-start"
+                        id="manager-quiet-hours-start"
                         type="time"
                         value={preferencesForm.quiet_hours_start}
                         onChange={(e) =>
@@ -525,9 +525,9 @@ const EmailManager: React.FC = () => {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="quiet-hours-end">End Time</Label>
+                      <Label htmlFor="manager-quiet-hours-end">End Time</Label>
                       <Input
-                        id="quiet-hours-end"
+                        id="manager-quiet-hours-end"
                         type="time"
                         value={preferencesForm.quiet_hours_end}
                         onChange={(e) =>

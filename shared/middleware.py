@@ -85,6 +85,7 @@ class CSRFMiddleware:
         "/sso/saml/acs",
         "/og/",
         "/webhook/resume_parse",  # Resume parse webhook (user-initiated but from same origin)
+        "/contact",  # Public contact form (rate-limited by IP)
     ]
 
     @classmethod

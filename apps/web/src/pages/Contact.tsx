@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { SEO } from "../components/marketing/SEO";
 import { Button } from "../components/ui/Button";
 import { t, getLocale } from "../lib/i18n";
+import { apiPost } from "../lib/api";
 
 export default function Contact() {
   const locale = getLocale();
@@ -17,23 +18,36 @@ export default function Contact() {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setError(null);
 
-    // Simulate form submission
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-
-    setIsSubmitting(false);
-    setSubmitted(true);
-    setFormData({
-      name: "",
-      email: "",
-      company: "",
-      message: "",
-      type: "general",
-    });
+    try {
+      await apiPost("contact", {
+        name: formData.name,
+        email: formData.email,
+        company: formData.company || "",
+        type: formData.type,
+        message: formData.message,
+      });
+      setSubmitted(true);
+      setFormData({
+        name: "",
+        email: "",
+        company: "",
+        message: "",
+        type: "general",
+      });
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : t("contact.submitError", locale),
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleChange = (
@@ -239,6 +253,15 @@ export default function Contact() {
                     placeholder={t("contact.messagePlaceholder", locale)}
                   />
                 </div>
+
+                {error && (
+                  <div
+                    className="p-4 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 text-sm"
+                    role="alert"
+                  >
+                    {error}
+                  </div>
+                )}
 
                 <Button
                   type="submit"

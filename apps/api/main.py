@@ -966,6 +966,10 @@ def _mount_sub_routers() -> None:
 
     app.include_router(ccpa_mod.router)
 
+    import api.contact as contact_mod
+
+    app.include_router(contact_mod.router)
+
     import api.gdpr as gdpr_mod
 
     app.dependency_overrides[gdpr_mod._get_pool] = get_pool

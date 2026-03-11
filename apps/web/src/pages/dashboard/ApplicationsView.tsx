@@ -290,7 +290,7 @@ export default function ApplicationsView() {
             Active Applications
           </h2>
           <p
-            id="applications-search-hint"
+            id="applications-view-search-hint"
             className="text-slate-500 font-medium"
           >
             Tracking {applications.length} automated application threads.
@@ -301,7 +301,7 @@ export default function ApplicationsView() {
             type="text"
             placeholder="Search company or title..."
             aria-label="Search applications by company or title"
-            aria-describedby="applications-search-hint"
+            aria-describedby="applications-view-search-hint"
             className="w-full px-10 py-3 rounded-2xl border border-brand-border text-sm focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary transition-all bg-white dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100 font-medium shadow-sm pr-8"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}

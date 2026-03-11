@@ -708,6 +708,8 @@ const dictionaries: Dict = {
     "contact.responseTime": "Response Time",
     "contact.responseTimeDesc":
       "We typically respond to all inquiries within 24 hours during business days (Monday-Friday, 9AM-5PM EST).",
+    "contact.submitError":
+      "Failed to send your message. Please try again or email support@jobhuntin.com.",
   },
   fr: {
     "dashboard.activeRadar": "Radar actif",
@@ -1246,6 +1248,8 @@ const dictionaries: Dict = {
     "contact.browseGuides": "Parcourir les guides",
     "contact.viewPricing": "Voir les tarifs",
     "contact.responseTime": "Délai de réponse",
+    "contact.submitError":
+      "Échec de l'envoi. Réessayez ou envoyez un e-mail à support@jobhuntin.com.",
     "contact.responseTimeDesc":
       "Nous répondons généralement sous 24 heures en jours ouvrés (lun-ven, 9h-17h EST).",
   },
