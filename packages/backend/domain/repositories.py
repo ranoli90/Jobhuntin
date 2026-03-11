@@ -466,87 +466,73 @@ class JobRepo:
 
     @staticmethod
     async def get_by_id(conn: asyncpg.Connection, job_id: str) -> dict | None:
-        """Get comprehensive job details by ID."""
+        """Get job details by ID. Works with JobSpy schema (no companies join)."""
         row = await conn.fetchrow(
-            """
-            SELECT
-                j.*,
-                c.name as company_name,
-                c.description as company_description,
-                c.logo_url as company_logo_url,
-                c.size as company_size,
-                c.industry as company_industry,
-                c.culture as company_culture,
-                c.values as company_values,
-                c.technologies as company_technologies,
-                c.benefits as company_benefits,
-                c.work_style as company_work_style,
-                c.growth_stage as company_growth_stage,
-                c.funding_stage as company_funding_stage,
-                c.headquarters_location as company_headquarters_location,
-                c.employee_count as employee_count,
-                c.founded_year as founded_year,
-                c.website as company_website,
-                c.linkedin_url as company_linkedin_url
-            FROM public.jobs j
-            LEFT JOIN public.companies c ON j.company_id = c.id
-            WHERE j.id = $1
-        """,
+            "SELECT * FROM public.jobs WHERE id = $1",
             job_id,
         )
         if not row:
             return None
 
-        # Format job details with comprehensive information
-        job_details = {
-            "id": row["id"],
+        def _iso(d):
+            return d.isoformat() if d and hasattr(d, "isoformat") else d
+
+        skills = row.get("skills") or []
+        if isinstance(skills, str):
+            skills = [s.strip() for s in skills.split(",") if s.strip()]
+
+        app_url = row.get("application_url") or row.get("url")
+        is_remote = row.get("is_remote")
+        if is_remote is None and row.get("remote_policy"):
+            is_remote = row["remote_policy"] in ("remote", "hybrid")
+
+        return {
+            "id": str(row["id"]),
             "title": row["title"],
             "company": row["company"],
-            "location": row["location"],
-            "remote": row["remote"],
-            "salary_min": row["salary_min"],
-            "salary_max": row["salary_max"],
-            "job_type": row["job_type"],
-            "description": row["description"],
-            "requirements": row["requirements"] or [],
-            "responsibilities": row["responsibilities"] or [],
-            "qualifications": row["qualifications"] or [],
-            "benefits": row["benefits"] or [],
-            "work_environment": row["work_environment"] or [],
-            "company_name": row["company_name"],
-            "company_description": row["company_description"],
-            "company_logo_url": row["company_logo_url"],
-            "company_size": row["company_size"],
-            "company_industry": row["company_industry"],
-            "company_culture": row["company_culture"],
-            "company_values": row["company_values"] or [],
-            "company_technologies": row["company_technologies"] or [],
-            "company_benefits": row["company_benefits"] or [],
-            "company_work_style": row["company_work_style"],
-            "company_growth_stage": row["company_growth_stage"],
-            "company_funding_stage": row["company_funding_stage"],
-            "company_headquarters_location": row["company_headquarters_location"],
-            "employee_count": row["employee_count"],
-            "founded_year": row["founded_year"],
-            "company_website": row["company_website"],
-            "company_linkedin_url": row["company_linkedin_url"],
-            "created_at": row["created_at"].isoformat(),
-            "updated_at": row["updated_at"].isoformat(),
-            "is_active": row["is_active"],
-            "source": row["source"],
-            "job_level": row.get("job_level", ""),
-            "experience_years_min": row.get("experience_years_min"),
-            "experience_years_max": row.get("experience_years_max"),
-            "education_required": row.get("education_required"),
-            "skills_required": row.get("skills_required") or [],
-            "industry_focus": row.get("industry_focus"),
-            "remote_option": row.get("remote_option"),
-            "visa_sponsorship": row.get("visa_sponsorship"),
-            "deadline": row.get("deadline"),
-            "application_url": row.get("application_url"),
+            "location": row.get("location"),
+            "remote": is_remote,
+            "salary_min": row.get("salary_min"),
+            "salary_max": row.get("salary_max"),
+            "job_type": row.get("job_type"),
+            "description": row.get("description"),
+            "requirements": skills,
+            "responsibilities": [],
+            "qualifications": [],
+            "benefits": [],
+            "work_environment": [],
+            "company_name": row.get("company"),
+            "company_description": None,
+            "company_logo_url": row.get("company_logo_url"),
+            "company_size": None,
+            "company_industry": row.get("company_industry"),
+            "company_culture": None,
+            "company_values": [],
+            "company_technologies": [],
+            "company_benefits": [],
+            "company_work_style": None,
+            "company_growth_stage": None,
+            "company_funding_stage": None,
+            "company_headquarters_location": None,
+            "employee_count": None,
+            "founded_year": None,
+            "company_website": None,
+            "company_linkedin_url": None,
+            "created_at": _iso(row.get("created_at")),
+            "updated_at": _iso(row.get("updated_at")),
+            "is_active": True,
+            "source": row.get("source"),
+            "job_level": row.get("job_level") or row.get("experience_level") or "",
+            "experience_years_min": None,
+            "experience_years_max": None,
+            "education_required": None,
+            "skills_required": skills,
+            "industry_focus": None,
+            "remote_option": is_remote,
+            "visa_sponsorship": None,
+            "deadline": None,
+            "application_url": app_url,
         }
-
-        return job_details
 
     @staticmethod
     async def list_jobs(

@@ -17,6 +17,8 @@ from shared.config import get_settings
 from shared.logging_config import get_logger
 from shared.metrics import incr, observe
 
+from backend.domain.proxy_fetcher import fetch_free_proxy, get_random_user_agent
+
 logger = get_logger("sorce.jobspy")
 
 _executor: ThreadPoolExecutor | None = None
@@ -55,6 +57,7 @@ class JobSpyClient:
         self.sources = self._parse_sources()
         self.proxies = self._parse_proxies()
         self._circuit_breaker_state: dict[str, dict] = {}
+        self._proxy_index = 0
 
     def _parse_sources(self) -> list[str]:
         if not getattr(self.settings, "jobspy_enabled", True):
@@ -71,9 +74,12 @@ class JobSpyClient:
         return [p.strip() for p in proxies_str.split(",") if p.strip()]
 
     def _get_proxy(self) -> str | None:
+        """Round-robin over configured proxies."""
         if not self.proxies:
             return None
-        return self.proxies[0]
+        idx = self._proxy_index % len(self.proxies)
+        self._proxy_index += 1
+        return self.proxies[idx]
 
     def _is_circuit_open(self, source: str) -> bool:
         if source not in self._circuit_breaker_state:
@@ -123,6 +129,13 @@ class JobSpyClient:
             logger.warning("All sources have circuit breakers open")
             return []
 
+        # Resolve proxy: configured list (round-robin) or fetch from free API
+        proxy = self._get_proxy()
+        if proxy is None and getattr(self.settings, "jobspy_use_free_proxies", False):
+            validate = getattr(self.settings, "jobspy_validate_proxies", False)
+            proxy = await fetch_free_proxy(validate=validate)
+        proxies_list = [proxy] if proxy else None
+
         loop = asyncio.get_running_loop()
         executor = _get_executor()
 
@@ -133,7 +146,8 @@ class JobSpyClient:
             location=location,
             results_wanted=results_wanted,
             hours_old=hours_old,
-            proxies=self._get_proxy(),
+            proxies=proxies_list,
+            user_agent=get_random_user_agent(),
             linkedin_fetch_description=getattr(
                 self.settings, "jobspy_linkedin_fetch_description", True
             ),
@@ -336,6 +350,13 @@ class JobSpyClient:
                 salary_min = int(salary_min * 12)
             if salary_max:
                 salary_max = int(salary_max * 12)
+        elif interval == "daily":
+            if salary_min:
+                salary_min = int(salary_min * 260)
+            if salary_max:
+                salary_max = int(salary_max * 260)
+        elif interval and str(interval).lower() not in ("yearly", "annual"):
+            logger.debug("Unknown salary interval %s, treating as yearly", interval)
 
         return salary_min, salary_max
 

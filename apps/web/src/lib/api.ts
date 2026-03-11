@@ -259,18 +259,22 @@ export function handleApiError(resp: Response, body: string): never {
     if (!isLoginPage) {
       _redirecting = true;
       const returnTo = typeof window !== "undefined" ? encodeURIComponent(window.location.pathname + window.location.search) : "";
-      // Dispatch event so React Router can handle redirect without destroying state
+      const isOnboarding = typeof window !== "undefined" && window.location.pathname.startsWith("/app/onboarding");
+      // A4: On onboarding, flush state to localStorage before redirect
+      if (isOnboarding) {
+        import("../hooks/useOnboarding").then((m) => m.flushOnboardingBeforeRedirect()).catch(() => {});
+      }
+      const delayMs = isOnboarding ? 600 : 200;
       if (typeof window !== "undefined") {
         const evt = new CustomEvent("auth:unauthorized", { detail: { returnTo } });
         window.dispatchEvent(evt);
       }
-      // Fallback hard redirect after a short delay if event wasn't handled
       setTimeout(() => {
         _redirecting = false;
         if (typeof window !== "undefined") {
           window.location.href = `/login?returnTo=${returnTo}`;
         }
-      }, 200);
+      }, delayMs);
     }
   }
   const parsedMsg = tryParseMessage(body);

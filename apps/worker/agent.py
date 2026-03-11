@@ -748,7 +748,7 @@ async def submit_form(page: Page, selectors: list[str] | None = None) -> bool:
                         await asyncio.sleep(delay)
                         break  # Retry with same selector
                     else:
-                        # Some forms don't navigate; accept the click as success (non-retryable)
+                        # F16: Don't assume success when navigation times out - check for success indicators
                         logger.debug(
                             "Form submission didn't trigger navigation, falling back to click: %s",
                             e,
@@ -756,7 +756,14 @@ async def submit_form(page: Page, selectors: list[str] | None = None) -> bool:
                         try:
                             await btn.click()
                             await page.wait_for_timeout(3000)
-                            return True
+                            content = (await page.content()).lower()
+                            success_indicators = ("thank you", "application received", "submitted", "success")
+                            if any(ind in content for ind in success_indicators):
+                                return True
+                            logger.warning(
+                                "Submit click completed but no success indicator found; treating as uncertain"
+                            )
+                            return False
                         except Exception as fallback_error:
                             logger.debug(
                                 "Fallback click also failed: %s", fallback_error
@@ -1107,15 +1114,21 @@ class FormAgent:
                 if await self.oauth_handler.detect_oauth_flow(page):
                     logger.info("OAuth/SSO flow detected, attempting authentication")
                     user_credentials = ctx.get("profile", {}).get("oauth_credentials")
-                    oauth_success = await self.oauth_handler.handle_oauth_flow(
-                        page, user_credentials
-                    )
-                    if not oauth_success:
+                    if not user_credentials:
                         logger.warning(
-                            "OAuth authentication failed, continuing with standard flow"
+                            "OAuth/SSO detected but no oauth_credentials in profile. "
+                            "User should connect account in settings. Continuing with standard flow."
                         )
                     else:
-                        logger.info("OAuth authentication successful")
+                        oauth_success = await self.oauth_handler.handle_oauth_flow(
+                            page, user_credentials
+                        )
+                        if not oauth_success:
+                            logger.warning(
+                                "OAuth authentication failed, continuing with standard flow"
+                            )
+                        else:
+                            logger.info("OAuth authentication successful")
 
                 # Success - return
                 return

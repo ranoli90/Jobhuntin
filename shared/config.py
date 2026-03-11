@@ -167,6 +167,8 @@ class Settings(BaseSettings):
     jobspy_results_per_source: int = 50
     jobspy_proxies: str = ""  # Comma-separated: "http://user:pass@host:port"
     jobspy_proxy_rotation: bool = True
+    jobspy_use_free_proxies: bool = False  # When no proxies configured, fetch from GimmeProxy/PubProxy
+    jobspy_validate_proxies: bool = False  # Validate free proxies with httpbin before use (slower)
     jobspy_linkedin_fetch_description: bool = True
     jobspy_hours_old: int = 168  # Only fetch jobs from last 7 days
     jobspy_job_ttl_days: int = 7
@@ -368,8 +370,12 @@ class Settings(BaseSettings):
                 missing.append("APP_BASE_URL")
             if not self.csrf_secret:
                 missing.append("CSRF_SECRET")
+            elif "dev-" in self.csrf_secret or "change-in-production" in self.csrf_secret:
+                missing.append("CSRF_SECRET (dev default not allowed in prod)")
             if not self.jwt_secret:
                 missing.append("JWT_SECRET (required for JWT token signing/validation)")
+            elif "dev-" in self.jwt_secret or "change-in-production" in self.jwt_secret:
+                missing.append("JWT_SECRET (dev default not allowed in prod)")
             # #8: Redis required for token replay protection and session revocation
             if not self.redis_url:
                 missing.append(

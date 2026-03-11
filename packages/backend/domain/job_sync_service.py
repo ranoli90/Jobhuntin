@@ -12,6 +12,7 @@ from typing import Any
 
 import asyncpg
 
+from backend.domain.job_search import _verify_job_legitimacy
 from backend.domain.jobspy_client import JobSpyClient, JobSpyError
 from shared.config import get_settings
 from shared.logging_config import get_logger
@@ -345,6 +346,9 @@ class JobSyncService:
                 sources=[source],
             )
 
+            # Apply scam/quality scoring before sync
+            jobs = self._apply_legitimacy_scores(jobs)
+
             # Sync to database
             new_count, updated_count, skipped_count = await self._sync_jobs_to_db(jobs)
 
@@ -409,94 +413,144 @@ class JobSyncService:
         self,
         jobs: list[dict[str, Any]],
     ) -> tuple[int, int, int]:
-        """Sync jobs to database with deduplication."""
+        """Sync jobs to database with batch upsert and deduplication."""
+        quality_jobs = [j for j in jobs if self._is_quality_job(j)]
+        skipped_count = len(jobs) - len(quality_jobs)
+        if not quality_jobs:
+            return 0, 0, skipped_count
+
         new_count = 0
         updated_count = 0
-        skipped_count = 0
+        batch_size = 50
 
         async with self.db_pool.acquire() as conn:
-            for job in jobs:
-                if not self._is_quality_job(job):
-                    skipped_count += 1
-                    continue
+            for i in range(0, len(quality_jobs), batch_size):
+                batch = quality_jobs[i : i + batch_size]
+                ext_ids = [j["external_id"] for j in batch]
 
-                existing = await conn.fetchrow(
-                    "SELECT id FROM public.jobs WHERE external_id = $1",
-                    job["external_id"],
+                # Count existing for this batch
+                existing_count = await conn.fetchval(
+                    "SELECT count(*)::int FROM public.jobs WHERE external_id = ANY($1)",
+                    ext_ids,
                 )
 
-                try:
-                    if existing:
-                        await conn.execute(
-                            """
-                            UPDATE public.jobs SET
-                                title = $2,
-                                company = $3,
-                                description = $4,
-                                location = $5,
-                                is_remote = $6,
-                                job_type = $7,
-                                salary_min = $8,
-                                salary_max = $9,
-                                application_url = $10,
-                                date_posted = $11,
-                                job_level = $12,
-                                company_industry = $13,
-                                company_logo_url = $14,
-                                raw_data = $15,
-                                last_synced_at = now()
-                            WHERE id = $1
-                            """,
-                            existing["id"],
-                            job["title"],
-                            job["company"],
-                            job["description"],
-                            job["location"],
-                            job["is_remote"],
-                            job["job_type"],
-                            job["salary_min"],
-                            job["salary_max"],
-                            job["application_url"],
-                            job["date_posted"],
-                            job["job_level"],
-                            job["company_industry"],
-                            job["company_logo_url"],
-                            json.dumps(job["raw_data"]),
-                        )
-                        updated_count += 1
-                    else:
-                        await conn.execute(
-                            """
-                            INSERT INTO public.jobs (
-                                external_id, title, company, description, location,
-                                is_remote, job_type, salary_min, salary_max,
-                                application_url, source, date_posted, job_level,
-                                company_industry, company_logo_url, raw_data, last_synced_at
-                            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, now())
-                            """,
-                            job["external_id"],
-                            job["title"],
-                            job["company"],
-                            job["description"],
-                            job["location"],
-                            job["is_remote"],
-                            job["job_type"],
-                            job["salary_min"],
-                            job["salary_max"],
-                            job["application_url"],
-                            job["source"],
-                            job["date_posted"],
-                            job["job_level"],
-                            job["company_industry"],
-                            job["company_logo_url"],
-                            json.dumps(job["raw_data"]),
-                        )
-                        new_count += 1
-                except Exception as e:
-                    logger.warning(f"Failed to upsert job {job['external_id']}: {e}")
-                    skipped_count += 1
+                n, u = await self._batch_upsert_jobs(conn, batch)
+                updated_count += min(existing_count, n + u)
+                new_count += max(0, n + u - existing_count)
 
         return new_count, updated_count, skipped_count
+
+    async def _batch_upsert_jobs(
+        self, conn: asyncpg.Connection, jobs: list[dict[str, Any]]
+    ) -> tuple[int, int]:
+        """Batch upsert jobs using INSERT ... ON CONFLICT. Returns (new, updated) approx."""
+        if not jobs:
+            return 0, 0
+
+        # Build multi-row INSERT with ON CONFLICT
+        # Use unnest for arrays to avoid huge param lists
+        ext_ids = [j["external_id"] for j in jobs]
+        titles = [j["title"] for j in jobs]
+        companies = [j["company"] for j in jobs]
+        descriptions = [j["description"] or "" for j in jobs]
+        locations = [j.get("location") or "" for j in jobs]
+        is_remotes = [j.get("is_remote") or False for j in jobs]
+        job_types = [j.get("job_type") for j in jobs]
+        salary_mins = [j.get("salary_min") for j in jobs]
+        salary_maxs = [j.get("salary_max") for j in jobs]
+        app_urls = [j.get("application_url") or "" for j in jobs]
+        sources = [j.get("source") or "" for j in jobs]
+        date_posted = [j.get("date_posted") for j in jobs]
+        job_levels = [j.get("job_level") for j in jobs]
+        company_industries = [j.get("company_industry") for j in jobs]
+        company_logos = [j.get("company_logo_url") for j in jobs]
+        raw_datas = [json.dumps(j.get("raw_data") or {}) for j in jobs]
+        is_scams = [j.get("is_scam", False) for j in jobs]
+        quality_scores = [j.get("quality_score") for j in jobs]
+
+        # Normalize date_posted for PostgreSQL
+        date_posted_vals = []
+        for d in date_posted:
+            if d is None:
+                date_posted_vals.append(None)
+            elif hasattr(d, "isoformat"):
+                date_posted_vals.append(d.isoformat())
+            else:
+                date_posted_vals.append(str(d) if d else None)
+
+        await conn.execute(
+            """
+            INSERT INTO public.jobs (
+                external_id, title, company, description, location,
+                is_remote, job_type, salary_min, salary_max,
+                application_url, source, date_posted, job_level,
+                company_industry, company_logo_url, raw_data,
+                is_scam, quality_score, last_synced_at
+            )
+            SELECT ext_id, ttl, comp, descr, loc, rem, jt, smin, smax, url, src,
+                   dp::timestamptz, jl, ci, cl, rd::jsonb, scam, qs, now()
+            FROM unnest(
+                $1::text[], $2::text[], $3::text[], $4::text[], $5::text[],
+                $6::bool[], $7::text[], $8::int[], $9::int[],
+                $10::text[], $11::text[], $12::text[], $13::text[], $14::text[], $15::text[],
+                $16::text[], $17::bool[], $18::real[]
+            ) AS t(ext_id, ttl, comp, descr, loc, rem, jt, smin, smax, url, src, dp, jl, ci, cl, rd, scam, qs)
+            ON CONFLICT (external_id) DO UPDATE SET
+                title = EXCLUDED.title,
+                company = EXCLUDED.company,
+                description = EXCLUDED.description,
+                location = EXCLUDED.location,
+                is_remote = EXCLUDED.is_remote,
+                job_type = EXCLUDED.job_type,
+                salary_min = EXCLUDED.salary_min,
+                salary_max = EXCLUDED.salary_max,
+                application_url = EXCLUDED.application_url,
+                date_posted = EXCLUDED.date_posted,
+                job_level = EXCLUDED.job_level,
+                company_industry = EXCLUDED.company_industry,
+                company_logo_url = EXCLUDED.company_logo_url,
+                raw_data = EXCLUDED.raw_data,
+                is_scam = EXCLUDED.is_scam,
+                quality_score = EXCLUDED.quality_score,
+                last_synced_at = now()
+            """,
+            ext_ids,
+            titles,
+            companies,
+            descriptions,
+            locations,
+            is_remotes,
+            job_types,
+            salary_mins,
+            salary_maxs,
+            app_urls,
+            sources,
+            date_posted_vals,
+            job_levels,
+            company_industries,
+            company_logos,
+            raw_datas,
+            is_scams,
+            quality_scores,
+        )
+
+        return len(jobs), 0
+
+    def _apply_legitimacy_scores(self, jobs: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        """Apply is_scam and quality_score from _verify_job_legitimacy to each job."""
+        for job in jobs:
+            legitimacy = _verify_job_legitimacy({
+                "title": job.get("title", ""),
+                "company": job.get("company", ""),
+                "description": job.get("description", ""),
+                "source": job.get("source", ""),
+                "salary_min": job.get("salary_min"),
+                "salary_max": job.get("salary_max"),
+            })
+            score = legitimacy.get("verification_score") or 0
+            job["is_scam"] = score < 40
+            job["quality_score"] = float(score) if score is not None else None
+        return jobs
 
     def _is_quality_job(self, job: dict[str, Any]) -> bool:
         """Check if job meets quality threshold."""

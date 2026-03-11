@@ -209,11 +209,21 @@ def _build_job_search_query(
     *,
     sort_by: str = "date_posted",
 ) -> tuple[str, list[Any]]:
+    # Support both legacy (url, remote_policy, posted_date, experience_level) and
+    # JobSpy schema (application_url, is_remote, date_posted, job_level)
     query = """
         SELECT id, title, company, description, location,
-               salary_min, salary_max, url as application_url, '' as source,
-               remote_policy, '' as job_type, posted_date as date_posted, experience_level as job_level,
-               '' as company_industry, '' as company_logo_url, '{}'::jsonb as raw_data, ARRAY[]::text[] as skills
+               salary_min, salary_max,
+               COALESCE(application_url, url) as application_url,
+               COALESCE(source, '') as source,
+               COALESCE(is_remote, (remote_policy IN ('remote', 'hybrid'))) as is_remote,
+               COALESCE(job_type, '') as job_type,
+               COALESCE(date_posted, posted_date) as date_posted,
+               COALESCE(job_level, experience_level) as job_level,
+               COALESCE(company_industry, '') as company_industry,
+               COALESCE(company_logo_url, '') as company_logo_url,
+               COALESCE(raw_data, '{}'::jsonb) as raw_data,
+               COALESCE(skills, ARRAY[]::text[]) as skills
         FROM   public.jobs
         WHERE  1=1
     """
@@ -244,16 +254,19 @@ def _build_job_search_query(
 
     if is_remote is not None:
         n += 1
-        # Map is_remote boolean to remote_policy values
+        # Support both is_remote (boolean) and legacy remote_policy
         if is_remote:
-            query += " AND (remote_policy = 'remote' OR remote_policy = 'hybrid')"
+            query += " AND (is_remote = TRUE OR remote_policy IN ('remote', 'hybrid'))"
         else:
-            query += " AND remote_policy = 'onsite'"
+            query += " AND (is_remote = FALSE OR remote_policy = 'onsite')"
 
     if job_type:
         n += 1
         query += f" AND job_type = ${n}"
         params.append(job_type.lower())
+
+    # Filter out scam jobs (persisted at sync)
+    query += " AND (is_scam IS NULL OR is_scam = FALSE)"
 
     # Filter out expired jobs using last_synced_at
     from datetime import timedelta
@@ -300,6 +313,11 @@ def _map_job_row(r: Any) -> dict[str, Any]:
         skills = [s.strip() for s in skills.split(",") if s.strip()]
     requirements = list(skills) if isinstance(skills, (list, tuple)) else []
 
+    def _fmt_date(d):
+        if d is None:
+            return None
+        return d.isoformat() if hasattr(d, "isoformat") else str(d)
+
     job_data = {
         "id": str(r["id"]),
         "title": r["title"],
@@ -308,15 +326,12 @@ def _map_job_row(r: Any) -> dict[str, Any]:
         "location": r["location"],
         "salary_min": float(r["salary_min"]) if r["salary_min"] is not None else None,
         "salary_max": float(r["salary_max"]) if r["salary_max"] is not None else None,
-        "url": r["application_url"],
+        "url": r.get("application_url"),
         "source": r.get("source"),
-        "is_remote": r.get("remote_policy") in ("remote", "hybrid")
-        if r.get("remote_policy")
-        else None,
+        "is_remote": r.get("is_remote") if r.get("is_remote") is not None
+        else (r.get("remote_policy") in ("remote", "hybrid") if r.get("remote_policy") else None),
         "job_type": r.get("job_type"),
-        "date_posted": r.get("posted_date").isoformat()
-        if r.get("posted_date")
-        else (r.get("date_posted").isoformat() if r.get("date_posted") else None),
+        "date_posted": _fmt_date(r.get("date_posted") or r.get("posted_date")),
         "job_level": r.get("job_level"),
         "company_industry": r.get("company_industry"),
         "logo_url": logo_url,

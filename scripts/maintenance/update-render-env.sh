@@ -1,16 +1,26 @@
 #!/bin/bash
 # Update Render environment variables for all services
+# Requires RENDER_API_KEY in .env or environment (never commit the key)
 
-export RENDER_API_KEY="rnd_VavlQJkoAoFO8oyRYlrZRh4yEQjs"
+if [ -z "$RENDER_API_KEY" ]; then
+  source .env 2>/dev/null || true
+fi
+if [ -z "$RENDER_API_KEY" ]; then
+  echo "ERROR: Set RENDER_API_KEY in .env or export it"
+  exit 1
+fi
 
 # API Service ID
 API_SERVICE="srv-d63l79hr0fns73boblag"
 WEB_SERVICE="srv-d63spbogjchc739akan0"
 SEO_SERVICE="srv-d66aadsr85hc73dastfg"
 
-# Stripe Configuration
-STRIPE_SECRET_KEY="sk1_cc31801ea6e50fb33ffc2bb1d81524defdded4"
-STRIPE_PUBLISHABLE_KEY="pk1_46266a7da93f81522c85d9ce9521048e43ac4"
+# Stripe Configuration - load from .env (never hardcode)
+STRIPE_SECRET_KEY="${STRIPE_SECRET_KEY:-}"
+STRIPE_PUBLISHABLE_KEY="${STRIPE_PUBLISHABLE_KEY:-}"
+if [ -z "$STRIPE_SECRET_KEY" ] || [ -z "$STRIPE_PUBLISHABLE_KEY" ]; then
+  echo "WARN: STRIPE_SECRET_KEY or STRIPE_PUBLISHABLE_KEY not set. Load from .env"
+fi
 
 # Function to update env var
 update_env_var() {
@@ -40,9 +50,13 @@ create_env_var() {
 
 echo "Updating API service env vars..."
 
-# Update Stripe keys for API service
-create_env_var $API_SERVICE "STRIPE_SECRET_KEY" "$STRIPE_SECRET_KEY"
-create_env_var $API_SERVICE "STRIPE_PUBLISHABLE_KEY" "$STRIPE_PUBLISHABLE_KEY"
+# Update Stripe keys for API service (skip if not set)
+if [ -n "$STRIPE_SECRET_KEY" ]; then
+  create_env_var $API_SERVICE "STRIPE_SECRET_KEY" "$STRIPE_SECRET_KEY"
+fi
+if [ -n "$STRIPE_PUBLISHABLE_KEY" ]; then
+  create_env_var $API_SERVICE "STRIPE_PUBLISHABLE_KEY" "$STRIPE_PUBLISHABLE_KEY"
+fi
 
 # Add trial configuration - $10 first month, then $29/month
 create_env_var $API_SERVICE "STRIPE_FREE_TRIAL_DAYS" "0"

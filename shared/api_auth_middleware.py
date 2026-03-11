@@ -116,7 +116,19 @@ class AuthMiddleware:
     def __init__(
         self, config: Optional[AuthConfig] = None, alert_manager: Optional[Any] = None
     ):
-        self.config = config or AuthConfig(jwt_secret_key="your-secret-key")
+        if config is None:
+            import os
+            jwt_secret = os.environ.get("JWT_SECRET", "your-secret-key")
+            env = os.environ.get("ENV", os.environ.get("env", "local")).lower()
+            if env in ("prod", "staging") and (
+                not jwt_secret or jwt_secret == "your-secret-key"
+            ):
+                raise RuntimeError(
+                    "JWT_SECRET must be set in production. "
+                    "Pass AuthConfig(jwt_secret_key=...) or set JWT_SECRET env."
+                )
+            config = AuthConfig(jwt_secret_key=jwt_secret)
+        self.config = config
         self.alert_manager = alert_manager or get_alert_manager()
 
         # Security bearer for JWT
