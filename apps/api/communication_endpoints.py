@@ -191,12 +191,46 @@ async def update_email_preferences(
 @router.get("/preferences/notifications", response_model=NotificationPreferences)
 async def get_notification_preferences(
     user_id: str = Depends(get_current_user_id),
-    notification_manager=Depends(get_notification_manager_dep),
+    pool=Depends(get_pool),
 ):
     """Get user's notification preferences."""
     try:
-        # TODO: Implement notification preferences retrieval
-        return NotificationPreferences()
+        async with pool.acquire() as conn:
+            up = await conn.fetchrow(
+                """
+                SELECT dnd_active, dnd_start_time, dnd_end_time, timezone,
+                       notification_sound, notification_vibration, notification_badge
+                FROM public.user_preferences WHERE user_id = $1
+                """,
+                user_id,
+            )
+            ep = await conn.fetchrow(
+                """
+                SELECT status_changes, security, usage_alerts, marketing, weekly_digest
+                FROM public.email_preferences WHERE user_id = $1
+                """,
+                user_id,
+            )
+        return NotificationPreferences(
+            dnd_active=bool(up["dnd_active"]) if up else False,
+            dnd_start_time=str(up["dnd_start_time"]) if up and up.get("dnd_start_time") else None,
+            dnd_end_time=str(up["dnd_end_time"]) if up and up.get("dnd_end_time") else None,
+            timezone=(up.get("timezone") or "UTC") if up else "UTC",
+            notification_sound=bool(up["notification_sound"]) if up else True,
+            notification_vibration=bool(up["notification_vibration"]) if up else True,
+            notification_badge=bool(up["notification_badge"]) if up else True,
+            email_preferences=(
+                EmailPreferences(
+                    status_changes=bool(ep["status_changes"]),
+                    security=bool(ep["security"]),
+                    usage_alerts=bool(ep["usage_alerts"]),
+                    marketing=bool(ep["marketing"]),
+                    weekly_digest=bool(ep["weekly_digest"]),
+                )
+                if ep
+                else EmailPreferences()
+            ),
+        )
     except Exception as e:
         logger.error("Failed to get notification preferences: %s", e)
         raise HTTPException(
@@ -208,11 +242,56 @@ async def get_notification_preferences(
 async def update_notification_preferences(
     preferences: NotificationPreferences,
     user_id: str = Depends(get_current_user_id),
-    notification_manager=Depends(get_notification_manager_dep),
+    pool=Depends(get_pool),
 ):
     """Update user's notification preferences."""
     try:
-        # TODO: Implement notification preferences update
+        async with pool.acquire() as conn:
+            await conn.execute(
+                """
+                INSERT INTO public.user_preferences
+                (user_id, dnd_active, dnd_start_time, dnd_end_time, timezone,
+                 notification_sound, notification_vibration, notification_badge)
+                VALUES ($1, $2, $3::time, $4::time, $5, $6, $7, $8)
+                ON CONFLICT (user_id) DO UPDATE SET
+                    dnd_active = EXCLUDED.dnd_active,
+                    dnd_start_time = EXCLUDED.dnd_start_time,
+                    dnd_end_time = EXCLUDED.dnd_end_time,
+                    timezone = EXCLUDED.timezone,
+                    notification_sound = EXCLUDED.notification_sound,
+                    notification_vibration = EXCLUDED.notification_vibration,
+                    notification_badge = EXCLUDED.notification_badge,
+                    updated_at = now()
+                """,
+                user_id,
+                preferences.dnd_active,
+                preferences.dnd_start_time,
+                preferences.dnd_end_time,
+                preferences.timezone,
+                preferences.notification_sound,
+                preferences.notification_vibration,
+                preferences.notification_badge,
+            )
+            await conn.execute(
+                """
+                INSERT INTO public.email_preferences
+                (user_id, status_changes, security, usage_alerts, marketing, weekly_digest)
+                VALUES ($1, $2, $3, $4, $5, $6)
+                ON CONFLICT (user_id) DO UPDATE SET
+                    status_changes = EXCLUDED.status_changes,
+                    security = EXCLUDED.security,
+                    usage_alerts = EXCLUDED.usage_alerts,
+                    marketing = EXCLUDED.marketing,
+                    weekly_digest = EXCLUDED.weekly_digest,
+                    updated_at = now()
+                """,
+                user_id,
+                preferences.email_preferences.status_changes,
+                preferences.email_preferences.security,
+                preferences.email_preferences.usage_alerts,
+                preferences.email_preferences.marketing,
+                preferences.email_preferences.weekly_digest,
+            )
         return preferences
     except Exception as e:
         logger.error("Failed to update notification preferences: %s", e)
