@@ -256,10 +256,9 @@ class SemanticMatchingService:
                 s.get("skill", "").lower() for s in rich_skills if s.get("skill")
             }
         else:
-            # Old format (list of strings)
-            profile_skills.update(
-                tech_skills if isinstance(tech_skills[0], str) else []
-            )
+            # Old format (list of strings). F005: guard against empty tech_skills
+            if tech_skills and isinstance(tech_skills[0], str):
+                profile_skills.update(tech_skills)
             profile_skills.update(skills_data.get("soft", []))
         profile_skills = {s.lower() for s in profile_skills if s}
 

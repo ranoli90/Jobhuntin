@@ -1331,6 +1331,10 @@ async def resend_webhook(
     body = await request.body()
 
     webhook_secret = settings.resend_webhook_secret
+    # COM-001: Require webhook secret in prod/staging to prevent unauthenticated webhooks
+    if not webhook_secret and settings.env in ("prod", "staging"):
+        logger.warning("Resend webhook rejected: RESEND_WEBHOOK_SECRET not configured")
+        raise HTTPException(status_code=401, detail="Webhook not configured")
     if webhook_secret:
         # AUTH-005: Resend uses Svix format (svix-id, svix-timestamp, svix-signature)
         svix_id = request.headers.get("svix-id")
@@ -1341,6 +1345,18 @@ async def resend_webhook(
             import base64
             import hashlib
             import hmac
+            import time
+
+            # COM-002: Svix timestamp replay protection — reject if outside 5-minute window
+            try:
+                ts = int(svix_timestamp)
+                now = int(time.time())
+                if abs(now - ts) > 300:
+                    logger.warning("Resend webhook rejected: timestamp outside 5-minute window")
+                    raise HTTPException(status_code=401, detail="Webhook timestamp expired")
+            except ValueError:
+                logger.warning("Resend webhook: invalid svix-timestamp")
+                raise HTTPException(status_code=401, detail="Invalid timestamp")
 
             # Secret may have whsec_ prefix; decode base64 part
             secret_b64 = webhook_secret

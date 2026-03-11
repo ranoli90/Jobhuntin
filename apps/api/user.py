@@ -1420,6 +1420,8 @@ async def _hydrate_job_matches(
             min_salary=salary,
             limit=25,
             offset=0,
+            user_id=user_id,
+            sort_by="match_score",
         )
         logger.info("Hydrated job matches for user %s", user_id)
     except Exception as e:

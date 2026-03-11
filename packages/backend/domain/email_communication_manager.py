@@ -433,14 +433,15 @@ class EmailCommunicationManager:
             return []
 
     def _render_template(self, template: str, variables: Dict[str, Any]) -> str:
-        """Render template with variables."""
+        """Render template with variables. COM-003: escape HTML to prevent injection."""
+        import html
+
         try:
-            # Simple template rendering
             rendered = template
             for key, value in variables.items():
                 placeholder = f"{{{key}}}"
-                rendered = rendered.replace(placeholder, str(value))
-
+                safe_val = html.escape(str(value)) if value is not None else ""
+                rendered = rendered.replace(placeholder, safe_val)
             return rendered
 
         except Exception as e:

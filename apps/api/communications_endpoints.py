@@ -159,9 +159,22 @@ async def send_email(
     request: EmailRequest,
     ctx: TenantContext = Depends(get_tenant_context),
     email_manager=Depends(get_email_manager),
+    pool=Depends(get_pool),
 ) -> Dict[str, str]:
-    """Send an email to a user."""
+    """Send an email to a user. COM-004: restrict to_email to authenticated user's email."""
     try:
+        # COM-004: Prevent arbitrary email sending — restrict to user's own email
+        async with pool.acquire() as conn:
+            row = await conn.fetchrow(
+                "SELECT email FROM public.users WHERE id = $1", ctx.user_id
+            )
+        user_email = (row["email"] if row else "").lower().strip()
+        to_email = (request.to_email or "").lower().strip()
+        if not user_email or to_email != user_email:
+            raise HTTPException(
+                status_code=403,
+                detail="You can only send emails to your own registered email address.",
+            )
         email = await email_manager.send_email(
             user_id=ctx.user_id,
             tenant_id=ctx.tenant_id,

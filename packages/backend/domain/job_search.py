@@ -23,6 +23,11 @@ logger = get_logger("sorce.job_search")
 SORT_OPTIONS = ("match_score", "recently_matched", "salary", "date_posted")
 
 
+def _escape_ilike(s: str) -> str:
+    """Escape %, _, and \\ for safe use in ILIKE patterns. F007: prevent wildcard injection."""
+    return s.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+
+
 async def search_and_list_jobs(
     db_pool: asyncpg.Pool,
     location: str | None = None,
@@ -194,7 +199,7 @@ def _build_job_search_query(
     if location:
         n += 1
         query += f" AND location ILIKE ${n}"
-        params.append(f"%{location}%")
+        params.append(f"%{_escape_ilike(location)}%")
 
     if min_salary is not None:
         n += 1
@@ -206,7 +211,7 @@ def _build_job_search_query(
         query += (
             f" AND (title ILIKE ${n} OR company ILIKE ${n} OR description ILIKE ${n})"
         )
-        params.append(f"%{keywords}%")
+        params.append(f"%{_escape_ilike(keywords)}%")
 
     if source:
         n += 1

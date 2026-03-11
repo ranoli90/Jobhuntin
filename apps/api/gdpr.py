@@ -249,6 +249,46 @@ async def delete_user_data(
         async with db_transaction(pool) as conn:
             for table, user_col in TABLES_FOR_DELETION:
                 try:
+                    # PRIV-003: Remove profile from vector DB before deleting profile_embeddings
+                    if table == "public.profile_embeddings":
+                        try:
+                            from packages.backend.domain.semantic_matching import (
+                                get_matching_service,
+                            )
+
+                            svc = get_matching_service()
+                            await svc.remove_profile(user_id, conn=conn)
+                        except Exception as ve:
+                            logger.warning(
+                                "Failed to remove profile from vector DB: %s", ve
+                            )
+                            retention_exceptions.append(
+                                f"profile_embeddings(vector): {str(ve)}"
+                            )
+
+                    # PRIV-002: Delete resume file from storage before deleting profile
+                    if table == "public.profiles":
+                        try:
+                            row = await conn.fetchrow(
+                                "SELECT resume_url FROM public.profiles WHERE user_id = $1",
+                                user_id,
+                            )
+                            if row and row.get("resume_url"):
+                                from shared.storage import get_storage_service
+
+                                storage = get_storage_service()
+                                await storage.delete_file(row["resume_url"])
+                                logger.info(
+                                    "Deleted resume file for user %s", user_id
+                                )
+                        except Exception as se:
+                            logger.warning(
+                                "Failed to delete resume file from storage: %s", se
+                            )
+                            retention_exceptions.append(
+                                f"profiles(resume_file): {str(se)}"
+                            )
+
                     result = await conn.execute(  # nosec
                         f"DELETE FROM {table} WHERE {user_col} = $1",  # nosec
                         user_id,
@@ -300,12 +340,12 @@ async def get_request_status(
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid request ID format")
 
-    # Stub: returns user-scoped response. Implement gdpr_requests lookup to prevent IDOR.
-    return {
-        "request_id": request_id,
-        "status": "completed",
-        "user_id": user_id,
-    }
+    # PRIV-001: Status lookup not implemented; return 501 until gdpr_requests table exists.
+    # Prevents IDOR where request_id ownership cannot be verified.
+    raise HTTPException(
+        status_code=501,
+        detail="Request status lookup is not yet implemented. Check your email for export/deletion confirmation.",
+    )
 
 
 @router.get("/data-categories")

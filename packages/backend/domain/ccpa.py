@@ -53,6 +53,33 @@ class CCPAComplianceManager:
 
                     for table, user_col in tables_to_delete:
                         try:
+                            # PRIV-003: Remove profile from vector DB before deleting profile_embeddings
+                            if table == "public.profile_embeddings":
+                                try:
+                                    from packages.backend.domain.semantic_matching import (
+                                        get_matching_service,
+                                    )
+
+                                    svc = get_matching_service()
+                                    await svc.remove_profile(user_id, conn=conn)
+                                except Exception as ve:
+                                    errors.append(f"profile_embeddings(vector): {str(ve)}")
+
+                            # PRIV-002: Delete resume file from storage before deleting profile
+                            if table == "public.profiles":
+                                try:
+                                    row = await conn.fetchrow(
+                                        "SELECT resume_url FROM public.profiles WHERE user_id = $1",
+                                        user_id,
+                                    )
+                                    if row and row.get("resume_url"):
+                                        from shared.storage import get_storage_service
+
+                                        storage = get_storage_service()
+                                        await storage.delete_file(row["resume_url"])
+                                except Exception as se:
+                                    errors.append(f"profiles(resume_file): {str(se)}")
+
                             # Use parameterized query to prevent SQL injection
                             result = await conn.execute(
                                 f"DELETE FROM {table} WHERE {user_col} = $1", user_id
