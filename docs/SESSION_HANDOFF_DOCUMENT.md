@@ -102,6 +102,13 @@ PYTHONPATH=apps:packages:. mypy apps/api/ apps/worker/ packages/backend/ shared/
 
 ## 3. REMAINING / NOT FINISHED — Full List
 
+### 3.0 Completed This Session
+| File | Fix | Status |
+|------|-----|--------|
+| audit_missing_components.py | bare `except:` → `except OSError:` | ✅ Done |
+| complete_onboarding_with_auth.py | httpx `timeout=10.0` | ✅ Done |
+| tests/test_agent_integration.py | httpx `timeout=10.0` (3 places) | ✅ Done |
+
 ### 3.1 Privacy (Email/Job/Privacy Audit)
 | ID | File | Description | Priority |
 |----|------|-------------|----------|
