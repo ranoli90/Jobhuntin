@@ -141,6 +141,8 @@ async def create_db_pool():
         max_size=settings.db_pool_max,
         statement_cache_size=0,
         ssl=ctx,
+        timeout=30.0,
+        command_timeout=60.0,
     )
 
 
@@ -878,30 +880,37 @@ class FormAgent:
                 pass
 
     async def _listen_loop(self) -> None:
-        """Dedicated connection for LISTEN/NOTIFY with exponential backoff."""
-        get_settings()
+        """Dedicated connection for LISTEN/NOTIFY with exponential backoff.
+
+        Uses asyncpg.connect() (not pool.acquire()) so we do not hold a pool
+        connection indefinitely. Pool connections must be short-lived.
+        """
+        import ssl
+
+        settings = get_settings()
         retry_count = 0
         max_retry_delay = 60.0
+        ctx = ssl.create_default_context(purpose=ssl.Purpose.SERVER_AUTH)
+        ctx.check_hostname = True
 
         while True:
+            conn = None
             try:
-                # Use a dedicated connection for listening
-                # MEDIUM: Use connection from pool instead of direct connection to prevent leaks
-                async with self.pool.acquire() as conn:
-                    await conn.add_listener(
-                        "job_queue", lambda *args: self.wake_event.set()
-                    )
-                    logger.info("Listening for 'job_queue' notifications...")
-                    # Reset retry count on successful connection
-                    retry_count = 0
+                conn = await asyncpg.connect(
+                    settings.database_url,
+                    ssl=ctx,
+                    command_timeout=0,  # No timeout for LISTEN (long-lived)
+                )
+                await conn.add_listener(
+                    "job_queue", lambda *args: self.wake_event.set()
+                )
+                logger.info("Listening for 'job_queue' notifications...")
+                retry_count = 0
 
-                    # Keep connection open indefinitely (connection is managed by pool)
-                    while True:
-                        await asyncio.sleep(60)  # Keep-alive check
-                        # Connection is automatically managed by pool context manager
+                while True:
+                    await asyncio.sleep(60)  # Keep-alive check
             except Exception as e:
                 retry_count += 1
-                # Exponential backoff with jitter
                 delay = min(2 ** (retry_count - 1), max_retry_delay)
                 jitter = delay * 0.1 * random.random()
                 delay += jitter
@@ -911,6 +920,12 @@ class FormAgent:
                     f"Retrying in {delay:.2f}s..."
                 )
                 await asyncio.sleep(delay)
+            finally:
+                if conn is not None:
+                    try:
+                        await conn.close()
+                    except Exception:
+                        pass
 
     async def run_once(self) -> bool:
         """Claim and process a single task. Returns True if work was done."""

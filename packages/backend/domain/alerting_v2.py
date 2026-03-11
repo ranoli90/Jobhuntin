@@ -295,25 +295,36 @@ async def check_experiment_graduation(conn: asyncpg.Connection) -> list[dict[str
     """
     )
 
+    if not experiments:
+        return []
+
+    # Batch fetch variant stats for all experiments (avoids N+1)
+    keys = [str(e["key"]) for e in experiments]
+    all_variants = await conn.fetch(
+        """
+        SELECT ea.experiment_key, ea.variant,
+               COUNT(*)::int AS samples,
+               COUNT(*) FILTER (
+                   WHERE a.status IN ('APPLIED','SUBMITTED','COMPLETED','REGISTERED')
+               )::int AS succeeded
+        FROM public.experiment_assignments ea
+        JOIN public.applications a ON a.user_id = ea.user_id
+        WHERE ea.experiment_key = ANY($1::text[])
+        GROUP BY ea.experiment_key, ea.variant
+        HAVING COUNT(*) >= 100
+        """,
+        keys,
+    )
+
+    variants_by_exp: dict[str, list] = {}
+    for row in all_variants:
+        key = str(row["experiment_key"])
+        variants_by_exp.setdefault(key, []).append(row)
+
     graduated = []
     for exp in experiments:
         key = exp["key"]
-        # Get per-variant stats
-        variants = await conn.fetch(
-            """
-            SELECT ea.variant,
-                   COUNT(*)::int AS samples,
-                   COUNT(*) FILTER (
-                       WHERE a.status IN ('APPLIED','SUBMITTED','COMPLETED','REGISTERED')
-                   )::int AS succeeded
-            FROM public.experiment_assignments ea
-            JOIN public.applications a ON a.user_id = ea.user_id
-            WHERE ea.experiment_key = $1
-            GROUP BY ea.variant
-            HAVING COUNT(*) >= 100
-        """,
-            key,
-        )
+        variants = variants_by_exp.get(str(key), [])
 
         if len(variants) < 2:
             continue

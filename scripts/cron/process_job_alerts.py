@@ -33,6 +33,8 @@ async def main() -> None:
         settings.database_url,
         min_size=1,
         max_size=2,
+        timeout=30.0,
+        command_timeout=60.0,
     )
 
     try:

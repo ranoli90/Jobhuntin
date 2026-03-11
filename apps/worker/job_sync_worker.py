@@ -45,6 +45,8 @@ async def create_db_pool():
         max_size=settings.db_pool_max,
         statement_cache_size=0,
         ssl=ctx,
+        timeout=30.0,
+        command_timeout=60.0,
     )
 
 

@@ -47,6 +47,8 @@ async def create_db_pool() -> asyncpg.Pool:
         max_size=3,
         statement_cache_size=0,
         ssl=ctx,
+        timeout=30.0,
+        command_timeout=60.0,
     )
 
 

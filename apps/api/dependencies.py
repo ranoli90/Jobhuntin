@@ -100,6 +100,7 @@ class DatabasePoolManager:
                     max_size=s.db_pool_max,
                     ssl=ssl_arg,
                     statement_cache_size=0,
+                    timeout=30.0,
                     command_timeout=60.0,
                 )
                 logger.info("Database pool created (env=%s)", s.env.value)
@@ -155,6 +156,8 @@ class DatabasePoolManager:
                     max_size=s.db_pool_max,
                     ssl=False,
                     statement_cache_size=0,
+                    timeout=30.0,
+                    command_timeout=60.0,
                 )
                 logger.info("Read replica pool initialized")
             except Exception as exc:
