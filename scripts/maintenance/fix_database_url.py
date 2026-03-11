@@ -137,18 +137,9 @@ def main():
         print("\nManual fix:")
         print("1. Go to https://dashboard.render.com/web/sorce-api/env-vars")
         print("2. Add/Update DATABASE_URL with:")
-        print("\nManual fix (Option A - Direct Connection):")
-        print(
-            "   postgresql://postgres:SorceDB2026Secure@db.zglovpfwyobbbaaocawz.supabase.co:5432/postgres"
-        )
-        print("\nManual fix (Option B - Supabase Pooler):")
-        print(
-            "   postgresql://postgres.zglovpfwyobbbaaocawz:SorceDB2026Secure@aws-1-us-east-1.pooler.supabase.com:6543/postgres"
-        )
-        print("   (Note: Pooler requires username format 'user.project_ref')")
-        print(
-            "   (Note: Correct pooler host for this project is 'aws-1-us-east-1.pooler.supabase.com')"
-        )
+        print("   - Get DATABASE_URL from your .env or Supabase dashboard")
+        print("   - Format: postgresql://user:password@host:port/database")
+        print("   - For Pooler: use username format 'user.project_ref'")
         print("3. Deploy the service")
 
 

@@ -60,6 +60,18 @@ def delete_and_recreate():
         print("Successfully deleted sorce-web.")
 
     # 3. Create new Static Site service with CORRECT nested structure
+    # Values from env - never hardcode secrets
+    vite_api_url = os.environ.get("VITE_API_URL")
+    if not vite_api_url:
+        print("Error: VITE_API_URL not set. Export it before running.")
+        return
+
+    env_vars = [{"key": "VITE_API_URL", "value": vite_api_url}]
+    if os.environ.get("VITE_SUPABASE_URL"):
+        env_vars.append({"key": "VITE_SUPABASE_URL", "value": os.environ["VITE_SUPABASE_URL"]})
+    if os.environ.get("VITE_SUPABASE_ANON_KEY"):
+        env_vars.append({"key": "VITE_SUPABASE_ANON_KEY", "value": os.environ["VITE_SUPABASE_ANON_KEY"]})
+
     new_svc_data = {
         "type": "static_site",
         "name": "sorce-web",
@@ -71,17 +83,7 @@ def delete_and_recreate():
             "buildCommand": "npm install && npm run build",
             "publishPath": "dist",
         },
-        "envVars": [
-            {"key": "VITE_API_URL", "value": "https://sorce-api.onrender.com"},
-            {
-                "key": "VITE_SUPABASE_URL",
-                "value": "https://zntqsqyhqsqyhqsqyhqsqy.supabase.co",
-            },
-            {
-                "key": "VITE_SUPABASE_ANON_KEY",
-                "value": "sbp_d2258f6603d6bc4b5fb5fd4c081207d2b5f7734e",
-            },
-        ],
+        "envVars": env_vars,
     }
 
     print("Creating new sorce-web static site with proper settings...")

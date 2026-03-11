@@ -1,5 +1,6 @@
 import json
 import os
+import sys
 import urllib.request
 
 RENDER_API_KEY = os.environ.get("RENDER_API_KEY")
@@ -24,3 +25,4 @@ try:
             print(f"{name} : {sid} : {url}")
 except Exception as e:
     print(f"Error: {e}")
+    sys.exit(1)

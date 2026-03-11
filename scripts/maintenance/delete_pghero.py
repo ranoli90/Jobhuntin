@@ -1,17 +1,22 @@
 import os
+import sys
 
 import requests
 from dotenv import load_dotenv
 
 load_dotenv()
 
-RENDER_API_KEY = os.environ.get("RENDER_API_TOKEN")
+RENDER_API_KEY = os.environ.get("RENDER_API_KEY") or os.environ.get("RENDER_API_TOKEN")
 PGHERO_SERVICE_ID = "srv-d66k2k5um26s73fvgrlg"
 
 headers = {
     "Authorization": f"Bearer {RENDER_API_KEY}",
     "Accept": "application/json",
 }
+
+if not RENDER_API_KEY:
+    print("Error: RENDER_API_KEY or RENDER_API_TOKEN not set")
+    sys.exit(1)
 
 print(f"Attempting to delete PgHero service: {PGHERO_SERVICE_ID}...")
 

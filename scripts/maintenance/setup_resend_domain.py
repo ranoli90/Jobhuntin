@@ -1,6 +1,7 @@
 """Setup Resend domain and configure DNS with Ionos."""
 
 import os
+import sys
 
 import httpx
 from dotenv import load_dotenv
@@ -136,6 +137,10 @@ def list_existing_domains():
 
 
 def main():
+    if not RESEND_API_KEY:
+        print("Error: RESEND_API_KEY not set. Export it or add to .env")
+        return 1
+
     print("=" * 60)
     print("Resend Domain Setup for JobHuntin")
     print("=" * 60)
@@ -160,4 +165,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main() or 0)

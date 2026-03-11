@@ -13,16 +13,25 @@ SERVICE_ID = "srv-d63l79hr0fns73boblag"  # sorce-api
 
 def list_env_vars():
     """List all current env vars."""
+    if not RENDER_API_KEY:
+        print("Error: RENDER_API_KEY not set")
+        return []
+
     headers = {
         "Authorization": f"Bearer {RENDER_API_KEY}",
         "Accept": "application/json",
     }
 
-    resp = httpx.get(
-        f"https://api.render.com/v1/services/{SERVICE_ID}/env-vars",
-        headers=headers,
-        timeout=10,
-    )
+    try:
+        resp = httpx.get(
+            f"https://api.render.com/v1/services/{SERVICE_ID}/env-vars",
+            headers=headers,
+            timeout=10,
+        )
+    except httpx.HTTPError as e:
+        print(f"Error fetching env vars: {e}")
+        return []
+
     print(f"List status: {resp.status_code}")
     if resp.status_code == 200:
         data = resp.json()
@@ -33,6 +42,7 @@ def list_env_vars():
             if key:
                 current_keys.append(key)
         return current_keys
+    print(f"Failed to list env vars: {resp.status_code}")
     return []
 
 

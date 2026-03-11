@@ -143,7 +143,7 @@ def create_dns_record(token, zone_id, record):
     }
 
     # Add priority for MX records
-    if record["type"] == "MX" and record["priority"]:
+    if record["type"] == "MX" and record.get("priority") is not None:
         payload["priority"] = record["priority"]
 
     try:
@@ -185,7 +185,7 @@ def update_dns_record(token, zone_id, record_id, record):
         "disabled": False,
     }
 
-    if record["type"] == "MX" and record["priority"]:
+    if record["type"] == "MX" and record.get("priority") is not None:
         payload["priority"] = record["priority"]
 
     try:
@@ -274,7 +274,7 @@ def main():
         for record in DNS_RECORDS:
             print(f"\n{record['type']} {record['name']}")
             print(f"Value: {record['value']}")
-            if record["priority"]:
+            if record.get("priority"):
                 print(f"Priority: {record['priority']}")
 
 

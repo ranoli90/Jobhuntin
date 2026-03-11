@@ -1,4 +1,5 @@
 import os
+import sys
 
 import httpx
 from dotenv import load_dotenv
@@ -11,7 +12,7 @@ RENDER_API_KEY = os.environ.get("RENDER_API_KEY")
 def fetch_render_env():
     if not RENDER_API_KEY:
         print("Error: RENDER_API_KEY not found in .env")
-        return
+        sys.exit(1)
 
     headers = {
         "Authorization": f"Bearer {RENDER_API_KEY}",

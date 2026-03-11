@@ -18,30 +18,41 @@ headers = {"Authorization": f"Bearer {RENDER_API_KEY}", "Accept": "application/j
 
 def get_services():
     url = "https://api.render.com/v1/services"
-    response = requests.get(url, headers=headers, timeout=10)
-    if response.status_code == 200:
+    try:
+        response = requests.get(url, headers=headers, timeout=10)
+        response.raise_for_status()
         return response.json()
-    return []
+    except requests.RequestException as e:
+        print(f"Error fetching services: {e}")
+        sys.exit(1)
 
 
 def get_latest_deploy(service_id):
     url = f"https://api.render.com/v1/services/{service_id}/deploys"
-    response = requests.get(url, headers=headers, timeout=10)
-    if response.status_code == 200:
+    try:
+        response = requests.get(url, headers=headers, timeout=10)
+        response.raise_for_status()
         deploys = response.json()
         if deploys:
-            # Render returns a list of items, each containing a 'deploy' object
-            return deploys[0]["deploy"]
+            return deploys[0].get("deploy", deploys[0])
+    except requests.RequestException:
+        pass
     return None
 
 
 def monitor_deploys():
     print("Monitoring Render deployments...")
     services_data = get_services()
+    if isinstance(services_data, dict) and "services" in services_data:
+        services_data = services_data["services"]
+    if not isinstance(services_data, list):
+        services_data = []
 
     target_services = {}
     for item in services_data:
-        svc = item["service"]
+        svc = item.get("service", item)
+        if not isinstance(svc, dict):
+            continue
         if svc["name"] == "sorce-api":
             target_services[svc["name"]] = svc["id"]
             print(f"Found {svc['name']}: {svc['id']}")

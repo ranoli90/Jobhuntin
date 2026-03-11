@@ -2,6 +2,7 @@
 
 import base64
 import os
+import sys
 
 import httpx
 from dotenv import load_dotenv
@@ -221,6 +222,10 @@ def update_record(token, zone_id, record_id, record):
 
 
 def main():
+    if not IONOS_PUBLIC_PREFIX or not IONOS_SECRET:
+        print("Error: Set IONOS_PUBLIC_PREFIX and IONOS_SECRET in .env")
+        return 1
+
     print("=" * 70)
     print("Ionos Cloud API DNS Configuration")
     print("=" * 70)
@@ -229,6 +234,7 @@ def main():
     token = get_ionos_token()
     if not token:
         print("\n❌ Could not authenticate with Ionos Cloud API.")
+        return 1
         print("This might be due to:")
         print("- Incorrect API credentials")
         print("- Service not activated")
@@ -240,7 +246,7 @@ def main():
     if not zone:
         print(f"\n❌ Domain {DOMAIN} not found in Ionos Cloud DNS.")
         print("Make sure the domain is added to your Ionos Cloud account first.")
-        return
+        return 1
 
     zone_id = zone.get("id")
 
@@ -284,11 +290,12 @@ def main():
         print("2. Check Resend dashboard for domain verification")
         print("3. Once verified, update EMAIL_FROM=hello@jobhuntin.com")
         print("4. Test sending emails")
-    else:
-        print("⚠️  Some records failed. Manual configuration may be needed.")
-        print("\nManual backup:")
-        print("Go to https://my.ionos.com and add the DNS records manually")
+        return 0
+    print("⚠️  Some records failed. Manual configuration may be needed.")
+    print("\nManual backup:")
+    print("Go to https://my.ionos.com and add the DNS records manually")
+    return 1
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main() or 0)

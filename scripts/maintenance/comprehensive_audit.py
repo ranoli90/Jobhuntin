@@ -320,7 +320,7 @@ if __name__ == "__main__":
     print(report)
 
     # Save to file
-    with open("audit_report.md", "w") as f:
+    with open("audit_report.md", "w", encoding="utf-8") as f:
         f.write(report)
 
     print("\n✅ Audit report saved to audit_report.md")

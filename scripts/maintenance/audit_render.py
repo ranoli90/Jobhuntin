@@ -1,5 +1,6 @@
 import json
 import os
+import sys
 import urllib.request
 
 RENDER_API_KEY = os.environ.get("RENDER_API_KEY")
@@ -67,6 +68,7 @@ def audit_render():
 
     except Exception as e:
         print(f"Error: {e}")
+        sys.exit(1)
 
 
 if __name__ == "__main__":
