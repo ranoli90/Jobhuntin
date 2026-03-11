@@ -65,15 +65,11 @@ const EmailPage: React.FC = () => {
   useEffect(() => {
     fetchEmails();
     fetchPreferences();
-    
     if (autoRefresh) {
-      const interval = setInterval(() => {
-        fetchEmails();
-      }, 30000);
-      
+      const interval = setInterval(fetchEmails, 30000);
       return () => clearInterval(interval);
     }
-  }, [autoRefresh]);
+  }, [autoRefresh, selectedCategory]);
 
   const fetchEmails = async () => {
     try {

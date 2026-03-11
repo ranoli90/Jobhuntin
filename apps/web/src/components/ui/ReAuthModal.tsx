@@ -71,8 +71,9 @@ export function ReAuthModal({
     }
 
     try {
-      // Call the success callback with the password
-      await onSuccess(password.trim());
+      const pwd = password.trim();
+      await onSuccess(pwd);
+      setPassword('');
     } catch (error) {
       // Error handling is managed by parent component
     }

@@ -384,11 +384,11 @@ const OAuthHandler: React.FC = () => {
                           checked={scopes.includes(scope)}
                           onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                             if (e.target.checked) {
-                              setScopes([...scopes, scope]);
+                              setScopes((prev) => [...prev, scope]);
                             } else {
-                                setScopes(scopes.filter(s => s !== scope));
-                              }
-                            }}
+                              setScopes((prev) => prev.filter((s) => s !== scope));
+                            }
+                          }}
                         />
                         <Label htmlFor={scope} className="text-sm">
                           {scope}

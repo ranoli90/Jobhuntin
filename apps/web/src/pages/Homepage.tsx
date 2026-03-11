@@ -72,13 +72,13 @@ function EmailForm({ variant = "light" }: { variant?: "light" | "dark" }) {
             emailError && "!border-red-400"
           )}
           value={email}
-          onChange={e => { setEmail(e.target.value.trimStart()); if (emailError) setEmailError(""); }}
+          onChange={e => { setEmail(e.target.value.trimStart()); setEmailError(""); }}
           onPaste={e => {
             const pasted = (e.clipboardData?.getData('text') || '').trim();
             if (pasted && ValidationUtils.validate.email(pasted).isValid) {
               e.preventDefault();
               setEmail(pasted.toLowerCase());
-              if (emailError) setEmailError("");
+              setEmailError("");
             }
           }}
         />

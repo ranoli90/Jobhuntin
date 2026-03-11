@@ -71,7 +71,7 @@ export default function SubmitBlueprint() {
         <div className="text-5xl">🎉</div>
         <h2 className="text-2xl font-bold text-foreground">Blueprint Submitted!</h2>
         <p className="text-muted-foreground">Your blueprint is being reviewed. You'll be notified once it's approved.</p>
-        <button onClick={() => { setSubmitted(false); setName(""); setSlug(""); setDescription(""); }}
+        <button onClick={() => { setSubmitted(false); setName(""); setSlug(""); setDescription(""); setLongDesc(""); setCategory("general"); setPrice(0); }}
           className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium">
           Submit Another
         </button>
@@ -90,7 +90,7 @@ export default function SubmitBlueprint() {
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="text-sm text-muted-foreground block mb-1">Blueprint Name *</label>
-            <input value={name} onChange={(e) => { setName(e.target.value); if (!slug) setSlug(e.target.value.toLowerCase().replace(/\s+/g, "-")); }}
+            <input value={name} onChange={(e) => { const v = e.target.value; setName(v); setSlug((prev) => prev ? prev : v.toLowerCase().replace(/\s+/g, "-")); }}
               placeholder="e.g. Scholarship Applications"
               className="w-full px-3 py-2 bg-muted border border-border rounded-md text-foreground text-sm" />
           </div>
