@@ -255,7 +255,7 @@ class SessionManager:
                 )
 
             if not row:
-                return False
+                return None
 
             await self._record_audit(
                 conn,
