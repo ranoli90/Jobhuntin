@@ -1,12 +1,21 @@
 /**
  * M1: Session Management UI
- * 
+ *
  * Allows users to view and revoke active sessions for security.
  * Displays device fingerprint, IP address, user agent, and last activity.
  */
 
 import * as React from "react";
-import { Monitor, Smartphone, Tablet, Globe, Clock, Trash2, LogOut, AlertTriangle } from "lucide-react";
+import {
+  Monitor,
+  Smartphone,
+  Tablet,
+  Globe,
+  Clock,
+  Trash2,
+  LogOut,
+  AlertTriangle,
+} from "lucide-react";
 import { Button } from "../../components/ui/Button";
 import { Card } from "../../components/ui/Card";
 import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
@@ -34,7 +43,11 @@ interface SessionsResponse {
 function getDeviceIcon(userAgent: string | null): React.ReactNode {
   if (!userAgent) return <Monitor className="w-5 h-5" />;
   const ua = userAgent.toLowerCase();
-  if (ua.includes("mobile") || ua.includes("android") || ua.includes("iphone")) {
+  if (
+    ua.includes("mobile") ||
+    ua.includes("android") ||
+    ua.includes("iphone")
+  ) {
     return <Smartphone className="w-5 h-5" />;
   }
   if (ua.includes("tablet") || ua.includes("ipad")) {
@@ -47,21 +60,25 @@ function formatDate(dateString: string): string {
   const date = new Date(dateString);
   const now = new Date();
   const diffMs = now.getTime() - date.getTime();
-  const diffMins = Math.floor(diffMs / 60000);
-  const diffHours = Math.floor(diffMs / 3600000);
-  const diffDays = Math.floor(diffMs / 86400000);
+  const diffMins = Math.floor(diffMs / 60_000);
+  const diffHours = Math.floor(diffMs / 3_600_000);
+  const diffDays = Math.floor(diffMs / 86_400_000);
 
   if (diffMins < 1) return "Just now";
-  if (diffMins < 60) return `${diffMins} minute${diffMins !== 1 ? "s" : ""} ago`;
-  if (diffHours < 24) return `${diffHours} hour${diffHours !== 1 ? "s" : ""} ago`;
-  if (diffDays < 7) return `${diffDays} day${diffDays !== 1 ? "s" : ""} ago`;
+  if (diffMins < 60)
+    return `${diffMins} minute${diffMins === 1 ? "" : "s"} ago`;
+  if (diffHours < 24)
+    return `${diffHours} hour${diffHours === 1 ? "" : "s"} ago`;
+  if (diffDays < 7) return `${diffDays} day${diffDays === 1 ? "" : "s"} ago`;
   return date.toLocaleDateString();
 }
 
 export default function Sessions() {
   const [sessions, setSessions] = React.useState<Session[]>([]);
   const [loading, setLoading] = React.useState(true);
-  const [revokingSessionId, setRevokingSessionId] = React.useState<string | null>(null);
+  const [revokingSessionId, setRevokingSessionId] = React.useState<
+    string | null
+  >(null);
   const [showRevokeAllModal, setShowRevokeAllModal] = React.useState(false);
   const [revokingAll, setRevokingAll] = React.useState(false);
 
@@ -81,10 +98,10 @@ export default function Sessions() {
       const data: SessionsResponse = await response.json();
       setSessions(data.sessions);
       telemetry.track("sessions_viewed", { total: data.total });
-    } catch (err) {
+    } catch (error) {
       pushToast({
         title: "Could not load sessions",
-        description: (err as Error).message || "Please try again.",
+        description: (error as Error).message || "Please try again.",
         tone: "error",
       });
     } finally {
@@ -106,7 +123,9 @@ export default function Sessions() {
       });
 
       if (!response.ok) {
-        const error = await response.json().catch(() => ({ detail: "Could not sign out this session" }));
+        const error = await response
+          .json()
+          .catch(() => ({ detail: "Could not sign out this session" }));
         throw new Error(error.detail || "Could not sign out this session");
       }
 
@@ -119,10 +138,10 @@ export default function Sessions() {
 
       // Refresh sessions list
       await fetchSessions();
-    } catch (err) {
+    } catch (error) {
       pushToast({
         title: "Could not sign out session",
-        description: (err as Error).message || "Please try again.",
+        description: (error as Error).message || "Please try again.",
         tone: "error",
       });
     } finally {
@@ -140,7 +159,9 @@ export default function Sessions() {
       });
 
       if (!response.ok) {
-        const error = await response.json().catch(() => ({ detail: "Could not sign out other sessions" }));
+        const error = await response
+          .json()
+          .catch(() => ({ detail: "Could not sign out other sessions" }));
         throw new Error(error.detail || "Could not sign out other sessions");
       }
 
@@ -148,17 +169,17 @@ export default function Sessions() {
       telemetry.track("sessions_revoked_all", { count: data.count });
       pushToast({
         title: "All other sessions revoked",
-        description: `${data.count} session${data.count !== 1 ? "s" : ""} have been signed out.`,
+        description: `${data.count} session${data.count === 1 ? "" : "s"} have been signed out.`,
         tone: "success",
       });
 
       // Refresh sessions list
       await fetchSessions();
       setShowRevokeAllModal(false);
-    } catch (err) {
+    } catch (error) {
       pushToast({
         title: "Could not sign out other sessions",
-        description: (err as Error).message || "Please try again.",
+        description: (error as Error).message || "Please try again.",
         tone: "error",
       });
     } finally {
@@ -178,12 +199,19 @@ export default function Sessions() {
   }
 
   return (
-    <main id="main-content" className="max-w-4xl mx-auto p-6 space-y-6" aria-label="Active Sessions">
+    <main
+      id="main-content"
+      className="max-w-4xl mx-auto p-6 space-y-6"
+      aria-label="Active Sessions"
+    >
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Active Sessions</h1>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+            Active Sessions
+          </h1>
           <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
-            Manage your active sessions and sign out from devices you no longer use.
+            Manage your active sessions and sign out from devices you no longer
+            use.
           </p>
         </div>
         {otherSessions.length > 0 && (
@@ -201,7 +229,9 @@ export default function Sessions() {
       {sessions.length === 0 ? (
         <Card className="p-8 text-center">
           <Monitor className="w-12 h-12 text-slate-400 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">No active sessions</h3>
+          <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">
+            No active sessions
+          </h3>
           <p className="text-sm text-slate-600 dark:text-slate-400">
             You don't have any active sessions at the moment.
           </p>
@@ -218,7 +248,9 @@ export default function Sessions() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <h3 className="font-semibold text-slate-900 dark:text-slate-100">Current Session</h3>
+                      <h3 className="font-semibold text-slate-900 dark:text-slate-100">
+                        Current Session
+                      </h3>
                       <span className="px-2 py-0.5 text-xs font-medium bg-brand-primary/20 text-brand-primary rounded-full">
                         Active
                       </span>
@@ -227,7 +259,9 @@ export default function Sessions() {
                       {currentSession.user_agent && (
                         <div className="flex items-center gap-2">
                           <Monitor className="w-4 h-4" />
-                          <span className="truncate">{currentSession.user_agent}</span>
+                          <span className="truncate">
+                            {currentSession.user_agent}
+                          </span>
                         </div>
                       )}
                       {currentSession.ip_address && (
@@ -238,7 +272,10 @@ export default function Sessions() {
                       )}
                       <div className="flex items-center gap-2">
                         <Clock className="w-4 h-4" />
-                        <span>Last active: {formatDate(currentSession.last_activity_at)}</span>
+                        <span>
+                          Last active:{" "}
+                          {formatDate(currentSession.last_activity_at)}
+                        </span>
                       </div>
                       <div className="text-xs text-slate-500 dark:text-slate-500">
                         Session ID: {currentSession.session_id.slice(0, 8)}...
@@ -270,7 +307,9 @@ export default function Sessions() {
                           {session.user_agent && (
                             <div className="flex items-center gap-2 text-slate-900 dark:text-slate-100">
                               <Monitor className="w-4 h-4" />
-                              <span className="truncate font-medium">{session.user_agent}</span>
+                              <span className="truncate font-medium">
+                                {session.user_agent}
+                              </span>
                             </div>
                           )}
                           {session.ip_address && (
@@ -281,7 +320,10 @@ export default function Sessions() {
                           )}
                           <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
                             <Clock className="w-4 h-4" />
-                            <span>Last active: {formatDate(session.last_activity_at)}</span>
+                            <span>
+                              Last active:{" "}
+                              {formatDate(session.last_activity_at)}
+                            </span>
                           </div>
                           <div className="text-xs text-slate-500 dark:text-slate-500">
                             Session ID: {session.session_id.slice(0, 8)}...
@@ -323,8 +365,9 @@ export default function Sessions() {
           <div className="text-sm text-amber-800 dark:text-amber-200">
             <p className="font-medium mb-1">Security Tip</p>
             <p>
-              If you see any sessions you don't recognize, revoke them immediately and consider changing your password.
-              Each session represents a device or browser where you're signed in.
+              If you see any sessions you don't recognize, revoke them
+              immediately and consider changing your password. Each session
+              represents a device or browser where you're signed in.
             </p>
           </div>
         </div>
@@ -336,7 +379,7 @@ export default function Sessions() {
         onClose={() => setShowRevokeAllModal(false)}
         onConfirm={handleRevokeAllOtherSessions}
         title="Sign out all other devices?"
-        description={`This will sign you out from ${otherSessions.length} other device${otherSessions.length !== 1 ? "s" : ""}. Your current session will remain active.`}
+        description={`This will sign you out from ${otherSessions.length} other device${otherSessions.length === 1 ? "" : "s"}. Your current session will remain active.`}
         confirmText={revokingAll ? "Signing out..." : "Sign out all"}
         variant="danger"
         isLoading={revokingAll}

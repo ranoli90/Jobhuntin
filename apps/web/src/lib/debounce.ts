@@ -1,4 +1,4 @@
-import { useCallback, useRef } from 'react';
+import { useCallback, useRef } from "react";
 
 /**
  * Debounce hook for delaying function execution
@@ -7,20 +7,20 @@ import { useCallback, useRef } from 'react';
  * @param deps - Dependencies for the callback
  * @returns Debounced function
  */
-export function useDebounce<T extends (...args: any[]) => any>(
-  func: T,
+export function useDebounce<T extends (...arguments_: any[]) => any>(
+  function_: T,
   delay: number,
-  deps: React.DependencyList = []
+  deps: React.DependencyList = [],
 ): T {
-  const timeoutRef = useRef<NodeJS.Timeout>();
+  const timeoutReference = useRef<NodeJS.Timeout>();
 
-  return useCallback((...args: Parameters<T>) => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
+  return useCallback((...arguments_: Parameters<T>) => {
+    if (timeoutReference.current) {
+      clearTimeout(timeoutReference.current);
     }
 
-    timeoutRef.current = setTimeout(() => {
-      func(...args);
+    timeoutReference.current = setTimeout(() => {
+      function_(...arguments_);
     }, delay);
   }, deps) as T;
 }
@@ -28,31 +28,31 @@ export function useDebounce<T extends (...args: any[]) => any>(
 /**
  * Simple debounce function for non-hook usage
  */
-export function debounce<T extends (...args: any[]) => any>(
-  func: T,
-  delay: number
-): (...args: Parameters<T>) => void {
+export function debounce<T extends (...arguments_: any[]) => any>(
+  function_: T,
+  delay: number,
+): (...arguments_: Parameters<T>) => void {
   let timeoutId: NodeJS.Timeout;
-  
-  return (...args: Parameters<T>) => {
+
+  return (...arguments_: Parameters<T>) => {
     clearTimeout(timeoutId);
-    timeoutId = setTimeout(() => func(...args), delay);
+    timeoutId = setTimeout(() => function_(...arguments_), delay);
   };
 }
 
 /**
  * Throttle hook for limiting function execution frequency
  */
-export function useThrottle<T extends (...args: any[]) => any>(
-  func: T,
+export function useThrottle<T extends (...arguments_: any[]) => any>(
+  function_: T,
   limit: number,
-  deps: React.DependencyList = []
+  deps: React.DependencyList = [],
 ): T {
   const inThrottle = useRef(false);
 
-  return useCallback((...args: Parameters<T>) => {
+  return useCallback((...arguments_: Parameters<T>) => {
     if (!inThrottle.current) {
-      func(...args);
+      function_(...arguments_);
       inThrottle.current = true;
       setTimeout(() => {
         inThrottle.current = false;
@@ -64,15 +64,15 @@ export function useThrottle<T extends (...args: any[]) => any>(
 /**
  * Simple throttle function for non-hook usage
  */
-export function throttle<T extends (...args: any[]) => any>(
-  func: T,
-  limit: number
-): (...args: Parameters<T>) => void {
+export function throttle<T extends (...arguments_: any[]) => any>(
+  function_: T,
+  limit: number,
+): (...arguments_: Parameters<T>) => void {
   let inThrottle: boolean;
-  
-  return (...args: Parameters<T>) => {
+
+  return (...arguments_: Parameters<T>) => {
     if (!inThrottle) {
-      func(...args);
+      function_(...arguments_);
       inThrottle = true;
       setTimeout(() => {
         inThrottle = false;

@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
-import { WifiOff, RefreshCw } from 'lucide-react';
+import { useState, useEffect } from "react";
+import { WifiOff, RefreshCw } from "lucide-react";
 
-const MAX_OFFLINE_DISPLAY_MS = 10000; // Auto-dismiss after 10s to reduce intrusion
+const MAX_OFFLINE_DISPLAY_MS = 10_000; // Auto-dismiss after 10s to reduce intrusion
 
 export function OfflineBanner() {
   const [offline, setOffline] = useState(!navigator.onLine);
@@ -13,11 +13,11 @@ export function OfflineBanner() {
       setDismissed(false);
     };
     const goOnline = () => setOffline(false);
-    window.addEventListener('offline', goOffline);
-    window.addEventListener('online', goOnline);
+    window.addEventListener("offline", goOffline);
+    window.addEventListener("online", goOnline);
     return () => {
-      window.removeEventListener('offline', goOffline);
-      window.removeEventListener('online', goOnline);
+      window.removeEventListener("offline", goOffline);
+      window.removeEventListener("online", goOnline);
     };
   }, []);
 
@@ -31,7 +31,10 @@ export function OfflineBanner() {
   if (!offline || dismissed) return null;
 
   return (
-    <div role="alert" className="fixed top-0 left-0 right-0 z-[100] bg-amber-700 text-white px-4 py-2 text-center text-sm font-medium flex items-center justify-center gap-2">
+    <div
+      role="alert"
+      className="fixed top-0 left-0 right-0 z-[100] bg-amber-700 text-white px-4 py-2 text-center text-sm font-medium flex items-center justify-center gap-2"
+    >
       <WifiOff className="w-4 h-4 shrink-0" aria-hidden />
       <span>You&apos;re offline. Some features may be unavailable.</span>
       <button

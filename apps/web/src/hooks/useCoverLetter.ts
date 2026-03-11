@@ -77,10 +77,7 @@ export function useCoverLetter() {
   });
 
   // Fetch available templates
-  const {
-    data: templates = [],
-    isLoading: templatesLoading,
-  } = useQuery({
+  const { data: templates = [], isLoading: templatesLoading } = useQuery({
     queryKey: ["cover-letter-templates"],
     queryFn: async () => {
       return await apiGet<CoverLetterTemplate[]>("ai/cover-letters/templates");
@@ -102,155 +99,193 @@ export function useCoverLetter() {
   });
 
   // Legacy generate function for backward compatibility
-  const generate = async (profileData: UserProfile, job: JobPosting, tone: string = "professional") => {
+  const generate = async (
+    profileData: UserProfile,
+    job: JobPosting,
+    tone: string = "professional",
+  ) => {
     setLoading(true);
     setError(null);
     try {
-      const data = await apiPost<CoverLetterResponse>("ai/generate-cover-letter", {
-        profile: profileData,
-        job,
-        tone,
-      });
+      const data = await apiPost<CoverLetterResponse>(
+        "ai/generate-cover-letter",
+        {
+          profile: profileData,
+          job,
+          tone,
+        },
+      );
       setResult(data);
       return data;
     } catch (error) {
-      const err = error as Error;
-      if (import.meta.env.DEV) console.error(err);
-      setError(err.message || "Failed to generate cover letter");
-      throw err;
+      const error_ = error as Error;
+      if (import.meta.env.DEV) console.error(error_);
+      setError(error_.message || "Failed to generate cover letter");
+      throw error_;
     } finally {
       setLoading(false);
     }
   };
 
   // Enhanced generation with AI
-  const generateCoverLetter = useCallback(async (
-    request: CoverLetterGenerationRequest
-  ): Promise<GeneratedCoverLetter | null> => {
-    if (!profile) {
-      if (import.meta.env.DEV) console.error("Cannot generate cover letter: no user profile");
-      return null;
-    }
+  const generateCoverLetter = useCallback(
+    async (
+      request: CoverLetterGenerationRequest,
+    ): Promise<GeneratedCoverLetter | null> => {
+      if (!profile) {
+        if (import.meta.env.DEV)
+          console.error("Cannot generate cover letter: no user profile");
+        return null;
+      }
 
-    setGenerationState({
-      isGenerating: true,
-      currentJobId: request.job_id,
-      progress: 0,
-      estimatedTime: 30, // 30 seconds estimate
-    });
-    setError(null);
-
-    // Start progress simulation
-    const progressInterval = setInterval(() => {
-      setGenerationState(prev => {
-        if (prev.progress >= 90) {
-          clearInterval(progressInterval);
-          return prev;
-        }
-        return { ...prev, progress: prev.progress + 10 };
-      });
-    }, 300);
-
-    try {
-      const enhancedRequest = {
-        ...request,
-        profile_context: {
-          preferences: profile.preferences,
-          resume_url: profile.resume_url,
-          contact: profile.contact,
-          headline: profile.headline,
-          bio: profile.bio,
-        },
-        optimization_settings: {
-          include_keywords: true,
-          match_company_culture: true,
-          highlight_relevant_experience: true,
-          address_job_requirements: true,
-        },
-      };
-
-      const result = await apiPost<GeneratedCoverLetter>("ai/cover-letters/generate", enhancedRequest);
-
-      clearInterval(progressInterval);
       setGenerationState({
-        isGenerating: false,
-        currentJobId: null,
-        progress: 100,
-        estimatedTime: 0,
-      });
-
-      // Update cache
-      queryClient.setQueryData(
-        ["cover-letters"],
-        (oldLetters: GeneratedCoverLetter[] | undefined) =>
-          oldLetters ? [result, ...oldLetters] : [result]
-      );
-
-      return result;
-    } catch (error) {
-      clearInterval(progressInterval);
-      const message = error instanceof Error ? error.message : "Failed to generate cover letter";
-      if (import.meta.env.DEV) console.error("Failed to generate cover letter:", error);
-      setError(message);
-      setGenerationState({
-        isGenerating: false,
-        currentJobId: null,
+        isGenerating: true,
+        currentJobId: request.job_id,
         progress: 0,
-        estimatedTime: 0,
+        estimatedTime: 30, // 30 seconds estimate
       });
-      return null;
-    }
-  }, [profile, queryClient]);
+      setError(null);
+
+      // Start progress simulation
+      const progressInterval = setInterval(() => {
+        setGenerationState((previous) => {
+          if (previous.progress >= 90) {
+            clearInterval(progressInterval);
+            return previous;
+          }
+          return { ...previous, progress: previous.progress + 10 };
+        });
+      }, 300);
+
+      try {
+        const enhancedRequest = {
+          ...request,
+          profile_context: {
+            preferences: profile.preferences,
+            resume_url: profile.resume_url,
+            contact: profile.contact,
+            headline: profile.headline,
+            bio: profile.bio,
+          },
+          optimization_settings: {
+            include_keywords: true,
+            match_company_culture: true,
+            highlight_relevant_experience: true,
+            address_job_requirements: true,
+          },
+        };
+
+        const result = await apiPost<GeneratedCoverLetter>(
+          "ai/cover-letters/generate",
+          enhancedRequest,
+        );
+
+        clearInterval(progressInterval);
+        setGenerationState({
+          isGenerating: false,
+          currentJobId: null,
+          progress: 100,
+          estimatedTime: 0,
+        });
+
+        // Update cache
+        queryClient.setQueryData(
+          ["cover-letters"],
+          (oldLetters: GeneratedCoverLetter[] | undefined) =>
+            oldLetters ? [result, ...oldLetters] : [result],
+        );
+
+        return result;
+      } catch (error) {
+        clearInterval(progressInterval);
+        const message =
+          error instanceof Error
+            ? error.message
+            : "Failed to generate cover letter";
+        if (import.meta.env.DEV)
+          console.error("Failed to generate cover letter:", error);
+        setError(message);
+        setGenerationState({
+          isGenerating: false,
+          currentJobId: null,
+          progress: 0,
+          estimatedTime: 0,
+        });
+        return null;
+      }
+    },
+    [profile, queryClient],
+  );
 
   // Get best template for job category
-  const getRecommendedTemplate = useCallback((
-    jobTitle: string,
-    jobDescription: string
-  ): CoverLetterTemplate | null => {
-    if (!templates.length) return null;
+  const getRecommendedTemplate = useCallback(
+    (jobTitle: string, jobDescription: string): CoverLetterTemplate | null => {
+      if (templates.length === 0) return null;
 
-    // Simple keyword matching for template recommendation
-    const keywords = {
-      technical: ["engineer", "developer", "programmer", "technical", "software"],
-      executive: ["manager", "director", "vp", "executive", "lead", "head"],
-      creative: ["designer", "artist", "creative", "writer", "content"],
-      professional: ["analyst", "specialist", "coordinator", "associate", "professional"],
-      entry: ["junior", "entry", "intern", "trainee", "graduate"]
-    };
+      // Simple keyword matching for template recommendation
+      const keywords = {
+        technical: [
+          "engineer",
+          "developer",
+          "programmer",
+          "technical",
+          "software",
+        ],
+        executive: ["manager", "director", "vp", "executive", "lead", "head"],
+        creative: ["designer", "artist", "creative", "writer", "content"],
+        professional: [
+          "analyst",
+          "specialist",
+          "coordinator",
+          "associate",
+          "professional",
+        ],
+        entry: ["junior", "entry", "intern", "trainee", "graduate"],
+      };
 
-    const text = (jobTitle + " " + jobDescription).toLowerCase();
+      const text = (jobTitle + " " + jobDescription).toLowerCase();
 
-    for (const [category, words] of Object.entries(keywords)) {
-      if (words.some(word => text.includes(word))) {
-        const template = templates.find(t => t.category === category && t.is_default);
-        if (template) return template;
+      for (const [category, words] of Object.entries(keywords)) {
+        if (words.some((word) => text.includes(word))) {
+          const template = templates.find(
+            (t) => t.category === category && t.is_default,
+          );
+          if (template) return template;
+        }
       }
-    }
 
-    // Return default professional template
-    return templates.find(t => t.is_default) || templates[0] || null;
-  }, [templates]);
+      // Return default professional template
+      return templates.find((t) => t.is_default) || templates[0] || null;
+    },
+    [templates],
+  );
 
   // Get cover letters for a specific job
-  const getLettersForJob = useCallback((jobId: string): GeneratedCoverLetter[] => {
-    return generatedLetters.filter(letter => letter.job_id === jobId);
-  }, [generatedLetters]);
+  const getLettersForJob = useCallback(
+    (jobId: string): GeneratedCoverLetter[] => {
+      return generatedLetters.filter((letter) => letter.job_id === jobId);
+    },
+    [generatedLetters],
+  );
 
   // Get generation progress
-  const getGenerationProgress = useCallback((jobId: string) => {
-    if (generationState.currentJobId === jobId) {
+  const getGenerationProgress = useCallback(
+    (jobId: string) => {
+      if (generationState.currentJobId === jobId) {
+        return {
+          isGenerating: generationState.isGenerating,
+          progress: generationState.progress,
+          estimatedTime: generationState.estimatedTime,
+        };
+      }
       return {
-        isGenerating: generationState.isGenerating,
-        progress: generationState.progress,
-        estimatedTime: generationState.estimatedTime,
+        isGenerating: false,
+        progress: 0,
+        estimatedTime: 0,
       };
-    }
-    return {
-      isGenerating: false,
-      progress: 0,
-      estimatedTime: 0,
-    };
-  }, [generationState]);
+    },
+    [generationState],
+  );
 
   // Reset hook state
   const reset = useCallback(() => {

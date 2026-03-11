@@ -3,10 +3,13 @@ import { Button } from "./Button";
 import { Card } from "./Card";
 import { LoadingSpinner } from "./LoadingSpinner";
 import { Wifi, WifiOff, Clock, AlertTriangle, RefreshCw } from "lucide-react";
-import { resumeUploadRetry, ResumeUploadState } from "../../lib/resumeUploadRetry";
+import {
+  resumeUploadRetry,
+  ResumeUploadState,
+} from "../../lib/resumeUploadRetry";
 import { t, formatT, getLocale } from "../../lib/i18n";
 
-interface ResumeUploadRetryProps {
+interface ResumeUploadRetryProperties {
   onRetry: () => Promise<void>;
   onClear: () => void;
   className?: string;
@@ -15,7 +18,11 @@ interface ResumeUploadRetryProps {
 /**
  * Component for handling resume upload retries with offline persistence
  */
-export function ResumeUploadRetry({ onRetry, onClear, className }: ResumeUploadRetryProps) {
+export function ResumeUploadRetry({
+  onRetry,
+  onClear,
+  className,
+}: ResumeUploadRetryProperties) {
   const [uploadState, setUploadState] = React.useState<ResumeUploadState>({
     isUploading: false,
     canRetry: false,
@@ -37,25 +44,25 @@ export function ResumeUploadRetry({ onRetry, onClear, className }: ResumeUploadR
     };
 
     updateState();
-    
+
     // Update every second for countdown
     const interval = setInterval(updateState, 1000);
-    
+
     return () => clearInterval(interval);
   }, [locale]);
 
   // R4: Use ref for onRetry to avoid effect re-run when parent passes new closure each render
-  const onRetryRef = React.useRef(onRetry);
-  onRetryRef.current = onRetry;
+  const onRetryReference = React.useRef(onRetry);
+  onRetryReference.current = onRetry;
 
   React.useEffect(() => {
     if (uploadState.canRetry && !uploadState.isOffline) {
       resumeUploadRetry.setupRetryTimer(async () => {
         setIsRetrying(true);
         try {
-          await onRetryRef.current();
+          await onRetryReference.current();
         } catch (error) {
-          if (import.meta.env.DEV) console.error('Auto-retry failed:', error);
+          if (import.meta.env.DEV) console.error("Auto-retry failed:", error);
         } finally {
           setIsRetrying(false);
         }
@@ -66,12 +73,12 @@ export function ResumeUploadRetry({ onRetry, onClear, className }: ResumeUploadR
 
   const handleManualRetry = async () => {
     if (!uploadState.canRetry || isRetrying) return;
-    
+
     setIsRetrying(true);
     try {
       await onRetry();
     } catch (error) {
-      if (import.meta.env.DEV) console.error('Manual retry failed:', error);
+      if (import.meta.env.DEV) console.error("Manual retry failed:", error);
     } finally {
       setIsRetrying(false);
     }
@@ -96,7 +103,8 @@ export function ResumeUploadRetry({ onRetry, onClear, className }: ResumeUploadR
 
   const getIcon = () => {
     if (uploadState.isOffline) return <WifiOff className="h-5 w-5" />;
-    if (uploadState.retryCount >= 3) return <AlertTriangle className="h-5 w-5" />;
+    if (uploadState.retryCount >= 3)
+      return <AlertTriangle className="h-5 w-5" />;
     if (uploadState.canRetry) return <Clock className="h-5 w-5" />;
     return <RefreshCw className="h-5 w-5" />;
   };
@@ -104,36 +112,41 @@ export function ResumeUploadRetry({ onRetry, onClear, className }: ResumeUploadR
   return (
     <Card tone={getVariant()} shadow="lift" className={`p-4 ${className}`}>
       <div className="flex items-start gap-3">
-        <div className={`p-2 rounded-lg ${
-          uploadState.isOffline ? 'bg-yellow-100 text-yellow-600' :
-          uploadState.retryCount >= 3 ? 'bg-red-100 text-red-600' :
-          'bg-blue-100 text-blue-600'
-        }`}>
+        <div
+          className={`p-2 rounded-lg ${
+            uploadState.isOffline
+              ? "bg-yellow-100 text-yellow-600"
+              : uploadState.retryCount >= 3
+                ? "bg-red-100 text-red-600"
+                : "bg-blue-100 text-blue-600"
+          }`}
+        >
           {getIcon()}
         </div>
-        
+
         <div className="flex-1 min-w-0">
           <h3 className="font-semibold text-sm mb-1">
-            {uploadState.isOffline ? t("resumeRetry.offlineTitle", locale) :
-             uploadState.retryCount >= 3 ? t("resumeRetry.failedTitle", locale) :
-             t("resumeRetry.pendingTitle", locale)}
+            {uploadState.isOffline
+              ? t("resumeRetry.offlineTitle", locale)
+              : uploadState.retryCount >= 3
+                ? t("resumeRetry.failedTitle", locale)
+                : t("resumeRetry.pendingTitle", locale)}
           </h3>
-          
-          <p className="text-xs text-gray-600 mb-3">
-            {retryMessage}
-          </p>
+
+          <p className="text-xs text-gray-600 mb-3">{retryMessage}</p>
           {uploadState.requiresReupload && (
             <p className="text-xs text-amber-600 mb-3">
-              {t("resumeRetry.reuploadHint", locale) || "Re-upload your resume to try again."}
+              {t("resumeRetry.reuploadHint", locale) ||
+                "Re-upload your resume to try again."}
             </p>
           )}
-          
+
           {uploadState.error && (
             <div className="text-xs text-red-600 mb-3 p-2 bg-red-50 rounded">
               {uploadState.error}
             </div>
           )}
-          
+
           <div className="flex items-center gap-2">
             {uploadState.canRetry && !uploadState.isOffline && (
               <Button
@@ -155,7 +168,7 @@ export function ResumeUploadRetry({ onRetry, onClear, className }: ResumeUploadR
                 )}
               </Button>
             )}
-            
+
             <Button
               size="sm"
               variant="outline"
@@ -165,10 +178,14 @@ export function ResumeUploadRetry({ onRetry, onClear, className }: ResumeUploadR
               {t("resumeRetry.clear", locale)}
             </Button>
           </div>
-          
+
           {uploadState.retryCount > 0 && (
             <div className="mt-2 text-xs text-gray-500">
-              {formatT("resumeRetry.attemptOf", { current: uploadState.retryCount, max: 3 }, locale)}
+              {formatT(
+                "resumeRetry.attemptOf",
+                { current: uploadState.retryCount, max: 3 },
+                locale,
+              )}
             </div>
           )}
         </div>

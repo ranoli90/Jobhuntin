@@ -31,7 +31,13 @@ interface SkillGap {
   present: boolean;
 }
 
-function ScoreVisualization({ score, label }: { score: number; label: string }) {
+function ScoreVisualization({
+  score,
+  label,
+}: {
+  score: number;
+  label: string;
+}) {
   const getScoreColor = (s: number) => {
     if (s >= 80) return "from-emerald-400 to-emerald-600";
     if (s >= 60) return "from-amber-400 to-amber-600";
@@ -94,7 +100,12 @@ function SkillList({
   if (skills.length === 0) return null;
 
   return (
-    <motion.div className="space-y-2" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.2 }}>
+    <motion.div
+      className="space-y-2"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.2 }}
+    >
       <motion.button
         onClick={() => setExpanded(!expanded)}
         className="flex items-center justify-between w-full text-left"
@@ -108,7 +119,10 @@ function SkillList({
             <XCircle className="w-4 h-4 text-red-500" />
           )}
           {title}
-          <Badge variant={variant === "matched" ? "success" : "error"} size="sm">
+          <Badge
+            variant={variant === "matched" ? "success" : "error"}
+            size="sm"
+          >
             {skills.length}
           </Badge>
         </h4>
@@ -129,9 +143,9 @@ function SkillList({
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.2 }}
           >
-            {skills.map((skill, i) => (
+            {skills.map((skill, index) => (
               <Badge
-                key={i}
+                key={index}
                 variant={variant === "matched" ? "success" : "error"}
                 size="sm"
                 className="text-xs"
@@ -159,15 +173,17 @@ function DealbreakerWarnings({ reasons }: { reasons: string[] }) {
         <div className="flex items-start gap-3">
           <AlertTriangle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
           <div>
-            <h4 className="font-semibold text-red-900 mb-2">Dealbreaker Issues Detected</h4>
+            <h4 className="font-semibold text-red-900 mb-2">
+              Dealbreaker Issues Detected
+            </h4>
             <ul className="space-y-1">
-              {reasons.map((reason, i) => (
+              {reasons.map((reason, index) => (
                 <motion.li
-                  key={i}
+                  key={index}
                   className="text-sm text-red-700 flex items-center gap-2"
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: i * 0.05, duration: 0.2 }}
+                  transition={{ delay: index * 0.05, duration: 0.2 }}
                 >
                   <XCircle className="w-3 h-3" />
                   {reason}
@@ -183,18 +199,19 @@ function DealbreakerWarnings({ reasons }: { reasons: string[] }) {
 
 export default function MatchesPage() {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [searchParameters] = useSearchParams();
   const match = useSemanticMatch();
   const semanticMatchingEnabled = useFeatureFlag("semantic_matching");
 
-  const jobId = searchParams.get("jobId");
+  const jobId = searchParameters.get("jobId");
   const [expandedExplanation, setExpandedExplanation] = useState(false);
 
   useEffect(() => {
     if (!semanticMatchingEnabled) {
       pushToast({
         title: "Semantic matching not available",
-        description: "This feature is not included in your plan. Upgrade to access match insights.",
+        description:
+          "This feature is not included in your plan. Upgrade to access match insights.",
         tone: "warning",
       });
       navigate("/app/jobs");
@@ -264,11 +281,15 @@ export default function MatchesPage() {
       <div className="max-w-4xl mx-auto p-6">
         <Card className="p-8 text-center">
           <Target className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-slate-900 mb-2">No Job Selected</h2>
+          <h2 className="text-xl font-bold text-slate-900 mb-2">
+            No Job Selected
+          </h2>
           <p className="text-slate-500 mb-6">
             Select a job from the job feed to view match details.
           </p>
-          <Button variant="primary" onClick={() => navigate("/app/jobs")}>Browse Jobs</Button>
+          <Button variant="primary" onClick={() => navigate("/app/jobs")}>
+            Browse Jobs
+          </Button>
         </Card>
       </div>
     );
@@ -299,11 +320,21 @@ export default function MatchesPage() {
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <Button variant="outline" size="sm" onClick={handleShare} className="gap-2 hover:bg-slate-50 transition-colors">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleShare}
+                className="gap-2 hover:bg-slate-50 transition-colors"
+              >
                 <Share2 className="w-4 h-4" />
                 Share
               </Button>
-              <Button variant="outline" size="sm" onClick={handleExport} className="gap-2 hover:bg-slate-50 transition-colors">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleExport}
+                className="gap-2 hover:bg-slate-50 transition-colors"
+              >
                 <Download className="w-4 h-4" />
                 Export
               </Button>
@@ -311,7 +342,11 @@ export default function MatchesPage() {
           </div>
 
           {match.loading && (
-            <Card className="p-12 bg-gradient-to-br from-white to-blue-50/50 border-0 shadow-xl" aria-busy="true" aria-label="Loading match analysis">
+            <Card
+              className="p-12 bg-gradient-to-br from-white to-blue-50/50 border-0 shadow-xl"
+              aria-busy="true"
+              aria-label="Loading match analysis"
+            >
               <div className="text-center space-y-6">
                 <div className="w-20 h-20 mx-auto">
                   <div className="w-full h-full rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center shadow-2xl animate-pulse">
@@ -319,11 +354,18 @@ export default function MatchesPage() {
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <h3 className="text-xl font-bold text-slate-900">Analyzing Your Match</h3>
-                  <p className="text-slate-600">AI is processing your resume against this job...</p>
+                  <h3 className="text-xl font-bold text-slate-900">
+                    Analyzing Your Match
+                  </h3>
+                  <p className="text-slate-600">
+                    AI is processing your resume against this job...
+                  </p>
                 </div>
                 <div className="w-64 h-2 bg-slate-200 rounded-full mx-auto overflow-hidden">
-                  <div className="h-full bg-gradient-to-r from-primary-500 to-primary-600 rounded-full animate-pulse" style={{ width: '60%' }} />
+                  <div
+                    className="h-full bg-gradient-to-r from-primary-500 to-primary-600 rounded-full animate-pulse"
+                    style={{ width: "60%" }}
+                  />
                 </div>
               </div>
             </Card>
@@ -334,7 +376,9 @@ export default function MatchesPage() {
               <div className="flex items-center gap-3">
                 <AlertTriangle className="w-5 h-5 text-red-500" />
                 <div>
-                  <h3 className="font-semibold text-red-900">Analysis Failed</h3>
+                  <h3 className="font-semibold text-red-900">
+                    Analysis Failed
+                  </h3>
                   <p className="text-sm text-red-700">{match.error}</p>
                 </div>
               </div>
@@ -352,7 +396,7 @@ export default function MatchesPage() {
                         ? "bg-gradient-to-br from-emerald-400 to-emerald-600 shadow-emerald-500/30"
                         : match.data.score >= 0.6
                           ? "bg-gradient-to-br from-amber-400 to-amber-600 shadow-amber-500/30"
-                          : "bg-gradient-to-br from-red-400 to-red-600 shadow-red-500/30"
+                          : "bg-gradient-to-br from-red-400 to-red-600 shadow-red-500/30",
                     )}
                   >
                     <Sparkles
@@ -362,7 +406,7 @@ export default function MatchesPage() {
                           ? "animate-pulse"
                           : match.data.score >= 0.6
                             ? "animate-bounce"
-                            : ""
+                            : "",
                       )}
                     />
                   </div>
@@ -371,7 +415,9 @@ export default function MatchesPage() {
                       <h2 className="text-5xl font-black text-slate-900 bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
                         {Math.round(match.data.score * 100)}%
                       </h2>
-                      <span className="text-lg font-semibold text-slate-600">Match</span>
+                      <span className="text-lg font-semibold text-slate-600">
+                        Match
+                      </span>
                     </div>
                     <div className="flex items-center gap-3">
                       <Badge
@@ -458,10 +504,14 @@ export default function MatchesPage() {
                     )}
                   </div>
                 </button>
-                <div className={cn(
-                  "overflow-hidden transition-all duration-500 ease-in-out",
-                  expandedExplanation ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
-                )}>
+                <div
+                  className={cn(
+                    "overflow-hidden transition-all duration-500 ease-in-out",
+                    expandedExplanation
+                      ? "max-h-96 opacity-100"
+                      : "max-h-0 opacity-0",
+                  )}
+                >
                   <div className="p-4 bg-white/70 rounded-xl border border-white/50 shadow-sm">
                     <p className="text-slate-700 leading-relaxed text-sm">
                       {match.data.reasoning}

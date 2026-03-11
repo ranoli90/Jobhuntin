@@ -1,24 +1,30 @@
-import React, { useState, useEffect } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { Badge } from '@/components/ui/Badge';
-import { Alert, AlertDescription } from '@/components/ui/Alert';
-import { Input } from '@/components/ui/Input';
-import { Label } from '@/components/ui/Label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/Select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs';
-import { 
-  ExternalLink, 
-  CheckCircle, 
-  AlertCircle, 
-  Settings, 
+import React, { useState, useEffect } from "react";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
+import { Badge } from "@/components/ui/Badge";
+import { Alert, AlertDescription } from "@/components/ui/Alert";
+import { Input } from "@/components/ui/Input";
+import { Label } from "@/components/ui/Label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/Select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/Tabs";
+import {
+  ExternalLink,
+  CheckCircle,
+  AlertCircle,
+  Settings,
   RefreshCw,
   Globe,
   Shield,
   Key,
   Eye,
-  EyeOff
-} from 'lucide-react';
+  EyeOff,
+} from "lucide-react";
 
 interface OAuthProvider {
   id: string;
@@ -45,10 +51,10 @@ const OAuthHandler: React.FC = () => {
   const [credentials, setCredentials] = useState<OAuthCredentials[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedProvider, setSelectedProvider] = useState<string>('');
-  const [clientId, setClientId] = useState('');
-  const [clientSecret, setClientSecret] = useState('');
-  const [redirectUri, setRedirectUri] = useState('');
+  const [selectedProvider, setSelectedProvider] = useState<string>("");
+  const [clientId, setClientId] = useState("");
+  const [clientSecret, setClientSecret] = useState("");
+  const [redirectUri, setRedirectUri] = useState("");
   const [scopes, setScopes] = useState<string[]>([]);
 
   useEffect(() => {
@@ -58,16 +64,20 @@ const OAuthHandler: React.FC = () => {
 
   const fetchProviders = async () => {
     try {
-      const response = await fetch('/api/oauth/providers', {
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/oauth/providers", {
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
       });
 
-      if (!response.ok) throw new Error('Could not load OAuth providers');
+      if (!response.ok) throw new Error("Could not load OAuth providers");
       const data = await response.json();
       setProviders(Array.isArray(data?.providers) ? data.providers : []);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not load OAuth providers');
+    } catch (error_) {
+      setError(
+        error_ instanceof Error
+          ? error_.message
+          : "Could not load OAuth providers",
+      );
     } finally {
       setLoading(false);
     }
@@ -75,25 +85,27 @@ const OAuthHandler: React.FC = () => {
 
   const fetchCredentials = async () => {
     try {
-      const response = await fetch('/api/oauth/credentials', {
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/oauth/credentials", {
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
       });
 
-      if (!response.ok) throw new Error('Could not load credentials');
+      if (!response.ok) throw new Error("Could not load credentials");
       const data = await response.json();
       setCredentials(data.credentials || []);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not load credentials');
+    } catch (error_) {
+      setError(
+        error_ instanceof Error ? error_.message : "Could not load credentials",
+      );
     }
   };
 
   const handleStoreCredentials = async () => {
     try {
-      const response = await fetch('/api/oauth/store-credentials', {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/oauth/store-credentials", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           provider: selectedProvider,
           client_id: clientId,
@@ -103,27 +115,29 @@ const OAuthHandler: React.FC = () => {
         }),
       });
 
-      if (!response.ok) throw new Error('Could not save credentials');
-      
+      if (!response.ok) throw new Error("Could not save credentials");
+
       await fetchCredentials();
       // Reset form
-      setClientId('');
-      setClientSecret('');
-      setRedirectUri('');
+      setClientId("");
+      setClientSecret("");
+      setRedirectUri("");
       setScopes([]);
-      
+
       setError(null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not save credentials');
+    } catch (error_) {
+      setError(
+        error_ instanceof Error ? error_.message : "Could not save credentials",
+      );
     }
   };
 
   const handleInitiateOAuth = async (provider: string) => {
     try {
-      const response = await fetch('/api/oauth/initiate', {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/oauth/initiate", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           provider: provider,
           client_id: clientId,
@@ -132,51 +146,66 @@ const OAuthHandler: React.FC = () => {
         }),
       });
 
-      if (!response.ok) throw new Error('Could not start OAuth sign-in');
+      if (!response.ok) throw new Error("Could not start OAuth sign-in");
       const data = await response.json();
       const authUrl = data?.authorization_url;
-      if (!authUrl || typeof authUrl !== 'string') {
-        throw new Error('Sign-in provider did not respond correctly. Please try again.');
+      if (!authUrl || typeof authUrl !== "string") {
+        throw new Error(
+          "Sign-in provider did not respond correctly. Please try again.",
+        );
       }
-      window.open(authUrl, '_blank');
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not start OAuth sign-in');
+      window.open(authUrl, "_blank");
+    } catch (error_) {
+      setError(
+        error_ instanceof Error
+          ? error_.message
+          : "Could not start OAuth sign-in",
+      );
     }
   };
 
   const handleDeleteCredentials = async (provider: string) => {
-    if (!confirm(`Are you sure you want to delete OAuth credentials for ${provider}?`)) return;
+    if (
+      !confirm(
+        `Are you sure you want to delete OAuth credentials for ${provider}?`,
+      )
+    )
+      return;
 
     try {
-      const response = await fetch('/api/oauth/credentials', {
-        method: 'DELETE',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/oauth/credentials", {
+        method: "DELETE",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           provider: provider,
         }),
       });
 
-      if (!response.ok) throw new Error('Could not remove credentials');
-      
+      if (!response.ok) throw new Error("Could not remove credentials");
+
       await fetchCredentials();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not remove credentials');
+    } catch (error_) {
+      setError(
+        error_ instanceof Error
+          ? error_.message
+          : "Could not remove credentials",
+      );
     }
   };
 
   const getProviderIcon = (provider: string) => {
     const icons = {
-      google: '🔵',
-      linkedin: '💼',
-      microsoft: '🪟',
-      github: '🐙',
-      facebook: '📘',
-      twitter: '🐦',
-      salesforce: '☁️',
-      workday: '🏢',
+      google: "🔵",
+      linkedin: "💼",
+      microsoft: "🪟",
+      github: "🐙",
+      facebook: "📘",
+      twitter: "🐦",
+      salesforce: "☁️",
+      workday: "🏢",
     };
-    return icons[provider as keyof typeof icons] || '🔗';
+    return icons[provider as keyof typeof icons] || "🔗";
   };
 
   return (
@@ -184,7 +213,9 @@ const OAuthHandler: React.FC = () => {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold">OAuth/SSO Handler</h1>
-          <p className="text-gray-600">Manage OAuth credentials and SSO integrations</p>
+          <p className="text-gray-600">
+            Manage OAuth credentials and SSO integrations
+          </p>
         </div>
         <div className="flex space-x-2">
           <Button variant="outline">
@@ -222,13 +253,21 @@ const OAuthHandler: React.FC = () => {
                 {providers.map((provider) => (
                   <Card key={provider.id} className="p-4">
                     <div className="flex items-center space-x-3">
-                      <div className="text-2xl">{getProviderIcon(provider.id)}</div>
+                      <div className="text-2xl">
+                        {getProviderIcon(provider.id)}
+                      </div>
                       <div className="flex-1">
                         <h3 className="font-medium">{provider.name}</h3>
-                        <p className="text-sm text-gray-500">{provider.description}</p>
+                        <p className="text-sm text-gray-500">
+                          {provider.description}
+                        </p>
                         <div className="flex flex-wrap gap-1 mt-2">
                           {provider.scopes.slice(0, 3).map((scope) => (
-                            <Badge key={scope} variant="outline" className="text-xs">
+                            <Badge
+                              key={scope}
+                              variant="outline"
+                              className="text-xs"
+                            >
                               {scope}
                             </Badge>
                           ))}
@@ -265,9 +304,13 @@ const OAuthHandler: React.FC = () => {
                   <Card key={cred.provider} className="p-4">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-3">
-                        <div className="text-2xl">{getProviderIcon(cred.provider)}</div>
+                        <div className="text-2xl">
+                          {getProviderIcon(cred.provider)}
+                        </div>
                         <div>
-                          <h3 className="font-medium capitalize">{cred.provider}</h3>
+                          <h3 className="font-medium capitalize">
+                            {cred.provider}
+                          </h3>
                           <p className="text-sm text-gray-500">
                             Client ID: {cred.client_id}
                           </p>
@@ -276,7 +319,11 @@ const OAuthHandler: React.FC = () => {
                           </p>
                           <div className="flex flex-wrap gap-1 mt-2">
                             {cred.scopes.map((scope) => (
-                              <Badge key={scope} variant="outline" className="text-xs">
+                              <Badge
+                                key={scope}
+                                variant="outline"
+                                className="text-xs"
+                              >
                                 {scope}
                               </Badge>
                             ))}
@@ -301,11 +348,13 @@ const OAuthHandler: React.FC = () => {
                     </div>
                   </Card>
                 ))}
-                
+
                 {credentials.length === 0 && (
                   <div className="text-center py-8">
                     <Shield className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-500">No OAuth credentials stored yet</p>
+                    <p className="text-gray-500">
+                      No OAuth credentials stored yet
+                    </p>
                     <p className="text-sm text-gray-400 mt-2">
                       Configure OAuth credentials to enable SSO integrations
                     </p>
@@ -325,7 +374,10 @@ const OAuthHandler: React.FC = () => {
               <div className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="provider">OAuth Provider</Label>
-                  <Select value={selectedProvider} onValueChange={setSelectedProvider}>
+                  <Select
+                    value={selectedProvider}
+                    onValueChange={setSelectedProvider}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Select OAuth provider" />
                     </SelectTrigger>
@@ -348,7 +400,9 @@ const OAuthHandler: React.FC = () => {
                     id="client-id"
                     placeholder="Enter OAuth client ID"
                     value={clientId}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setClientId(e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      setClientId(e.target.value)
+                    }
                   />
                 </div>
 
@@ -359,7 +413,9 @@ const OAuthHandler: React.FC = () => {
                     type="password"
                     placeholder="Enter OAuth client secret"
                     value={clientSecret}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setClientSecret(e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      setClientSecret(e.target.value)
+                    }
                   />
                 </div>
 
@@ -369,46 +425,65 @@ const OAuthHandler: React.FC = () => {
                     id="redirect-uri"
                     placeholder="Enter redirect URI"
                     value={redirectUri}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setRedirectUri(e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      setRedirectUri(e.target.value)
+                    }
                   />
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="scopes">Scopes</Label>
                   <div className="flex flex-wrap gap-2">
-                    {selectedProvider && providers.find(p => p.id === selectedProvider)?.scopes.map((scope) => (
-                      <div key={scope} className="flex items-center space-x-2">
-                        <input
-                          type="checkbox"
-                          id={scope}
-                          checked={scopes.includes(scope)}
-                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                            if (e.target.checked) {
-                              setScopes((prev) => [...prev, scope]);
-                            } else {
-                              setScopes((prev) => prev.filter((s) => s !== scope));
-                            }
-                          }}
-                        />
-                        <Label htmlFor={scope} className="text-sm">
-                          {scope}
-                        </Label>
-                      </div>
-                    ))}
+                    {selectedProvider &&
+                      providers
+                        .find((p) => p.id === selectedProvider)
+                        ?.scopes.map((scope) => (
+                          <div
+                            key={scope}
+                            className="flex items-center space-x-2"
+                          >
+                            <input
+                              type="checkbox"
+                              id={scope}
+                              checked={scopes.includes(scope)}
+                              onChange={(
+                                e: React.ChangeEvent<HTMLInputElement>,
+                              ) => {
+                                if (e.target.checked) {
+                                  setScopes((previous) => [...previous, scope]);
+                                } else {
+                                  setScopes((previous) =>
+                                    previous.filter((s) => s !== scope),
+                                  );
+                                }
+                              }}
+                            />
+                            <Label htmlFor={scope} className="text-sm">
+                              {scope}
+                            </Label>
+                          </div>
+                        ))}
                   </div>
                 </div>
 
                 <div className="flex space-x-2">
                   <Button
                     onClick={handleStoreCredentials}
-                    disabled={!selectedProvider || !clientId || !clientSecret || !redirectUri}
+                    disabled={
+                      !selectedProvider ||
+                      !clientId ||
+                      !clientSecret ||
+                      !redirectUri
+                    }
                   >
                     <Key className="h-4 w-4 mr-2" />
                     Store Credentials
                   </Button>
                   <Button
                     variant="outline"
-                    onClick={() => selectedProvider && handleInitiateOAuth(selectedProvider)}
+                    onClick={() =>
+                      selectedProvider && handleInitiateOAuth(selectedProvider)
+                    }
                     disabled={!selectedProvider || !clientId || !redirectUri}
                   >
                     <ExternalLink className="h-4 w-4 mr-2" />

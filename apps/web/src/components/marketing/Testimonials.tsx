@@ -1,11 +1,19 @@
 import * as React from "react";
 import { motion, useInView } from "framer-motion";
 import { useRef } from "react";
-import { ArrowUpRight, Quote, Star, TrendingUp, Clock, Briefcase } from "lucide-react";
+import {
+  ArrowUpRight,
+  Quote,
+  Star,
+  TrendingUp,
+  Clock,
+  Briefcase,
+} from "lucide-react";
 
 const TESTIMONIALS = [
   {
-    quote: "I applied to tons of jobs during my shifts. Got multiple interviews that week. JobHuntin is like having a personal recruiter who never sleeps.",
+    quote:
+      "I applied to tons of jobs during my shifts. Got multiple interviews that week. JobHuntin is like having a personal recruiter who never sleeps.",
     author: "Maria Garcia",
     role: "Retail Associate",
     avatar: "MG",
@@ -16,7 +24,8 @@ const TESTIMONIALS = [
     stats: { applications: 47, interviews: 6, responseRate: "87%" },
   },
   {
-    quote: "I was skeptical about AI job applications, but the quality blew me away. Every application felt genuinely personal—not template garbage.",
+    quote:
+      "I was skeptical about AI job applications, but the quality blew me away. Every application felt genuinely personal—not template garbage.",
     author: "James Wilson",
     role: "Cashier",
     avatar: "JW",
@@ -27,7 +36,8 @@ const TESTIMONIALS = [
     stats: { applications: 62, offers: 3, salaryIncrease: "15%" },
   },
   {
-    quote: "As someone with no college degree, I didn't know how to position myself. JobHuntin figured out my skills and found roles I'd never have found.",
+    quote:
+      "As someone with no college degree, I didn't know how to position myself. JobHuntin figured out my skills and found roles I'd never have found.",
     author: "Lisa Thompson",
     role: "Former Server",
     newRole: "Customer Service Lead",
@@ -42,46 +52,76 @@ const TESTIMONIALS = [
 ];
 
 const GLOBAL_STATS = [
-  { value: "847K+", label: "Applications sent", icon: Briefcase, trend: "+12% this week" },
-  { value: "73%", label: "Interview rate", icon: TrendingUp, trend: "vs 8% average" },
-  { value: "14 days", label: "Avg. time to offer", icon: Clock, trend: "Industry: 63 days" },
+  {
+    value: "847K+",
+    label: "Applications sent",
+    icon: Briefcase,
+    trend: "+12% this week",
+  },
+  {
+    value: "73%",
+    label: "Interview rate",
+    icon: TrendingUp,
+    trend: "vs 8% average",
+  },
+  {
+    value: "14 days",
+    label: "Avg. time to offer",
+    icon: Clock,
+    trend: "Industry: 63 days",
+  },
 ];
 
-function TestimonialCard({ testimonial, index }: { testimonial: typeof TESTIMONIALS[0]; index: number }) {
-  const cardRef = useRef(null);
-  const isInView = useInView(cardRef, { once: true, margin: "-50px" });
+function TestimonialCard({
+  testimonial,
+  index,
+}: {
+  testimonial: (typeof TESTIMONIALS)[0];
+  index: number;
+}) {
+  const cardReference = useRef(null);
+  const isInView = useInView(cardReference, { once: true, margin: "-50px" });
   const isLarge = index === 0;
 
   return (
     <motion.div
-      ref={cardRef}
-      className={`relative group ${isLarge ? 'md:col-span-2 lg:col-span-1' : ''}`}
+      ref={cardReference}
+      className={`relative group ${isLarge ? "md:col-span-2 lg:col-span-1" : ""}`}
       initial={{ opacity: 0, y: 40 }}
       animate={isInView ? { opacity: 1, y: 0 } : {}}
       transition={{ duration: 0.6, delay: index * 0.15 }}
     >
       <div className="h-full rounded-2xl bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-800 p-6 lg:p-8 overflow-hidden relative">
         {/* Glow effect on hover */}
-        <div className={`absolute -inset-px bg-gradient-to-br ${testimonial.bgColor} opacity-0 group-hover:opacity-10 transition-opacity duration-500 rounded-2xl`} />
-        
+        <div
+          className={`absolute -inset-px bg-gradient-to-br ${testimonial.bgColor} opacity-0 group-hover:opacity-10 transition-opacity duration-500 rounded-2xl`}
+        />
+
         {/* Quote icon */}
         <Quote className="absolute top-6 right-6 w-8 h-8 text-slate-700" />
 
         {/* Header with avatar */}
         <div className="flex items-start gap-4 mb-6">
-          <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${testimonial.bgColor} flex items-center justify-center text-white font-bold text-lg shadow-lg`}>
+          <div
+            className={`w-14 h-14 rounded-xl bg-gradient-to-br ${testimonial.bgColor} flex items-center justify-center text-white font-bold text-lg shadow-lg`}
+          >
             {testimonial.avatar}
           </div>
           <div className="flex-1">
             <h4 className="font-semibold text-white">{testimonial.author}</h4>
             <p className="text-sm text-slate-400">{testimonial.role}</p>
             {testimonial.newRole && (
-              <p className="text-xs text-emerald-400 mt-0.5">→ {testimonial.newRole}</p>
+              <p className="text-xs text-emerald-400 mt-0.5">
+                → {testimonial.newRole}
+              </p>
             )}
           </div>
           <div className="hidden sm:flex items-center gap-1">
-            {[...Array(5)].map((_, i) => (
-              <Star key={i} className="w-4 h-4 fill-amber-400 text-amber-400" />
+            {Array.from({ length: 5 }).map((_, index_) => (
+              <Star
+                key={index_}
+                className="w-4 h-4 fill-amber-400 text-amber-400"
+              />
             ))}
           </div>
         </div>
@@ -94,8 +134,13 @@ function TestimonialCard({ testimonial, index }: { testimonial: typeof TESTIMONI
         {/* Stats row */}
         <div className="flex flex-wrap gap-4 mb-6">
           {Object.entries(testimonial.stats).map(([key, value]) => (
-            <div key={key} className="px-3 py-1.5 rounded-lg bg-slate-800/50 border border-slate-700/50">
-              <span className="text-xs text-slate-500 uppercase tracking-wider">{key}</span>
+            <div
+              key={key}
+              className="px-3 py-1.5 rounded-lg bg-slate-800/50 border border-slate-700/50"
+            >
+              <span className="text-xs text-slate-500 uppercase tracking-wider">
+                {key}
+              </span>
               <p className="text-sm font-semibold text-white">{value}</p>
             </div>
           ))}
@@ -105,19 +150,26 @@ function TestimonialCard({ testimonial, index }: { testimonial: typeof TESTIMONI
         <div className="flex items-center justify-between pt-4 border-t border-slate-800">
           <div>
             <p className="text-xs text-slate-500 mb-1">Result</p>
-            <p className={`text-sm font-semibold bg-gradient-to-r ${testimonial.bgColor} bg-clip-text text-transparent`}>
+            <p
+              className={`text-sm font-semibold bg-gradient-to-r ${testimonial.bgColor} bg-clip-text text-transparent`}
+            >
               {testimonial.result}
             </p>
           </div>
           <div className="text-right">
             <p className="text-xs text-slate-500 mb-1">Timeline</p>
-            <p className="text-sm font-medium text-white">{testimonial.timeframe}</p>
+            <p className="text-sm font-medium text-white">
+              {testimonial.timeframe}
+            </p>
           </div>
         </div>
 
         {/* Previous company tag */}
         <div className="absolute bottom-0 left-0 right-0 px-6 py-2 bg-slate-800/50 border-t border-slate-800">
-          <p className="text-xs text-slate-500">Previously: <span className="text-slate-400">{testimonial.previous}</span></p>
+          <p className="text-xs text-slate-500">
+            Previously:{" "}
+            <span className="text-slate-400">{testimonial.previous}</span>
+          </p>
         </div>
       </div>
     </motion.div>
@@ -125,11 +177,17 @@ function TestimonialCard({ testimonial, index }: { testimonial: typeof TESTIMONI
 }
 
 export function Testimonials() {
-  const sectionRef = useRef(null);
-  const isInView = useInView(sectionRef, { once: true, margin: "-100px" });
+  const sectionReference = useRef(null);
+  const isInView = useInView(sectionReference, {
+    once: true,
+    margin: "-100px",
+  });
 
   return (
-    <section ref={sectionRef} className="relative py-24 lg:py-32 bg-slate-950 overflow-hidden">
+    <section
+      ref={sectionReference}
+      className="relative py-24 lg:py-32 bg-slate-950 overflow-hidden"
+    >
       {/* Background elements */}
       <div className="absolute inset-0">
         <div className="absolute top-0 left-1/4 w-[600px] h-[600px] rounded-full bg-gradient-to-br from-cyan-500/5 to-blue-600/5 blur-[100px]" />
@@ -138,7 +196,7 @@ export function Testimonials() {
 
       <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Section header */}
-        <motion.div 
+        <motion.div
           className="mb-16 lg:mb-20"
           initial={{ opacity: 0, y: 30 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
@@ -158,13 +216,14 @@ export function Testimonials() {
               </h2>
             </div>
             <p className="text-lg text-slate-400 max-w-md lg:text-right">
-              Thousands of job seekers have transformed their search with JobHuntin. Here's what they achieved.
+              Thousands of job seekers have transformed their search with
+              JobHuntin. Here's what they achieved.
             </p>
           </div>
         </motion.div>
 
         {/* Global stats bar */}
-        <motion.div 
+        <motion.div
           className="mb-16 lg:mb-20"
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
@@ -174,7 +233,7 @@ export function Testimonials() {
             {GLOBAL_STATS.map((stat, index) => {
               const Icon = stat.icon;
               return (
-                <div 
+                <div
                   key={stat.label}
                   className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-800 p-6 lg:p-8"
                 >
@@ -184,9 +243,13 @@ export function Testimonials() {
                       <div className="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center">
                         <Icon className="w-5 h-5 text-cyan-400" />
                       </div>
-                      <span className="text-sm text-slate-500">{stat.trend}</span>
+                      <span className="text-sm text-slate-500">
+                        {stat.trend}
+                      </span>
                     </div>
-                    <p className="text-4xl lg:text-5xl font-bold text-white mb-2">{stat.value}</p>
+                    <p className="text-4xl lg:text-5xl font-bold text-white mb-2">
+                      {stat.value}
+                    </p>
                     <p className="text-slate-400">{stat.label}</p>
                   </div>
                 </div>
@@ -198,20 +261,24 @@ export function Testimonials() {
         {/* Testimonials grid - asymmetric layout */}
         <div className="grid gap-6 lg:gap-8 md:grid-cols-2 lg:grid-cols-3">
           {TESTIMONIALS.map((testimonial, index) => (
-            <TestimonialCard key={testimonial.author} testimonial={testimonial} index={index} />
+            <TestimonialCard
+              key={testimonial.author}
+              testimonial={testimonial}
+              index={index}
+            />
           ))}
         </div>
 
         {/* Bottom CTA */}
-        <motion.div 
+        <motion.div
           className="mt-16 lg:mt-20 text-center"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
-          <a 
-            href="#pricing" 
+          <a
+            href="#pricing"
             className="inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-semibold hover:from-cyan-400 hover:to-blue-500 transition-all shadow-lg shadow-cyan-500/25 group"
           >
             Join 12,000+ successful job seekers

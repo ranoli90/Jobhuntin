@@ -1,66 +1,113 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { SEO } from '../components/marketing/SEO';
-import { motion } from 'framer-motion';
-import { 
-  FileText, Mail, Target, Briefcase, BarChart3, Sparkles, 
-  ArrowRight, CheckCircle2, Zap, Shield, Clock
-} from 'lucide-react';
+import React from "react";
+import { Link } from "react-router-dom";
+import { SEO } from "../components/marketing/SEO";
+import { motion } from "framer-motion";
+import {
+  FileText,
+  Mail,
+  Target,
+  Briefcase,
+  BarChart3,
+  Sparkles,
+  ArrowRight,
+  CheckCircle2,
+  Zap,
+  Shield,
+  Clock,
+} from "lucide-react";
 
 const tools = [
   {
-    slug: 'ai-resume-builder',
-    name: 'AI Resume Builder',
-    description: 'Create a professional, ATS-optimized resume in minutes. Our AI analyzes job descriptions and tailors your resume for maximum impact.',
+    slug: "ai-resume-builder",
+    name: "AI Resume Builder",
+    description:
+      "Create a professional, ATS-optimized resume in minutes. Our AI analyzes job descriptions and tailors your resume for maximum impact.",
     icon: FileText,
-    features: ['ATS-optimized templates', 'Keyword matching', 'One-click tailoring', 'Export to PDF/Word'],
-    path: '/tools/ai-resume-builder',
+    features: [
+      "ATS-optimized templates",
+      "Keyword matching",
+      "One-click tailoring",
+      "Export to PDF/Word",
+    ],
+    path: "/tools/ai-resume-builder",
   },
   {
-    slug: 'cover-letter-generator',
-    name: 'AI Cover Letter Generator',
-    description: 'Generate personalized cover letters for any job in seconds. Each letter is unique, professional, and tailored to the specific role.',
+    slug: "cover-letter-generator",
+    name: "AI Cover Letter Generator",
+    description:
+      "Generate personalized cover letters for any job in seconds. Each letter is unique, professional, and tailored to the specific role.",
     icon: Mail,
-    features: ['Job-specific content', 'Multiple styles', 'Quick customization', 'ATS-friendly format'],
-    path: '/tools/cover-letter-generator',
+    features: [
+      "Job-specific content",
+      "Multiple styles",
+      "Quick customization",
+      "ATS-friendly format",
+    ],
+    path: "/tools/cover-letter-generator",
   },
   {
-    slug: 'job-application-tracker',
-    name: 'Job Application Tracker',
-    description: 'Keep all your applications organized in one place. Track status, deadlines, follow-ups, and interviews effortlessly.',
+    slug: "job-application-tracker",
+    name: "Job Application Tracker",
+    description:
+      "Keep all your applications organized in one place. Track status, deadlines, follow-ups, and interviews effortlessly.",
     icon: Briefcase,
-    features: ['Status tracking', 'Interview scheduling', 'Follow-up reminders', 'Analytics dashboard'],
-    path: '/tools/job-tracker',
+    features: [
+      "Status tracking",
+      "Interview scheduling",
+      "Follow-up reminders",
+      "Analytics dashboard",
+    ],
+    path: "/tools/job-tracker",
   },
   {
-    slug: 'ats-score-checker',
-    name: 'ATS Score Checker',
-    description: 'See how your resume performs against Applicant Tracking Systems. Get actionable tips to improve your score.',
+    slug: "ats-score-checker",
+    name: "ATS Score Checker",
+    description:
+      "See how your resume performs against Applicant Tracking Systems. Get actionable tips to improve your score.",
     icon: BarChart3,
-    features: ['Instant scoring', 'Keyword analysis', 'Format validation', 'Improvement suggestions'],
-    path: '/tools/ats-score-checker',
+    features: [
+      "Instant scoring",
+      "Keyword analysis",
+      "Format validation",
+      "Improvement suggestions",
+    ],
+    path: "/tools/ats-score-checker",
   },
   {
-    slug: 'job-match-scorer',
-    name: 'Job Match Scorer',
-    description: 'Find out how well you match any job posting. AI analyzes your skills against requirements and suggests improvements.',
+    slug: "job-match-scorer",
+    name: "Job Match Scorer",
+    description:
+      "Find out how well you match any job posting. AI analyzes your skills against requirements and suggests improvements.",
     icon: Target,
-    features: ['Skill gap analysis', 'Match percentage', 'Keyword suggestions', 'Role comparisons'],
-    path: '/tools/job-match-scorer',
+    features: [
+      "Skill gap analysis",
+      "Match percentage",
+      "Keyword suggestions",
+      "Role comparisons",
+    ],
+    path: "/tools/job-match-scorer",
   },
   {
-    slug: 'ai-job-assistant',
-    name: 'AI Job Assistant',
-    description: 'Get instant answers to all your job search questions. From salary negotiations to interview prep, your AI copilot is ready.',
+    slug: "ai-job-assistant",
+    name: "AI Job Assistant",
+    description:
+      "Get instant answers to all your job search questions. From salary negotiations to interview prep, your AI copilot is ready.",
     icon: Sparkles,
-    features: ['24/7 availability', 'Interview prep', 'Salary guidance', 'Career advice'],
-    path: '/tools/ai-job-assistant',
+    features: [
+      "24/7 availability",
+      "Interview prep",
+      "Salary guidance",
+      "Career advice",
+    ],
+    path: "/tools/ai-job-assistant",
   },
 ];
 
 export default function ToolsHub() {
-  const title = 'Free AI Job Search Tools | Resume Builder, ATS Checker & Cover Letter Gen';
-  const description = 'Free AI-powered job search tools: ATS-optimized resume builder, cover letter generator, job application tracker, and ATS score checker. No signup required for basic features.';
+  const title =
+    "Free AI Job Search Tools | Resume Builder, ATS Checker & Cover Letter Gen";
+  const description =
+    "Free AI-powered job search tools: ATS-optimized resume builder, cover letter generator, job application tracker, and ATS score checker. No signup required for basic features.";
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white dark:from-slate-950 dark:to-slate-900 font-sans text-slate-900 dark:text-slate-100">
@@ -74,29 +121,29 @@ export default function ToolsHub() {
           {
             "@context": "https://schema.org",
             "@type": "ItemList",
-            "name": "Free AI Job Search Tools",
-            "description": "Collection of free AI-powered tools for job seekers",
-            "numberOfItems": tools.length,
-            "itemListElement": tools.map((tool, i) => ({
+            name: "Free AI Job Search Tools",
+            description: "Collection of free AI-powered tools for job seekers",
+            numberOfItems: tools.length,
+            itemListElement: tools.map((tool, index) => ({
               "@type": "ListItem",
-              "position": i + 1,
-              "name": tool.name,
-              "url": `https://jobhuntin.com${tool.path}`,
-              "description": tool.description,
+              position: index + 1,
+              name: tool.name,
+              url: `https://jobhuntin.com${tool.path}`,
+              description: tool.description,
             })),
           },
           {
             "@context": "https://schema.org",
             "@type": "WebPage",
-            "name": title,
-            "description": description,
-            "url": "https://jobhuntin.com/tools",
-            "provider": {
+            name: title,
+            description: description,
+            url: "https://jobhuntin.com/tools",
+            provider: {
               "@type": "Organization",
-              "name": "JobHuntin",
-              "url": "https://jobhuntin.com"
-            }
-          }
+              name: "JobHuntin",
+              url: "https://jobhuntin.com",
+            },
+          },
         ]}
       />
 
@@ -115,7 +162,9 @@ export default function ToolsHub() {
             AI-Powered Job Search Tools
           </h1>
           <p className="text-xl text-slate-600 max-w-2xl mx-auto">
-            Everything you need to land your dream job. Build better resumes, write cover letters faster, and track your progress — all powered by AI.
+            Everything you need to land your dream job. Build better resumes,
+            write cover letters faster, and track your progress — all powered by
+            AI.
           </p>
         </motion.div>
 
@@ -163,8 +212,11 @@ export default function ToolsHub() {
                   {tool.description}
                 </p>
                 <ul className="space-y-2">
-                  {tool.features.map((feature, i) => (
-                    <li key={i} className="flex items-center gap-2 text-sm text-slate-500">
+                  {tool.features.map((feature, index_) => (
+                    <li
+                      key={index_}
+                      className="flex items-center gap-2 text-sm text-slate-500"
+                    >
                       <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0" />
                       {feature}
                     </li>
@@ -186,11 +238,11 @@ export default function ToolsHub() {
           transition={{ delay: 0.5 }}
           className="mt-20 bg-gradient-to-r from-primary-600 to-primary-700 rounded-3xl p-10 text-center text-white"
         >
-          <h2 className="text-3xl font-bold mb-4">
-            Want Complete Automation?
-          </h2>
+          <h2 className="text-3xl font-bold mb-4">Want Complete Automation?</h2>
           <p className="text-primary-100 mb-8 max-w-xl mx-auto">
-            Our tools are great, but JobHuntin Pro takes it further. Set your preferences once, and our AI agent applies to hundreds of jobs automatically.
+            Our tools are great, but JobHuntin Pro takes it further. Set your
+            preferences once, and our AI agent applies to hundreds of jobs
+            automatically.
           </p>
           <Link
             to="/"

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import DOMPurify from "dompurify";
 
-interface LazyMarkdownProps {
+interface LazyMarkdownProperties {
   content: string;
   className?: string;
 }
@@ -10,13 +10,13 @@ interface LazyMarkdownProps {
  * Renders markdown content by dynamically importing `marked` only when needed.
  * Keeps the marked library out of the main bundle.
  */
-export function LazyMarkdown({ content, className }: LazyMarkdownProps) {
+export function LazyMarkdown({ content, className }: LazyMarkdownProperties) {
   const [html, setHtml] = useState<string | null>(null);
 
   useEffect(() => {
     import("marked").then(({ marked }) => {
       marked.setOptions({ gfm: true });
-      const parsed = marked.parse(content, { async: false }) as string;
+      const parsed = marked.parse(content, { async: false });
       setHtml(DOMPurify.sanitize(parsed));
     });
   }, [content]);
@@ -34,9 +34,6 @@ export function LazyMarkdown({ content, className }: LazyMarkdownProps) {
   }
 
   return (
-    <div
-      className={className}
-      dangerouslySetInnerHTML={{ __html: html }}
-    />
+    <div className={className} dangerouslySetInnerHTML={{ __html: html }} />
   );
 }

@@ -4,10 +4,10 @@
  * Enhanced with bot protection and rate limiting
  */
 
-import { config } from '../config';
-import { ValidationUtils } from '../lib/validation';
-import { botProtection } from '../lib/botProtection';
-import { telemetry } from '../lib/telemetry';
+import { config } from "../config";
+import { ValidationUtils } from "../lib/validation";
+import { botProtection } from "../lib/botProtection";
+import { telemetry } from "../lib/telemetry";
 
 export interface MagicLinkResponse {
   status: string;
@@ -23,16 +23,19 @@ export interface MagicLinkError {
 class MagicLinkService {
   private rateLimitResets: Map<string, number> = new Map();
   private captchaRequired: boolean = false;
-  private circuitBreakerState: Map<string, {
-    failures: number;
-    lastFailure: number;
-    state: 'closed' | 'open' | 'half-open';
-    successCount: number;  // Track successes in half-open state
-    testRequests: number;  // Track test requests allowed in half-open
-  }> = new Map();
+  private circuitBreakerState: Map<
+    string,
+    {
+      failures: number;
+      lastFailure: number;
+      state: "closed" | "open" | "half-open";
+      successCount: number; // Track successes in half-open state
+      testRequests: number; // Track test requests allowed in half-open
+    }
+  > = new Map();
   private readonly CIRCUIT_BREAKER_THRESHOLD = 5;
-  private readonly CIRCUIT_BREAKER_TIMEOUT = 60000; // 1 minute
-  private readonly CIRCUIT_BREAKER_HALF_OPEN_TIMEOUT = 30000; // 30 seconds
+  private readonly CIRCUIT_BREAKER_TIMEOUT = 60_000; // 1 minute
+  private readonly CIRCUIT_BREAKER_HALF_OPEN_TIMEOUT = 30_000; // 30 seconds
   private readonly CIRCUIT_BREAKER_HALF_OPEN_MAX_TESTS = 3; // Allow 3 test requests in half-open
 
   /**
@@ -40,20 +43,33 @@ class MagicLinkService {
    */
   async sendMagicLink(
     email: string,
-    returnTo: string = '/app/onboarding',
-    captchaToken?: string
-  ): Promise<{ success: boolean; email: string; error?: string; retryAfter?: number; captchaRequired?: boolean; status?: number }> {
+    returnTo: string = "/app/onboarding",
+    captchaToken?: string,
+  ): Promise<{
+    success: boolean;
+    email: string;
+    error?: string;
+    retryAfter?: number;
+    captchaRequired?: boolean;
+    status?: number;
+  }> {
     // RFC max email length is 320 chars (254 + local part variations). Allow full range.
-    const normalizedEmail = ValidationUtils.sanitizeInput(email.trim().toLowerCase(), 320);
+    const normalizedEmail = ValidationUtils.sanitizeInput(
+      email.trim().toLowerCase(),
+      320,
+    );
 
     // Enhanced email validation
     const emailValidation = ValidationUtils.validate.email(normalizedEmail);
     if (!emailValidation.isValid) {
-      telemetry.track('magic_link_failed', { reason: 'validation', error: emailValidation.errors.join(', ') });
+      telemetry.track("magic_link_failed", {
+        reason: "validation",
+        error: emailValidation.errors.join(", "),
+      });
       return {
         success: false,
         email: normalizedEmail,
-        error: emailValidation.errors.join(', '),
+        error: emailValidation.errors.join(", "),
       };
     }
 
@@ -61,7 +77,10 @@ class MagicLinkService {
     const rateLimitReset = this.rateLimitResets.get(normalizedEmail);
     if (rateLimitReset) {
       if (rateLimitReset > Date.now()) {
-        const secondsLeft = Math.max(1, Math.ceil((rateLimitReset - Date.now()) / 1000));
+        const secondsLeft = Math.max(
+          1,
+          Math.ceil((rateLimitReset - Date.now()) / 1000),
+        );
         return {
           success: false,
           email: normalizedEmail,
@@ -83,23 +102,29 @@ class MagicLinkService {
     if (!rateLimitCheck.allowed) {
       const retryAfter = rateLimitCheck.resetIn || 300;
       this.rateLimitResets.set(normalizedEmail, Date.now() + retryAfter * 1000);
-      telemetry.track('magic_link_failed', { reason: 'rate_limit', retryAfter });
+      telemetry.track("magic_link_failed", {
+        reason: "rate_limit",
+        retryAfter,
+      });
       return {
         success: false,
         email: normalizedEmail,
-        error: rateLimitCheck.reason || `Too many requests. Please wait ${retryAfter} seconds before retrying.`,
+        error:
+          rateLimitCheck.reason ||
+          `Too many requests. Please wait ${retryAfter} seconds before retrying.`,
         retryAfter: retryAfter,
       };
     }
 
     // Check if captcha is required
-    const shouldRequireCaptcha = botProtection.shouldRequireCaptcha(normalizedEmail);
+    const shouldRequireCaptcha =
+      botProtection.shouldRequireCaptcha(normalizedEmail);
     if (shouldRequireCaptcha && !captchaToken) {
-      telemetry.track('magic_link_failed', { reason: 'captcha_required' });
+      telemetry.track("magic_link_failed", { reason: "captcha_required" });
       return {
         success: false,
         email: normalizedEmail,
-        error: 'Please complete the captcha verification to continue.',
+        error: "Please complete the captcha verification to continue.",
         captchaRequired: true,
       };
     }
@@ -110,23 +135,26 @@ class MagicLinkService {
     try {
       // Prefer canonical app base URL
       const configuredOrigin = config.appBaseUrl?.trim();
-      const browserOrigin = typeof window !== 'undefined' ? window.location.origin : '';
+      const browserOrigin =
+        typeof window === "undefined" ? "" : window.location.origin;
 
       // Enhanced URL validation
       if (configuredOrigin && !this.isValidURL(configuredOrigin)) {
-        throw new Error('Invalid appBaseUrl configuration: malformed URL');
+        throw new Error("Invalid appBaseUrl configuration: malformed URL");
       }
 
       const origin = configuredOrigin || browserOrigin;
 
       if (!origin) {
-        throw new Error('App base URL is not configured and origin is unavailable');
+        throw new Error(
+          "App base URL is not configured and origin is unavailable",
+        );
       }
 
-      if (!configuredOrigin && browserOrigin) {
-        if (import.meta.env.DEV) {
-          console.warn('[MagicLink] Using browser origin as fallback - configure appBaseUrl for production');
-        }
+      if (!configuredOrigin && browserOrigin && import.meta.env.DEV) {
+        console.warn(
+          "[MagicLink] Using browser origin as fallback - configure appBaseUrl for production",
+        );
       }
 
       // Construct redirect URL to go through /login page first
@@ -143,43 +171,62 @@ class MagicLinkService {
       // However, the frontend currently constructs `redirectUrl` with `returnTo` param.
       // This seems fine. The backend will append `&token=...` to it.
 
-      const redirectUrl = `${origin.replace(/\/$/, '')}/login?returnTo=${encodeURIComponent(sanitizedReturnTo)}`;
+      const redirectUrl = `${origin.replace(/\/$/, "")}/login?returnTo=${encodeURIComponent(sanitizedReturnTo)}`;
 
       // Validate redirect URL is properly formed
-      if (!redirectUrl.startsWith('http')) {
-        throw new Error('Invalid redirect URL: must be absolute URL with protocol');
+      if (!redirectUrl.startsWith("http")) {
+        throw new Error(
+          "Invalid redirect URL: must be absolute URL with protocol",
+        );
       }
 
       if (import.meta.env.DEV) {
-        const maskedEmail = normalizedEmail.replace(/(^.{2}).+(@.+)$/, '$1***$2');
+        const maskedEmail = normalizedEmail.replace(
+          /(^.{2}).+(@.+)$/,
+          "$1***$2",
+        );
         if (import.meta.env.DEV) {
-          console.log('[MagicLink] Sending request to API:', maskedEmail, 'return_to:', sanitizedReturnTo);
+          console.log(
+            "[MagicLink] Sending request to API:",
+            maskedEmail,
+            "return_to:",
+            sanitizedReturnTo,
+          );
         }
       }
 
       // Check circuit breaker before making request
       // States: 'closed' = healthy (default), 'open' = tripped/blocking, 'half-open' = testing recovery
       const circuitKey = `magiclink_${normalizedEmail}`;
-      const circuitState = this.circuitBreakerState.get(circuitKey) || { failures: 0, lastFailure: 0, state: 'closed' };
+      const circuitState = this.circuitBreakerState.get(circuitKey) || {
+        failures: 0,
+        lastFailure: 0,
+        state: "closed",
+      };
 
-      if (circuitState.state === 'open') {
-        const timeUntilReset = circuitState.lastFailure + this.CIRCUIT_BREAKER_TIMEOUT - Date.now();
+      if (circuitState.state === "open") {
+        const timeUntilReset =
+          circuitState.lastFailure + this.CIRCUIT_BREAKER_TIMEOUT - Date.now();
         if (timeUntilReset > 0) {
           return {
             success: false,
             email: normalizedEmail,
             error: `Service temporarily unavailable. Please try again in ${Math.ceil(timeUntilReset / 1000)} seconds.`,
-            retryAfter: Math.ceil(timeUntilReset / 1000)
+            retryAfter: Math.ceil(timeUntilReset / 1000),
           };
         }
-      } else if (circuitState.state === 'half-open') {
+      } else if (circuitState.state === "half-open") {
         // In half-open state, allow limited test requests
-        if (circuitState.testRequests >= this.CIRCUIT_BREAKER_HALF_OPEN_MAX_TESTS) {
+        if (
+          circuitState.testRequests >= this.CIRCUIT_BREAKER_HALF_OPEN_MAX_TESTS
+        ) {
           return {
             success: false,
             email: normalizedEmail,
             error: `Service temporarily unavailable. Please try again in ${Math.ceil(this.CIRCUIT_BREAKER_HALF_OPEN_TIMEOUT / 1000)} seconds.`,
-            retryAfter: Math.ceil(this.CIRCUIT_BREAKER_HALF_OPEN_TIMEOUT / 1000)
+            retryAfter: Math.ceil(
+              this.CIRCUIT_BREAKER_HALF_OPEN_TIMEOUT / 1000,
+            ),
           };
         }
         // Allow this test request
@@ -188,7 +235,7 @@ class MagicLinkService {
       }
 
       // Use the backend API to send the magic link with enhanced security
-      const { apiPost } = await import('../lib/api');
+      const { apiPost } = await import("../lib/api");
 
       const payload: any = {
         email: normalizedEmail,
@@ -202,20 +249,22 @@ class MagicLinkService {
         payload.captcha_token = captchaToken;
       }
 
-      await apiPost('/auth/magic-link', payload);
+      await apiPost("/auth/magic-link", payload);
 
       // Reset circuit breaker on success
       this.circuitBreakerState.set(circuitKey, {
         failures: 0,
         lastFailure: 0,
-        state: 'closed',
+        state: "closed",
         successCount: 0,
-        testRequests: 0
+        testRequests: 0,
       });
 
-      telemetry.track('magic_link_sent', { email_domain: normalizedEmail.split('@')[1] || 'unknown' });
+      telemetry.track("magic_link_sent", {
+        email_domain: normalizedEmail.split("@")[1] || "unknown",
+      });
       if (import.meta.env.DEV) {
-        console.log('[MagicLink] API request successful');
+        console.log("[MagicLink] API request successful");
       }
 
       return {
@@ -223,30 +272,30 @@ class MagicLinkService {
         email: normalizedEmail,
       };
     } catch (error: any) {
-      console.error('[MagicLink] Error:', error);
+      console.error("[MagicLink] Error:", error);
 
       // Update circuit breaker state on failure
       const circuitKey = `magiclink_${normalizedEmail}`;
       const circuitState = this.circuitBreakerState.get(circuitKey) || {
         failures: 0,
         lastFailure: 0,
-        state: 'closed' as const,
+        state: "closed" as const,
         successCount: 0,
-        testRequests: 0
+        testRequests: 0,
       };
       const newFailures = circuitState.failures + 1;
       const now = Date.now();
-      let newState: 'closed' | 'half-open' | 'open' = 'closed';
+      let newState: "closed" | "half-open" | "open" = "closed";
 
       if (newFailures >= this.CIRCUIT_BREAKER_THRESHOLD) {
-        newState = 'open';
+        newState = "open";
       } else if (newFailures >= Math.ceil(this.CIRCUIT_BREAKER_THRESHOLD / 2)) {
-        newState = 'half-open';
+        newState = "half-open";
       }
 
-      if (circuitState.state === 'half-open') {
+      if (circuitState.state === "half-open") {
         if (newFailures >= this.CIRCUIT_BREAKER_THRESHOLD) {
-          newState = 'open';
+          newState = "open";
         }
         circuitState.testRequests = 0;
         circuitState.successCount = 0;
@@ -256,43 +305,56 @@ class MagicLinkService {
         failures: newFailures,
         lastFailure: now,
         state: newState,
-        successCount: newState === 'half-open' ? circuitState.successCount : 0,
-        testRequests: newState === 'half-open' ? circuitState.testRequests : 0
+        successCount: newState === "half-open" ? circuitState.successCount : 0,
+        testRequests: newState === "half-open" ? circuitState.testRequests : 0,
       });
 
       // Handle 429 specifically
-      if (error?.status === 429 || error?.message?.includes('Too many requests')) {
+      if (
+        error?.status === 429 ||
+        error?.message?.includes("Too many requests")
+      ) {
         const retryAfter = error.retryAfter || 60;
-        this.rateLimitResets.set(normalizedEmail, Date.now() + retryAfter * 1000);
-        telemetry.track('magic_link_failed', { reason: 'rate_limit', retryAfter });
+        this.rateLimitResets.set(
+          normalizedEmail,
+          Date.now() + retryAfter * 1000,
+        );
+        telemetry.track("magic_link_failed", {
+          reason: "rate_limit",
+          retryAfter,
+        });
         return {
           success: false,
           email: normalizedEmail,
           error: `Too many requests. Please wait ${retryAfter} seconds.`,
-          retryAfter
+          retryAfter,
         };
       }
 
       // Extract clean error message — guard against [object Object]
-      let message = 'Failed to send magic link. Please try again.';
-      if (typeof error?.message === 'string' && error.message.length > 0 && !error.message.includes('[object Object]')) {
-        message = error.message.replace(/\s*\(HTTP\s*\d+\)\s*$/, '');
-      } else if (typeof error === 'string') {
+      let message = "Failed to send magic link. Please try again.";
+      if (
+        typeof error?.message === "string" &&
+        error.message.length > 0 &&
+        !error.message.includes("[object Object]")
+      ) {
+        message = error.message.replace(/\s*\(HTTP\s*\d+\)\s*$/, "");
+      } else if (typeof error === "string") {
         message = error;
       }
       const status = error?.status;
 
-      telemetry.track('magic_link_failed', {
-        reason: 'api_error',
+      telemetry.track("magic_link_failed", {
+        reason: "api_error",
         error: message?.slice(0, 100),
         status,
-        email_domain: normalizedEmail.split('@')[1] || 'unknown',
+        email_domain: normalizedEmail.split("@")[1] || "unknown",
       });
       return {
         success: false,
         email: normalizedEmail,
         error: message,
-        status: typeof status === 'number' ? status : undefined,
+        status: typeof status === "number" ? status : undefined,
       };
     }
   }
@@ -303,7 +365,7 @@ class MagicLinkService {
   private isValidURL(url: string): boolean {
     try {
       const parsed = new URL(url);
-      return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+      return parsed.protocol === "http:" || parsed.protocol === "https:";
     } catch {
       return false;
     }
@@ -313,7 +375,10 @@ class MagicLinkService {
    * Get rate limit countdown for an email
    */
   getRateLimitCountdown(email: string): number | null {
-    const normalizedEmail = ValidationUtils.sanitizeInput(email.toLowerCase(), 320);
+    const normalizedEmail = ValidationUtils.sanitizeInput(
+      email.toLowerCase(),
+      320,
+    );
     const reset = this.rateLimitResets.get(normalizedEmail);
     if (!reset || reset <= Date.now()) {
       return null;
@@ -325,8 +390,8 @@ class MagicLinkService {
    * Enhanced return_to sanitization with security
    */
   private sanitizeReturnTo(url: string): string {
-    if (!url || typeof url !== 'string') {
-      return '/app/onboarding';
+    if (!url || typeof url !== "string") {
+      return "/app/onboarding";
     }
 
     // Trim and cap length to avoid abuse
@@ -334,53 +399,58 @@ class MagicLinkService {
 
     // Reject dangerous schemes/hosts
     const lower = trimmed.toLowerCase();
-    if (lower.startsWith('http:') || lower.startsWith('https:') || lower.startsWith('javascript:') || lower.startsWith('data:')) {
-      return '/app/onboarding';
+    if (
+      lower.startsWith("http:") ||
+      lower.startsWith("https:") ||
+      lower.startsWith("javascript:") ||
+      lower.startsWith("data:")
+    ) {
+      return "/app/onboarding";
     }
 
     // Must be an absolute path (no host) and not protocol-relative
-    if (!trimmed.startsWith('/') || trimmed.startsWith('//')) {
-      return '/app/onboarding';
+    if (!trimmed.startsWith("/") || trimmed.startsWith("//")) {
+      return "/app/onboarding";
     }
 
     // Strip query/hash to avoid open redirects; we only trust path component
-    const pathOnly = trimmed.split('?')[0].split('#')[0];
+    const pathOnly = trimmed.split("?")[0].split("#")[0];
 
     // Check for path traversal attempts
-    if (pathOnly.includes('../') || pathOnly.includes('..\\')) {
-      return '/app/onboarding';
+    if (pathOnly.includes("../") || pathOnly.includes("..\\")) {
+      return "/app/onboarding";
     }
 
     const allowedPaths = new Set([
-      '/',
-      '/pricing',
-      '/app/onboarding',
-      '/app/dashboard',
-      '/app/jobs',
-      '/app/applications',
-      '/app/holds',
-      '/app/billing',
-      '/app/settings',
-      '/app/team',
-      '/app/matches',
-      '/app/tailor',
-      '/app/ats-score',
-      '/app/job-alerts',
-      '/app/pipeline-view',
-      '/app/application-export',
-      '/app/follow-up-reminders',
-      '/app/interview-practice',
-      '/app/multi-resume',
-      '/app/application-notes',
-      '/app/communication-preferences',
-      '/app/notification-history',
-      '/app/dlq-dashboard',
-      '/app/screenshot-capture',
-      '/app/agent-improvements',
-      '/app/admin/usage',
-      '/app/admin/matches',
-      '/app/admin/alerts',
-      '/app/admin/sources',
+      "/",
+      "/pricing",
+      "/app/onboarding",
+      "/app/dashboard",
+      "/app/jobs",
+      "/app/applications",
+      "/app/holds",
+      "/app/billing",
+      "/app/settings",
+      "/app/team",
+      "/app/matches",
+      "/app/tailor",
+      "/app/ats-score",
+      "/app/job-alerts",
+      "/app/pipeline-view",
+      "/app/application-export",
+      "/app/follow-up-reminders",
+      "/app/interview-practice",
+      "/app/multi-resume",
+      "/app/application-notes",
+      "/app/communication-preferences",
+      "/app/notification-history",
+      "/app/dlq-dashboard",
+      "/app/screenshot-capture",
+      "/app/agent-improvements",
+      "/app/admin/usage",
+      "/app/admin/matches",
+      "/app/admin/alerts",
+      "/app/admin/sources",
     ]);
 
     if (allowedPaths.has(pathOnly)) {
@@ -388,17 +458,17 @@ class MagicLinkService {
     }
     // Allow subpaths (e.g. /app/onboarding/complete) to match backend whitelist
     for (const allowed of allowedPaths) {
-      if (pathOnly.startsWith(allowed + '/')) {
+      if (pathOnly.startsWith(allowed + "/")) {
         return pathOnly;
       }
     }
 
-    return '/app/onboarding';
+    return "/app/onboarding";
   }
 
   /** Sanitize returnTo for redirects. Use for Login and any URL param handling. */
   getSafeReturnTo(returnTo: string | null | undefined): string {
-    return this.sanitizeReturnTo(returnTo ?? '/app/onboarding');
+    return this.sanitizeReturnTo(returnTo ?? "/app/onboarding");
   }
 
   /**
@@ -407,16 +477,21 @@ class MagicLinkService {
   getDestinationHint(returnTo: string): string {
     const sanitized = this.sanitizeReturnTo(returnTo);
     switch (sanitized) {
-      case '/app/onboarding':
+      case "/app/onboarding": {
         return "We'll drop you into onboarding as soon as you're verified.";
-      case '/app/dashboard':
+      }
+      case "/app/dashboard": {
         return "You'll land on your dashboard after signing in.";
-      case '/app/jobs':
+      }
+      case "/app/jobs": {
         return "You'll go straight to job feed.";
-      case '/app/team':
+      }
+      case "/app/team": {
         return "You'll access your team workspace.";
-      default:
+      }
+      default: {
         return `We'll take you to ${sanitized} once you're in.`;
+      }
     }
   }
 

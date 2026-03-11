@@ -41,7 +41,9 @@ interface BillingData {
 async function fetchBillingData(): Promise<BillingData> {
   const [status, usage, tiers] = await Promise.all([
     apiGet<BillingStatus>("billing/status"),
-    apiGet<BillingUsage & { monthly_used?: number; monthly_limit?: number }>("billing/usage"),
+    apiGet<BillingUsage & { monthly_used?: number; monthly_limit?: number }>(
+      "billing/usage",
+    ),
     apiGet<BillingTier[]>("billing/tiers"),
   ]);
   return { status, usage, tiers };
@@ -49,9 +51,27 @@ async function fetchBillingData(): Promise<BillingData> {
 
 // #24: Fallback when API unavailable (e.g. loading, 401)
 const DEFAULT_TIERS: BillingTier[] = [
-  { name: "FREE", price: "$0", features: ["10 applications", "Basic tailoring", "Standard support"], actionKey: null, recommended: false },
-  { name: "PRO", price: "$19", features: ["Unlimited apps", "Priority queue", "Interview coach"], actionKey: "upgrade", recommended: true },
-  { name: "TEAM", price: "$49", features: ["10 team seats", "API access", "White-label reports"], actionKey: "addSeats", recommended: false },
+  {
+    name: "FREE",
+    price: "$0",
+    features: ["10 applications", "Basic tailoring", "Standard support"],
+    actionKey: null,
+    recommended: false,
+  },
+  {
+    name: "PRO",
+    price: "$19",
+    features: ["Unlimited apps", "Priority queue", "Interview coach"],
+    actionKey: "upgrade",
+    recommended: true,
+  },
+  {
+    name: "TEAM",
+    price: "$49",
+    features: ["10 team seats", "API access", "White-label reports"],
+    actionKey: "addSeats",
+    recommended: false,
+  },
 ];
 
 export function useBilling() {
@@ -73,24 +93,26 @@ export function useBilling() {
   // M-11: Detect ?success=1 or ?success=true param (from Stripe redirect) and celebrate
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const params = new URLSearchParams(window.location.search);
-    const isSuccess = params.get("success") === "true" || params.get("success") === "1";
+    const parameters = new URLSearchParams(window.location.search);
+    const isSuccess =
+      parameters.get("success") === "true" || parameters.get("success") === "1";
     if (isSuccess) {
       pushToast({
         title: "Upgrade successful! 🎉",
-        description: "Your new plan is now active. It may take a moment to fully reflect.",
+        description:
+          "Your new plan is now active. It may take a moment to fully reflect.",
         tone: "success",
       });
       // Poll with exponential backoff (2s, 4s, 8s, 16s); stop when tab hidden
-      const delays = [2000, 4000, 8000, 16000];
+      const delays = [2000, 4000, 8000, 16_000];
       const timeouts: ReturnType<typeof setTimeout>[] = [];
       const cancelAll = () => {
         timeouts.forEach(clearTimeout);
         timeouts.length = 0;
       };
       let elapsed = 0;
-      for (let i = 0; i < delays.length; i++) {
-        elapsed += delays[i];
+      for (const delay of delays) {
+        elapsed += delay;
         const t = setTimeout(() => {
           if (document.visibilityState === "hidden") {
             cancelAll();
@@ -117,40 +139,58 @@ export function useBilling() {
     }
   }, [queryClient]);
 
-  const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
+  const baseUrl = typeof window === "undefined" ? "" : window.location.origin;
 
-  const upgrade = useCallback(async (billingPeriod: "monthly" | "annual" = "monthly") => {
-    const json = await apiPost<{ checkout_url: string }>("billing/checkout", {
-      success_url: `${baseUrl}/app/billing?success=1`,
-      cancel_url: `${baseUrl}/app/billing`,
-      billing_period: billingPeriod,
-    });
-    window.location.href = json.checkout_url;
-  }, [baseUrl]);
+  const upgrade = useCallback(
+    async (billingPeriod: "monthly" | "annual" = "monthly") => {
+      const json = await apiPost<{ checkout_url: string }>("billing/checkout", {
+        success_url: `${baseUrl}/app/billing?success=1`,
+        cancel_url: `${baseUrl}/app/billing`,
+        billing_period: billingPeriod,
+      });
+      window.location.href = json.checkout_url;
+    },
+    [baseUrl],
+  );
 
   const addSeats = useCallback(async () => {
-    const json = await apiPost<{ checkout_url: string }>("billing/team-checkout", {
-      success_url: `${baseUrl}/app/billing?success=1`,
-      cancel_url: `${baseUrl}/app/billing`,
-    });
+    const json = await apiPost<{ checkout_url: string }>(
+      "billing/team-checkout",
+      {
+        success_url: `${baseUrl}/app/billing?success=1`,
+        cancel_url: `${baseUrl}/app/billing`,
+      },
+    );
     window.location.href = json.checkout_url;
   }, [baseUrl]);
 
   // M-10: Separate portal action for managing existing subscriptions
   const manageBilling = useCallback(async () => {
     try {
-      const json = await apiPost<{ portal_url?: string; checkout_url?: string }>("billing/portal", {
+      const json = await apiPost<{
+        portal_url?: string;
+        checkout_url?: string;
+      }>("billing/portal", {
         return_url: `${baseUrl}/app/billing`,
       });
       const url = json.portal_url || json.checkout_url;
       if (url) {
         window.location.href = url;
       } else {
-        pushToast({ title: "Portal unavailable", description: "Please contact support to manage your subscription.", tone: "warning" });
+        pushToast({
+          title: "Portal unavailable",
+          description: "Please contact support to manage your subscription.",
+          tone: "warning",
+        });
       }
-    } catch (err) {
+    } catch (error) {
       // Fallback: if billing/portal doesn't exist yet, redirect to checkout
-      pushToast({ title: "Could not open billing portal", description: (err as Error).message || "Please try again or contact support.", tone: "error" });
+      pushToast({
+        title: "Could not open billing portal",
+        description:
+          (error as Error).message || "Please try again or contact support.",
+        tone: "error",
+      });
     }
   }, [baseUrl]);
 
@@ -164,7 +204,7 @@ export function useBilling() {
     usage,
     tiers,
     loading: query.isLoading,
-    error: query.error ? (query.error as Error).message : null,
+    error: query.error ? query.error.message : null,
     upgrade,
     addSeats,
     manageBilling,

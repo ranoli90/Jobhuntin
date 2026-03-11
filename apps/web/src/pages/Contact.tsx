@@ -1,19 +1,19 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Mail, MessageSquare, Send, Clock, Shield, Users } from 'lucide-react';
-import { motion } from 'framer-motion';
-import { SEO } from '../components/marketing/SEO';
-import { Button } from '../components/ui/Button';
-import { t, getLocale } from '../lib/i18n';
+import React, { useState } from "react";
+import { Link } from "react-router-dom";
+import { Mail, MessageSquare, Send, Clock, Shield, Users } from "lucide-react";
+import { motion } from "framer-motion";
+import { SEO } from "../components/marketing/SEO";
+import { Button } from "../components/ui/Button";
+import { t, getLocale } from "../lib/i18n";
 
 export default function Contact() {
   const locale = getLocale();
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    company: '',
-    message: '',
-    type: 'general' as 'general' | 'support' | 'sales' | 'partnership'
+    name: "",
+    email: "",
+    company: "",
+    message: "",
+    type: "general" as "general" | "support" | "sales" | "partnership",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -23,23 +23,27 @@ export default function Contact() {
     setIsSubmitting(true);
 
     // Simulate form submission
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    await new Promise((resolve) => setTimeout(resolve, 1500));
 
     setIsSubmitting(false);
     setSubmitted(true);
     setFormData({
-      name: '',
-      email: '',
-      company: '',
-      message: '',
-      type: 'general'
+      name: "",
+      email: "",
+      company: "",
+      message: "",
+      type: "general",
     });
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    setFormData(prev => ({
-      ...prev,
-      [e.target.name]: e.target.value
+  const handleChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >,
+  ) => {
+    setFormData((previous) => ({
+      ...previous,
+      [e.target.name]: e.target.value,
     }));
   };
 
@@ -61,7 +65,9 @@ export default function Contact() {
             <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-6">
               <Send className="w-8 h-8 text-emerald-600" />
             </div>
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-4">{t("contact.messageSent", locale)}</h1>
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-4">
+              {t("contact.messageSent", locale)}
+            </h1>
             <p className="text-slate-600 dark:text-slate-400 mb-8">
               {t("contact.messageSentDescription", locale)}
             </p>
@@ -86,9 +92,10 @@ export default function Contact() {
         schema={{
           "@context": "https://schema.org",
           "@type": "ContactPage",
-          "name": "Contact JobHuntin",
-          "description": "Contact JobHuntin for support, sales, and partnership inquiries",
-          "url": "https://jobhuntin.com/contact"
+          name: "Contact JobHuntin",
+          description:
+            "Contact JobHuntin for support, sales, and partnership inquiries",
+          url: "https://jobhuntin.com/contact",
         }}
       />
 
@@ -105,7 +112,9 @@ export default function Contact() {
           </motion.div>
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-sans font-black mb-6 leading-tight text-slate-900 dark:text-slate-100 text-balance">
             {t("contact.headingLine1", locale)} <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-blue-400">{t("contact.headingLine2", locale)}</span>
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-blue-400">
+              {t("contact.headingLine2", locale)}
+            </span>
           </h1>
           <p className="text-lg sm:text-xl text-slate-500 dark:text-slate-400 max-w-2xl mx-auto font-medium text-balance">
             {t("contact.subtitle", locale)}
@@ -120,12 +129,17 @@ export default function Contact() {
             transition={{ delay: 0.2 }}
           >
             <div className="bg-white dark:bg-slate-900 rounded-3xl p-8 shadow-xl border border-slate-100 dark:border-slate-700">
-              <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-6">{t("contact.sendMessage", locale)}</h2>
+              <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-6">
+                {t("contact.sendMessage", locale)}
+              </h2>
 
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid sm:grid-cols-2 gap-6">
                   <div>
-                    <label htmlFor="name" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                    <label
+                      htmlFor="name"
+                      className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
+                    >
                       {t("contact.name", locale)} *
                     </label>
                     <input
@@ -141,7 +155,10 @@ export default function Contact() {
                   </div>
 
                   <div>
-                    <label htmlFor="email" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                    <label
+                      htmlFor="email"
+                      className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
+                    >
                       {t("contact.email", locale)} *
                     </label>
                     <input
@@ -158,7 +175,10 @@ export default function Contact() {
                 </div>
 
                 <div>
-                  <label htmlFor="company" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  <label
+                    htmlFor="company"
+                    className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
+                  >
                     {t("contact.company", locale)}
                   </label>
                   <input
@@ -173,7 +193,10 @@ export default function Contact() {
                 </div>
 
                 <div>
-                  <label htmlFor="type" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  <label
+                    htmlFor="type"
+                    className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
+                  >
                     {t("contact.inquiryType", locale)}
                   </label>
                   <select
@@ -183,15 +206,26 @@ export default function Contact() {
                     onChange={handleChange}
                     className="w-full px-4 py-3 border border-slate-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
                   >
-                    <option value="general">{t("contact.generalQuestion", locale)}</option>
-                    <option value="support">{t("contact.technicalSupport", locale)}</option>
-                    <option value="sales">{t("contact.salesInquiry", locale)}</option>
-                    <option value="partnership">{t("contact.partnership", locale)}</option>
+                    <option value="general">
+                      {t("contact.generalQuestion", locale)}
+                    </option>
+                    <option value="support">
+                      {t("contact.technicalSupport", locale)}
+                    </option>
+                    <option value="sales">
+                      {t("contact.salesInquiry", locale)}
+                    </option>
+                    <option value="partnership">
+                      {t("contact.partnership", locale)}
+                    </option>
                   </select>
                 </div>
 
                 <div>
-                  <label htmlFor="message" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  <label
+                    htmlFor="message"
+                    className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
+                  >
                     {t("contact.message", locale)} *
                   </label>
                   <textarea
@@ -220,7 +254,8 @@ export default function Contact() {
                     </>
                   ) : (
                     <>
-                      {t("contact.sendMessageBtn", locale)} <Send className="w-5 h-5 ml-2" />
+                      {t("contact.sendMessageBtn", locale)}{" "}
+                      <Send className="w-5 h-5 ml-2" />
                     </>
                   )}
                 </Button>
@@ -236,7 +271,9 @@ export default function Contact() {
             className="space-y-8"
           >
             <div className="bg-white dark:bg-slate-900 rounded-3xl p-8 shadow-xl border border-slate-100 dark:border-slate-700">
-              <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-6">{t("contact.otherWays", locale)}</h2>
+              <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-6">
+                {t("contact.otherWays", locale)}
+              </h2>
 
               <div className="space-y-6">
                 <div className="flex items-start gap-4">
@@ -244,9 +281,15 @@ export default function Contact() {
                     <Mail className="w-6 h-6 text-primary-600" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-slate-900 dark:text-slate-100 mb-1">{t("contact.emailLabel", locale)}</h3>
-                    <p className="text-slate-600 dark:text-slate-400">support@jobhuntin.com</p>
-                    <p className="text-sm text-slate-400">{t("contact.respondWithin24", locale)}</p>
+                    <h3 className="font-bold text-slate-900 dark:text-slate-100 mb-1">
+                      {t("contact.emailLabel", locale)}
+                    </h3>
+                    <p className="text-slate-600 dark:text-slate-400">
+                      support@jobhuntin.com
+                    </p>
+                    <p className="text-sm text-slate-400">
+                      {t("contact.respondWithin24", locale)}
+                    </p>
                   </div>
                 </div>
 
@@ -255,9 +298,15 @@ export default function Contact() {
                     <Users className="w-6 h-6 text-blue-600" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-slate-900 dark:text-slate-100 mb-1">{t("contact.salesTeam", locale)}</h3>
-                    <p className="text-slate-600 dark:text-slate-400">sales@jobhuntin.com</p>
-                    <p className="text-sm text-slate-400">{t("contact.salesHint", locale)}</p>
+                    <h3 className="font-bold text-slate-900 dark:text-slate-100 mb-1">
+                      {t("contact.salesTeam", locale)}
+                    </h3>
+                    <p className="text-slate-600 dark:text-slate-400">
+                      sales@jobhuntin.com
+                    </p>
+                    <p className="text-sm text-slate-400">
+                      {t("contact.salesHint", locale)}
+                    </p>
                   </div>
                 </div>
 
@@ -266,16 +315,24 @@ export default function Contact() {
                     <Shield className="w-6 h-6 text-emerald-600" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-slate-900 dark:text-slate-100 mb-1">{t("contact.securityPrivacy", locale)}</h3>
-                    <p className="text-slate-600 dark:text-slate-400">privacy@jobhuntin.com</p>
-                    <p className="text-sm text-slate-400">{t("contact.privacyHint", locale)}</p>
+                    <h3 className="font-bold text-slate-900 dark:text-slate-100 mb-1">
+                      {t("contact.securityPrivacy", locale)}
+                    </h3>
+                    <p className="text-slate-600 dark:text-slate-400">
+                      privacy@jobhuntin.com
+                    </p>
+                    <p className="text-sm text-slate-400">
+                      {t("contact.privacyHint", locale)}
+                    </p>
                   </div>
                 </div>
               </div>
             </div>
 
             <div className="bg-gradient-to-br from-primary-500 to-primary-600 rounded-3xl p-8 text-white shadow-xl">
-              <h3 className="text-2xl font-bold mb-4">{t("contact.needImmediateHelp", locale)}</h3>
+              <h3 className="text-2xl font-bold mb-4">
+                {t("contact.needImmediateHelp", locale)}
+              </h3>
               <p className="text-white/90 mb-6">
                 {t("contact.faqHint", locale)}
               </p>
@@ -297,7 +354,9 @@ export default function Contact() {
 
             <div className="bg-slate-100 dark:bg-slate-800 rounded-3xl p-8 text-center">
               <Clock className="w-8 h-8 text-slate-400 mx-auto mb-4" />
-              <h3 className="font-bold text-slate-900 dark:text-slate-100 mb-2">{t("contact.responseTime", locale)}</h3>
+              <h3 className="font-bold text-slate-900 dark:text-slate-100 mb-2">
+                {t("contact.responseTime", locale)}
+              </h3>
               <p className="text-slate-600 dark:text-slate-400 text-sm">
                 {t("contact.responseTimeDesc", locale)}
               </p>

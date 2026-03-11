@@ -1,5 +1,22 @@
 import * as React from "react";
-import { MapPin, Briefcase, DollarSign, FileText, Upload, Camera, Loader2, Download, Trash2, AlertTriangle, Ban, Tag, Moon, Sun, Shield, LogOut } from "lucide-react";
+import {
+  MapPin,
+  Briefcase,
+  DollarSign,
+  FileText,
+  Upload,
+  Camera,
+  Loader2,
+  Download,
+  Trash2,
+  AlertTriangle,
+  Ban,
+  Tag,
+  Moon,
+  Sun,
+  Shield,
+  LogOut,
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useProfile } from "../hooks/useProfile";
 import { t, getLocale } from "../lib/i18n";
@@ -14,7 +31,8 @@ import { ThemeToggle } from "../components/ThemeToggle";
 
 export default function Settings() {
   const navigate = useNavigate();
-  const { profile, loading, updateProfile, uploadResume, uploadAvatar } = useProfile();
+  const { profile, loading, updateProfile, uploadResume, uploadAvatar } =
+    useProfile();
   const [preferences, setPreferences] = React.useState({
     location: "",
     role_type: "",
@@ -40,16 +58,16 @@ export default function Settings() {
   const [isExporting, setIsExporting] = React.useState(false);
   const [isDeleting, setIsDeleting] = React.useState(false);
   const [showDeleteModal, setShowDeleteModal] = React.useState(false);
-  const [deleteConfirmation, setDeleteConfirmation] = React.useState('');
+  const [deleteConfirmation, setDeleteConfirmation] = React.useState("");
   const [showExportConfirm, setShowExportConfirm] = React.useState(false);
 
   const prefsInitialized = React.useRef(false);
   const contactInitialized = React.useRef(false);
-  const prevProfileId = React.useRef<string | null>(null);
+  const previousProfileId = React.useRef<string | null>(null);
 
   React.useEffect(() => {
-    if (profile?.id !== prevProfileId.current) {
-      prevProfileId.current = profile?.id ?? null;
+    if (profile?.id !== previousProfileId.current) {
+      previousProfileId.current = profile?.id ?? null;
       prefsInitialized.current = false;
       contactInitialized.current = false;
     }
@@ -84,18 +102,44 @@ export default function Settings() {
   const handleSavePreferences = async (e: React.FormEvent) => {
     e.preventDefault();
     const SALARY_CAP = 10_000_000;
-    const salaryMin = preferences.salary_min ? Number(preferences.salary_min) : undefined;
-    const salaryMax = preferences.salary_max ? Number(preferences.salary_max) : undefined;
-    if (salaryMin != null && (Number.isNaN(salaryMin) || salaryMin < 0 || salaryMin > SALARY_CAP)) {
-      pushToast({ title: "Invalid min salary", description: `Must be 0–$${(SALARY_CAP / 1_000_000).toFixed(0)}M`, tone: "error" });
+    const salaryMin = preferences.salary_min
+      ? Number(preferences.salary_min)
+      : undefined;
+    const salaryMax = preferences.salary_max
+      ? Number(preferences.salary_max)
+      : undefined;
+    if (
+      salaryMin != undefined &&
+      (Number.isNaN(salaryMin) || salaryMin < 0 || salaryMin > SALARY_CAP)
+    ) {
+      pushToast({
+        title: "Invalid min salary",
+        description: `Must be 0–$${(SALARY_CAP / 1_000_000).toFixed(0)}M`,
+        tone: "error",
+      });
       return;
     }
-    if (salaryMax != null && (Number.isNaN(salaryMax) || salaryMax < 0 || salaryMax > SALARY_CAP)) {
-      pushToast({ title: "Invalid max salary", description: `Must be 0–$${(SALARY_CAP / 1_000_000).toFixed(0)}M`, tone: "error" });
+    if (
+      salaryMax != undefined &&
+      (Number.isNaN(salaryMax) || salaryMax < 0 || salaryMax > SALARY_CAP)
+    ) {
+      pushToast({
+        title: "Invalid max salary",
+        description: `Must be 0–$${(SALARY_CAP / 1_000_000).toFixed(0)}M`,
+        tone: "error",
+      });
       return;
     }
-    if (salaryMin != null && salaryMax != null && salaryMax < salaryMin) {
-      pushToast({ title: "Invalid salary range", description: "Max must be ≥ min", tone: "error" });
+    if (
+      salaryMin != undefined &&
+      salaryMax != undefined &&
+      salaryMax < salaryMin
+    ) {
+      pushToast({
+        title: "Invalid salary range",
+        description: "Max must be ≥ min",
+        tone: "error",
+      });
       return;
     }
     setIsSaving(true);
@@ -104,19 +148,31 @@ export default function Settings() {
         preferences: {
           location: preferences.location || undefined,
           role_type: preferences.role_type || undefined,
-          salary_min: preferences.salary_min ? Number(preferences.salary_min) : undefined,
-          salary_max: preferences.salary_max ? Number(preferences.salary_max) : undefined,
+          salary_min: preferences.salary_min
+            ? Number(preferences.salary_min)
+            : undefined,
+          salary_max: preferences.salary_max
+            ? Number(preferences.salary_max)
+            : undefined,
           remote_only: preferences.remote_only,
           work_authorized: preferences.work_authorized,
           visa_sponsorship: preferences.visa_sponsorship,
-          excluded_companies: preferences.excluded_companies?.length ? preferences.excluded_companies : undefined,
-          excluded_keywords: preferences.excluded_keywords?.length ? preferences.excluded_keywords : undefined,
+          excluded_companies: preferences.excluded_companies?.length
+            ? preferences.excluded_companies
+            : undefined,
+          excluded_keywords: preferences.excluded_keywords?.length
+            ? preferences.excluded_keywords
+            : undefined,
         },
       });
       telemetry.track("preferences_saved", {});
       pushToast({ title: "Preferences saved", tone: "success" });
-    } catch (err) {
-      pushToast({ title: "Could not save preferences", description: (err as Error).message, tone: "error" });
+    } catch (error) {
+      pushToast({
+        title: "Could not save preferences",
+        description: (error as Error).message,
+        tone: "error",
+      });
     } finally {
       setIsSaving(false);
     }
@@ -133,8 +189,12 @@ export default function Settings() {
       });
       telemetry.track("profile_updated", {});
       pushToast({ title: "Profile updated", tone: "success" });
-    } catch (err) {
-      pushToast({ title: "Could not update profile", description: (err as Error).message, tone: "error" });
+    } catch (error) {
+      pushToast({
+        title: "Could not update profile",
+        description: (error as Error).message,
+        tone: "error",
+      });
     } finally {
       setIsProfileSaving(false);
     }
@@ -149,15 +209,22 @@ export default function Settings() {
     }
     const MAX_AVATAR_SIZE_MB = 5;
     if (file.size > MAX_AVATAR_SIZE_MB * 1024 * 1024) {
-      pushToast({ title: `Image must be under ${MAX_AVATAR_SIZE_MB}MB`, tone: "error" });
+      pushToast({
+        title: `Image must be under ${MAX_AVATAR_SIZE_MB}MB`,
+        tone: "error",
+      });
       return;
     }
     setIsAvatarUploading(true);
     try {
       await uploadAvatar(file);
       pushToast({ title: "Photo updated", tone: "success" });
-    } catch (err) {
-      pushToast({ title: "Avatar upload failed", description: (err as Error).message, tone: "error" });
+    } catch (error) {
+      pushToast({
+        title: "Avatar upload failed",
+        description: (error as Error).message,
+        tone: "error",
+      });
     } finally {
       setIsAvatarUploading(false);
       e.target.value = "";
@@ -169,9 +236,16 @@ export default function Settings() {
     if (!file) return;
     const allowed =
       /\.(pdf|docx|doc)$/i.test(file.name || "") ||
-      ["application/pdf", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "application/msword"].includes(file.type || "");
+      [
+        "application/pdf",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "application/msword",
+      ].includes(file.type || "");
     if (!allowed) {
-      pushToast({ title: "Please upload a PDF or Word (DOCX/DOC) document", tone: "error" });
+      pushToast({
+        title: "Please upload a PDF or Word (DOCX/DOC) document",
+        tone: "error",
+      });
       return;
     }
     setIsUploading(true);
@@ -181,12 +255,16 @@ export default function Settings() {
       await uploadResume(file);
       pushToast({ title: "Resume updated", tone: "success" });
       setResumeSuccess("Resume uploaded successfully");
-    } catch (err) {
-      const apiErr = err as Error & { status?: number };
-      const message = apiErr.message;
-      const status = apiErr.status;
-      if (import.meta.env.DEV) console.error("Resume upload failed:", err);
-      pushToast({ title: "Resume upload failed", description: status ? `[${status}] ${message}` : message, tone: "error" });
+    } catch (error) {
+      const apiError = error as Error & { status?: number };
+      const message = apiError.message;
+      const status = apiError.status;
+      if (import.meta.env.DEV) console.error("Resume upload failed:", error);
+      pushToast({
+        title: "Resume upload failed",
+        description: status ? `[${status}] ${message}` : message,
+        tone: "error",
+      });
       setResumeError(status ? `[${status}] ${message}` : message);
     } finally {
       setIsUploading(false);
@@ -195,8 +273,11 @@ export default function Settings() {
   };
 
   const handleDeleteAccount = async () => {
-    if (deleteConfirmation !== 'DELETE') {
-      pushToast({ title: 'Please type "DELETE" to confirm account deletion', tone: 'error' });
+    if (deleteConfirmation !== "DELETE") {
+      pushToast({
+        title: 'Please type "DELETE" to confirm account deletion',
+        tone: "error",
+      });
       return;
     }
 
@@ -205,32 +286,43 @@ export default function Settings() {
       await apiDelete("user/delete-account");
 
       // Track deletion event
-      telemetry.track('Account Deleted', {
+      telemetry.track("Account Deleted", {
         success: true,
-        email: profile?.email ? profile.email.replace(/(.{2}).+(@.+)/, '$1***$2') : 'unknown',
+        email: profile?.email
+          ? profile.email.replace(/(.{2}).+(@.+)/, "$1***$2")
+          : "unknown",
       });
 
-      pushToast({ title: 'Account deletion initiated. You will receive a confirmation email shortly.', tone: 'success' });
-      
+      pushToast({
+        title:
+          "Account deletion initiated. You will receive a confirmation email shortly.",
+        tone: "success",
+      });
+
       // Redirect to home after successful deletion request
       setTimeout(() => {
-        window.location.href = '/';
+        window.location.href = "/";
       }, 2000);
-      
     } catch (error) {
-      const err = error as Error;
-      if (import.meta.env.DEV) console.error('Account deletion failed:', err);
-      
-      telemetry.track('Account Deletion Failed', {
-        error: err.message,
-        email: profile?.email ? profile.email.replace(/(.{2}).+(@.+)/, '$1***$2') : 'unknown',
+      const error_ = error as Error;
+      if (import.meta.env.DEV)
+        console.error("Account deletion failed:", error_);
+
+      telemetry.track("Account Deletion Failed", {
+        error: error_.message,
+        email: profile?.email
+          ? profile.email.replace(/(.{2}).+(@.+)/, "$1***$2")
+          : "unknown",
       });
-      
-      pushToast({ title: err.message || 'Failed to delete account. Please try again.', tone: 'error' });
+
+      pushToast({
+        title: error_.message || "Failed to delete account. Please try again.",
+        tone: "error",
+      });
     } finally {
       setIsDeleting(false);
       setShowDeleteModal(false);
-      setDeleteConfirmation('');
+      setDeleteConfirmation("");
     }
   };
   const handleExportData = () => {
@@ -249,7 +341,11 @@ export default function Settings() {
       }>("gdpr/export", { format: "json", include_analytics: true });
       const { download_url, export_id } = res;
       if (!download_url) {
-        pushToast({ title: "Export failed", description: "No download URL returned", tone: "error" });
+        pushToast({
+          title: "Export failed",
+          description: "No download URL returned",
+          tone: "error",
+        });
         return;
       }
       const filename = `gdpr_export_${export_id}.json`;
@@ -259,18 +355,22 @@ export default function Settings() {
         a.download = filename;
         a.rel = "noopener noreferrer";
         a.target = "_blank";
-        document.body.appendChild(a);
+        document.body.append(a);
         a.click();
-        document.body.removeChild(a);
+        a.remove();
       } else {
         await downloadFile(download_url.replace(/^\//, ""), filename);
       }
       telemetry.track("data_exported", {});
       pushToast({ title: "Data exported successfully", tone: "success" });
     } catch (error) {
-      const err = error as Error;
-      if (import.meta.env.DEV) console.error("Export failed:", err);
-      pushToast({ title: "Export failed", description: err.message, tone: "error" });
+      const error_ = error as Error;
+      if (import.meta.env.DEV) console.error("Export failed:", error_);
+      pushToast({
+        title: "Export failed",
+        description: error_.message,
+        tone: "error",
+      });
     } finally {
       setIsExporting(false);
     }
@@ -278,7 +378,11 @@ export default function Settings() {
 
   if (loading) {
     return (
-      <div className="space-y-8 px-4 lg:px-0 pb-8" aria-busy="true" aria-label="Loading settings">
+      <div
+        className="space-y-8 px-4 lg:px-0 pb-8"
+        aria-busy="true"
+        aria-label="Loading settings"
+      >
         <div className="space-y-2">
           <div className="h-4 w-24 bg-slate-200 rounded animate-pulse" />
           <div className="h-10 w-64 bg-slate-200 rounded animate-pulse" />
@@ -320,14 +424,20 @@ export default function Settings() {
   }
 
   const avatarUrl = profile?.contact?.avatar_url;
-  const initials = (profile?.contact?.full_name || profile?.email || "JH").slice(0, 2).toUpperCase();
+  const initials = (profile?.contact?.full_name || profile?.email || "JH")
+    .slice(0, 2)
+    .toUpperCase();
 
   const locale = getLocale();
   return (
     <div className="space-y-8 px-4 lg:px-0 pb-8">
       <div>
-        <p className="text-sm uppercase tracking-[0.35em] text-brand-ink/60">{t("settings.title", locale)}</p>
-        <h1 className="font-display text-4xl">{t("settings.profilePreferences", locale)}</h1>
+        <p className="text-sm uppercase tracking-[0.35em] text-brand-ink/60">
+          {t("settings.title", locale)}
+        </p>
+        <h1 className="font-display text-4xl">
+          {t("settings.profilePreferences", locale)}
+        </h1>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
@@ -336,65 +446,128 @@ export default function Settings() {
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
                 <FileText className="h-5 w-5 text-brand-ink" />
-                <h2 className="font-display text-xl">{t("settings.profileDetails", locale)}</h2>
+                <h2 className="font-display text-xl">
+                  {t("settings.profileDetails", locale)}
+                </h2>
               </div>
-              <span className="text-sm text-brand-ink/60">{profile?.email}</span>
+              <span className="text-sm text-brand-ink/60">
+                {profile?.email}
+              </span>
             </div>
             <div className="flex items-center gap-4 mb-6">
               <div className="relative h-20 w-20">
                 {avatarUrl ? (
-                  <img src={avatarUrl} alt="User avatar" className="h-20 w-20 rounded-full object-cover" loading="lazy" />
+                  <img
+                    src={avatarUrl}
+                    alt="User avatar"
+                    className="h-20 w-20 rounded-full object-cover"
+                    loading="lazy"
+                  />
                 ) : (
                   <div className="h-20 w-20 rounded-full bg-brand-ink/10 text-brand-ink flex items-center justify-center text-xl font-semibold">
                     {initials}
                   </div>
                 )}
-                <label className="absolute -bottom-2 -right-2 inline-flex min-h-[44px] min-w-[44px] cursor-pointer items-center justify-center rounded-full bg-brand-ink text-white shadow" aria-label="Upload profile photo">
-                  {isAvatarUploading ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <Camera className="h-4 w-4" aria-hidden />}
-                  <input type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={handleAvatarUpload} disabled={isAvatarUploading} />
+                <label
+                  className="absolute -bottom-2 -right-2 inline-flex min-h-[44px] min-w-[44px] cursor-pointer items-center justify-center rounded-full bg-brand-ink text-white shadow"
+                  aria-label="Upload profile photo"
+                >
+                  {isAvatarUploading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+                  ) : (
+                    <Camera className="h-4 w-4" aria-hidden />
+                  )}
+                  <input
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp"
+                    className="hidden"
+                    onChange={handleAvatarUpload}
+                    disabled={isAvatarUploading}
+                  />
                 </label>
               </div>
               <div>
-                <p className="text-lg font-semibold text-brand-ink">{profile?.contact?.full_name || t("settings.addYourName", locale)}</p>
-                <p className="text-sm text-brand-ink/60">{t("settings.recruiterHint", locale)}</p>
+                <p className="text-lg font-semibold text-brand-ink">
+                  {profile?.contact?.full_name ||
+                    t("settings.addYourName", locale)}
+                </p>
+                <p className="text-sm text-brand-ink/60">
+                  {t("settings.recruiterHint", locale)}
+                </p>
               </div>
             </div>
 
             <form onSubmit={handleProfileSave} className="space-y-4">
               <div>
-                <label htmlFor="settings-full-name" className="mb-1 block text-sm font-medium text-brand-ink">{t("settings.fullName", locale)}</label>
+                <label
+                  htmlFor="settings-full-name"
+                  className="mb-1 block text-sm font-medium text-brand-ink"
+                >
+                  {t("settings.fullName", locale)}
+                </label>
                 <input
                   id="settings-full-name"
                   type="text"
                   value={contactForm.full_name}
-                  onChange={(e) => setContactForm((prev) => ({ ...prev, full_name: e.target.value }))}
+                  onChange={(e) =>
+                    setContactForm((previous) => ({
+                      ...previous,
+                      full_name: e.target.value,
+                    }))
+                  }
                   className="w-full rounded-2xl border border-brand-ink/10 bg-white px-4 py-3 text-brand-ink"
                 />
               </div>
               <div>
-                <label htmlFor="settings-headline" className="mb-1 block text-sm font-medium text-brand-ink">{t("settings.headline", locale)}</label>
+                <label
+                  htmlFor="settings-headline"
+                  className="mb-1 block text-sm font-medium text-brand-ink"
+                >
+                  {t("settings.headline", locale)}
+                </label>
                 <input
                   id="settings-headline"
                   type="text"
                   placeholder={t("settings.headlinePlaceholder", locale)}
                   value={contactForm.headline}
-                  onChange={(e) => setContactForm((prev) => ({ ...prev, headline: e.target.value }))}
+                  onChange={(e) =>
+                    setContactForm((previous) => ({
+                      ...previous,
+                      headline: e.target.value,
+                    }))
+                  }
                   className="w-full rounded-2xl border border-brand-ink/10 bg-white px-4 py-3 text-brand-ink"
                 />
               </div>
               <div>
-                <label htmlFor="settings-bio" className="mb-1 block text-sm font-medium text-brand-ink">{t("settings.bio", locale)}</label>
+                <label
+                  htmlFor="settings-bio"
+                  className="mb-1 block text-sm font-medium text-brand-ink"
+                >
+                  {t("settings.bio", locale)}
+                </label>
                 <textarea
                   id="settings-bio"
                   rows={4}
                   value={contactForm.bio}
-                  onChange={(e) => setContactForm((prev) => ({ ...prev, bio: e.target.value }))}
+                  onChange={(e) =>
+                    setContactForm((previous) => ({
+                      ...previous,
+                      bio: e.target.value,
+                    }))
+                  }
                   className="w-full rounded-2xl border border-brand-ink/10 bg-white px-4 py-3 text-brand-ink"
                   placeholder={t("settings.bioPlaceholder", locale)}
                 />
               </div>
-              <Button type="submit" disabled={isProfileSaving} className="w-full">
-                {isProfileSaving ? t("settings.saving", locale) : t("settings.saveProfile", locale)}
+              <Button
+                type="submit"
+                disabled={isProfileSaving}
+                className="w-full"
+              >
+                {isProfileSaving
+                  ? t("settings.saving", locale)
+                  : t("settings.saveProfile", locale)}
               </Button>
             </form>
           </Card>
@@ -402,7 +575,9 @@ export default function Settings() {
           <Card tone="shell" shadow="lift" className="p-6">
             <div className="flex items-center gap-2 mb-6">
               <FileText className="h-5 w-5 text-brand-ink" />
-              <h2 className="font-display text-xl">{t("settings.resume", locale)}</h2>
+              <h2 className="font-display text-xl">
+                {t("settings.resume", locale)}
+              </h2>
             </div>
             {profile?.resume_url ? (
               <p className="text-sm text-brand-ink/70 mb-4">
@@ -414,9 +589,16 @@ export default function Settings() {
               </p>
             )}
             <div className="flex flex-col gap-3">
-              <label className="inline-flex cursor-pointer items-center gap-2 rounded-2xl border border-brand-ink/20 bg-white px-4 py-3 text-sm font-medium text-brand-ink hover:bg-brand-shell/50" aria-label={t("settings.uploadNewResume", locale) + " (PDF, max 15MB)"}>
+              <label
+                className="inline-flex cursor-pointer items-center gap-2 rounded-2xl border border-brand-ink/20 bg-white px-4 py-3 text-sm font-medium text-brand-ink hover:bg-brand-shell/50"
+                aria-label={
+                  t("settings.uploadNewResume", locale) + " (PDF, max 15MB)"
+                }
+              >
                 <Upload className="h-4 w-4" aria-hidden />
-                {isUploading ? t("settings.uploading", locale) : t("settings.uploadNewResume", locale)}
+                {isUploading
+                  ? t("settings.uploading", locale)
+                  : t("settings.uploadNewResume", locale)}
                 <input
                   type="file"
                   accept=".pdf,.docx,.doc,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/msword"
@@ -425,8 +607,12 @@ export default function Settings() {
                   disabled={isUploading}
                 />
               </label>
-              {resumeSuccess && <p className="text-sm text-emerald-600">{resumeSuccess}</p>}
-              {resumeError && <p className="text-sm text-red-500">{resumeError}</p>}
+              {resumeSuccess && (
+                <p className="text-sm text-emerald-600">{resumeSuccess}</p>
+              )}
+              {resumeError && (
+                <p className="text-sm text-red-500">{resumeError}</p>
+              )}
             </div>
           </Card>
         </div>
@@ -434,38 +620,56 @@ export default function Settings() {
         <Card tone="shell" shadow="lift" className="p-6 space-y-4">
           <div className="flex items-center gap-2 mb-6">
             <Briefcase className="h-5 w-5 text-brand-ink" />
-            <h2 className="font-display text-xl">{t("settings.jobPreferences", locale)}</h2>
+            <h2 className="font-display text-xl">
+              {t("settings.jobPreferences", locale)}
+            </h2>
           </div>
           <form onSubmit={handleSavePreferences} className="space-y-4">
             <div>
-              <label htmlFor="settings-location" className="mb-1.5 flex items-center gap-2 text-sm font-medium text-brand-ink">
-                <MapPin className="h-4 w-4" aria-hidden /> {t("settings.location", locale)}
+              <label
+                htmlFor="settings-location"
+                className="mb-1.5 flex items-center gap-2 text-sm font-medium text-brand-ink"
+              >
+                <MapPin className="h-4 w-4" aria-hidden />{" "}
+                {t("settings.location", locale)}
               </label>
               <input
                 id="settings-location"
                 type="text"
                 placeholder={t("settings.locationPlaceholder", locale)}
                 value={preferences.location}
-                onChange={(e) => setPreferences((p) => ({ ...p, location: e.target.value }))}
+                onChange={(e) =>
+                  setPreferences((p) => ({ ...p, location: e.target.value }))
+                }
                 className="w-full rounded-2xl border border-brand-ink/10 bg-white px-4 py-3 text-brand-ink"
               />
             </div>
             <div>
-              <label htmlFor="settings-role-type" className="mb-1.5 flex items-center gap-2 text-sm font-medium text-brand-ink">
-                <Briefcase className="h-4 w-4" aria-hidden /> {t("settings.roleType", locale)}
+              <label
+                htmlFor="settings-role-type"
+                className="mb-1.5 flex items-center gap-2 text-sm font-medium text-brand-ink"
+              >
+                <Briefcase className="h-4 w-4" aria-hidden />{" "}
+                {t("settings.roleType", locale)}
               </label>
               <input
                 id="settings-role-type"
                 type="text"
                 placeholder={t("settings.rolePlaceholder", locale)}
                 value={preferences.role_type}
-                onChange={(e) => setPreferences((p) => ({ ...p, role_type: e.target.value }))}
+                onChange={(e) =>
+                  setPreferences((p) => ({ ...p, role_type: e.target.value }))
+                }
                 className="w-full rounded-2xl border border-brand-ink/10 bg-white px-4 py-3 text-brand-ink"
               />
             </div>
             <div>
-              <label htmlFor="settings-salary-min" className="mb-1.5 flex items-center gap-2 text-sm font-medium text-brand-ink">
-                <DollarSign className="h-4 w-4" aria-hidden /> {t("settings.minSalary", locale)}
+              <label
+                htmlFor="settings-salary-min"
+                className="mb-1.5 flex items-center gap-2 text-sm font-medium text-brand-ink"
+              >
+                <DollarSign className="h-4 w-4" aria-hidden />{" "}
+                {t("settings.minSalary", locale)}
               </label>
               <input
                 id="settings-salary-min"
@@ -475,14 +679,22 @@ export default function Settings() {
                 max="10000000"
                 inputMode="numeric"
                 value={preferences.salary_min}
-                onChange={(e) => setPreferences((p) => ({ ...p, salary_min: e.target.value }))}
+                onChange={(e) =>
+                  setPreferences((p) => ({ ...p, salary_min: e.target.value }))
+                }
                 className="w-full rounded-2xl border border-brand-ink/10 bg-white px-4 py-3 text-brand-ink"
               />
-              <p className="text-xs text-brand-ink/50 mt-1">{t("settings.salaryHint", locale)}</p>
+              <p className="text-xs text-brand-ink/50 mt-1">
+                {t("settings.salaryHint", locale)}
+              </p>
             </div>
             <div>
-              <label htmlFor="settings-salary-max" className="mb-1.5 flex items-center gap-2 text-sm font-medium text-brand-ink">
-                <DollarSign className="h-4 w-4" aria-hidden /> {t("settings.maxSalary", locale)}
+              <label
+                htmlFor="settings-salary-max"
+                className="mb-1.5 flex items-center gap-2 text-sm font-medium text-brand-ink"
+              >
+                <DollarSign className="h-4 w-4" aria-hidden />{" "}
+                {t("settings.maxSalary", locale)}
               </label>
               <input
                 id="settings-salary-max"
@@ -492,16 +704,32 @@ export default function Settings() {
                 max="10000000"
                 inputMode="numeric"
                 value={preferences.salary_max}
-                onChange={(e) => setPreferences((p) => ({ ...p, salary_max: e.target.value }))}
+                onChange={(e) =>
+                  setPreferences((p) => ({ ...p, salary_max: e.target.value }))
+                }
                 className="w-full rounded-2xl border border-brand-ink/10 bg-white px-4 py-3 text-brand-ink"
               />
-              <p className="text-xs text-brand-ink/50 mt-1">{t("settings.salaryHint", locale)}</p>
+              <p className="text-xs text-brand-ink/50 mt-1">
+                {t("settings.salaryHint", locale)}
+              </p>
             </div>
             <div className="space-y-3">
               {[
-                { key: 'remote_only' as const, labelKey: 'settings.remoteOnly' as const, descKey: 'settings.remoteOnlyDesc' as const },
-                { key: 'work_authorized' as const, labelKey: 'settings.workAuthorized' as const, descKey: 'settings.workAuthorizedDesc' as const },
-                { key: 'visa_sponsorship' as const, labelKey: 'settings.visaSponsorship' as const, descKey: 'settings.visaSponsorshipDesc' as const },
+                {
+                  key: "remote_only" as const,
+                  labelKey: "settings.remoteOnly" as const,
+                  descKey: "settings.remoteOnlyDesc" as const,
+                },
+                {
+                  key: "work_authorized" as const,
+                  labelKey: "settings.workAuthorized" as const,
+                  descKey: "settings.workAuthorizedDesc" as const,
+                },
+                {
+                  key: "visa_sponsorship" as const,
+                  labelKey: "settings.visaSponsorship" as const,
+                  descKey: "settings.visaSponsorshipDesc" as const,
+                },
               ].map(({ key, labelKey, descKey }) => (
                 <div key={key} className="space-y-1">
                   <button
@@ -509,24 +737,43 @@ export default function Settings() {
                     role="switch"
                     aria-checked={preferences[key]}
                     aria-label={`${t(labelKey, locale)}: ${t(descKey, locale)}. ${preferences[key] ? "On" : "Off"}`}
-                    onClick={() => setPreferences((p) => ({ ...p, [key]: !p[key] }))}
-                    className={`flex items-center justify-between w-full rounded-2xl border px-4 py-3 transition-all ${preferences[key]
-                      ? "bg-brand-primary/10 border-brand-primary/20 text-brand-primary"
-                      : "bg-white border-brand-ink/10 text-brand-ink"
-                      }`}
+                    onClick={() =>
+                      setPreferences((p) => ({ ...p, [key]: !p[key] }))
+                    }
+                    className={`flex items-center justify-between w-full rounded-2xl border px-4 py-3 transition-all ${
+                      preferences[key]
+                        ? "bg-brand-primary/10 border-brand-primary/20 text-brand-primary"
+                        : "bg-white border-brand-ink/10 text-brand-ink"
+                    }`}
                   >
                     <div className="flex items-center gap-3">
-                      <span className="sr-only"> {t(preferences[key] ? "settings.toggleOn" : "settings.toggleOff", locale)}</span>
-                    <span className="text-sm font-semibold">{t(labelKey, locale)}</span>
-                      <span className="text-xs text-brand-ink/60">{t(descKey, locale)}</span>
+                      <span className="sr-only">
+                        {" "}
+                        {t(
+                          preferences[key]
+                            ? "settings.toggleOn"
+                            : "settings.toggleOff",
+                          locale,
+                        )}
+                      </span>
+                      <span className="text-sm font-semibold">
+                        {t(labelKey, locale)}
+                      </span>
+                      <span className="text-xs text-brand-ink/60">
+                        {t(descKey, locale)}
+                      </span>
                     </div>
                     <span
-                      className={`inline-flex h-6 w-11 items-center rounded-full p-0.5 transition-all ${preferences[key] ? "bg-brand-primary" : "bg-brand-border"
-                        }`}
+                      className={`inline-flex h-6 w-11 items-center rounded-full p-0.5 transition-all ${
+                        preferences[key]
+                          ? "bg-brand-primary"
+                          : "bg-brand-border"
+                      }`}
                     >
                       <span
-                        className={`h-5 w-5 rounded-full bg-white shadow transition-transform ${preferences[key] ? "translate-x-5" : "translate-x-0"
-                          }`}
+                        className={`h-5 w-5 rounded-full bg-white shadow transition-transform ${
+                          preferences[key] ? "translate-x-5" : "translate-x-0"
+                        }`}
                       />
                     </span>
                   </button>
@@ -534,8 +781,13 @@ export default function Settings() {
               ))}
             </div>
             <div>
-              <label htmlFor="settings-excluded-companies" className="mb-1.5 flex items-center gap-2 text-sm font-medium text-brand-ink">
-                <Ban className="h-4 w-4" aria-hidden /> {t("settings.excludedCompanies", locale) || "Excluded companies"}
+              <label
+                htmlFor="settings-excluded-companies"
+                className="mb-1.5 flex items-center gap-2 text-sm font-medium text-brand-ink"
+              >
+                <Ban className="h-4 w-4" aria-hidden />{" "}
+                {t("settings.excludedCompanies", locale) ||
+                  "Excluded companies"}
               </label>
               <input
                 id="settings-excluded-companies"
@@ -545,16 +797,25 @@ export default function Settings() {
                 onChange={(e) =>
                   setPreferences((p) => ({
                     ...p,
-                    excluded_companies: e.target.value.split(",").map((c) => c.trim()).filter(Boolean),
+                    excluded_companies: e.target.value
+                      .split(",")
+                      .map((c) => c.trim())
+                      .filter(Boolean),
                   }))
                 }
                 className="w-full rounded-2xl border border-brand-ink/10 bg-white px-4 py-3 text-brand-ink"
               />
-              <p className="text-xs text-brand-ink/50 mt-1">Companies to exclude from job matches</p>
+              <p className="text-xs text-brand-ink/50 mt-1">
+                Companies to exclude from job matches
+              </p>
             </div>
             <div>
-              <label htmlFor="settings-excluded-keywords" className="mb-1.5 flex items-center gap-2 text-sm font-medium text-brand-ink">
-                <Tag className="h-4 w-4" aria-hidden /> {t("settings.excludedKeywords", locale) || "Excluded keywords"}
+              <label
+                htmlFor="settings-excluded-keywords"
+                className="mb-1.5 flex items-center gap-2 text-sm font-medium text-brand-ink"
+              >
+                <Tag className="h-4 w-4" aria-hidden />{" "}
+                {t("settings.excludedKeywords", locale) || "Excluded keywords"}
               </label>
               <input
                 id="settings-excluded-keywords"
@@ -564,15 +825,22 @@ export default function Settings() {
                 onChange={(e) =>
                   setPreferences((p) => ({
                     ...p,
-                    excluded_keywords: e.target.value.split(",").map((k) => k.trim()).filter(Boolean),
+                    excluded_keywords: e.target.value
+                      .split(",")
+                      .map((k) => k.trim())
+                      .filter(Boolean),
                   }))
                 }
                 className="w-full rounded-2xl border border-brand-ink/10 bg-white px-4 py-3 text-brand-ink"
               />
-              <p className="text-xs text-brand-ink/50 mt-1">Keywords to exclude from job matches</p>
+              <p className="text-xs text-brand-ink/50 mt-1">
+                Keywords to exclude from job matches
+              </p>
             </div>
             <Button type="submit" disabled={isSaving}>
-              {isSaving ? t("settings.saving", locale) : t("settings.savePreferences", locale)}
+              {isSaving
+                ? t("settings.saving", locale)
+                : t("settings.savePreferences", locale)}
             </Button>
           </form>
         </Card>
@@ -583,12 +851,14 @@ export default function Settings() {
             {t("settings.appearance", locale) || "Appearance"}
           </h2>
           <p className="text-sm text-brand-ink/60 mb-4">
-            {t("settings.themeDescription", locale) || "Choose light, dark, or system theme."}
+            {t("settings.themeDescription", locale) ||
+              "Choose light, dark, or system theme."}
           </p>
           <div className="flex items-center gap-3">
             <ThemeToggle className="text-brand-ink" />
             <span className="text-sm text-brand-ink/70">
-              {t("settings.themeToggle", locale) || "Click to cycle: light → dark → system"}
+              {t("settings.themeToggle", locale) ||
+                "Click to cycle: light → dark → system"}
             </span>
           </div>
         </Card>
@@ -599,43 +869,66 @@ export default function Settings() {
             Security
           </h2>
           <p className="text-sm text-brand-ink/60 mb-4">
-            Manage your active sessions and sign out from devices you no longer use.
+            Manage your active sessions and sign out from devices you no longer
+            use.
           </p>
-          <Button variant="outline" onClick={() => navigate("/app/sessions")} className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={() => navigate("/app/sessions")}
+            className="flex items-center gap-2"
+          >
             <LogOut className="h-4 w-4" />
             Manage Sessions
           </Button>
         </Card>
 
         <Card tone="shell" shadow="lift" className="p-6">
-          <h2 className="font-display text-xl mb-2">{t("settings.dataPrivacy", locale)}</h2>
+          <h2 className="font-display text-xl mb-2">
+            {t("settings.dataPrivacy", locale)}
+          </h2>
           <p className="text-sm text-brand-ink/60 mb-4">
             {t("settings.exportDescription", locale)}{" "}
-            <a href="/privacy" className="underline hover:text-brand-ink">{t("cookies.privacyPolicy", locale)}</a> {t("settings.exportForDetails", locale)}
+            <a href="/privacy" className="underline hover:text-brand-ink">
+              {t("cookies.privacyPolicy", locale)}
+            </a>{" "}
+            {t("settings.exportForDetails", locale)}
           </p>
           <button
             type="button"
-            onClick={() => window.dispatchEvent(new CustomEvent('showCookiePreferences'))}
+            onClick={() =>
+              window.dispatchEvent(new CustomEvent("showCookiePreferences"))
+            }
             className="text-sm text-brand-primary hover:underline font-medium"
           >
             {t("cookies.managePreferences", locale)}
           </button>
           <div className="space-y-3">
-            <Button variant="outline" onClick={handleExportData} disabled={isExporting}>
-              {isExporting ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <Download className="h-4 w-4" aria-hidden />}
-              {isExporting ? t("settings.exporting", locale) : t("settings.exportData", locale)}
+            <Button
+              variant="outline"
+              onClick={handleExportData}
+              disabled={isExporting}
+            >
+              {isExporting ? (
+                <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+              ) : (
+                <Download className="h-4 w-4" aria-hidden />
+              )}
+              {isExporting
+                ? t("settings.exporting", locale)
+                : t("settings.exportData", locale)}
             </Button>
-            
+
             <div className="border-t pt-4 mt-4">
               <h3 className="font-semibold text-red-900 mb-2 flex items-center gap-2">
                 <AlertTriangle className="h-4 w-4" />
                 Delete Account
               </h3>
               <p className="text-sm text-red-700 mb-4">
-                Permanently delete your account and all associated data. This action cannot be undone.
+                Permanently delete your account and all associated data. This
+                action cannot be undone.
               </p>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={() => setShowDeleteModal(true)}
                 className="border-red-200 text-red-700 hover:bg-red-50 hover:border-red-300"
               >
@@ -651,14 +944,15 @@ export default function Settings() {
           isOpen={showDeleteModal}
           onClose={() => {
             setShowDeleteModal(false);
-            setDeleteConfirmation('');
+            setDeleteConfirmation("");
           }}
           onConfirm={handleDeleteAccount}
           title="Delete Account Permanently"
           description={
             <div className="space-y-4">
               <p>
-                This action <strong>cannot be undone</strong>. Deleting your account will permanently remove:
+                This action <strong>cannot be undone</strong>. Deleting your
+                account will permanently remove:
               </p>
               <ul className="list-disc list-inside space-y-1 text-sm">
                 <li>Your profile information and preferences</li>
@@ -667,7 +961,11 @@ export default function Settings() {
                 <li>AI recommendations and personalization data</li>
               </ul>
               <p>
-                To confirm deletion, please type <code className="bg-gray-100 px-2 py-1 rounded text-sm">DELETE</code> below:
+                To confirm deletion, please type{" "}
+                <code className="bg-gray-100 px-2 py-1 rounded text-sm">
+                  DELETE
+                </code>{" "}
+                below:
               </p>
               <input
                 type="text"
@@ -677,7 +975,7 @@ export default function Settings() {
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
                 autoFocus
               />
-              {deleteConfirmation && deleteConfirmation !== 'DELETE' && (
+              {deleteConfirmation && deleteConfirmation !== "DELETE" && (
                 <p className="text-sm text-red-600">
                   Please type exactly "DELETE" to confirm
                 </p>

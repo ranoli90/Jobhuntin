@@ -1,19 +1,25 @@
-import React, { useState, useEffect } from 'react';
-import { apiGet, apiPut } from '@/lib/api';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { Badge } from '@/components/ui/Badge';
-import { Input } from '@/components/ui/Input';
-import { Label } from '@/components/ui/Label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/Select';
-import { Alert, AlertDescription } from '@/components/ui/Alert';
-import { Progress } from '@/components/ui/Progress';
-import { 
-  ArrowRight, 
-  ArrowLeft, 
-  Search, 
-  Filter, 
-  Download, 
+import React, { useState, useEffect } from "react";
+import { apiGet, apiPut } from "@/lib/api";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
+import { Badge } from "@/components/ui/Badge";
+import { Input } from "@/components/ui/Input";
+import { Label } from "@/components/ui/Label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/Select";
+import { Alert, AlertDescription } from "@/components/ui/Alert";
+import { Progress } from "@/components/ui/Progress";
+import {
+  ArrowRight,
+  ArrowLeft,
+  Search,
+  Filter,
+  Download,
   Plus,
   MoreVertical,
   Calendar,
@@ -25,8 +31,8 @@ import {
   EyeOff,
   ZoomIn,
   ZoomOut,
-  RotateCw
-} from 'lucide-react';
+  RotateCw,
+} from "lucide-react";
 
 interface Application {
   id: string;
@@ -34,7 +40,7 @@ interface Application {
   job_title: string;
   status: string;
   stage: string;
-  priority: 'low' | 'medium' | 'high';
+  priority: "low" | "medium" | "high";
   location: string;
   salary_min?: number;
   salary_max?: number;
@@ -59,11 +65,11 @@ const PipelineViewPage: React.FC = () => {
   const [stages, setStages] = useState<PipelineStage[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedStatus, setSelectedStatus] = useState('all');
-  const [selectedPriority, setSelectedPriority] = useState('all');
-  const [sortBy, setSortBy] = useState('last_activity');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedStatus, setSelectedStatus] = useState("all");
+  const [selectedPriority, setSelectedPriority] = useState("all");
+  const [sortBy, setSortBy] = useState("last_activity");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
   useEffect(() => {
     fetchPipelineData();
@@ -76,21 +82,29 @@ const PipelineViewPage: React.FC = () => {
 
       const filters: Record<string, string> = {};
       if (searchTerm) filters.search = searchTerm;
-      if (selectedStatus !== 'all') filters.status = selectedStatus;
-      if (selectedPriority !== 'all') filters.priority = selectedPriority;
+      if (selectedStatus !== "all") filters.status = selectedStatus;
+      if (selectedPriority !== "all") filters.priority = selectedPriority;
 
-      const params = new URLSearchParams({ sort_by: sortBy, sort_order: sortOrder });
+      const parameters = new URLSearchParams({
+        sort_by: sortBy,
+        sort_order: sortOrder,
+      });
       if (Object.keys(filters).length > 0) {
-        params.set('filters', JSON.stringify(filters));
+        parameters.set("filters", JSON.stringify(filters));
       }
       const pipelineData = await apiGet<{
-        applications?: Array<Omit<Application, 'stage'> & { current_stage?: string }>;
+        applications?: Array<
+          Omit<Application, "stage"> & { current_stage?: string }
+        >;
         stages?: PipelineStage[];
-      }>(`ux/pipeline?${params}`);
+      }>(`ux/pipeline?${parameters}`);
 
       const apps = (pipelineData.applications || []).map((a) => ({
         ...a,
-        stage: (a as { current_stage?: string }).current_stage ?? (a as { status?: string }).status ?? 'submitted',
+        stage:
+          (a as { current_stage?: string }).current_stage ??
+          (a as { status?: string }).status ??
+          "submitted",
       })) as Application[];
       setApplications(apps);
       setStages(
@@ -98,19 +112,19 @@ const PipelineViewPage: React.FC = () => {
           ...s,
           conversion_rate: s.conversion_rate ?? 0,
           avg_time_in_stage: s.avg_time_in_stage ?? 0,
-        }))
+        })),
       );
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+    } catch (error_) {
+      setError(error_ instanceof Error ? error_.message : "An error occurred");
     } finally {
       setLoading(false);
     }
   };
 
   const getNextStageId = (currentStageId: string): string | null => {
-    const idx = stages.findIndex((s) => s.id === currentStageId);
-    if (idx < 0 || idx >= stages.length - 1) return null;
-    return stages[idx + 1].id;
+    const index = stages.findIndex((s) => s.id === currentStageId);
+    if (index < 0 || index >= stages.length - 1) return null;
+    return stages[index + 1].id;
   };
 
   const handleStageChange = async (application: Application) => {
@@ -118,39 +132,44 @@ const PipelineViewPage: React.FC = () => {
     if (!nextStageId) return;
     try {
       await apiPut(
-        `ux/pipeline/stage?application_id=${encodeURIComponent(application.id)}&new_stage=${encodeURIComponent(nextStageId)}`
+        `ux/pipeline/stage?application_id=${encodeURIComponent(application.id)}&new_stage=${encodeURIComponent(nextStageId)}`,
       );
       await fetchPipelineData();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update stage');
+    } catch (error_) {
+      setError(
+        error_ instanceof Error ? error_.message : "Failed to update stage",
+      );
     }
   };
 
   const getStatusColor = (status: string) => {
     const colors = {
-      'QUEUED': 'bg-gray-100 text-gray-800',
-      'PROCESSING': 'bg-blue-100 text-blue-800',
-      'REQUIRES_INPUT': 'bg-yellow-100 text-yellow-800',
-      'APPLIED': 'bg-green-100 text-green-800',
-      'SUBMITTED': 'bg-green-100 text-green-800',
-      'COMPLETED': 'bg-green-100 text-green-800',
-      'FAILED': 'bg-red-100 text-red-800',
+      QUEUED: "bg-gray-100 text-gray-800",
+      PROCESSING: "bg-blue-100 text-blue-800",
+      REQUIRES_INPUT: "bg-yellow-100 text-yellow-800",
+      APPLIED: "bg-green-100 text-green-800",
+      SUBMITTED: "bg-green-100 text-green-800",
+      COMPLETED: "bg-green-100 text-green-800",
+      FAILED: "bg-red-100 text-red-800",
     };
-    return colors[status as keyof typeof colors] || 'bg-gray-100 text-gray-800';
+    return colors[status as keyof typeof colors] || "bg-gray-100 text-gray-800";
   };
 
   const getPriorityColor = (priority: string) => {
     const colors = {
-      'low': 'bg-gray-100 text-gray-800',
-      'medium': 'bg-yellow-100 text-yellow-800',
-      'high': 'bg-red-100 text-red-800',
+      low: "bg-gray-100 text-gray-800",
+      medium: "bg-yellow-100 text-yellow-800",
+      high: "bg-red-100 text-red-800",
     };
-    return colors[priority as keyof typeof colors] || 'bg-gray-100 text-gray-800';
+    return (
+      colors[priority as keyof typeof colors] || "bg-gray-100 text-gray-800"
+    );
   };
 
   const formatSalary = (min?: number, max?: number) => {
-    if (!min && !max) return 'Not specified';
-    if (min && max) return `$${min.toLocaleString()} - $${max.toLocaleString()}`;
+    if (!min && !max) return "Not specified";
+    if (min && max)
+      return `$${min.toLocaleString()} - $${max.toLocaleString()}`;
     if (min) return `$${min.toLocaleString()}+`;
     return `Up to $${max?.toLocaleString()}`;
   };
@@ -160,24 +179,24 @@ const PipelineViewPage: React.FC = () => {
     const now = new Date();
     const diffMs = now.getTime() - date.getTime();
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-    
-    if (diffDays === 0) return 'Today';
-    if (diffDays === 1) return 'Yesterday';
+
+    if (diffDays === 0) return "Today";
+    if (diffDays === 1) return "Yesterday";
     if (diffDays < 7) return `${diffDays} days ago`;
     if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
     return `${Math.floor(diffDays / 30)} months ago`;
   };
 
   const getApplicationsByStage = (stageId: string) => {
-    return applications.filter(app => app.stage === stageId);
+    return applications.filter((app) => app.stage === stageId);
   };
 
   if (loading) {
     return (
       <div className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
-          {[1, 2, 3, 4, 5, 6].map((i) => (
-            <Card key={i} className="animate-pulse">
+          {[1, 2, 3, 4, 5, 6].map((index) => (
+            <Card key={index} className="animate-pulse">
               <CardContent className="p-4">
                 <div className="h-4 bg-gray-200 rounded mb-2"></div>
                 <div className="h-8 bg-gray-200 rounded"></div>
@@ -194,7 +213,9 @@ const PipelineViewPage: React.FC = () => {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold">Pipeline View</h1>
-          <p className="text-gray-600">Visual application tracking with drag-and-drop stages</p>
+          <p className="text-gray-600">
+            Visual application tracking with drag-and-drop stages
+          </p>
         </div>
         <div className="flex space-x-2">
           <Button variant="outline" size="sm">
@@ -225,7 +246,7 @@ const PipelineViewPage: React.FC = () => {
                 />
               </div>
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="status">Status</Label>
               <Select value={selectedStatus} onValueChange={setSelectedStatus}>
@@ -244,10 +265,13 @@ const PipelineViewPage: React.FC = () => {
                 </SelectContent>
               </Select>
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="priority">Priority</Label>
-              <Select value={selectedPriority} onValueChange={setSelectedPriority}>
+              <Select
+                value={selectedPriority}
+                onValueChange={setSelectedPriority}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="All priorities" />
                 </SelectTrigger>
@@ -259,7 +283,7 @@ const PipelineViewPage: React.FC = () => {
                 </SelectContent>
               </Select>
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="sort">Sort By</Label>
               <Select value={sortBy} onValueChange={setSortBy}>
@@ -289,16 +313,18 @@ const PipelineViewPage: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
         {stages.map((stage) => {
           const stageApplications = getApplicationsByStage(stage.id);
-          
+
           return (
             <Card key={stage.id} className="min-h-96">
               <CardHeader className="pb-3">
                 <div className="flex justify-between items-start">
                   <div>
                     <CardTitle className="text-sm">{stage.name}</CardTitle>
-                    <p className="text-xs text-gray-500 mt-1">{stage.description}</p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {stage.description}
+                    </p>
                   </div>
-                  <div 
+                  <div
                     className="w-3 h-3 rounded-full"
                     style={{ backgroundColor: stage.color }}
                   />
@@ -309,15 +335,21 @@ const PipelineViewPage: React.FC = () => {
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
                     <span>Applications</span>
-                    <span className="font-medium">{stage.application_count}</span>
+                    <span className="font-medium">
+                      {stage.application_count}
+                    </span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span>Conversion Rate</span>
-                    <span className="font-medium">{stage.conversion_rate}%</span>
+                    <span className="font-medium">
+                      {stage.conversion_rate}%
+                    </span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span>Avg. Time</span>
-                    <span className="font-medium">{stage.avg_time_in_stage}d</span>
+                    <span className="font-medium">
+                      {stage.avg_time_in_stage}d
+                    </span>
                   </div>
                   <Progress value={stage.conversion_rate} className="h-1" />
                 </div>
@@ -325,42 +357,58 @@ const PipelineViewPage: React.FC = () => {
                 {/* Applications in Stage */}
                 <div className="space-y-2 max-h-64 overflow-y-auto">
                   {stageApplications.map((application) => (
-                    <Card key={application.id} className="p-3 cursor-pointer hover:shadow-md transition-shadow">
+                    <Card
+                      key={application.id}
+                      className="p-3 cursor-pointer hover:shadow-md transition-shadow"
+                    >
                       <div className="space-y-2">
                         <div className="flex justify-between items-start">
                           <div className="flex-1 min-w-0">
-                            <h4 className="text-sm font-medium truncate">{application.job_title}</h4>
-                            <p className="text-xs text-gray-500 truncate">{application.company}</p>
+                            <h4 className="text-sm font-medium truncate">
+                              {application.job_title}
+                            </h4>
+                            <p className="text-xs text-gray-500 truncate">
+                              {application.company}
+                            </p>
                           </div>
                           <div className="flex space-x-1">
-                            <Badge className={getPriorityColor(application.priority)}>
+                            <Badge
+                              className={getPriorityColor(application.priority)}
+                            >
                               {application.priority.toUpperCase()}
                             </Badge>
                           </div>
                         </div>
-                        
+
                         <div className="flex items-center space-x-2 text-xs text-gray-500">
                           <Building2 className="h-3 w-3" />
                           <span>{application.company}</span>
                         </div>
-                        
+
                         <div className="flex items-center space-x-2 text-xs text-gray-500">
                           <MapPin className="h-3 w-3" />
                           <span>{application.location}</span>
                         </div>
-                        
+
                         {application.salary_min && (
                           <div className="flex items-center space-x-2 text-xs text-gray-500">
                             <DollarSign className="h-3 w-3" />
-                            <span>{formatSalary(application.salary_min, application.salary_max)}</span>
+                            <span>
+                              {formatSalary(
+                                application.salary_min,
+                                application.salary_max,
+                              )}
+                            </span>
                           </div>
                         )}
-                        
+
                         <div className="flex items-center space-x-2 text-xs text-gray-500">
                           <Clock className="h-3 w-3" />
-                          <span>{formatTimeAgo(application.last_activity)}</span>
+                          <span>
+                            {formatTimeAgo(application.last_activity)}
+                          </span>
                         </div>
-                        
+
                         <div className="flex justify-between items-center pt-2">
                           <div className="flex space-x-1">
                             {application.notes_count > 0 && (
@@ -387,7 +435,7 @@ const PipelineViewPage: React.FC = () => {
                       </div>
                     </Card>
                   ))}
-                  
+
                   {stageApplications.length === 0 && (
                     <div className="text-center py-8 text-gray-500">
                       <p className="text-sm">No applications in this stage</p>
@@ -413,19 +461,27 @@ const PipelineViewPage: React.FC = () => {
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-green-600">
-                {applications.filter(app => app.status === 'APPLIED' || app.status === 'SUBMITTED').length}
+                {
+                  applications.filter(
+                    (app) =>
+                      app.status === "APPLIED" || app.status === "SUBMITTED",
+                  ).length
+                }
               </div>
               <p className="text-sm text-gray-500">Successfully Applied</p>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-yellow-600">
-                {applications.filter(app => app.status === 'REQUIRES_INPUT').length}
+                {
+                  applications.filter((app) => app.status === "REQUIRES_INPUT")
+                    .length
+                }
               </div>
               <p className="text-sm text-gray-500">Requires Input</p>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-red-600">
-                {applications.filter(app => app.status === 'FAILED').length}
+                {applications.filter((app) => app.status === "FAILED").length}
               </div>
               <p className="text-sm text-gray-500">Failed</p>
             </div>

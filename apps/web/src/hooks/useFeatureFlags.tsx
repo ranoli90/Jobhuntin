@@ -1,4 +1,11 @@
-import { useState, useEffect, createContext, useContext, useCallback, ReactNode } from "react";
+import {
+  useState,
+  useEffect,
+  createContext,
+  useContext,
+  useCallback,
+  ReactNode,
+} from "react";
 import { safeSetStorage } from "../lib/utils";
 
 interface FeatureFlags {
@@ -34,19 +41,22 @@ function loadLocalFlags(): FeatureFlags {
       return { ...DEFAULT_FLAGS, ...JSON.parse(stored) };
     }
   } catch {
-    if (import.meta.env.DEV) console.warn("Failed to load feature flags from localStorage");
+    if (import.meta.env.DEV)
+      console.warn("Failed to load feature flags from localStorage");
   }
   return DEFAULT_FLAGS;
 }
 
 function saveLocalFlags(flags: FeatureFlags): void {
   if (typeof window === "undefined") return;
-  if (!safeSetStorage(LOCAL_STORAGE_KEY, JSON.stringify(flags))) {
-    if (import.meta.env.DEV) console.warn("Failed to save feature flags (QuotaExceeded?)");
-  }
+  if (
+    !safeSetStorage(LOCAL_STORAGE_KEY, JSON.stringify(flags)) &&
+    import.meta.env.DEV
+  )
+    console.warn("Failed to save feature flags (QuotaExceeded?)");
 }
 
-export interface FeatureFlagProviderProps {
+export interface FeatureFlagProviderProperties {
   children: ReactNode;
   tenantId?: string;
   initialFlags?: FeatureFlags;
@@ -56,8 +66,10 @@ export function FeatureFlagProvider({
   children,
   tenantId,
   initialFlags,
-}: FeatureFlagProviderProps) {
-  const [flags, setFlags] = useState<FeatureFlags>(initialFlags ?? loadLocalFlags);
+}: FeatureFlagProviderProperties) {
+  const [flags, setFlags] = useState<FeatureFlags>(
+    initialFlags ?? loadLocalFlags,
+  );
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -72,12 +84,12 @@ export function FeatureFlagProvider({
     (flag: string): boolean => {
       return flags[flag] ?? false;
     },
-    [flags]
+    [flags],
   );
 
   const setFlag = useCallback((flag: string, value: boolean) => {
-    setFlags(prev => {
-      const updated = { ...prev, [flag]: value };
+    setFlags((previous) => {
+      const updated = { ...previous, [flag]: value };
       saveLocalFlags(updated);
       return updated;
     });
@@ -93,7 +105,9 @@ export function FeatureFlagProvider({
 export function useFeatureFlags() {
   const context = useContext(FeatureFlagContext);
   if (!context) {
-    throw new Error("useFeatureFlags must be used within a FeatureFlagProvider");
+    throw new Error(
+      "useFeatureFlags must be used within a FeatureFlagProvider",
+    );
   }
   return context;
 }

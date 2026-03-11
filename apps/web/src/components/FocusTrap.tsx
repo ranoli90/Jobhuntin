@@ -1,6 +1,6 @@
 import * as React from "react";
 
-interface FocusTrapProps {
+interface FocusTrapProperties {
   children: React.ReactNode;
   isActive?: boolean;
   initialFocus?: boolean;
@@ -13,15 +13,15 @@ export function FocusTrap({
   isActive = true,
   initialFocus = true,
   restoreFocus = true,
-  onEscape
-}: FocusTrapProps) {
-  const containerRef = React.useRef<HTMLDivElement>(null);
-  const previousFocusRef = React.useRef<HTMLElement | null>(null);
+  onEscape,
+}: FocusTrapProperties) {
+  const containerReference = React.useRef<HTMLDivElement>(null);
+  const previousFocusReference = React.useRef<HTMLElement | null>(null);
 
   // Store previously focused element
   React.useEffect(() => {
     if (isActive && restoreFocus) {
-      previousFocusRef.current = document.activeElement as HTMLElement;
+      previousFocusReference.current = document.activeElement as HTMLElement;
     }
   }, [isActive, restoreFocus]);
 
@@ -29,7 +29,7 @@ export function FocusTrap({
   React.useEffect(() => {
     if (!isActive || !initialFocus) return;
 
-    const container = containerRef.current;
+    const container = containerReference.current;
     if (!container) return;
 
     // Find first focusable element
@@ -42,8 +42,8 @@ export function FocusTrap({
   // Restore focus on unmount/deactivate
   React.useEffect(() => {
     return () => {
-      if (restoreFocus && previousFocusRef.current) {
-        previousFocusRef.current.focus();
+      if (restoreFocus && previousFocusReference.current) {
+        previousFocusReference.current.focus();
       }
     };
   }, [restoreFocus]);
@@ -55,14 +55,14 @@ export function FocusTrap({
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key !== "Tab") return;
 
-      const container = containerRef.current;
+      const container = containerReference.current;
       if (!container) return;
 
       const focusableElements = getFocusableElements(container);
       if (focusableElements.length === 0) return;
 
       const firstElement = focusableElements[0];
-      const lastElement = focusableElements[focusableElements.length - 1];
+      const lastElement = focusableElements.at(-1);
 
       // Shift + Tab
       if (e.shiftKey) {
@@ -95,7 +95,7 @@ export function FocusTrap({
     };
   }, [isActive, onEscape]);
 
-  return <div ref={containerRef}>{children}</div>;
+  return <div ref={containerReference}>{children}</div>;
 }
 
 // Helper to get all focusable elements within a container
@@ -106,30 +106,33 @@ function getFocusableElements(container: HTMLElement): HTMLElement[] {
     'input:not([disabled]):not([type="hidden"]):not([aria-hidden="true"])',
     'select:not([disabled]):not([aria-hidden="true"])',
     'textarea:not([disabled]):not([aria-hidden="true"])',
-    '[tabindex]:not([tabindex="-1"]):not([disabled]):not([aria-hidden="true"])'
+    '[tabindex]:not([tabindex="-1"]):not([disabled]):not([aria-hidden="true"])',
   ].join(", ");
 
-  return Array.from(container.querySelectorAll(selector));
+  return [...container.querySelectorAll(selector)];
 }
 
 // Hook for managing focus within a modal/dialog
-export function useFocusTrap(isActive: boolean, options?: {
-  initialFocus?: boolean;
-  restoreFocus?: boolean;
-  onEscape?: () => void;
-}) {
-  const containerRef = React.useRef<HTMLDivElement>(null);
-  const previousFocusRef = React.useRef<HTMLElement | null>(null);
+export function useFocusTrap(
+  isActive: boolean,
+  options?: {
+    initialFocus?: boolean;
+    restoreFocus?: boolean;
+    onEscape?: () => void;
+  },
+) {
+  const containerReference = React.useRef<HTMLDivElement>(null);
+  const previousFocusReference = React.useRef<HTMLElement | null>(null);
 
   React.useEffect(() => {
     if (!isActive) return;
 
-    const container = containerRef.current;
+    const container = containerReference.current;
     if (!container) return;
 
     // Store previous focus
     if (options?.restoreFocus !== false) {
-      previousFocusRef.current = document.activeElement as HTMLElement;
+      previousFocusReference.current = document.activeElement as HTMLElement;
     }
 
     // Set initial focus
@@ -153,7 +156,7 @@ export function useFocusTrap(isActive: boolean, options?: {
       if (focusableElements.length === 0) return;
 
       const firstElement = focusableElements[0];
-      const lastElement = focusableElements[focusableElements.length - 1];
+      const lastElement = focusableElements.at(-1);
 
       if (e.shiftKey && document.activeElement === firstElement) {
         e.preventDefault();
@@ -168,13 +171,13 @@ export function useFocusTrap(isActive: boolean, options?: {
 
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
-      if (options?.restoreFocus !== false && previousFocusRef.current) {
-        previousFocusRef.current.focus();
+      if (options?.restoreFocus !== false && previousFocusReference.current) {
+        previousFocusReference.current.focus();
       }
     };
   }, [isActive, options]);
 
-  return containerRef;
+  return containerReference;
 }
 
 export default FocusTrap;

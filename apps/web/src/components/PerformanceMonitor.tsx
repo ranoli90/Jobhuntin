@@ -1,6 +1,6 @@
 /**
  * Performance Monitoring Component
- * 
+ *
  * Monitors and reports on frontend performance metrics including:
  * - Core Web Vitals (LCP, FID, CLS)
  * - Component render performance
@@ -46,13 +46,13 @@ interface PerformanceMetrics {
   networkRequests: number;
 }
 
-interface PerformanceMonitorProps {
+interface PerformanceMonitorProperties {
   onMetricsUpdate?: (metrics: PerformanceMetrics) => void;
   reportToService?: boolean;
   enableReporting?: boolean;
 }
 
-export class PerformanceMonitor extends React.Component<PerformanceMonitorProps> {
+export class PerformanceMonitor extends React.Component<PerformanceMonitorProperties> {
   private observer: PerformanceObserver | null = null;
   private metrics: PerformanceMetrics = {
     lcp: 0,
@@ -81,70 +81,85 @@ export class PerformanceMonitor extends React.Component<PerformanceMonitorProps>
   }
 
   private initializePerformanceMonitoring = () => {
-    if ('PerformanceObserver' in window) {
+    if ("PerformanceObserver" in window) {
       // Monitor Core Web Vitals
       this.observer = new PerformanceObserver((entryList) => {
         const entries = entryList.getEntries();
 
-        entries.forEach((entry) => {
+        for (const entry of entries) {
           switch (entry.entryType) {
-            case 'largest-contentful-paint':
+            case "largest-contentful-paint": {
               this.metrics.lcp = entry.startTime;
               break;
-            case 'first-input':
-              this.metrics.fid = (entry as FirstInputEntry).processingStart - entry.startTime;
+            }
+            case "first-input": {
+              this.metrics.fid =
+                (entry as FirstInputEntry).processingStart - entry.startTime;
               break;
-            case 'layout-shift':
+            }
+            case "layout-shift": {
               if (!(entry as LayoutShiftEntry).hadRecentInput) {
                 this.metrics.cls += (entry as LayoutShiftEntry).value;
               }
               break;
-            case 'first-contentful-paint':
+            }
+            case "first-contentful-paint": {
               this.metrics.fcp = entry.startTime;
               break;
-            case 'navigation':
+            }
+            case "navigation": {
               const navEntry = entry as PerformanceNavigationTiming;
-              this.metrics.ttfb = navEntry.responseStart - navEntry.requestStart;
+              this.metrics.ttfb =
+                navEntry.responseStart - navEntry.requestStart;
               break;
+            }
           }
-        });
+        }
 
         this.updateMetrics();
       });
 
       // Observe all performance entry types
-      this.observer.observe({ entryTypes: ['largest-contentful-paint', 'first-input', 'layout-shift', 'first-contentful-paint', 'navigation'] });
+      this.observer.observe({
+        entryTypes: [
+          "largest-contentful-paint",
+          "first-input",
+          "layout-shift",
+          "first-contentful-paint",
+          "navigation",
+        ],
+      });
     }
   };
 
   private setupErrorTracking = () => {
     // Track JavaScript errors
-    window.addEventListener('error', (event) => {
+    window.addEventListener("error", (event) => {
       this.errorCount++;
       this.metrics.errorCount = this.errorCount;
       this.updateMetrics();
-      this.reportError('javascript', event.error);
+      this.reportError("javascript", event.error);
     });
 
     // Track unhandled promise rejections
-    window.addEventListener('unhandledrejection', (event) => {
+    window.addEventListener("unhandledrejection", (event) => {
       this.errorCount++;
       this.metrics.errorCount = this.errorCount;
       this.updateMetrics();
-      this.reportError('promise', event.reason);
+      this.reportError("promise", event.reason);
     });
   };
 
   private setupNetworkTracking = () => {
     // Track network requests
-    if ('PerformanceObserver' in window) {
+    if ("PerformanceObserver" in window) {
       const networkObserver = new PerformanceObserver((entryList) => {
         const entries = entryList.getEntries();
         this.metrics.networkRequests += entries.length;
         this.updateMetrics();
       });
 
-      networkObserver.observe({ entryTypes: ['resource'] });
+      networkObserver.observe({ entryTypes: ["resource"] });
     }
   };
 
@@ -161,7 +176,8 @@ export class PerformanceMonitor extends React.Component<PerformanceMonitorProps>
 
   private collectMemoryMetrics = () => {
     if (performance.memory) {
-      this.metrics.memoryUsage = performance.memory.usedJSHeapSize / 1024 / 1024; // Convert to MB
+      this.metrics.memoryUsage =
+        performance.memory.usedJSHeapSize / 1024 / 1024; // Convert to MB
     }
   };
 
@@ -180,9 +196,9 @@ export class PerformanceMonitor extends React.Component<PerformanceMonitorProps>
 
   private reportMetrics = async () => {
     try {
-      await fetch('/api/performance-metrics', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      await fetch("/api/performance-metrics", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...this.metrics,
           timestamp: new Date().toISOString(),
@@ -191,7 +207,8 @@ export class PerformanceMonitor extends React.Component<PerformanceMonitorProps>
         }),
       });
     } catch (error) {
-      if (import.meta.env.DEV) console.warn('Failed to report performance metrics:', error);
+      if (import.meta.env.DEV)
+        console.warn("Failed to report performance metrics:", error);
     }
   };
 
@@ -199,9 +216,9 @@ export class PerformanceMonitor extends React.Component<PerformanceMonitorProps>
     if (!this.props.reportToService || !this.props.enableReporting) return;
 
     try {
-      fetch('/api/performance-errors', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      fetch("/api/performance-errors", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           type,
           error: error?.message || error,
@@ -212,7 +229,8 @@ export class PerformanceMonitor extends React.Component<PerformanceMonitorProps>
         }),
       });
     } catch (reportingError) {
-      if (import.meta.env.DEV) console.warn('Failed to report performance error:', reportingError);
+      if (import.meta.env.DEV)
+        console.warn("Failed to report performance error:", reportingError);
     }
   };
 
@@ -244,16 +262,22 @@ export function PerformanceDashboard() {
 
   if (!isVisible || !metrics) return null;
 
-  const getScoreColor = (score: number, thresholds: { good: number; needsImprovement: number }) => {
-    if (score <= thresholds.good) return 'text-green-600';
-    if (score <= thresholds.needsImprovement) return 'text-yellow-600';
-    return 'text-red-600';
+  const getScoreColor = (
+    score: number,
+    thresholds: { good: number; needsImprovement: number },
+  ) => {
+    if (score <= thresholds.good) return "text-green-600";
+    if (score <= thresholds.needsImprovement) return "text-yellow-600";
+    return "text-red-600";
   };
 
-  const getMetricStatus = (value: number, thresholds: { good: number; needsImprovement: number }) => {
-    if (value <= thresholds.good) return 'Good';
-    if (value <= thresholds.needsImprovement) return 'Needs Improvement';
-    return 'Poor';
+  const getMetricStatus = (
+    value: number,
+    thresholds: { good: number; needsImprovement: number },
+  ) => {
+    if (value <= thresholds.good) return "Good";
+    if (value <= thresholds.needsImprovement) return "Needs Improvement";
+    return "Poor";
   };
 
   return (
@@ -267,66 +291,113 @@ export function PerformanceDashboard() {
         {/* Core Web Vitals */}
         <div className="flex justify-between items-center">
           <span className="text-gray-600">LCP:</span>
-          <span className={getScoreColor(metrics.lcp, { good: 2500, needsImprovement: 4000 })}>
-            {metrics.lcp.toFixed(0)}ms ({getMetricStatus(metrics.lcp, { good: 2500, needsImprovement: 4000 })})
+          <span
+            className={getScoreColor(metrics.lcp, {
+              good: 2500,
+              needsImprovement: 4000,
+            })}
+          >
+            {metrics.lcp.toFixed(0)}ms (
+            {getMetricStatus(metrics.lcp, {
+              good: 2500,
+              needsImprovement: 4000,
+            })}
+            )
           </span>
         </div>
 
         <div className="flex justify-between items-center">
           <span className="text-gray-600">FID:</span>
-          <span className={getScoreColor(metrics.fid, { good: 100, needsImprovement: 300 })}>
-            {metrics.fid.toFixed(0)}ms ({getMetricStatus(metrics.fid, { good: 100, needsImprovement: 300 })})
+          <span
+            className={getScoreColor(metrics.fid, {
+              good: 100,
+              needsImprovement: 300,
+            })}
+          >
+            {metrics.fid.toFixed(0)}ms (
+            {getMetricStatus(metrics.fid, { good: 100, needsImprovement: 300 })}
+            )
           </span>
         </div>
 
         <div className="flex justify-between items-center">
           <span className="text-gray-600">CLS:</span>
-          <span className={getScoreColor(metrics.cls, { good: 0.1, needsImprovement: 0.25 })}>
-            {metrics.cls.toFixed(3)} ({getMetricStatus(metrics.cls, { good: 0.1, needsImprovement: 0.25 })})
+          <span
+            className={getScoreColor(metrics.cls, {
+              good: 0.1,
+              needsImprovement: 0.25,
+            })}
+          >
+            {metrics.cls.toFixed(3)} (
+            {getMetricStatus(metrics.cls, {
+              good: 0.1,
+              needsImprovement: 0.25,
+            })}
+            )
           </span>
         </div>
 
         {/* Additional Metrics */}
         <div className="flex justify-between items-center">
           <span className="text-gray-600">FCP:</span>
-          <span className={getScoreColor(metrics.fcp, { good: 1800, needsImprovement: 3000 })}>
+          <span
+            className={getScoreColor(metrics.fcp, {
+              good: 1800,
+              needsImprovement: 3000,
+            })}
+          >
             {metrics.fcp.toFixed(0)}ms
           </span>
         </div>
 
         <div className="flex justify-between items-center">
           <span className="text-gray-600">TTFB:</span>
-          <span className={getScoreColor(metrics.ttfb, { good: 800, needsImprovement: 1800 })}>
+          <span
+            className={getScoreColor(metrics.ttfb, {
+              good: 800,
+              needsImprovement: 1800,
+            })}
+          >
             {metrics.ttfb.toFixed(0)}ms
           </span>
         </div>
 
         <div className="flex justify-between items-center">
           <span className="text-gray-600">Memory:</span>
-          <span className={metrics.memoryUsage > 50 ? 'text-red-600' : 'text-green-600'}>
+          <span
+            className={
+              metrics.memoryUsage > 50 ? "text-red-600" : "text-green-600"
+            }
+          >
             {metrics.memoryUsage.toFixed(1)}MB
           </span>
         </div>
 
         <div className="flex justify-between items-center">
           <span className="text-gray-600">Render Time:</span>
-          <span className={metrics.renderTime > 100 ? 'text-red-600' : 'text-green-600'}>
+          <span
+            className={
+              metrics.renderTime > 100 ? "text-red-600" : "text-green-600"
+            }
+          >
             {metrics.renderTime.toFixed(0)}ms
           </span>
         </div>
 
         <div className="flex justify-between items-center">
           <span className="text-gray-600">Errors:</span>
-          <span className={metrics.errorCount > 0 ? 'text-red-600' : 'text-green-600'}>
+          <span
+            className={
+              metrics.errorCount > 0 ? "text-red-600" : "text-green-600"
+            }
+          >
             {metrics.errorCount}
           </span>
         </div>
 
         <div className="flex justify-between items-center">
           <span className="text-gray-600">Network Requests:</span>
-          <span className="text-blue-600">
-            {metrics.networkRequests}
-          </span>
+          <span className="text-blue-600">{metrics.networkRequests}</span>
         </div>
       </div>
 
@@ -414,9 +485,12 @@ export function usePerformanceMonitoring() {
     setIsMonitoring(false);
   }, []);
 
-  const handleMetricsUpdate = React.useCallback((newMetrics: PerformanceMetrics) => {
-    setMetrics(newMetrics);
-  }, []);
+  const handleMetricsUpdate = React.useCallback(
+    (newMetrics: PerformanceMetrics) => {
+      setMetrics(newMetrics);
+    },
+    [],
+  );
 
   return {
     metrics,
@@ -434,28 +508,28 @@ export const performanceUtils = {
   /**
    * Debounce function for performance optimization
    */
-  debounce: <Args extends unknown[], Return>(
-    func: (...args: Args) => Return,
-    wait: number
-  ): ((...args: Args) => void) => {
+  debounce: <Arguments extends unknown[], Return>(
+    function_: (...arguments_: Arguments) => Return,
+    wait: number,
+  ): ((...arguments_: Arguments) => void) => {
     let timeout: ReturnType<typeof setTimeout>;
-    return (...args: Args) => {
+    return (...arguments_: Arguments) => {
       clearTimeout(timeout);
-      timeout = setTimeout(() => func(...args), wait);
+      timeout = setTimeout(() => function_(...arguments_), wait);
     };
   },
 
   /**
    * Throttle function for performance optimization
    */
-  throttle: <Args extends unknown[], Return>(
-    func: (...args: Args) => Return,
-    limit: number
-  ): ((...args: Args) => void) => {
+  throttle: <Arguments extends unknown[], Return>(
+    function_: (...arguments_: Arguments) => Return,
+    limit: number,
+  ): ((...arguments_: Arguments) => void) => {
     let inThrottle: boolean;
-    return (...args: Args) => {
+    return (...arguments_: Arguments) => {
       if (!inThrottle) {
-        func(...args);
+        function_(...arguments_);
         inThrottle = true;
         setTimeout(() => (inThrottle = false), limit);
       }
@@ -466,22 +540,24 @@ export const performanceUtils = {
    * Lazy load component
    */
   lazyLoad: <T extends React.ComponentType<unknown>>(
-    importFunc: () => Promise<{ default: T }>
+    importFunction: () => Promise<{ default: T }>,
   ) => {
-    return React.lazy(importFunc);
+    return React.lazy(importFunction);
   },
 
   /**
    * Memoize expensive calculations
    */
-  memoize: <Args extends unknown[], Return>(func: (...args: Args) => Return): (...args: Args) => Return => {
+  memoize: <Arguments extends unknown[], Return>(
+    function_: (...arguments_: Arguments) => Return,
+  ): ((...arguments_: Arguments) => Return) => {
     const cache = new Map<string, Return>();
-    return (...args: Args) => {
-      const key = JSON.stringify(args);
+    return (...arguments_: Arguments) => {
+      const key = JSON.stringify(arguments_);
       if (cache.has(key)) {
         return cache.get(key)!;
       }
-      const result = func(...args);
+      const result = function_(...arguments_);
       cache.set(key, result);
       return result;
     };

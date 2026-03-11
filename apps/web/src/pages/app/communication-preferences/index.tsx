@@ -1,9 +1,9 @@
-import React from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { Badge } from '@/components/ui/Badge';
-import { Alert, AlertDescription } from '@/components/ui/Alert';
-import { Mail, Bell, Settings, CheckCircle } from 'lucide-react';
+import React from "react";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
+import { Badge } from "@/components/ui/Badge";
+import { Alert, AlertDescription } from "@/components/ui/Alert";
+import { Mail, Bell, Settings, CheckCircle } from "lucide-react";
 
 const CommunicationPreferencesPage: React.FC = () => {
   return (
@@ -11,7 +11,9 @@ const CommunicationPreferencesPage: React.FC = () => {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold">Communication Preferences</h1>
-          <p className="text-gray-600">Manage your email and notification preferences</p>
+          <p className="text-gray-600">
+            Manage your email and notification preferences
+          </p>
         </div>
         <div className="flex space-x-2">
           <Button variant="outline">
@@ -23,7 +25,8 @@ const CommunicationPreferencesPage: React.FC = () => {
 
       <Alert>
         <AlertDescription>
-          Configure how you receive communications from JobHuntin, including email notifications and push notifications.
+          Configure how you receive communications from JobHuntin, including
+          email notifications and push notifications.
         </AlertDescription>
       </Alert>
 

@@ -26,14 +26,18 @@ if (sentryDsn) {
         }),
       ],
       // Performance Monitoring
-      tracesSampleRate: import.meta.env.PROD ? 0.1 : 1.0, // 10% in prod, 100% in dev
+      tracesSampleRate: import.meta.env.PROD ? 0.1 : 1, // 10% in prod, 100% in dev
       // Session Replay
-      replaysSessionSampleRate: import.meta.env.PROD ? 0.1 : 1.0, // 10% in prod
-      replaysOnErrorSampleRate: 1.0, // 100% of sessions with errors
+      replaysSessionSampleRate: import.meta.env.PROD ? 0.1 : 1, // 10% in prod
+      replaysOnErrorSampleRate: 1, // 100% of sessions with errors
       // Filter out sensitive data
       beforeSend(
-        event: Parameters<NonNullable<Parameters<typeof Sentry.init>[0]["beforeSend"]>>[0],
-        _hint: Parameters<NonNullable<Parameters<typeof Sentry.init>[0]["beforeSend"]>>[1],
+        event: Parameters<
+          NonNullable<Parameters<typeof Sentry.init>[0]["beforeSend"]>
+        >[0],
+        _hint: Parameters<
+          NonNullable<Parameters<typeof Sentry.init>[0]["beforeSend"]>
+        >[1],
       ) {
         // Remove PII from error messages
         if (event.request?.url) {
@@ -63,30 +67,34 @@ if (sentryDsn) {
 // Don't log Sentry warning in dev mode - it's expected when DSN is not set
 
 // Service Worker Registration
-if ('serviceWorker' in navigator && import.meta.env.PROD) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js')
+if ("serviceWorker" in navigator && import.meta.env.PROD) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker
+      .register("/sw.js")
       .then((registration) => {
-        console.log('[SW] Service Worker registered:', registration);
-        
+        console.log("[SW] Service Worker registered:", registration);
+
         // Check for updates
-        registration.addEventListener('updatefound', () => {
+        registration.addEventListener("updatefound", () => {
           const newWorker = registration.installing;
           if (newWorker) {
-            newWorker.addEventListener('statechange', () => {
-              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                // New version available, show update notification
-                if (window.confirm('A new version of JobHuntin is available. Would you like to update?')) {
-                  newWorker.postMessage({ type: 'SKIP_WAITING' });
-                  window.location.reload();
-                }
+            newWorker.addEventListener("statechange", () => {
+              if (
+                newWorker.state === "installed" &&
+                navigator.serviceWorker.controller && // New version available, show update notification
+                window.confirm(
+                  "A new version of JobHuntin is available. Would you like to update?",
+                )
+              ) {
+                newWorker.postMessage({ type: "SKIP_WAITING" });
+                window.location.reload();
               }
             });
           }
         });
       })
       .catch((error) => {
-        console.error('[SW] Service Worker registration failed:', error);
+        console.error("[SW] Service Worker registration failed:", error);
       });
   });
 }
@@ -98,7 +106,7 @@ if (configErrors.length > 0 && import.meta.env.DEV) {
 
 const queryClient = new QueryClient();
 
-ReactDOM.createRoot(document.getElementById("root")!).render(
+ReactDOM.createRoot(document.querySelector("#root")!).render(
   <React.StrictMode>
     <HelmetProvider>
       <ErrorBoundary>
@@ -120,4 +128,3 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
     </HelmetProvider>
   </React.StrictMode>,
 );
-

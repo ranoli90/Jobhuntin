@@ -3,24 +3,24 @@
  * This prevents one failed component from crashing the entire app.
  */
 
-import React, { Suspense } from 'react';
-import { ErrorBoundary } from './ErrorBoundary';
-import { LoadingSpinner } from './ui/LoadingSpinner';
+import React, { Suspense } from "react";
+import { ErrorBoundary } from "./ErrorBoundary";
+import { LoadingSpinner } from "./ui/LoadingSpinner";
 
-interface SafeLazyProps {
+interface SafeLazyProperties {
   children: React.ReactNode;
   fallback?: React.ReactNode;
   name?: string;
 }
 
-export function SafeLazy({ children, fallback, name }: SafeLazyProps) {
+export function SafeLazy({ children, fallback, name }: SafeLazyProperties) {
   return (
-    <ErrorBoundary 
-      showToast 
+    <ErrorBoundary
+      showToast
       fallback={
         <div className="p-8 text-center">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-slate-100 mb-2">
-            Failed to load {name || 'component'}
+            Failed to load {name || "component"}
           </h3>
           <p className="text-gray-600 dark:text-slate-400 mb-4">
             Please try refreshing the page
@@ -46,12 +46,12 @@ export function SafeLazy({ children, fallback, name }: SafeLazyProps) {
  */
 export function withSafeLazy<P extends object>(
   Component: React.ComponentType<P>,
-  name?: string
+  name?: string,
 ): React.FC<P> {
-  return function SafeLazyWrapper(props: P) {
+  return function SafeLazyWrapper(properties: P) {
     return (
       <SafeLazy name={name}>
-        <Component {...props} />
+        <Component {...properties} />
       </SafeLazy>
     );
   };

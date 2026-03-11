@@ -1,19 +1,27 @@
 import { motion } from "framer-motion";
 import { cn } from "../lib/utils";
 
-interface ShakeAnimationProps {
+interface ShakeAnimationProperties {
   children: React.ReactNode;
   isError?: boolean;
   className?: string;
 }
 
-export function ShakeAnimation({ children, isError, className }: ShakeAnimationProps) {
+export function ShakeAnimation({
+  children,
+  isError,
+  className,
+}: ShakeAnimationProperties) {
   return (
     <motion.div
-      animate={isError ? {
-        x: [0, -10, 10, -10, 10, 0],
-        transition: { duration: 0.4 }
-      } : {}}
+      animate={
+        isError
+          ? {
+              x: [0, -10, 10, -10, 10, 0],
+              transition: { duration: 0.4 },
+            }
+          : {}
+      }
       className={className}
     >
       {children}
@@ -21,26 +29,34 @@ export function ShakeAnimation({ children, isError, className }: ShakeAnimationP
   );
 }
 
-interface FormErrorAnimationProps {
+interface FormErrorAnimationProperties {
   children: React.ReactNode;
   show: boolean;
   className?: string;
 }
 
-export function FormErrorAnimation({ children, show, className }: FormErrorAnimationProps) {
+export function FormErrorAnimation({
+  children,
+  show,
+  className,
+}: FormErrorAnimationProperties) {
   return (
     <motion.div
       initial={{ opacity: 0, height: 0, y: -10 }}
-      animate={show ? { 
-        opacity: 1, 
-        height: "auto", 
-        y: 0,
-        transition: { type: "spring", damping: 20, stiffness: 300 }
-      } : { 
-        opacity: 0, 
-        height: 0, 
-        y: -10 
-      }}
+      animate={
+        show
+          ? {
+              opacity: 1,
+              height: "auto",
+              y: 0,
+              transition: { type: "spring", damping: 20, stiffness: 300 },
+            }
+          : {
+              opacity: 0,
+              height: 0,
+              y: -10,
+            }
+      }
       className={cn("overflow-hidden", className)}
     >
       {children}
@@ -48,19 +64,27 @@ export function FormErrorAnimation({ children, show, className }: FormErrorAnima
   );
 }
 
-interface SuccessPulseProps {
+interface SuccessPulseProperties {
   children: React.ReactNode;
   isSuccess?: boolean;
   className?: string;
 }
 
-export function SuccessPulse({ children, isSuccess, className }: SuccessPulseProps) {
+export function SuccessPulse({
+  children,
+  isSuccess,
+  className,
+}: SuccessPulseProperties) {
   return (
     <motion.div
-      animate={isSuccess ? {
-        scale: [1, 1.02, 1],
-        transition: { duration: 0.3 }
-      } : {}}
+      animate={
+        isSuccess
+          ? {
+              scale: [1, 1.02, 1],
+              transition: { duration: 0.3 },
+            }
+          : {}
+      }
       className={className}
     >
       {children}
@@ -68,7 +92,7 @@ export function SuccessPulse({ children, isSuccess, className }: SuccessPulsePro
   );
 }
 
-interface FieldHighlightProps {
+interface FieldHighlightProperties {
   children: React.ReactNode;
   isFocused?: boolean;
   isValid?: boolean;
@@ -76,13 +100,13 @@ interface FieldHighlightProps {
   className?: string;
 }
 
-export function FieldHighlight({ 
-  children, 
-  isFocused, 
-  isValid, 
+export function FieldHighlight({
+  children,
+  isFocused,
+  isValid,
   isError,
-  className 
-}: FieldHighlightProps) {
+  className,
+}: FieldHighlightProperties) {
   const getBorderColor = () => {
     if (isError) return "border-red-500 ring-2 ring-red-500/20";
     if (isValid) return "border-emerald-500 ring-2 ring-emerald-500/20";
@@ -93,22 +117,35 @@ export function FieldHighlight({
   return (
     <motion.div
       animate={{
-        borderColor: isError ? "#ef4444" : isValid ? "#10b981" : isFocused ? "#6366f1" : "#e2e8f0",
+        borderColor: isError
+          ? "#ef4444"
+          : isValid
+            ? "#10b981"
+            : isFocused
+              ? "#6366f1"
+              : "#e2e8f0",
       }}
       transition={{ duration: 0.2 }}
-      className={cn("rounded-xl border-2 transition-colors", getBorderColor(), className)}
+      className={cn(
+        "rounded-xl border-2 transition-colors",
+        getBorderColor(),
+        className,
+      )}
     >
       {children}
     </motion.div>
   );
 }
 
-interface CheckmarkAnimationProps {
+interface CheckmarkAnimationProperties {
   show: boolean;
   className?: string;
 }
 
-export function CheckmarkAnimation({ show, className }: CheckmarkAnimationProps) {
+export function CheckmarkAnimation({
+  show,
+  className,
+}: CheckmarkAnimationProperties) {
   return (
     <motion.div
       initial={{ scale: 0, opacity: 0 }}
@@ -116,7 +153,12 @@ export function CheckmarkAnimation({ show, className }: CheckmarkAnimationProps)
       transition={{ type: "spring", damping: 15, stiffness: 300 }}
       className={className}
     >
-      <svg className="w-5 h-5 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <svg
+        className="w-5 h-5 text-emerald-500"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
         <motion.path
           initial={{ pathLength: 0 }}
           animate={show ? { pathLength: 1 } : { pathLength: 0 }}

@@ -42,7 +42,8 @@ const mockAlertsData: AlertsData = {
       id: "a1",
       type: "critical",
       title: "API Rate Limit Exceeded",
-      message: "Tenant 'Enterprise Solutions' has exceeded their API rate limit. Requests are being throttled.",
+      message:
+        "Tenant 'Enterprise Solutions' has exceeded their API rate limit. Requests are being throttled.",
       tenant_id: "t5",
       tenant_name: "Enterprise Solutions",
       status: "active",
@@ -54,7 +55,8 @@ const mockAlertsData: AlertsData = {
       id: "a2",
       type: "warning",
       title: "High Error Rate Detected",
-      message: "Match API error rate has exceeded 5% in the last hour. Current rate: 7.2%.",
+      message:
+        "Match API error rate has exceeded 5% in the last hour. Current rate: 7.2%.",
       tenant_id: "system",
       tenant_name: "System",
       status: "active",
@@ -66,7 +68,8 @@ const mockAlertsData: AlertsData = {
       id: "a3",
       type: "warning",
       title: "Quota Near Limit",
-      message: "Tenant 'Global Systems' is at 89% of their monthly match quota.",
+      message:
+        "Tenant 'Global Systems' is at 89% of their monthly match quota.",
       tenant_id: "t3",
       tenant_name: "Global Systems",
       status: "active",
@@ -78,7 +81,8 @@ const mockAlertsData: AlertsData = {
       id: "a4",
       type: "info",
       title: "Scheduled Maintenance",
-      message: "Planned maintenance window scheduled for Feb 14, 2026 at 2:00 AM UTC. Expected downtime: 30 minutes.",
+      message:
+        "Planned maintenance window scheduled for Feb 14, 2026 at 2:00 AM UTC. Expected downtime: 30 minutes.",
       tenant_id: "system",
       tenant_name: "System",
       status: "active",
@@ -92,7 +96,8 @@ const mockAlertsData: AlertsData = {
       id: "h1",
       type: "critical",
       title: "Database Connection Pool Exhausted",
-      message: "Connection pool reached 100% capacity. Automatic scaling triggered.",
+      message:
+        "Connection pool reached 100% capacity. Automatic scaling triggered.",
       tenant_id: "system",
       tenant_name: "System",
       status: "resolved",
@@ -117,12 +122,15 @@ const mockAlertsData: AlertsData = {
 
 function AlertIcon({ type }: { type: Alert["type"] }) {
   switch (type) {
-    case "critical":
+    case "critical": {
       return <AlertCircle className="w-5 h-5 text-red-500" />;
-    case "warning":
+    }
+    case "warning": {
       return <AlertTriangle className="w-5 h-5 text-amber-500" />;
-    case "info":
+    }
+    case "info": {
       return <Info className="w-5 h-5 text-blue-500" />;
+    }
   }
 }
 
@@ -139,9 +147,13 @@ function AlertCard({
     <Card
       className={cn(
         "p-4",
-        alert.type === "critical" && alert.status === "active" && "border-red-200 bg-red-50/50",
-        alert.type === "warning" && alert.status === "active" && "border-amber-200 bg-amber-50/50",
-        isHistorical && "opacity-75"
+        alert.type === "critical" &&
+          alert.status === "active" &&
+          "border-red-200 bg-red-50/50",
+        alert.type === "warning" &&
+          alert.status === "active" &&
+          "border-amber-200 bg-amber-50/50",
+        isHistorical && "opacity-75",
       )}
     >
       <div className="flex items-start gap-3">
@@ -182,7 +194,11 @@ function AlertCard({
           </div>
         </div>
         {alert.status === "active" && (
-          <Button size="sm" variant="outline" onClick={() => onAcknowledge(alert.id)}>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => onAcknowledge(alert.id)}
+          >
             Acknowledge
           </Button>
         )}
@@ -204,13 +220,15 @@ export default function AdminAlertsPage() {
     setLoading(true);
     setError(null);
     try {
-      const params = new URLSearchParams();
-      if (severityFilter) params.append("severity", severityFilter);
-      if (statusFilter) params.append("status", statusFilter);
-      const data = await apiGet<AlertsData>(`admin/alerts?${params}`);
+      const parameters = new URLSearchParams();
+      if (severityFilter) parameters.append("severity", severityFilter);
+      if (statusFilter) parameters.append("status", statusFilter);
+      const data = await apiGet<AlertsData>(`admin/alerts?${parameters}`);
       setAlertsData(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load alerts");
+    } catch (error_) {
+      setError(
+        error_ instanceof Error ? error_.message : "Failed to load alerts",
+      );
       setAlertsData(null);
     } finally {
       setLoading(false);
@@ -229,19 +247,19 @@ export default function AdminAlertsPage() {
         description: "The alert has been acknowledged.",
         tone: "success",
       });
-      setAlertsData((prev) => {
-        if (!prev) return prev;
-        const alert = prev.active.find((a) => a.id === alertId);
+      setAlertsData((previous) => {
+        if (!previous) return previous;
+        const alert = previous.active.find((a) => a.id === alertId);
         if (alert) {
-          alert.status = "acknowledged";
-          alert.acknowledged_at = new Date().toISOString();
-          alert.acknowledged_by = "current-user@example.com";
+          const updated = { ...alert, status: "acknowledged" as const };
+          updated.acknowledged_at = new Date().toISOString();
+          updated.acknowledged_by = "current-user@example.com";
           return {
-            active: prev.active.filter((a) => a.id !== alertId),
-            historical: [alert, ...prev.historical],
+            active: previous.active.filter((a) => a.id !== alertId),
+            historical: [updated, ...previous.historical],
           };
         }
-        return prev;
+        return previous;
       });
     } catch {
       pushToast({
@@ -249,6 +267,7 @@ export default function AdminAlertsPage() {
         description: "Could not acknowledge alert.",
         tone: "error",
       });
+      await fetchAlerts();
     }
   };
 
@@ -278,7 +297,9 @@ export default function AdminAlertsPage() {
       <div className="max-w-4xl mx-auto p-6">
         <div className="flex flex-col items-center justify-center min-h-[40vh] gap-4 text-center">
           <AlertTriangle className="w-12 h-12 text-red-500" />
-          <h2 className="text-lg font-semibold text-slate-900">Failed to load alerts</h2>
+          <h2 className="text-lg font-semibold text-slate-900">
+            Failed to load alerts
+          </h2>
           <p className="text-sm text-slate-600">{error}</p>
           <Button onClick={() => fetchAlerts()}>Retry</Button>
         </div>
@@ -290,13 +311,22 @@ export default function AdminAlertsPage() {
     <div className="max-w-4xl mx-auto p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate(-1)}
+            className="gap-2"
+          >
             <ArrowLeft className="w-4 h-4" />
             Back
           </Button>
           <div>
-            <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Admin</p>
-            <h1 className="text-2xl font-bold text-slate-900">Real-time Alerts</h1>
+            <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">
+              Admin
+            </p>
+            <h1 className="text-2xl font-bold text-slate-900">
+              Real-time Alerts
+            </h1>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -315,7 +345,7 @@ export default function AdminAlertsPage() {
               "px-4 py-2 text-sm font-medium transition-colors",
               tab === "active"
                 ? "bg-primary-500 text-white"
-                : "bg-white text-slate-600 hover:bg-slate-50"
+                : "bg-white text-slate-600 hover:bg-slate-50",
             )}
           >
             Active ({alertsData?.active.length ?? 0})
@@ -326,7 +356,7 @@ export default function AdminAlertsPage() {
               "px-4 py-2 text-sm font-medium transition-colors",
               tab === "historical"
                 ? "bg-primary-500 text-white"
-                : "bg-white text-slate-600 hover:bg-slate-50"
+                : "bg-white text-slate-600 hover:bg-slate-50",
             )}
           >
             Historical ({alertsData?.historical.length ?? 0})
@@ -373,7 +403,11 @@ export default function AdminAlertsPage() {
           </Card>
         ) : (
           filteredAlerts?.map((alert) => (
-            <AlertCard key={alert.id} alert={alert} onAcknowledge={handleAcknowledge} />
+            <AlertCard
+              key={alert.id}
+              alert={alert}
+              onAcknowledge={handleAcknowledge}
+            />
           ))
         )}
       </div>

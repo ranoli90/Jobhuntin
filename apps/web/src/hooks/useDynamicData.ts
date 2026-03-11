@@ -4,7 +4,9 @@ import { useState, useEffect, useRef } from "react";
  * Dynamically imports JSON data to avoid bundling it in the initial chunk.
  * Pass a stable import, e.g. () => import('../data/locations.json').
  */
-export function useDynamicData<T>(importFn: () => Promise<{ default: T }>): {
+export function useDynamicData<T>(
+  importFunction: () => Promise<{ default: T }>,
+): {
   data: T | null;
   loading: boolean;
   error: Error | null;
@@ -12,22 +14,25 @@ export function useDynamicData<T>(importFn: () => Promise<{ default: T }>): {
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
-  const fnRef = useRef(importFn);
-  fnRef.current = importFn;
+  const functionReference = useRef(importFunction);
+  functionReference.current = importFunction;
 
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
     setError(null);
-    fnRef.current()
-      .then((mod) => {
+    functionReference
+      .current()
+      .then((module_) => {
         if (!cancelled) {
-          setData(mod.default);
+          setData(module_.default);
         }
       })
-      .catch((err) => {
+      .catch((error_) => {
         if (!cancelled) {
-          setError(err instanceof Error ? err : new Error(String(err)));
+          setError(
+            error_ instanceof Error ? error_ : new Error(String(error_)),
+          );
         }
       })
       .finally(() => {

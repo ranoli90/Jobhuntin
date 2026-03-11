@@ -2,17 +2,20 @@
  * Custom JobHuntin brand mark — a document with an upward arrow (resume + apply).
  * Unique, brandable, not a generic briefcase.
  */
-import React from 'react';
-import { cn } from '../../lib/utils';
+import React from "react";
+import { cn } from "../../lib/utils";
 
-interface JobHuntinMarkProps {
+interface JobHuntinMarkProperties {
   className?: string;
-  size?: 'sm' | 'md' | 'lg';
+  size?: "sm" | "md" | "lg";
 }
 
 const sizeMap = { sm: 16, md: 20, lg: 24 };
 
-export function JobHuntinMark({ className, size = 'md' }: JobHuntinMarkProps) {
+export function JobHuntinMark({
+  className,
+  size = "md",
+}: JobHuntinMarkProperties) {
   const s = sizeMap[size];
   return (
     <svg

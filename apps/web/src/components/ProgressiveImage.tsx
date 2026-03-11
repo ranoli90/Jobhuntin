@@ -2,7 +2,7 @@ import * as React from "react";
 import { motion } from "framer-motion";
 import { cn } from "../lib/utils";
 
-interface ProgressiveImageProps {
+interface ProgressiveImageProperties {
   src: string;
   alt: string;
   className?: string;
@@ -20,17 +20,17 @@ export function ProgressiveImage({
   placeholderColor = "#f1f5f9",
   onLoad,
   onError,
-}: ProgressiveImageProps) {
+}: ProgressiveImageProperties) {
   const [isLoaded, setIsLoaded] = React.useState(false);
   const [error, setError] = React.useState(false);
 
   React.useEffect(() => {
     const img = new Image();
     img.src = src;
-    img.onload = () => {
+    img.addEventListener("load", () => {
       setIsLoaded(true);
       onLoad?.();
-    };
+    });
     img.onerror = () => {
       setError(true);
       onError?.();
@@ -42,7 +42,7 @@ export function ProgressiveImage({
       <div
         className={cn(
           "bg-slate-100 flex items-center justify-center",
-          containerClassName
+          containerClassName,
         )}
       >
         <span className="text-slate-400 text-sm">Failed to load image</span>
@@ -62,7 +62,7 @@ export function ProgressiveImage({
         animate={{ opacity: isLoaded ? 0 : 1 }}
         transition={{ duration: 0.3 }}
       />
-      
+
       {/* Shimmer loading effect */}
       {!isLoaded && (
         <motion.div
@@ -75,19 +75,17 @@ export function ProgressiveImage({
             ease: "linear",
           }}
           style={{
-            background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent)",
+            background:
+              "linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent)",
           }}
         />
       )}
-      
+
       {/* Actual image */}
       <motion.img
         src={src}
         alt={alt}
-        className={cn(
-          "w-full h-full object-cover",
-          className
-        )}
+        className={cn("w-full h-full object-cover", className)}
         initial={{ opacity: 0 }}
         animate={{ opacity: isLoaded ? 1 : 0 }}
         transition={{ duration: 0.3 }}
@@ -97,7 +95,7 @@ export function ProgressiveImage({
 }
 
 // Lazy loading image with intersection observer
-interface LazyImageProps extends ProgressiveImageProps {
+interface LazyImageProperties extends ProgressiveImageProperties {
   rootMargin?: string;
   threshold?: number;
 }
@@ -107,10 +105,10 @@ export function LazyImage({
   alt,
   rootMargin = "50px",
   threshold = 0.1,
-  ...props
-}: LazyImageProps) {
+  ...properties
+}: LazyImageProperties) {
   const [shouldLoad, setShouldLoad] = React.useState(false);
-  const containerRef = React.useRef<HTMLDivElement>(null);
+  const containerReference = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
     const observer = new IntersectionObserver(
@@ -123,25 +121,25 @@ export function LazyImage({
       {
         rootMargin,
         threshold,
-      }
+      },
     );
 
-    if (containerRef.current) {
-      observer.observe(containerRef.current);
+    if (containerReference.current) {
+      observer.observe(containerReference.current);
     }
 
     return () => observer.disconnect();
   }, [rootMargin, threshold]);
 
   return (
-    <div ref={containerRef} className={props.containerClassName}>
+    <div ref={containerReference} className={properties.containerClassName}>
       {shouldLoad ? (
-        <ProgressiveImage src={src} alt={alt} {...props} />
+        <ProgressiveImage src={src} alt={alt} {...properties} />
       ) : (
         <div
           className={cn(
             "bg-slate-100 animate-pulse",
-            props.containerClassName
+            properties.containerClassName,
           )}
         />
       )}
@@ -150,7 +148,7 @@ export function LazyImage({
 }
 
 // Avatar with fallback
-interface AvatarProps {
+interface AvatarProperties {
   src?: string;
   alt: string;
   fallback?: string;
@@ -164,7 +162,7 @@ export function Avatar({
   fallback,
   size = "md",
   className,
-}: AvatarProps) {
+}: AvatarProperties) {
   const [error, setError] = React.useState(false);
 
   const sizeClasses = {
@@ -174,14 +172,21 @@ export function Avatar({
     xl: "w-20 h-20 text-lg",
   };
 
-  const initials = fallback || alt.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2);
+  const initials =
+    fallback ||
+    alt
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
 
   return (
     <div
       className={cn(
         "rounded-full overflow-hidden bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center text-white font-bold",
         sizeClasses[size],
-        className
+        className,
       )}
     >
       {src && !error ? (
@@ -199,7 +204,7 @@ export function Avatar({
 }
 
 // Image grid with progressive loading
-interface ImageGridProps {
+interface ImageGridProperties {
   images: { src: string; alt: string }[];
   columns?: 2 | 3 | 4;
   gap?: number;
@@ -211,7 +216,7 @@ export function ImageGrid({
   columns = 3,
   gap = 4,
   className,
-}: ImageGridProps) {
+}: ImageGridProperties) {
   const colClasses = {
     2: "grid-cols-2",
     3: "grid-cols-3",
@@ -219,14 +224,7 @@ export function ImageGrid({
   };
 
   return (
-    <div
-      className={cn(
-        "grid",
-        colClasses[columns],
-        `gap-${gap}`,
-        className
-      )}
-    >
+    <div className={cn("grid", colClasses[columns], `gap-${gap}`, className)}>
       {images.map((image, index) => (
         <LazyImage
           key={index}

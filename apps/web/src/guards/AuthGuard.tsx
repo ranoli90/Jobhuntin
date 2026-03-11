@@ -11,13 +11,21 @@ export default function AuthGuard() {
 
   useEffect(() => {
     if (!user) return;
-    const params = new URLSearchParams(location.search);
-    if (params.get("magic_verified") === "1") {
-      telemetry.track("magic_link_verified", { destination: location.pathname });
-      const nextParams = new URLSearchParams(params);
-      nextParams.delete("magic_verified");
-      const nextSearch = nextParams.toString();
-      navigate({ pathname: location.pathname, search: nextSearch ? `?${nextSearch}` : "" }, { replace: true });
+    const parameters = new URLSearchParams(location.search);
+    if (parameters.get("magic_verified") === "1") {
+      telemetry.track("magic_link_verified", {
+        destination: location.pathname,
+      });
+      const nextParameters = new URLSearchParams(parameters);
+      nextParameters.delete("magic_verified");
+      const nextSearch = nextParameters.toString();
+      navigate(
+        {
+          pathname: location.pathname,
+          search: nextSearch ? `?${nextSearch}` : "",
+        },
+        { replace: true },
+      );
     }
   }, [user, location.search, location.pathname, navigate]);
 
@@ -30,7 +38,12 @@ export default function AuthGuard() {
   }
 
   if (!user) {
-    return <Navigate to={`/login?returnTo=${encodeURIComponent(location.pathname + location.search)}`} replace />;
+    return (
+      <Navigate
+        to={`/login?returnTo=${encodeURIComponent(location.pathname + location.search)}`}
+        replace
+      />
+    );
   }
 
   return <Outlet />;

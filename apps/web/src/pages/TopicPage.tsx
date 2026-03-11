@@ -1,59 +1,92 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { ChevronRight, Home, BookOpen, FileText, BarChart3, Menu, X } from 'lucide-react';
-import { useDynamicData } from '../hooks/useDynamicData';
-import { LoadingSpinner } from '../components/ui/LoadingSpinner';
-import { SEO } from '../components/marketing/SEO';
-import { ConversionCTA } from '../components/seo/ConversionCTA';
-import { XSSProtection } from '../lib/validation';
-import { config } from '../config';
+import React, { useState, useEffect, useMemo } from "react";
+import { useParams, Link } from "react-router-dom";
+import {
+  ChevronRight,
+  Home,
+  BookOpen,
+  FileText,
+  BarChart3,
+  Menu,
+  X,
+} from "lucide-react";
+import { useDynamicData } from "../hooks/useDynamicData";
+import { LoadingSpinner } from "../components/ui/LoadingSpinner";
+import { SEO } from "../components/marketing/SEO";
+import { ConversionCTA } from "../components/seo/ConversionCTA";
+import { XSSProtection } from "../lib/validation";
+import { config } from "../config";
 
 /** Strip HTML and truncate for meta description */
-function stripHtml(html: string, maxLen = 155): string {
-  const text = html.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
-  return text.length > maxLen ? text.slice(0, maxLen - 1) + '…' : text;
+function stripHtml(html: string, maxLength = 155): string {
+  const text = html
+    .replaceAll(/<[^>]+>/g, "")
+    .replaceAll(/\s+/g, " ")
+    .trim();
+  return text.length > maxLength ? text.slice(0, maxLength - 1) + "…" : text;
 }
 
 /** Add unique IDs to headings in HTML content */
 function addHeadingIds(html: string): string {
   let index = 0;
-  return html.replace(/<h([2-4])(\s[^>]*)?>/gi, (_, level: string, rest = '') => {
-    const id = `heading-${index++}`;
-    return `<h${level} id="${id}"${rest}>`;
-  });
+  return html.replaceAll(
+    /<h([2-4])(\s[^>]*)?>/gi,
+    (_, level: string, rest = "") => {
+      const id = `heading-${index++}`;
+      return `<h${level} id="${id}"${rest}>`;
+    },
+  );
 }
 
 /** Extract headings from HTML for TOC */
-function extractHeadings(html: string): Array< { id: string; text: string; level: number }> {
-  if (typeof document === 'undefined') return [];
-  const div = document.createElement('div');
+function extractHeadings(
+  html: string,
+): Array<{ id: string; text: string; level: number }> {
+  if (typeof document === "undefined") return [];
+  const div = document.createElement("div");
   div.innerHTML = XSSProtection.sanitizeHTML(html);
-  const elements = div.querySelectorAll('h2, h3, h4');
-  return Array.from(elements).map((el, i) => ({
-    id: el.id || `heading-${i}`,
-    text: el.textContent || '',
-    level: parseInt(el.tagName.charAt(1), 10),
+  const elements = div.querySelectorAll("h2, h3, h4");
+  return [...elements].map((element, index) => ({
+    id: element.id || `heading-${index}`,
+    text: element.textContent || "",
+    level: Number.parseInt(element.tagName.charAt(1), 10),
   }));
 }
 
-const FEATURED_COMPETITORS = ['jobright', 'teal', 'simplify', 'sonara-ai'];
+const FEATURED_COMPETITORS = ["jobright", "teal", "simplify", "sonara-ai"];
 
 export default function TopicPage() {
   const { slug } = useParams<{ slug: string }>();
-  const { data: topicsData, loading: loadingTopics } = useDynamicData(() => import('../data/topics.json'));
-  const { data: guidesData, loading: loadingGuides } = useDynamicData(() => import('../data/guides.json'));
-  const { data: competitorsData, loading: loadingCompetitors } = useDynamicData(() => import('../data/competitors.json'));
+  const { data: topicsData, loading: loadingTopics } = useDynamicData(
+    () => import("../data/topics.json"),
+  );
+  const { data: guidesData, loading: loadingGuides } = useDynamicData(
+    () => import("../data/guides.json"),
+  );
+  const { data: competitorsData, loading: loadingCompetitors } = useDynamicData(
+    () => import("../data/competitors.json"),
+  );
 
-  const topics = (topicsData as Record<string, { title: string; description?: string; content: string }>) ?? {};
-  const guides = (guidesData as Record<string, { title: string; category: string; readTime: string }>) ?? {};
-  const competitors = (competitorsData as Array<{ slug: string; name: string }>) ?? [];
+  const topics =
+    (topicsData as Record<
+      string,
+      { title: string; description?: string; content: string }
+    >) ?? {};
+  const guides =
+    (guidesData as Record<
+      string,
+      { title: string; category: string; readTime: string }
+    >) ?? {};
+  const competitors =
+    (competitorsData as Array<{ slug: string; name: string }>) ?? [];
 
   const topic = slug ? topics[slug] : null;
   const [navOpen, setNavOpen] = useState(false);
-  const [headings, setHeadings] = useState<Array<{ id: string; text: string; level: number }>>([]);
+  const [headings, setHeadings] = useState<
+    Array<{ id: string; text: string; level: number }>
+  >([]);
 
   const processedContent = useMemo(() => {
-    if (!topic?.content) return '';
+    if (!topic?.content) return "";
     const sanitized = XSSProtection.sanitizeHTML(topic.content);
     return addHeadingIds(sanitized);
   }, [topic?.content]);
@@ -79,7 +112,7 @@ export default function TopicPage() {
 
   const comparisonLinks = useMemo(() => {
     return FEATURED_COMPETITORS.filter((s) =>
-      competitors.some((c) => c.slug === s)
+      competitors.some((c) => c.slug === s),
     ).map((s) => competitors.find((c) => c.slug === s)!);
   }, []);
 
@@ -99,7 +132,9 @@ export default function TopicPage() {
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-slate-200/80 mb-6">
             <FileText className="w-8 h-8 text-slate-600" />
           </div>
-          <h1 className="text-3xl font-bold text-slate-900 mb-3">Topic not found</h1>
+          <h1 className="text-3xl font-bold text-slate-900 mb-3">
+            Topic not found
+          </h1>
           <p className="text-slate-600 mb-8">
             The topic you're looking for doesn't exist or may have been moved.
           </p>
@@ -131,20 +166,24 @@ export default function TopicPage() {
   const description = topic.description ?? stripHtml(topic.content);
   const canonicalUrl = `${config.urls.homepage}/topics/${slug}`;
   const breadcrumbs = [
-    { name: 'Home', url: config.urls.homepage + '/' },
-    { name: 'Topics', url: config.urls.homepage + '/blog' },
+    { name: "Home", url: config.urls.homepage + "/" },
+    { name: "Topics", url: config.urls.homepage + "/blog" },
     { name: topic.title, url: canonicalUrl },
   ];
 
   const articleSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'Article',
+    "@context": "https://schema.org",
+    "@type": "Article",
     headline: topic.title,
     description,
     url: canonicalUrl,
-    publisher: { '@type': 'Organization', name: 'JobHuntin', url: config.urls.homepage },
-    datePublished: '2026-02-01',
-    dateModified: '2026-03-01',
+    publisher: {
+      "@type": "Organization",
+      name: "JobHuntin",
+      url: config.urls.homepage,
+    },
+    datePublished: "2026-02-01",
+    dateModified: "2026-03-01",
   };
 
   return (
@@ -168,7 +207,10 @@ export default function TopicPage() {
         <nav aria-label="Breadcrumb" className="mb-8">
           <ol className="flex flex-wrap items-center gap-2 text-sm text-slate-600">
             <li>
-              <Link to="/" className="hover:text-primary-600 transition-colors flex items-center gap-1">
+              <Link
+                to="/"
+                className="hover:text-primary-600 transition-colors flex items-center gap-1"
+              >
                 <Home className="w-4 h-4" /> Home
               </Link>
             </li>
@@ -176,7 +218,10 @@ export default function TopicPage() {
               <ChevronRight className="w-4 h-4 text-slate-400" />
             </li>
             <li>
-              <Link to="/blog" className="hover:text-primary-600 transition-colors">
+              <Link
+                to="/blog"
+                className="hover:text-primary-600 transition-colors"
+              >
                 Topics
               </Link>
             </li>
@@ -193,14 +238,20 @@ export default function TopicPage() {
             <aside className="hidden lg:block lg:w-64 shrink-0">
               <div className="lg:sticky lg:top-24">
                 <div className="bg-white rounded-2xl border border-slate-100 p-4 shadow-sm">
-                  <h2 className="text-sm font-bold text-slate-900 mb-3">On this page</h2>
+                  <h2 className="text-sm font-bold text-slate-900 mb-3">
+                    On this page
+                  </h2>
                   <nav className="space-y-1.5">
                     {headings.map((h) => (
                       <a
                         key={h.id}
                         href={`#${h.id}`}
                         className={`block text-sm text-slate-600 hover:text-primary-600 transition-colors ${
-                          h.level === 2 ? 'font-semibold' : h.level === 4 ? 'pl-3' : 'pl-1.5'
+                          h.level === 2
+                            ? "font-semibold"
+                            : (h.level === 4
+                              ? "pl-3"
+                              : "pl-1.5")
                         }`}
                       >
                         {h.text}
@@ -219,10 +270,18 @@ export default function TopicPage() {
                 onClick={() => setNavOpen(!navOpen)}
                 className="w-full flex items-center justify-between gap-4 p-4 rounded-2xl bg-white border border-slate-100 shadow-sm hover:border-primary-200 transition-colors"
                 aria-expanded={navOpen}
-                aria-label={navOpen ? 'Close table of contents' : 'Open table of contents'}
+                aria-label={
+                  navOpen ? "Close table of contents" : "Open table of contents"
+                }
               >
-                <span className="text-sm font-semibold text-slate-900">Table of contents</span>
-                {navOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
+                <span className="text-sm font-semibold text-slate-900">
+                  Table of contents
+                </span>
+                {navOpen ? (
+                  <X className="w-4 h-4" />
+                ) : (
+                  <Menu className="w-4 h-4" />
+                )}
               </button>
               {navOpen && (
                 <div className="mt-3 p-4 rounded-2xl bg-white border border-slate-100 shadow-sm">
@@ -267,7 +326,9 @@ export default function TopicPage() {
             {/* Related Topics */}
             {relatedTopics.length > 0 && (
               <section className="mt-16">
-                <h2 className="text-xl font-bold text-slate-900 mb-4">Related Topics</h2>
+                <h2 className="text-xl font-bold text-slate-900 mb-4">
+                  Related Topics
+                </h2>
                 <div className="grid sm:grid-cols-2 gap-4">
                   {relatedTopics.map((s) => {
                     const t = topics[s];
@@ -296,7 +357,9 @@ export default function TopicPage() {
 
             {/* Related Guides */}
             <section className="mt-16">
-              <h2 className="text-xl font-bold text-slate-900 mb-4">Related Guides</h2>
+              <h2 className="text-xl font-bold text-slate-900 mb-4">
+                Related Guides
+              </h2>
               <div className="grid sm:grid-cols-2 gap-4">
                 {relatedGuides.map((guideSlug) => {
                   const g = guides[guideSlug];
@@ -327,7 +390,9 @@ export default function TopicPage() {
 
             {/* Comparison & Blog links */}
             <section className="mt-16">
-              <h2 className="text-xl font-bold text-slate-900 mb-4">Explore More</h2>
+              <h2 className="text-xl font-bold text-slate-900 mb-4">
+                Explore More
+              </h2>
               <div className="flex flex-wrap gap-4">
                 <Link
                   to="/blog"

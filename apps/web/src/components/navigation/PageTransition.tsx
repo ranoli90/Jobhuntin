@@ -1,7 +1,7 @@
 import { motion, useReducedMotion } from "framer-motion";
 import { ReactNode } from "react";
 
-interface PageTransitionProps {
+interface PageTransitionProperties {
   children: ReactNode;
   className?: string;
 }
@@ -32,7 +32,10 @@ const reducedMotionVariants = {
   exit: { opacity: 1, y: 0 },
 };
 
-export function PageTransition({ children, className }: PageTransitionProps) {
+export function PageTransition({
+  children,
+  className,
+}: PageTransitionProperties) {
   const shouldReduceMotion = useReducedMotion();
   return (
     <motion.div

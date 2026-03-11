@@ -1,18 +1,24 @@
-import React, { useState, useEffect } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { Badge } from '@/components/ui/Badge';
-import { Alert, AlertDescription } from '@/components/ui/Alert';
-import { Input } from '@/components/ui/Input';
-import { Label } from '@/components/ui/Label';
-import { Textarea } from '@/components/ui/Textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/Select';
-import { Progress } from '@/components/ui/Progress';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs';
-import { 
-  Brain, 
-  Target, 
-  Search, 
+import React, { useState, useEffect } from "react";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
+import { Badge } from "@/components/ui/Badge";
+import { Alert, AlertDescription } from "@/components/ui/Alert";
+import { Input } from "@/components/ui/Input";
+import { Label } from "@/components/ui/Label";
+import { Textarea } from "@/components/ui/Textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/Select";
+import { Progress } from "@/components/ui/Progress";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/Tabs";
+import {
+  Brain,
+  Target,
+  Search,
   RefreshCw,
   Filter,
   TrendingUp,
@@ -24,8 +30,8 @@ import {
   PieChart,
   Activity,
   Lightbulb,
-  AlertTriangle
-} from 'lucide-react';
+  AlertTriangle,
+} from "lucide-react";
 
 interface UserProfile {
   user_id: string;
@@ -59,13 +65,15 @@ interface InterestCategory {
   name: string;
   score: number;
   keywords: string[];
-  trend: 'up' | 'down' | 'stable';
+  trend: "up" | "down" | "stable";
 }
 
 const SemanticMatcher: React.FC = () => {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [topInterests, setTopInterests] = useState<InterestCategory[]>([]);
-  const [recommendations, setRecommendations] = useState<ContentRecommendation[]>([]);
+  const [recommendations, setRecommendations] = useState<
+    ContentRecommendation[]
+  >([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [autoRefresh, setAutoRefresh] = useState(true);
@@ -75,8 +83,8 @@ const SemanticMatcher: React.FC = () => {
 
   // Analysis form state
   const [analysisForm, setAnalysisForm] = useState({
-    content: '',
-    category: 'general',
+    content: "",
+    category: "general",
   });
 
   // Profile update form state
@@ -88,34 +96,36 @@ const SemanticMatcher: React.FC = () => {
   useEffect(() => {
     fetchProfile();
     fetchTopInterests();
-    
+
     if (autoRefresh) {
       const interval = setInterval(() => {
         fetchProfile();
         fetchTopInterests();
-      }, 30000);
-      
+      }, 30_000);
+
       return () => clearInterval(interval);
     }
   }, [autoRefresh]);
 
   const fetchProfile = async () => {
     try {
-      const response = await fetch('/api/communications/interests', {
+      const response = await fetch("/api/communications/interests", {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
       });
 
-      if (!response.ok) throw new Error('Failed to fetch profile');
+      if (!response.ok) throw new Error("Failed to fetch profile");
       const data = await response.json();
       setProfile(data);
       setProfileForm({
         interests: data.interests,
         keywords: data.keywords,
       });
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch profile');
+    } catch (error_) {
+      setError(
+        error_ instanceof Error ? error_.message : "Failed to fetch profile",
+      );
     } finally {
       setLoading(false);
     }
@@ -123,40 +133,49 @@ const SemanticMatcher: React.FC = () => {
 
   const fetchTopInterests = async () => {
     try {
-      const response = await fetch('/api/communications/interests/top?limit=10&min_score=0.1', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+      const response = await fetch(
+        "/api/communications/interests/top?limit=10&min_score=0.1",
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
         },
-      });
+      );
 
-      if (!response.ok) throw new Error('Failed to fetch top interests');
+      if (!response.ok) throw new Error("Failed to fetch top interests");
       const data = await response.json();
-      
-      const interests = data.top_interests.map(([category, score]: [string, number]) => ({
-        name: category,
-        score: score,
-        keywords: [],
-        trend: 'stable' as const,
-      }));
-      
+
+      const interests = data.top_interests.map(
+        ([category, score]: [string, number]) => ({
+          name: category,
+          score: score,
+          keywords: [],
+          trend: "stable" as const,
+        }),
+      );
+
       setTopInterests(interests);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch top interests');
+    } catch (error_) {
+      setError(
+        error_ instanceof Error
+          ? error_.message
+          : "Failed to fetch top interests",
+      );
     }
   };
 
   const handleUpdateProfile = async () => {
     try {
-      const response = await fetch('/api/communications/interests/update', {
-        method: 'POST',
+      const response = await fetch("/api/communications/interests/update", {
+        method: "POST",
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           interactions: [
             {
-              type: 'view',
+              type: "view",
               content: analysisForm.content,
               category: analysisForm.category,
               timestamp: new Date().toISOString(),
@@ -166,38 +185,47 @@ const SemanticMatcher: React.FC = () => {
         }),
       });
 
-      if (!response.ok) throw new Error('Failed to update profile');
-      
+      if (!response.ok) throw new Error("Failed to update profile");
+
       await fetchProfile();
       await fetchTopInterests();
       setShowAnalysis(false);
-      setAnalysisForm({ content: '', category: 'general' });
+      setAnalysisForm({ content: "", category: "general" });
       setError(null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update profile');
+    } catch (error_) {
+      setError(
+        error_ instanceof Error ? error_.message : "Failed to update profile",
+      );
     }
   };
 
   const handleCalculateMatch = async () => {
     try {
-      const params = new URLSearchParams({
+      const parameters = new URLSearchParams({
         content: analysisForm.content,
         category: analysisForm.category,
       });
 
-      const response = await fetch(`/api/communications/semantic/match?${params}`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+      const response = await fetch(
+        `/api/communications/semantic/match?${parameters}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
         },
-      });
+      );
 
-      if (!response.ok) throw new Error('Failed to calculate match');
+      if (!response.ok) throw new Error("Failed to calculate match");
       const data = await response.json();
-      
+
       // Show results in a modal or alert
-      alert(`Semantic Match Score: ${(data.similarity_score * 100).toFixed(1)}%`);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to calculate match');
+      alert(
+        `Semantic Match Score: ${(data.similarity_score * 100).toFixed(1)}%`,
+      );
+    } catch (error_) {
+      setError(
+        error_ instanceof Error ? error_.message : "Failed to calculate match",
+      );
     }
   };
 
@@ -207,55 +235,64 @@ const SemanticMatcher: React.FC = () => {
       // For now, we'll simulate some recommendations
       const mockRecommendations: ContentRecommendation[] = [
         {
-          id: '1',
-          title: 'Software Engineer Position',
-          content: 'Looking for experienced software engineer with React and Node.js skills...',
-          category: 'technology',
+          id: "1",
+          title: "Software Engineer Position",
+          content:
+            "Looking for experienced software engineer with React and Node.js skills...",
+          category: "technology",
           similarity_score: 0.85,
           metadata: {},
         },
         {
-          id: '2',
-          title: 'Data Science Course',
-          content: 'Comprehensive data science course covering Python, machine learning, and statistics...',
-          category: 'education',
+          id: "2",
+          title: "Data Science Course",
+          content:
+            "Comprehensive data science course covering Python, machine learning, and statistics...",
+          category: "education",
           similarity_score: 0.72,
           metadata: {},
         },
         {
-          id: '3',
-          title: 'Marketing Campaign',
-          content: 'Digital marketing campaign focused on social media and content strategy...',
-          category: 'marketing',
+          id: "3",
+          title: "Marketing Campaign",
+          content:
+            "Digital marketing campaign focused on social media and content strategy...",
+          category: "marketing",
           similarity_score: 0.65,
           metadata: {},
         },
       ];
-      
+
       setRecommendations(mockRecommendations);
       setShowRecommendations(true);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to get recommendations');
+    } catch (error_) {
+      setError(
+        error_ instanceof Error
+          ? error_.message
+          : "Failed to get recommendations",
+      );
     }
   };
 
   const getScoreColor = (score: number) => {
-    if (score >= 0.8) return 'text-green-600';
-    if (score >= 0.6) return 'text-yellow-600';
-    if (score >= 0.4) return 'text-orange-600';
-    return 'text-red-600';
+    if (score >= 0.8) return "text-green-600";
+    if (score >= 0.6) return "text-yellow-600";
+    if (score >= 0.4) return "text-orange-600";
+    return "text-red-600";
   };
 
   const getScoreBackground = (score: number) => {
-    if (score >= 0.8) return 'bg-green-100';
-    if (score >= 0.6) return 'bg-yellow-100';
-    if (score >= 0.4) return 'bg-orange-100';
-    return 'bg-red-100';
+    if (score >= 0.8) return "bg-green-100";
+    if (score >= 0.6) return "bg-yellow-100";
+    if (score >= 0.4) return "bg-orange-100";
+    return "bg-red-100";
   };
 
   const getTrendIcon = (trend: string) => {
-    if (trend === 'up') return <TrendingUp className="h-4 w-4 text-green-600" />;
-    if (trend === 'down') return <TrendingDown className="h-4 w-4 text-red-600" />;
+    if (trend === "up")
+      return <TrendingUp className="h-4 w-4 text-green-600" />;
+    if (trend === "down")
+      return <TrendingDown className="h-4 w-4 text-red-600" />;
     return <Activity className="h-4 w-4 text-gray-600" />;
   };
 
@@ -264,11 +301,13 @@ const SemanticMatcher: React.FC = () => {
     const now = new Date();
     const diffMs = now.getTime() - date.getTime();
     const diffSeconds = Math.floor(diffMs / 1000);
-    
-    if (diffSeconds < 60) return 'Just now';
-    if (diffSeconds < 3600) return `${Math.floor(diffSeconds / 60)} minutes ago`;
-    if (diffSeconds < 86400) return `${Math.floor(diffSeconds / 3600)} hours ago`;
-    return `${Math.floor(diffSeconds / 86400)} days ago`;
+
+    if (diffSeconds < 60) return "Just now";
+    if (diffSeconds < 3600)
+      return `${Math.floor(diffSeconds / 60)} minutes ago`;
+    if (diffSeconds < 86_400)
+      return `${Math.floor(diffSeconds / 3600)} hours ago`;
+    return `${Math.floor(diffSeconds / 86_400)} days ago`;
   };
 
   return (
@@ -276,7 +315,9 @@ const SemanticMatcher: React.FC = () => {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold">Semantic Matcher</h1>
-          <p className="text-gray-600">AI-powered semantic notification matching and user profiling</p>
+          <p className="text-gray-600">
+            AI-powered semantic notification matching and user profiling
+          </p>
         </div>
         <div className="flex space-x-2">
           <Button onClick={() => setShowAnalysis(true)}>
@@ -292,8 +333,10 @@ const SemanticMatcher: React.FC = () => {
             size="sm"
             onClick={() => setAutoRefresh(!autoRefresh)}
           >
-            <RefreshCw className={`h-4 w-4 mr-2 ${autoRefresh ? 'animate-spin' : ''}`} />
-            {autoRefresh ? 'Auto-refresh' : 'Manual refresh'}
+            <RefreshCw
+              className={`h-4 w-4 mr-2 ${autoRefresh ? "animate-spin" : ""}`}
+            />
+            {autoRefresh ? "Auto-refresh" : "Manual refresh"}
           </Button>
         </div>
       </div>
@@ -316,21 +359,30 @@ const SemanticMatcher: React.FC = () => {
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium">Total Interests</span>
-                  <span className="text-2xl font-bold">{Object.keys(profile.interests).length}</span>
+                  <span className="text-2xl font-bold">
+                    {Object.keys(profile.interests).length}
+                  </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium">Average Score</span>
                   <span className="text-2xl font-bold">
                     {Object.values(profile.interests).length > 0
-                      ? (Object.values(profile.interests).reduce((a, b) => a + b, 0) / Object.values(profile.interests).length).toFixed(2)
-                      : '0.00'
-                  }
+                      ? (
+                          Object.values(profile.interests).reduce(
+                            (a, b) => a + b,
+                            0,
+                          ) / Object.values(profile.interests).length
+                        ).toFixed(2)
+                      : "0.00"}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium">Total Keywords</span>
                   <span className="text-2xl font-bold">
-                    {Object.values(profile.keywords).reduce((a, b) => a + b.length, 0)}
+                    {Object.values(profile.keywords).reduce(
+                      (a, b) => a + b.length,
+                      0,
+                    )}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
@@ -350,27 +402,40 @@ const SemanticMatcher: React.FC = () => {
             <CardContent>
               <div className="space-y-3">
                 {topInterests.map((interest, index) => (
-                  <div key={interest.name} className="flex items-center justify-between">
+                  <div
+                    key={interest.name}
+                    className="flex items-center justify-between"
+                  >
                     <div className="flex items-center space-x-3">
-                      <span className="text-sm font-medium capitalize">{interest.name}</span>
+                      <span className="text-sm font-medium capitalize">
+                        {interest.name}
+                      </span>
                       <div className="flex items-center space-x-2">
-                        <div className={`w-24 h-2 rounded-full ${getScoreBackground(interest.score)}`} />
-                        <span className={`text-sm font-medium ${getScoreColor(interest.score)}`}>
+                        <div
+                          className={`w-24 h-2 rounded-full ${getScoreBackground(interest.score)}`}
+                        />
+                        <span
+                          className={`text-sm font-medium ${getScoreColor(interest.score)}`}
+                        >
                           {(interest.score * 100).toFixed(1)}%
                         </span>
                       </div>
                     </div>
                     <div className="flex items-center space-x-2">
                       {getTrendIcon(interest.trend)}
-                      <span className="text-xs text-gray-500">{interest.trend}</span>
+                      <span className="text-xs text-gray-500">
+                        {interest.trend}
+                      </span>
                     </div>
                   </div>
                 ))}
-                
+
                 {topInterests.length === 0 && (
                   <div className="text-center py-4">
                     <Lightbulb className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                    <p className="text-sm text-gray-500">No interests profiled yet</p>
+                    <p className="text-sm text-gray-500">
+                      No interests profiled yet
+                    </p>
                   </div>
                 )}
               </div>
@@ -384,24 +449,35 @@ const SemanticMatcher: React.FC = () => {
             <CardContent>
               <div className="space-y-4">
                 {Object.entries(profile.interests)
-                  .sort(([, a], [, b]) => (b as number) - (a as number))
+                  .sort(([, a], [, b]) => b - a)
                   .slice(0, 5)
                   .map(([category, score]) => (
-                    <div key={category} className="flex items-center justify-between">
-                      <span className="text-sm font-medium capitalize">{category}</span>
+                    <div
+                      key={category}
+                      className="flex items-center justify-between"
+                    >
+                      <span className="text-sm font-medium capitalize">
+                        {category}
+                      </span>
                       <div className="flex items-center space-x-2">
-                        <div className={`w-20 h-2 rounded-full ${getScoreBackground(score)}`} />
-                        <span className={`text-sm font-medium ${getScoreColor(score)}`}>
+                        <div
+                          className={`w-20 h-2 rounded-full ${getScoreBackground(score)}`}
+                        />
+                        <span
+                          className={`text-sm font-medium ${getScoreColor(score)}`}
+                        >
                           {(score * 100).toFixed(1)}%
                         </span>
                       </div>
                     </div>
                   ))}
-                
+
                 {Object.keys(profile.interests).length === 0 && (
                   <div className="text-center py-4">
                     <PieChart className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                    <p className="text-sm text-gray-500">No interests profiled yet</p>
+                    <p className="text-sm text-gray-500">
+                      No interests profiled yet
+                    </p>
                   </div>
                 )}
               </div>
@@ -426,13 +502,23 @@ const SemanticMatcher: React.FC = () => {
                     placeholder="Enter content to analyze"
                     rows={4}
                     value={analysisForm.content}
-                    onChange={(e) => setAnalysisForm({ ...analysisForm, content: e.target.value })}
+                    onChange={(e) =>
+                      setAnalysisForm({
+                        ...analysisForm,
+                        content: e.target.value,
+                      })
+                    }
                   />
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="category">Category</Label>
-                  <Select value={analysisForm.category} onValueChange={(value) => setAnalysisForm({ ...analysisForm, category: value })}>
+                  <Select
+                    value={analysisForm.category}
+                    onValueChange={(value) =>
+                      setAnalysisForm({ ...analysisForm, category: value })
+                    }
+                  >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -454,11 +540,17 @@ const SemanticMatcher: React.FC = () => {
               </div>
 
               <div className="flex space-x-2">
-                <Button onClick={handleCalculateMatch} disabled={!analysisForm.content}>
+                <Button
+                  onClick={handleCalculateMatch}
+                  disabled={!analysisForm.content}
+                >
                   <Brain className="h-4 w-4 mr-2" />
                   Calculate Match
                 </Button>
-                <Button variant="outline" onClick={() => setShowAnalysis(false)}>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowAnalysis(false)}
+                >
                   Cancel
                 </Button>
               </div>
@@ -480,11 +572,17 @@ const SemanticMatcher: React.FC = () => {
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
                       <h4 className="font-medium">{rec.title}</h4>
-                      <p className="text-sm text-gray-600 mt-1 line-clamp-2">{rec.content}</p>
+                      <p className="text-sm text-gray-600 mt-1 line-clamp-2">
+                        {rec.content}
+                      </p>
                       <div className="flex items-center space-x-2 mt-2">
                         <Badge variant="outline">{rec.category}</Badge>
-                        <div className={`px-2 py-1 rounded-full ${getScoreBackground(rec.similarity_score)}`}>
-                          <span className={`text-xs font-medium ${getScoreColor(rec.similarity_score)}`}>
+                        <div
+                          className={`px-2 py-1 rounded-full ${getScoreBackground(rec.similarity_score)}`}
+                        >
+                          <span
+                            className={`text-xs font-medium ${getScoreColor(rec.similarity_score)}`}
+                          >
                             {(rec.similarity_score * 100).toFixed(1)}% match
                           </span>
                         </div>
@@ -498,11 +596,13 @@ const SemanticMatcher: React.FC = () => {
                   </div>
                 </Card>
               ))}
-              
+
               {recommendations.length === 0 && (
                 <div className="text-center py-4">
                   <Target className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                  <p className="text-sm text-gray-500">No recommendations available</p>
+                  <p className="text-sm text-gray-500">
+                    No recommendations available
+                  </p>
                 </div>
               )}
             </div>
@@ -522,43 +622,58 @@ const SemanticMatcher: React.FC = () => {
                 <TabsTrigger value="interests">Interests</TabsTrigger>
                 <TabsTrigger value="keywords">Keywords</TabsTrigger>
               </TabsList>
-                <TabsContent value="interests">
-                  <div className="space-y-4">
-                    {Object.entries(profile.interests).map(([category, score]) => (
-                      <div key={category} className="flex items-center justify-between">
-                        <span className="font-medium capitalize">{category}</span>
+              <TabsContent value="interests">
+                <div className="space-y-4">
+                  {Object.entries(profile.interests).map(
+                    ([category, score]) => (
+                      <div
+                        key={category}
+                        className="flex items-center justify-between"
+                      >
+                        <span className="font-medium capitalize">
+                          {category}
+                        </span>
                         <div className="flex items-center space-x-2">
-                          <div className={`w-24 h-2 rounded-full ${getScoreBackground(score)}`} />
-                          <span className={`font-medium ${getScoreColor(score)}`}>
+                          <div
+                            className={`w-24 h-2 rounded-full ${getScoreBackground(score)}`}
+                          />
+                          <span
+                            className={`font-medium ${getScoreColor(score)}`}
+                          >
                             {(score * 100).toFixed(1)}%
                           </span>
                         </div>
                       </div>
-                    ))}
-                  </div>
-                </TabsContent>
-                <TabsContent value="keywords">
-                  <div className="space-y-4">
-                    {Object.entries(profile.keywords).map(([category, keywords]) => (
+                    ),
+                  )}
+                </div>
+              </TabsContent>
+              <TabsContent value="keywords">
+                <div className="space-y-4">
+                  {Object.entries(profile.keywords).map(
+                    ([category, keywords]) => (
                       <div key={category} className="space-y-2">
                         <h4 className="font-medium capitalize">{category}</h4>
                         <div className="flex flex-wrap gap-2">
                           {keywords.map((keyword, index) => (
-                            <Badge key={index} variant="outline" className="text-xs">
+                            <Badge
+                              key={index}
+                              variant="outline"
+                              className="text-xs"
+                            >
                               {keyword}
                             </Badge>
                           ))}
                         </div>
                       </div>
-                    ))}
-                  </div>
-                </TabsContent>
+                    ),
+                  )}
+                </div>
+              </TabsContent>
             </Tabs>
-            
+
             <div className="flex space-x-2 mt-6">
-              <Button onClick={() => setShowProfile(false)}>
-                Close
-              </Button>
+              <Button onClick={() => setShowProfile(false)}>Close</Button>
             </div>
           </CardContent>
         </Card>

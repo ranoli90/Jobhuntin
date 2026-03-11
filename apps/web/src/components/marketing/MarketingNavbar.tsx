@@ -1,14 +1,24 @@
-import React, { useState, useEffect, useCallback, useLayoutEffect } from 'react';
-import { flushSync } from 'react-dom';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, X, ArrowRight, LayoutDashboard, Sparkles } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Logo } from '../brand/Logo';
-import { ThemeToggle } from '../ThemeToggle';
-import { LanguageSelector } from '../LanguageSelector';
-import { cn } from '../../lib/utils';
-import { MobileDrawer, MobileDrawerHeader, MobileDrawerBody, MobileDrawerFooter } from '../navigation/MobileDrawer';
-import { useAuth } from '../../hooks/useAuth';
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useLayoutEffect,
+} from "react";
+import { flushSync } from "react-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Menu, X, ArrowRight, LayoutDashboard, Sparkles } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Logo } from "../brand/Logo";
+import { ThemeToggle } from "../ThemeToggle";
+import { LanguageSelector } from "../LanguageSelector";
+import { cn } from "../../lib/utils";
+import {
+  MobileDrawer,
+  MobileDrawerHeader,
+  MobileDrawerBody,
+  MobileDrawerFooter,
+} from "../navigation/MobileDrawer";
+import { useAuth } from "../../hooks/useAuth";
 
 export function MarketingNavbar() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -20,8 +30,8 @@ export function MarketingNavbar() {
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 20);
     handleScroll();
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const closeMenu = useCallback(() => {
@@ -41,7 +51,7 @@ export function MarketingNavbar() {
   ];
 
   const isLoggedIn = !loading && user;
-  const isHomePage = location.pathname === '/';
+  const isHomePage = location.pathname === "/";
   const inHeroZone = isHomePage && !isScrolled && !isMobileMenuOpen;
 
   const isLinkActive = (link: { path: string; hash: string | null }) => {
@@ -51,17 +61,20 @@ export function MarketingNavbar() {
     return location.pathname === link.path;
   };
 
-  const handleMobileNavClick = useCallback((path: string, hash: string | null) => {
-    closeMenu();
-    if (hash && isHomePage) {
-      const el = document.getElementById(hash);
-      if (el) {
-        setTimeout(() => el.scrollIntoView({ behavior: 'smooth' }), 50);
+  const handleMobileNavClick = useCallback(
+    (path: string, hash: string | null) => {
+      closeMenu();
+      if (hash && isHomePage) {
+        const element = document.getElementById(hash);
+        if (element) {
+          setTimeout(() => element.scrollIntoView({ behavior: "smooth" }), 50);
+        }
+        return;
       }
-      return;
-    }
-    navigate(path);
-  }, [closeMenu, isHomePage, navigate]);
+      navigate(path);
+    },
+    [closeMenu, isHomePage, navigate],
+  );
 
   return (
     <nav
@@ -70,7 +83,7 @@ export function MarketingNavbar() {
         "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
         inHeroZone
           ? "bg-transparent"
-          : "bg-white/95 backdrop-blur-xl border-b border-[#E7E5E4]/60 shadow-sm"
+          : "bg-white/95 backdrop-blur-xl border-b border-[#E7E5E4]/60 shadow-sm",
       )}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
@@ -87,17 +100,17 @@ export function MarketingNavbar() {
               key={link.path}
               to={link.path}
               onClick={(e) => {
-                if (link.hash && location.pathname === '/') {
+                if (link.hash && location.pathname === "/") {
                   e.preventDefault();
-                  const el = document.getElementById(link.hash!);
-                  if (el) el.scrollIntoView({ behavior: 'smooth' });
+                  const element = document.getElementById(link.hash);
+                  if (element) element.scrollIntoView({ behavior: "smooth" });
                 }
               }}
               className={cn(
                 "text-[15px] font-medium px-4 py-2 rounded-lg transition-colors",
                 inHeroZone
                   ? "text-white/90 hover:text-white"
-                  : "text-[#57534E] hover:text-[#2D2A26]"
+                  : "text-[#57534E] hover:text-[#2D2A26]",
               )}
             >
               {link.name}
@@ -107,14 +120,18 @@ export function MarketingNavbar() {
 
         <div className="hidden lg:flex items-center gap-2">
           <LanguageSelector />
-          <ThemeToggle className={cn(inHeroZone ? "text-white/80" : "text-[#57534E]")} />
+          <ThemeToggle
+            className={cn(inHeroZone ? "text-white/80" : "text-[#57534E]")}
+          />
           {isLoggedIn ? (
             <>
               <Link
                 to="/app/dashboard"
                 className={cn(
                   "text-[15px] font-medium px-3 py-2 rounded-lg transition-colors flex items-center gap-2",
-                  inHeroZone ? "text-white/90 hover:text-white" : "text-[#57534E] hover:bg-[#F5F5F4]"
+                  inHeroZone
+                    ? "text-white/90 hover:text-white"
+                    : "text-[#57534E] hover:bg-[#F5F5F4]",
                 )}
               >
                 <LayoutDashboard className="w-4 h-4" />
@@ -134,7 +151,9 @@ export function MarketingNavbar() {
                 to="/login?mode=login"
                 className={cn(
                   "text-[15px] font-medium px-3 py-2 rounded-lg transition-colors",
-                  inHeroZone ? "text-white/90 hover:text-white" : "text-[#57534E] hover:bg-[#F5F5F4]"
+                  inHeroZone
+                    ? "text-white/90 hover:text-white"
+                    : "text-[#57534E] hover:bg-[#F5F5F4]",
                 )}
               >
                 Log in
@@ -152,20 +171,32 @@ export function MarketingNavbar() {
         <button
           className={cn(
             "lg:hidden min-h-[44px] min-w-[44px] p-2 -mr-2 rounded-lg transition-colors touch-manipulation flex items-center justify-center",
-            inHeroZone ? "text-white hover:bg-white/10" : "text-[#57534E] hover:bg-[#F5F5F4]"
+            inHeroZone
+              ? "text-white hover:bg-white/10"
+              : "text-[#57534E] hover:bg-[#F5F5F4]",
           )}
-          onClick={() => setIsMobileMenuOpen((prev) => !prev)}
+          onClick={() => setIsMobileMenuOpen((previous) => !previous)}
           aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
           aria-expanded={isMobileMenuOpen}
           aria-controls="marketing-mobile-drawer"
         >
           <AnimatePresence mode="wait">
             {isMobileMenuOpen ? (
-              <motion.div key="close" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+              <motion.div
+                key="close"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+              >
                 <X className="w-6 h-6" />
               </motion.div>
             ) : (
-              <motion.div key="menu" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+              <motion.div
+                key="menu"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+              >
                 <Menu className="w-6 h-6" />
               </motion.div>
             )}
@@ -184,7 +215,10 @@ export function MarketingNavbar() {
         </MobileDrawerHeader>
 
         <MobileDrawerBody>
-          <nav className="flex flex-col space-y-0.5 mt-1" aria-label="Mobile navigation">
+          <nav
+            className="flex flex-col space-y-0.5 mt-1"
+            aria-label="Mobile navigation"
+          >
             {navLinks.map((link) =>
               link.hash && isHomePage ? (
                 <button
@@ -194,8 +228,8 @@ export function MarketingNavbar() {
                   className={cn(
                     "text-[15px] font-semibold block py-3 px-4 rounded-xl transition-colors active:scale-[0.98] text-left w-full",
                     isLinkActive(link)
-                      ? 'bg-[#F5F5F4] text-[#2D2A26]'
-                      : 'text-[#57534E] hover:bg-[#FAFAF9] hover:text-[#2D2A26]'
+                      ? "bg-[#F5F5F4] text-[#2D2A26]"
+                      : "text-[#57534E] hover:bg-[#FAFAF9] hover:text-[#2D2A26]",
                   )}
                 >
                   {link.name}
@@ -208,18 +242,18 @@ export function MarketingNavbar() {
                   className={cn(
                     "text-[15px] font-semibold block py-3 px-4 rounded-xl transition-colors active:scale-[0.98] text-left w-full",
                     isLinkActive(link)
-                      ? 'bg-[#F5F5F4] text-[#2D2A26]'
-                      : 'text-[#57534E] hover:bg-[#FAFAF9] hover:text-[#2D2A26]'
+                      ? "bg-[#F5F5F4] text-[#2D2A26]"
+                      : "text-[#57534E] hover:bg-[#FAFAF9] hover:text-[#2D2A26]",
                   )}
                 >
                   {link.name}
                 </Link>
-              )
+              ),
             )}
             {isLoggedIn && (
               <button
                 type="button"
-                onClick={() => handleMobileNavClick('/app/dashboard', null)}
+                onClick={() => handleMobileNavClick("/app/dashboard", null)}
                 className="text-[15px] font-medium block py-3 px-4 rounded-xl transition-colors active:scale-[0.98] text-[#57534E] hover:bg-[#FAFAF9] hover:text-[#2D2A26] flex items-center gap-2 w-full text-left"
               >
                 <LayoutDashboard className="w-4 h-4" />
@@ -234,7 +268,7 @@ export function MarketingNavbar() {
             {isLoggedIn ? (
               <button
                 type="button"
-                onClick={() => handleMobileNavClick('/app/jobs', null)}
+                onClick={() => handleMobileNavClick("/app/jobs", null)}
                 className="block w-full h-12 rounded-xl text-[15px] font-semibold bg-[#455DD3] text-white hover:bg-[#3A4FB8] transition-all flex items-center justify-center gap-2"
               >
                 <Sparkles className="w-4 h-4" />
@@ -244,7 +278,7 @@ export function MarketingNavbar() {
               <>
                 <button
                   type="button"
-                  onClick={() => handleMobileNavClick('/login', null)}
+                  onClick={() => handleMobileNavClick("/login", null)}
                   className="block w-full h-12 rounded-xl text-[15px] font-semibold bg-[#455DD3] text-white hover:bg-[#3A4FB8] transition-all flex items-center justify-center gap-2"
                 >
                   Start applying free <ArrowRight className="w-4 h-4" />

@@ -6,84 +6,97 @@
 // XSS Protection Utilities
 export class XSSProtection {
   private static readonly HTML_ENTITIES = {
-    '&': '&amp;',
-    '<': '&lt;',
-    '>': '&gt;',
-    '"': '&quot;',
-    "'": '&#x27;',
-    '/': '&#x2F;',
-    '`': '&#x60;',
-    '=': '&#x3D;',
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#x27;",
+    "/": "&#x2F;",
+    "`": "&#x60;",
+    "=": "&#x3D;",
   };
 
   private static readonly CSS_KEYWORDS = [
-    'javascript:', 'data:', 'vbscript:', 'onload=', 'onerror=', 'onclick=',
-    'onmouseover=', 'onfocus=', 'onblur=', 'onchange=', 'onsubmit=',
-    'expression(', 'import(', 'url(', '@import', 'behavior:'
+    "javascript:",
+    "data:",
+    "vbscript:",
+    "onload=",
+    "onerror=",
+    "onclick=",
+    "onmouseover=",
+    "onfocus=",
+    "onblur=",
+    "onchange=",
+    "onsubmit=",
+    "expression(",
+    "import(",
+    "url(",
+    "@import",
+    "behavior:",
   ];
 
   static sanitizeHTML(input: string): string {
-    if (typeof input !== 'string') return '';
-    
+    if (typeof input !== "string") return "";
+
     return input
-      .replace(/[&<>"'`=/]/g, (match) => this.HTML_ENTITIES[match as keyof typeof XSSProtection.HTML_ENTITIES] || match)
-      .replace(/<script[^>]*>.*?<\/script>/gi, '')
-      .replace(/<iframe[^>]*>.*?<\/iframe>/gi, '')
-      .replace(/<object[^>]*>.*?<\/object>/gi, '')
-      .replace(/<embed[^>]*>/gi, '')
-      .replace(/javascript:/gi, '')
-      .replace(/on\w+\s*=/gi, '');
+      .replaceAll(/["&'/<=>`]/g, (match) => this.HTML_ENTITIES[match as keyof typeof XSSProtection.HTML_ENTITIES] || match)
+      .replaceAll(/<script[^>]*>.*?<\/script>/gi, "")
+      .replaceAll(/<iframe[^>]*>.*?<\/iframe>/gi, "")
+      .replaceAll(/<object[^>]*>.*?<\/object>/gi, "")
+      .replaceAll(/<embed[^>]*>/gi, "")
+      .replaceAll(/javascript:/gi, "")
+      .replaceAll(/on\w+\s*=/gi, "");
   }
 
   static sanitizeCSS(input: string): string {
-    if (typeof input !== 'string') return '';
-    
+    if (typeof input !== "string") return "";
+
     let sanitized = input.toLowerCase();
-    
+
     // Remove dangerous CSS keywords (escape regex special chars for safety)
-    this.CSS_KEYWORDS.forEach(keyword => {
+    for (const keyword of this.CSS_KEYWORDS) {
       const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       // nosemgrep: javascript.lang.security.audit.detect-non-literal-regexp - keywords from constant array, escaped for ReDoS safety
       sanitized = sanitized.replace(new RegExp(escaped, 'gi'), '');
-    });
-    
-    // Remove url() functions that could contain javascript
-    sanitized = sanitized.replace(/url\s*\(\s*['"]*javascript:[^'"]*['"]*\s*\)/gi, '');
-    
+    }
+
+      // Remove url() functions that could contain javascript
+      sanitized = sanitized.replaceAll(/url\s*\(\s*["']*javascript:[^"']*["']*\s*\)/gi, '');
+
     return sanitized;
   }
 
   static sanitizeURL(url: string): string {
-    if (typeof url !== 'string') return '';
-    
+    if (typeof url !== "string") return "";
+
     try {
       // Basic URL validation
       const parsed = new URL(url);
-      
+
       // Only allow http, https, and relative protocols
-      if (!['http:', 'https:', ''].includes(parsed.protocol)) {
-        return '';
+      if (!["http:", "https:", ""].includes(parsed.protocol)) {
+        return "";
       }
-      
+
       // Remove dangerous characters
-      return parsed.toString().replace(/[<>"'`]/g, '');
+      return parsed.toString().replaceAll(/["'<>`]/g, "");
     } catch {
       // If URL parsing fails, do basic sanitization
-      return url.replace(/[<>"'`]/g, '').substring(0, 2048);
+      return url.replaceAll(/["'<>`]/g, "").slice(0, 2048);
     }
   }
 
   static sanitizeInput(input: string, maxLength: number = 1000): string {
-    if (typeof input !== 'string') return '';
+    if (typeof input !== "string") return "";
 
     return input
-      .substring(0, maxLength)
-      .replace(/[\x00-\x1F\x7F]/g, '') // Remove control characters
-      .replace(/[<>]/g, '') // Remove HTML brackets
-      .replace(/javascript:/gi, '') // Remove JavaScript protocol
-      .replace(/data:/gi, '') // Remove data URIs
-      .replace(/vbscript:/gi, '') // Remove VBScript protocol
-      .replace(/on\w+\s*=/gi, '') // Remove event handlers
+      .slice(0, Math.max(0, maxLength))
+      .replaceAll(/[\u0000-\u001F\u007F]/g, "") // Remove control characters
+      .replaceAll(/[<>]/g, "") // Remove HTML brackets
+      .replaceAll(/javascript:/gi, "") // Remove JavaScript protocol
+      .replaceAll(/data:/gi, "") // Remove data URIs
+      .replaceAll(/vbscript:/gi, "") // Remove VBScript protocol
+      .replaceAll(/on\w+\s*=/gi, "") // Remove event handlers
       .trim();
   }
 }
@@ -107,160 +120,194 @@ export class Validator {
   static email(email: string): ValidationResult {
     const errors: string[] = [];
     const warnings: string[] = [];
-    
+
     if (!email) {
-      errors.push('Email is required');
+      errors.push("Email is required");
       return { isValid: false, errors, warnings };
     }
-    
+
     // RFC 5322 compliant email validation
     // Domain must allow dot-separated labels (e.g. example.com, company.co.uk)
     const emailRegex =
-      /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?$/;
+      /^[\w!#$%&'*+./=?^`{|}~-]+@(?:[\dA-Za-z](?:[\dA-Za-z-]{0,61}[\dA-Za-z])?\.)+[\dA-Za-z](?:[\dA-Za-z-]{0,61}[\dA-Za-z])?$/;
     if (!emailRegex.test(email)) {
-      errors.push('Invalid email format');
+      errors.push("Invalid email format");
     }
-    
+
     // Length validation
     if (email.length > 254) {
-      errors.push('Email address is too long');
+      errors.push("Email address is too long");
     }
-    
+
     // Local part validation (before @)
-    const [localPart, domain] = email.split('@');
+    const [localPart, domain] = email.split("@");
     if (localPart.length > 64) {
-      errors.push('Local part is too long');
+      errors.push("Local part is too long");
     }
-    
+
     // Domain validation
     if (domain) {
       if (domain.length > 253) {
-        errors.push('Domain name is too long');
+        errors.push("Domain name is too long");
       }
-      
+
       // Check for consecutive dots
-      if (domain.includes('..')) {
-        errors.push('Domain cannot contain consecutive dots');
+      if (domain.includes("..")) {
+        errors.push("Domain cannot contain consecutive dots");
       }
-      
+
       // Check domain starts/ends with hyphen
-      if (domain.startsWith('-') || domain.endsWith('-')) {
-        errors.push('Domain cannot start or end with hyphen');
+      if (domain.startsWith("-") || domain.endsWith("-")) {
+        errors.push("Domain cannot start or end with hyphen");
       }
     }
-    
+
     // Check for suspicious patterns
-    if (email.includes('+') && email.split('+').length > 2) {
-      warnings.push('Multiple plus signs detected');
+    if (email.includes("+") && email.split("+").length > 2) {
+      warnings.push("Multiple plus signs detected");
     }
-    
+
     // Check for common disposable email patterns
-    const disposablePatterns = ['temp', 'throwaway', '10minutemail', 'guerrillamail', 'yopmail'];
+    const disposablePatterns = [
+      "temp",
+      "throwaway",
+      "10minutemail",
+      "guerrillamail",
+      "yopmail",
+    ];
     const lowerEmail = email.toLowerCase();
     for (const pattern of disposablePatterns) {
       if (lowerEmail.includes(pattern)) {
-        warnings.push('Possible disposable email address');
+        warnings.push("Possible disposable email address");
         break;
       }
     }
-    
+
     return {
       isValid: errors.length === 0,
       errors,
-      warnings
+      warnings,
     };
   }
 
   static password(password: string): ValidationResult {
     const errors: string[] = [];
     const warnings: string[] = [];
-    
+
     if (!password) {
-      errors.push('Password is required');
+      errors.push("Password is required");
       return { isValid: false, errors, warnings };
     }
-    
+
     // Length requirements
     if (password.length < 10) {
-      errors.push('Password must be at least 10 characters long');
+      errors.push("Password must be at least 10 characters long");
     }
-    
+
     if (password.length > 128) {
-      errors.push('Password is too long');
+      errors.push("Password is too long");
     }
-    
+
     // Character requirements
     if (!/[a-z]/.test(password)) {
-      errors.push('Password must contain lowercase letters');
+      errors.push("Password must contain lowercase letters");
     }
-    
+
     if (!/[A-Z]/.test(password)) {
-      errors.push('Password must contain uppercase letters');
+      errors.push("Password must contain uppercase letters");
     }
-    
+
     if (!/\d/.test(password)) {
-      errors.push('Password must contain numbers');
+      errors.push("Password must contain numbers");
     }
-    
-    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
-      errors.push('Password must contain special characters');
+
+    if (!/[!"#$%&'()*+,./:;<=>?@[\\\]^_{|}\-]/.test(password)) {
+      errors.push("Password must contain special characters");
     }
-    
+
     // Security warnings
-    if (password.toLowerCase().includes('password')) {
+    if (password.toLowerCase().includes("password")) {
       warnings.push('Password should not contain the word "password"');
     }
-    
-    if (password.toLowerCase().includes('123456')) {
-      warnings.push('Avoid using sequential numbers');
+
+    if (password.toLowerCase().includes("123456")) {
+      warnings.push("Avoid using sequential numbers");
     }
-    
+
     // Check for common patterns
     const commonPatterns = [
-      /^123456/, /^password/i, /^qwerty/i, /^admin/i,
-      /123456$/, /password$/i, /qwerty$/i, /admin$/
+      /^123456/,
+      /^password/i,
+      /^qwerty/i,
+      /^admin/i,
+      /123456$/,
+      /password$/i,
+      /qwerty$/i,
+      /admin$/,
     ];
-    
-    if (commonPatterns.some(pattern => pattern.test(password))) {
-      warnings.push('Password is too common');
+
+    if (commonPatterns.some((pattern) => pattern.test(password))) {
+      warnings.push("Password is too common");
     }
-    
+
     // Dictionary check for common passwords
     const commonPasswords = [
-      'password', '123456', 'password123', 'admin', 'qwerty',
-      'letmein', 'welcome', 'monkey', 'dragon', 'master',
-      'sunshine', 'iloveyou', 'football', 'baseball', 'shadow',
-      'superman', 'michael', 'ninja', 'mustang', 'password1'
+      "password",
+      "123456",
+      "password123",
+      "admin",
+      "qwerty",
+      "letmein",
+      "welcome",
+      "monkey",
+      "dragon",
+      "master",
+      "sunshine",
+      "iloveyou",
+      "football",
+      "baseball",
+      "shadow",
+      "superman",
+      "michael",
+      "ninja",
+      "mustang",
+      "password1",
     ];
-    
+
     if (commonPasswords.includes(password.toLowerCase())) {
-      errors.push('Password is too common');
+      errors.push("Password is too common");
     }
-    
+
     // Check for keyboard patterns
     if (this._hasKeyboardPattern(password)) {
-      warnings.push('Password contains keyboard pattern');
+      warnings.push("Password contains keyboard pattern");
     }
-    
+
     // Check for repeated characters
     if (this._hasExcessiveRepetition(password)) {
-      warnings.push('Password contains excessive repetition');
+      warnings.push("Password contains excessive repetition");
     }
-    
+
     return {
       isValid: errors.length === 0,
       errors,
-      warnings
+      warnings,
     };
   }
 
   private static _hasKeyboardPattern(password: string): boolean {
     const keyboardPatterns = [
-      'qwerty', 'asdf', 'zxcv', '1234', 'qweasd', 
-      'qwertyuiop', 'asdfghjkl', 'zxcvbnm'
+      "qwerty",
+      "asdf",
+      "zxcv",
+      "1234",
+      "qweasd",
+      "qwertyuiop",
+      "asdfghjkl",
+      "zxcvbnm",
     ];
     const lowerPassword = password.toLowerCase();
-    return keyboardPatterns.some(pattern => lowerPassword.includes(pattern));
+    return keyboardPatterns.some((pattern) => lowerPassword.includes(pattern));
   }
 
   private static _hasExcessiveRepetition(password: string): boolean {
@@ -269,153 +316,157 @@ export class Validator {
     for (const char of password) {
       charCount[char] = (charCount[char] || 0) + 1;
     }
-    
+
     const maxCount = Math.max(...Object.values(charCount));
     return maxCount > password.length * 0.5;
   }
 
-  static name(name: string, fieldName: string = 'Name'): ValidationResult {
+  static name(name: string, fieldName: string = "Name"): ValidationResult {
     const errors: string[] = [];
     const warnings: string[] = [];
-    
+
     if (!name) {
       errors.push(`${fieldName} is required`);
       return { isValid: false, errors, warnings };
     }
-    
+
     // Length validation
     if (name.length < 2) {
       errors.push(`${fieldName} must be at least 2 characters long`);
     }
-    
+
     if (name.length > 100) {
       errors.push(`${fieldName} is too long`);
     }
-    
+
     // Character validation
-    if (!/^[a-zA-Z\s\-']+$/.test(name)) {
-      errors.push(`${fieldName} can only contain letters, spaces, hyphens, and apostrophes`);
+    if (!/^[\s'A-Za-z\-]+$/.test(name)) {
+      errors.push(
+        `${fieldName} can only contain letters, spaces, hyphens, and apostrophes`,
+      );
     }
-    
+
     // Security checks
     if (/<script|javascript:|on\w+=/i.test(name)) {
       errors.push(`${fieldName} contains invalid characters`);
     }
-    
+
     // Warnings
     if (name.trim() !== name) {
       warnings.push(`${fieldName} should not start or end with spaces`);
     }
-    
-    if (name.includes('  ')) {
+
+    if (name.includes("  ")) {
       warnings.push(`${fieldName} should not contain consecutive spaces`);
     }
-    
+
     return {
       isValid: errors.length === 0,
       errors,
-      warnings
+      warnings,
     };
   }
 
   static salary(salary: string): ValidationResult {
     const errors: string[] = [];
     const warnings: string[] = [];
-    
+
     if (!salary) {
-      errors.push('Salary is required');
+      errors.push("Salary is required");
       return { isValid: false, errors, warnings };
     }
-    
+
     // Remove common formatting characters
-    const cleanSalary = salary.replace(/[$,\s]/g, '');
-    
+    const cleanSalary = salary.replaceAll(/[\s$,]/g, "");
+
     // Check if it's a valid number
-    const salaryNum = parseFloat(cleanSalary);
-    if (isNaN(salaryNum)) {
+    const salaryNumber = parseFloat(cleanSalary);
+    if (isNaN(salaryNumber)) {
       errors.push('Salary must be a valid number');
       return { isValid: false, errors, warnings };
     }
     
     // Range validation
-    if (salaryNum < 0) {
+    if (salaryNumber < 0) {
       errors.push('Salary cannot be negative');
     }
     
-    if (salaryNum > 10000000) {
+    if (salaryNumber > 10000000) {
       errors.push('Salary seems unreasonably high');
     }
     
-    if (salaryNum < 15000) {
-      warnings.push('Salary seems very low for professional roles');
+    if (salaryNumber < 15_000) {
+      warnings.push("Salary seems very low for professional roles");
     }
-    
+
     return {
       isValid: errors.length === 0,
       errors,
-      warnings
+      warnings,
     };
   }
 
   static phoneNumber(phone: string): ValidationResult {
     const errors: string[] = [];
     const warnings: string[] = [];
-    
+
     if (!phone) {
       return { isValid: true, errors, warnings }; // Phone is often optional
     }
-    
+
     // Remove common formatting characters
-    const cleanPhone = phone.replace(/[\s\-\(\)]/g, '');
-    
+    const cleanPhone = phone.replaceAll(/[\s()\-]/g, "");
+
     // Check if it contains only numbers
     if (!/^\+?\d+$/.test(cleanPhone)) {
-      errors.push('Phone number can only contain numbers and optional + prefix');
+      errors.push(
+        "Phone number can only contain numbers and optional + prefix",
+      );
     }
-    
+
     // Length validation
     if (cleanPhone.length < 10) {
-      errors.push('Phone number is too short');
+      errors.push("Phone number is too short");
     }
-    
+
     if (cleanPhone.length > 15) {
-      errors.push('Phone number is too long');
+      errors.push("Phone number is too long");
     }
-    
+
     return {
       isValid: errors.length === 0,
       errors,
-      warnings
+      warnings,
     };
   }
 
   static validateField(value: string, rules: ValidationRule): ValidationResult {
     const errors: string[] = [];
     const warnings: string[] = [];
-    
+
     // Required validation
-    if (rules.required && (!value || value.trim() === '')) {
-      errors.push('This field is required');
+    if (rules.required && (!value || value.trim() === "")) {
+      errors.push("This field is required");
     }
-    
+
     if (!value) {
       return { isValid: errors.length === 0, errors, warnings };
     }
-    
+
     // Length validation
     if (rules.minLength && value.length < rules.minLength) {
       errors.push(`Must be at least ${rules.minLength} characters long`);
     }
-    
+
     if (rules.maxLength && value.length > rules.maxLength) {
       errors.push(`Must be no more than ${rules.maxLength} characters long`);
     }
-    
+
     // Pattern validation
     if (rules.pattern && !rules.pattern.test(value)) {
-      errors.push('Invalid format');
+      errors.push("Invalid format");
     }
-    
+
     // Custom validation
     if (rules.custom) {
       const customError = rules.custom(value);
@@ -423,21 +474,24 @@ export class Validator {
         errors.push(customError);
       }
     }
-    
+
     return {
       isValid: errors.length === 0,
       errors,
-      warnings
+      warnings,
     };
   }
 }
 
 // Rate Limiting Protection
 export class RateLimiter {
-  private static attempts = new Map<string, { count: number; resetTime: number }>();
+  private static attempts = new Map<
+    string,
+    { count: number; resetTime: number }
+  >();
   private static cleanupInterval: ReturnType<typeof setInterval> | null = null;
-  private static readonly CLEANUP_INTERVAL_MS = 60000; // Clean up every minute
-  
+  private static readonly CLEANUP_INTERVAL_MS = 60_000; // Clean up every minute
+
   /**
    * Start periodic cleanup of expired entries to prevent memory leaks
    */
@@ -452,7 +506,7 @@ export class RateLimiter {
       }
     }, this.CLEANUP_INTERVAL_MS);
   }
-  
+
   /**
    * Stop cleanup interval (for testing or app shutdown)
    */
@@ -462,40 +516,40 @@ export class RateLimiter {
       this.cleanupInterval = null;
     }
   }
-  
+
   static isAllowed(
     identifier: string,
     maxAttempts: number = 1,
-    windowMs: number = 60000 // 1 minute
+    windowMs: number = 60_000 // 1 minute
   ): { allowed: boolean; resetIn: number } {
     const now = Date.now();
     const key = identifier;
-    
+
     let record = this.attempts.get(key);
-    
+
     if (!record || now > record.resetTime) {
       record = { count: 0, resetTime: now + windowMs };
       this.attempts.set(key, record);
     }
-    
+
     // Check if already over limit before incrementing
     if (record.count >= maxAttempts) {
       const resetIn = Math.max(0, Math.ceil((record.resetTime - now) / 1000));
       return { allowed: false, resetIn };
     }
-    
+
     record.count++;
-    
+
     const allowed = record.count <= maxAttempts;
     const resetIn = Math.max(0, Math.ceil((record.resetTime - now) / 1000));
-    
+
     return { allowed, resetIn };
   }
-  
+
   static reset(identifier: string): void {
     this.attempts.delete(identifier);
   }
-  
+
   /**
    * Clear all rate limit entries (for testing or admin use)
    */
@@ -505,21 +559,23 @@ export class RateLimiter {
 }
 
 // Auto-start cleanup when module is loaded
-if (typeof window !== 'undefined') {
+if (typeof window !== "undefined") {
   RateLimiter.startCleanup();
 }
 
 // CSRF Protection
 export class CSRFProtection {
   private static readonly TOKEN_LENGTH = 32;
-  private static readonly STORAGE_KEY = 'csrf_token';
-  
+  private static readonly STORAGE_KEY = "csrf_token";
+
   static generateToken(): string {
     const array = new Uint8Array(this.TOKEN_LENGTH);
     crypto.getRandomValues(array);
-    return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
+    return Array.from(array, (byte) => byte.toString(16).padStart(2, "0")).join(
+      "",
+    );
   }
-  
+
   static getToken(): string {
     let token = localStorage.getItem(this.STORAGE_KEY);
     if (!token) {
@@ -528,12 +584,12 @@ export class CSRFProtection {
     }
     return token;
   }
-  
+
   static validateToken(token: string): boolean {
     const storedToken = this.getToken();
     return token === storedToken;
   }
-  
+
   static refreshToken(): string {
     const newToken = this.generateToken();
     localStorage.setItem(this.STORAGE_KEY, newToken);
@@ -542,17 +598,17 @@ export class CSRFProtection {
 }
 
 // Content Security Policy Helper
-export class CSPHelper {
-  static generateNonce(): string {
+export const CSPHelper = {
+  generateNonce(): string {
     const array = new Uint8Array(16);
     crypto.getRandomValues(array);
     return btoa(String.fromCharCode(...array));
-  }
+  },
   
-  static validateNonce(nonce: string, expectedNonce: string): boolean {
+  validateNonce(nonce: string, expectedNonce: string): boolean {
     return nonce === expectedNonce;
-  }
-}
+  },
+};
 
 // Export all validation utilities
 export const ValidationUtils = {
@@ -560,7 +616,7 @@ export const ValidationUtils = {
   sanitizeCSS: XSSProtection.sanitizeCSS.bind(XSSProtection),
   sanitizeURL: XSSProtection.sanitizeURL.bind(XSSProtection),
   sanitizeInput: XSSProtection.sanitizeInput.bind(XSSProtection),
-  
+
   validate: {
     email: Validator.email.bind(Validator),
     password: Validator.password.bind(Validator),
@@ -569,7 +625,7 @@ export const ValidationUtils = {
     phone: Validator.phoneNumber.bind(Validator),
     field: Validator.validateField.bind(Validator),
   },
-  
+
   security: {
     rateLimit: RateLimiter.isAllowed.bind(RateLimiter),
     resetRateLimit: RateLimiter.reset.bind(RateLimiter),

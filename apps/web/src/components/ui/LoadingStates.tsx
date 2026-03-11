@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Loader2, Sparkles, FileText, Search, Send } from "lucide-react";
 import { cn } from "../../lib/utils";
 
-interface LoadingOverlayProps {
+interface LoadingOverlayProperties {
   isLoading: boolean;
   children?: React.ReactNode;
   className?: string;
@@ -21,11 +21,11 @@ export function LoadingOverlay({
   message = "Loading...",
   submessage,
   variant = "spinner",
-}: LoadingOverlayProps) {
+}: LoadingOverlayProperties) {
   return (
     <div className={cn("relative", className)}>
       {children}
-      
+
       <AnimatePresence>
         {isLoading && (
           <motion.div
@@ -36,7 +36,7 @@ export function LoadingOverlay({
             className={cn(
               "absolute inset-0 z-50 flex flex-col items-center justify-center",
               blur ? "bg-white/80 backdrop-blur-sm" : "bg-white/90",
-              "dark:bg-slate-900/80"
+              "dark:bg-slate-900/80",
             )}
           >
             {variant === "spinner" && (
@@ -47,12 +47,12 @@ export function LoadingOverlay({
                 <Loader2 className="w-10 h-10 text-primary-600" />
               </motion.div>
             )}
-            
+
             {variant === "pulse" && (
               <div className="flex space-x-2">
-                {[0, 1, 2].map((i) => (
+                {[0, 1, 2].map((index) => (
                   <motion.div
-                    key={i}
+                    key={index}
                     className="w-3 h-3 bg-primary-600 rounded-full"
                     animate={{
                       scale: [1, 1.2, 1],
@@ -61,13 +61,13 @@ export function LoadingOverlay({
                     transition={{
                       duration: 1,
                       repeat: Infinity,
-                      delay: i * 0.2,
+                      delay: index * 0.2,
                     }}
                   />
                 ))}
               </div>
             )}
-            
+
             <p className="mt-4 text-slate-600 font-medium">{message}</p>
             {submessage && (
               <p className="mt-1 text-sm text-slate-400">{submessage}</p>
@@ -79,7 +79,7 @@ export function LoadingOverlay({
   );
 }
 
-interface LoadingStateProps {
+interface LoadingStateProperties {
   message?: string;
   submessage?: string;
   className?: string;
@@ -91,9 +91,14 @@ export function LoadingState({
   submessage,
   className,
   icon,
-}: LoadingStateProps) {
+}: LoadingStateProperties) {
   return (
-    <div className={cn("flex flex-col items-center justify-center py-12", className)}>
+    <div
+      className={cn(
+        "flex flex-col items-center justify-center py-12",
+        className,
+      )}
+    >
       <motion.div
         animate={{ rotate: 360 }}
         transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
@@ -102,7 +107,9 @@ export function LoadingState({
         {icon || <Loader2 className="w-8 h-8 text-primary-600" />}
       </motion.div>
       <p className="text-slate-600 font-medium">{message}</p>
-      {submessage && <p className="mt-1 text-sm text-slate-400">{submessage}</p>}
+      {submessage && (
+        <p className="mt-1 text-sm text-slate-400">{submessage}</p>
+      )}
     </div>
   );
 }
@@ -123,7 +130,7 @@ export function PageLoader({ message = "Loading..." }: { message?: string }) {
 }
 
 // Async action button with loading state
-interface AsyncButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+interface AsyncButtonProperties extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   isLoading: boolean;
   loadingText?: string;
   children: React.ReactNode;
@@ -135,20 +142,20 @@ export function AsyncButton({
   children,
   disabled,
   className,
-  ...props
-}: AsyncButtonProps) {
+  ...properties
+}: AsyncButtonProperties) {
   return (
     <button
       disabled={disabled || isLoading}
       className={cn(
         "relative inline-flex items-center justify-center",
         "disabled:opacity-70 disabled:cursor-not-allowed",
-        className
+        className,
       )}
-      {...props}
+      {...properties}
     >
       <span className={cn(isLoading && "invisible")}>{children}</span>
-      
+
       {isLoading && (
         <span className="absolute inset-0 flex items-center justify-center">
           <Loader2 className="w-4 h-4 animate-spin" />
@@ -162,7 +169,9 @@ export function AsyncButton({
 // Inline loading spinner
 export function InlineLoader({ className }: { className?: string }) {
   return (
-    <Loader2 className={cn("w-4 h-4 animate-spin text-primary-600", className)} />
+    <Loader2
+      className={cn("w-4 h-4 animate-spin text-primary-600", className)}
+    />
   );
 }
 
@@ -170,14 +179,14 @@ export function InlineLoader({ className }: { className?: string }) {
 export function ContentSkeleton({ lines = 3 }: { lines?: number }) {
   return (
     <div className="space-y-3 animate-pulse">
-      {Array.from({ length: lines }).map((_, i) => (
+      {Array.from({ length: lines }).map((_, index) => (
         <div
-          key={i}
+          key={index}
           className={cn(
             "h-4 bg-slate-200 rounded",
-            i === 0 && "w-3/4",
-            i === 1 && "w-1/2",
-            i > 1 && "w-full"
+            index === 0 && "w-3/4",
+            index === 1 && "w-1/2",
+            index > 1 && "w-full",
           )}
         />
       ))}

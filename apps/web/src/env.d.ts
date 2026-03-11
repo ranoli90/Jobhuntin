@@ -1,6 +1,6 @@
 /// <reference types="vite/client" />
 
-declare interface ImportMetaEnv {
+declare interface ImportMetaEnvironment {
   readonly VITE_API_URL?: string;
   readonly VITE_SUPABASE_URL?: string;
   readonly VITE_SUPABASE_ANON_KEY?: string;
@@ -15,7 +15,7 @@ declare interface ImportMetaEnv {
 }
 
 declare interface ImportMeta {
-  readonly env: ImportMetaEnv;
+  readonly env: ImportMetaEnvironment;
 }
 
 // Network Information API (draft)
@@ -38,5 +38,5 @@ interface Navigator {
 
 // Google Analytics gtag
 interface Window {
-  gtag?: (command: string, ...args: unknown[]) => void;
+  gtag?: (command: string, ...arguments_: unknown[]) => void;
 }

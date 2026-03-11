@@ -94,8 +94,10 @@ export function useProfile() {
   const [error, setError] = useState<string | null>(null);
 
   // Ref to track latest profile value to avoid stale closures in async functions
-  const profileRef = useRef(profile);
-  useEffect(() => { profileRef.current = profile; }, [profile]);
+  const profileReference = useRef(profile);
+  useEffect(() => {
+    profileReference.current = profile;
+  }, [profile]);
 
   const refreshProfile = useCallback(async () => {
     try {
@@ -103,8 +105,9 @@ export function useProfile() {
       setProfile(data);
       setError(null);
       return data;
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Unknown error";
+    } catch (error_) {
+      const message =
+        error_ instanceof Error ? error_.message : "Unknown error";
       setError(message);
       // Don't throw here, just set error/profile to null so UI can decide what to do
       setProfile(null);
@@ -120,9 +123,9 @@ export function useProfile() {
     const initProfile = async () => {
       try {
         await refreshProfile();
-      } catch (err) {
+      } catch (error_) {
         if (mounted) {
-          console.error("Failed to load profile:", err);
+          console.error("Failed to load profile:", error_);
         }
       }
     };
@@ -166,60 +169,78 @@ export function useProfile() {
     }
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 120000); // Increased timeout to 2 minutes for parsing
+    const timeoutId = setTimeout(() => controller.abort(), 120_000); // Increased timeout to 2 minutes for parsing
 
     try {
       const formData = new FormData();
       formData.append("file", file); // Backend expects "file" from UploadFile = File(...)
-      const data = await apiPostFormData<UploadResumeResponse>("me/profile/resume", formData, {
-        signal: controller.signal
-      });
-      setProfile((prev: UserProfile | null) => {
-        // If prev is null, we can't fully reconstruct it without ID/email, 
+      const data = await apiPostFormData<UploadResumeResponse>(
+        "me/profile/resume",
+        formData,
+        {
+          signal: controller.signal,
+        },
+      );
+      setProfile((previous: UserProfile | null) => {
+        // If prev is null, we can't fully reconstruct it without ID/email,
         // but we can start building it if the backend returned enough info.
         // However, usually uploadResume is called when we are already authenticated.
         // We'll rely on refreshProfile if prev is null.
-        if (!prev) return prev;
+        if (!previous) return previous;
         return {
-          ...prev,
+          ...previous,
           resume_url: data.resume_url,
-          preferences: data.preferences ?? prev.preferences,
+          preferences: data.preferences ?? previous.preferences,
           contact: {
-            ...prev.contact,
-            ...(data.contact ?? {}),
+            ...previous.contact,
+            ...data.contact,
           },
         };
       });
       // If we didn't have a profile before, refresh to get the full object
-      if (!profileRef.current) {
+      if (!profileReference.current) {
         await refreshProfile();
       }
       return data;
     } catch (error) {
-      const err = error as Error & { status?: number };
-      if (err.name === "AbortError") {
-        throw new Error("Upload timed out. Please check your connection and try again.");
+      const error_ = error as Error & { status?: number };
+      if (error_.name === "AbortError") {
+        throw new Error(
+          "Upload timed out. Please check your connection and try again.",
+        );
       }
 
       // Provide more specific error messages based on status
-      if (err.status) {
-        switch (err.status) {
-          case 413:
+      if (error_.status) {
+        switch (error_.status) {
+          case 413: {
             throw new Error("File too large. Maximum size is 15 MB.");
-          case 429:
-            throw new Error("Too many upload attempts. Please wait a moment and try again.");
-          case 500:
+          }
+          case 429: {
+            throw new Error(
+              "Too many upload attempts. Please wait a moment and try again.",
+            );
+          }
+          case 500: {
             throw new Error("Server error during upload. Please try again.");
-          case 502:
-            throw new Error("Resume parsing service unavailable. Please try again in a few minutes.");
-          case 503:
-            throw new Error("Service temporarily unavailable. Please try again.");
-          default:
-            throw err;
+          }
+          case 502: {
+            throw new Error(
+              "Resume parsing service unavailable. Please try again in a few minutes.",
+            );
+          }
+          case 503: {
+            throw new Error(
+              "Service temporarily unavailable. Please try again.",
+            );
+          }
+          default: {
+            throw error_;
+          }
         }
       }
 
-      throw err;
+      throw error_;
     } finally {
       clearTimeout(timeoutId);
     }
@@ -228,9 +249,17 @@ export function useProfile() {
   const uploadAvatar = async (file: File) => {
     const formData = new FormData();
     formData.append("file", file);
-    const data = await apiPostFormData<{ avatar_url: string }>("me/profile/avatar", formData);
-    setProfile((prev: UserProfile | null) =>
-      prev ? { ...prev, contact: { ...prev.contact, avatar_url: data.avatar_url } } : prev
+    const data = await apiPostFormData<{ avatar_url: string }>(
+      "me/profile/avatar",
+      formData,
+    );
+    setProfile((previous: UserProfile | null) =>
+      previous
+        ? {
+            ...previous,
+            contact: { ...previous.contact, avatar_url: data.avatar_url },
+          }
+        : previous,
     );
     return data.avatar_url;
   };
@@ -266,6 +295,6 @@ export function useProfile() {
     refreshProfile,
     // Force onboarding if profile is missing (new user) or explicitly not completed
     // Only force onboarding when we have a valid profile result (no error) and it is incomplete
-    needsOnboarding: !loading && !error && (!profile || !profile.has_completed_onboarding),
+    needsOnboarding: !loading && !error && !profile?.has_completed_onboarding,
   };
 }

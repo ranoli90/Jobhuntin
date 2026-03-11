@@ -7,37 +7,46 @@ const dictionaries: Dict = {
     "dashboard.resetFilters": "Reset filters and rescan",
     "dashboard.loadMore": "Load more matches",
     "dashboard.loadingMore": "Loading more",
-    "dashboard.noMatches": "You've reviewed all matches for your current filters. Try broadening your location, lowering salary floors, or clearing keywords to discover more leads.",
+    "dashboard.noMatches":
+      "You've reviewed all matches for your current filters. Try broadening your location, lowering salary floors, or clearing keywords to discover more leads.",
     "dashboard.reviewSwipes": "Review Swipes",
     "dashboard.filterPlaceholder": "Filter location...",
     "dashboard.matchAlert": "Match Alert! High-fit role detected.",
     "dashboard.sweepComplete": "Radar Sweep Complete",
     "dashboard.aiAgentMonitoring": "Your AI agent is actively monitoring",
     "dashboard.aiAgentMonitoringNewListings": "new job listings",
-    "dashboard.aiAgentMonitoringSource": "across LinkedIn and Wellfound. New matches will appear in your dashboard shortly.",
+    "dashboard.aiAgentMonitoringSource":
+      "across LinkedIn and Wellfound. New matches will appear in your dashboard shortly.",
     "dashboard.jobsRemaining": "jobs remaining",
     "dashboard.showingApplications": "Showing {count} of {total} applications",
     "dashboard.firstStepsTitle": "Your first 3 steps",
-    "dashboard.firstSteps1": "Swipe right on jobs you like — our AI will apply for you",
+    "dashboard.firstSteps1":
+      "Swipe right on jobs you like — our AI will apply for you",
     "dashboard.firstSteps2": "Check Applications to track status",
-    "dashboard.firstSteps3": "Answer any HOLD questions to keep applications moving",
+    "dashboard.firstSteps3":
+      "Answer any HOLD questions to keep applications moving",
     "dashboard.dismiss": "Dismiss",
     "dashboard.dismissFirstSteps": "Dismiss first steps",
 
     "applications.emptyTitle": "No applications yet",
-    "applications.emptyDescription": "Your agent hasn't found any opportunities yet. Start swiping on jobs to get matches.",
+    "applications.emptyDescription":
+      "Your agent hasn't found any opportunities yet. Start swiping on jobs to get matches.",
     "applications.noResults": "No Results",
     "applications.noActiveApplications": "No Active Applications",
-    "applications.searchNoResults": "No applications found matching your search.",
-    "applications.searchNoResultsDesktop": "We couldn't find any applications matching your search.",
+    "applications.searchNoResults":
+      "No applications found matching your search.",
+    "applications.searchNoResultsDesktop":
+      "We couldn't find any applications matching your search.",
     "applications.errorLoading": "Unable to load applications.",
-    "applications.emptyDesktopDescription": "No applications yet. Start searching to find job opportunities.",
+    "applications.emptyDesktopDescription":
+      "No applications yet. Start searching to find job opportunities.",
     "applications.startSearching": "Start Searching",
     "applications.loadMore": "Load more",
 
     // Onboarding - Welcome Step
     "onboarding.welcomeTitle": "Find Your Dream Job.",
-    "onboarding.welcomeSubtitle": "We'll help you apply to jobs automatically. Setup takes about 2–3 minutes.",
+    "onboarding.welcomeSubtitle":
+      "We'll help you apply to jobs automatically. Setup takes about 2–3 minutes.",
     "onboarding.startSetup": "Start setup",
     "onboarding.feature1Title": "Upload Resume",
     "onboarding.feature1Desc": "We'll analyze your skills and experience",
@@ -55,13 +64,15 @@ const dictionaries: Dict = {
     "onboarding.linkedinPlaceholder": "LinkedIn Profile (optional)",
     "onboarding.linkedinError": "Please enter a valid LinkedIn URL",
     "onboarding.skipResumeTitle": "Skip resume?",
-    "onboarding.skipResumeDesc": "Resume improves match quality by ~40%. You can add it later in Settings.",
+    "onboarding.skipResumeDesc":
+      "Resume improves match quality by ~40%. You can add it later in Settings.",
     "onboarding.skipForNow": "Skip for now",
     "onboarding.goBack": "Go back",
     "onboarding.parsingPreview": "Here's what we found:",
     "onboarding.looksGoodContinue": "Looks good, continue",
     "onboarding.reupload": "Re-upload",
-    "onboarding.parsingErrorHint": "You can try a different file, or skip and add your details manually in the next steps.",
+    "onboarding.parsingErrorHint":
+      "You can try a different file, or skip and add your details manually in the next steps.",
 
     // Onboarding - Skill Review Step
     "onboarding.skillsTitle": "Review your skills",
@@ -74,9 +85,11 @@ const dictionaries: Dict = {
     "onboarding.confidence": "confidence",
     "onboarding.skillsCount": "{count} skills",
     "onboarding.maxSkillsReached": "Maximum reached",
-    "onboarding.maxSkillsDesc": "You can add up to 100 skills. Remove some to add more.",
+    "onboarding.maxSkillsDesc":
+      "You can add up to 100 skills. Remove some to add more.",
     "onboarding.contextLengthHint": "Max 200 characters",
-    "onboarding.careerGoalsRequired": "Please select experience level and search urgency.",
+    "onboarding.careerGoalsRequired":
+      "Please select experience level and search urgency.",
     "onboarding.expLevelEntry": "Entry Level",
     "onboarding.expLevelEntrySub": "0–1 years",
     "onboarding.expLevelJunior": "Junior",
@@ -131,9 +144,11 @@ const dictionaries: Dict = {
     "onboarding.remoteOnly": "Remote only",
     "onboarding.onsiteOnly": "Onsite only",
     "onboarding.workAuthorized": "Work authorized",
-    "onboarding.workAuthorizedDesc": "I am authorized to work in my target location",
+    "onboarding.workAuthorizedDesc":
+      "I am authorized to work in my target location",
     "onboarding.visaSponsorship": "Need visa sponsorship",
-    "onboarding.visaSponsorshipDesc": "Only show roles offering visa sponsorship",
+    "onboarding.visaSponsorshipDesc":
+      "Only show roles offering visa sponsorship",
     "onboarding.excludedCompanies": "Excluded companies",
     "onboarding.excludedKeywords": "Excluded keywords",
     "onboarding.useAISuggestion": "Use AI suggestion",
@@ -143,7 +158,8 @@ const dictionaries: Dict = {
     // Onboarding - Work Style Step
     "onboarding.workStyleTitle": "Work style",
     "onboarding.workStyleSubtitle": "Help us find your ideal environment",
-    "onboarding.workStyleQuestion1": "Your team is blocked by a dependency. You:",
+    "onboarding.workStyleQuestion1":
+      "Your team is blocked by a dependency. You:",
     "onboarding.workStyleQ1Option1": "Build a workaround and move forward",
     "onboarding.workStyleQ1Option2": "Escalate to get unblocked",
     "onboarding.workStyleQ1Option3": "Document the blocker and wait",
@@ -188,7 +204,8 @@ const dictionaries: Dict = {
     "onboarding.readyTitle": "You're ready!",
     "onboarding.readySubtitle": "Time to start job hunting",
     "onboarding.systemOnline": "System Online",
-    "onboarding.calibrationSuccess": "Calibration successful. Your digital twin is initialized.",
+    "onboarding.calibrationSuccess":
+      "Calibration successful. Your digital twin is initialized.",
     "onboarding.operationalDirectives": "Operational Directives",
     "onboarding.confirmedIdentity": "Confirmed Identity",
     "onboarding.aoiGeolocation": "AOI Geolocation",
@@ -224,7 +241,8 @@ const dictionaries: Dict = {
     "onboarding.addSkillButton": "Add",
     "onboarding.aiExtracted": "AI-extracted",
     "onboarding.aiSuggestions": "AI suggestions",
-    "onboarding.confidenceHelp": "Confidence reflects how relevant this skill is to your target roles",
+    "onboarding.confidenceHelp":
+      "Confidence reflects how relevant this skill is to your target roles",
     "onboarding.contextPlaceholder": "e.g., Used daily at previous role",
     "onboarding.deleteSkill": "Remove skill",
     "onboarding.detectedSkills": "Detected skills",
@@ -238,12 +256,14 @@ const dictionaries: Dict = {
     "onboarding.noSkillsDesc": "Upload a resume or add skills manually",
     "onboarding.noSkillsHelp": "You can add skills later from your profile",
     "onboarding.noSkillsTitle": "No skills detected",
-    "onboarding.noSkillsWarning": "Adding skills improves job matching accuracy",
+    "onboarding.noSkillsWarning":
+      "Adding skills improves job matching accuracy",
     "onboarding.reviewRecommended": "Review recommended",
     "onboarding.saveSkills": "Save skills",
     "onboarding.skillExistsDesc": "This skill is already in your list",
     "onboarding.skillExistsTitle": "Skill exists",
-    "onboarding.skillNamePlaceholder": "e.g., React, Python, Project Management",
+    "onboarding.skillNamePlaceholder":
+      "e.g., React, Python, Project Management",
     "onboarding.skillsDetected": "skills detected",
     "onboarding.skipSkills": "Skip for now",
     "onboarding.verified": "Verified",
@@ -257,7 +277,8 @@ const dictionaries: Dict = {
 
     // Onboarding - Contact Step
     "onboarding.emailPlaceholder": "your@email.com",
-    "onboarding.emailPrivacy": "We'll never share your email with employers without permission",
+    "onboarding.emailPrivacy":
+      "We'll never share your email with employers without permission",
     "onboarding.firstNamePlaceholder": "First name",
     "onboarding.lastNamePlaceholder": "Last name",
     "onboarding.phonePlaceholder": "+1 (555) 000-0000",
@@ -298,9 +319,11 @@ const dictionaries: Dict = {
     // Onboarding - Ready/Launch Step
     "onboarding.launchTitle": "Launch",
     "onboarding.launchReady": "Ready.",
-    "onboarding.launchSubtitle": "Your AI job hunter is armed and ready to find your perfect match",
+    "onboarding.launchSubtitle":
+      "Your AI job hunter is armed and ready to find your perfect match",
     "onboarding.startMyHunt": "Start My Hunt",
-    "onboarding.scanningJobs": "Scanning 10,000+ jobs for your perfect match\u2026",
+    "onboarding.scanningJobs":
+      "Scanning 10,000+ jobs for your perfect match\u2026",
     "onboarding.profileComplete": "Profile",
     "onboarding.complete": "Complete",
     "onboarding.journeySoFar": "Your Journey So Far",
@@ -312,8 +335,10 @@ const dictionaries: Dict = {
     "onboarding.globalPriority": "Global Priority",
     "onboarding.seniorImpactRole": "Senior Impact Role",
     "onboarding.techProfessional": "tech professional",
-    "onboarding.shareArchetypeText": "I just set up my AI job hunter on JobHuntin as a {role}. Check it out! #JobHuntin",
-    "onboarding.referFriendText": "Join me on JobHuntin and let AI apply for you! https://jobhuntin.com",
+    "onboarding.shareArchetypeText":
+      "I just set up my AI job hunter on JobHuntin as a {role}. Check it out! #JobHuntin",
+    "onboarding.referFriendText":
+      "Join me on JobHuntin and let AI apply for you! https://jobhuntin.com",
 
     // Onboarding - Resume Step
     "onboarding.clickToUpload": "Click to upload",
@@ -326,7 +351,8 @@ const dictionaries: Dict = {
 
     // Onboarding - Misc
     "onboarding.allSet": "You're all set! Let's job hunt!",
-    "onboarding.growthEndpointHint": "One optional step didn't complete. You're ready to job hunt!",
+    "onboarding.growthEndpointHint":
+      "One optional step didn't complete. You're ready to job hunt!",
     "onboarding.almostThere": "Almost there!",
     "onboarding.buildingProfile": "Building your profile",
     "onboarding.somethingWrong": "We couldn't complete that. Please try again.",
@@ -356,8 +382,10 @@ const dictionaries: Dict = {
     "app.loading": "Loading...",
     "app.error": "Something went wrong. Please try again.",
     "app.retry": "Try Again",
-    "resumeRetry.offline": "You're offline. The resume will be automatically uploaded when you reconnect.",
-    "resumeRetry.maxReached": "Maximum retry attempts reached. Please try uploading again or contact support.",
+    "resumeRetry.offline":
+      "You're offline. The resume will be automatically uploaded when you reconnect.",
+    "resumeRetry.maxReached":
+      "Maximum retry attempts reached. Please try uploading again or contact support.",
     "resumeRetry.retryingIn": "Retrying in {minutes} min...",
     "resumeRetry.ready": "Ready to retry.",
     "resumeRetry.offlineTitle": "Offline - Resume Saved",
@@ -385,7 +413,8 @@ const dictionaries: Dict = {
     "status.processing": "Processing",
 
     "jobAlerts.title": "Job Alerts",
-    "jobAlerts.description": "Manage your job search alerts and get notified when matching jobs are posted",
+    "jobAlerts.description":
+      "Manage your job search alerts and get notified when matching jobs are posted",
     "jobAlerts.createAlert": "Create Alert",
     "jobAlerts.createFirstAlert": "Create Your First Alert",
     "jobAlerts.editAlert": "Edit Alert",
@@ -407,7 +436,8 @@ const dictionaries: Dict = {
     "jobAlerts.remoteOnly": "Remote jobs only",
     "jobAlerts.searchPlaceholder": "Search alerts...",
     "jobAlerts.noAlerts": "No job alerts yet",
-    "jobAlerts.noAlertsDescription": "Create your first job alert to get notified when matching jobs are posted",
+    "jobAlerts.noAlertsDescription":
+      "Create your first job alert to get notified when matching jobs are posted",
     "jobAlerts.noSearchResults": "No alerts match your search",
     "jobAlerts.active": "Active",
     "jobAlerts.inactive": "Inactive",
@@ -416,7 +446,8 @@ const dictionaries: Dict = {
     "jobAlerts.confirmDelete": "Are you sure you want to delete this alert?",
     "jobAlerts.errorLoading": "Could not load job alerts",
 
-    "cookies.description": "We use cookies to analyze traffic and optimize your experience. By clicking \"Accept all\", you consent to our use of analytics and marketing cookies. \"Reject all\" uses only essential system cookies. See our",
+    "cookies.description":
+      'We use cookies to analyze traffic and optimize your experience. By clicking "Accept all", you consent to our use of analytics and marketing cookies. "Reject all" uses only essential system cookies. See our',
     "cookies.privacyPolicy": "Privacy Policy",
     "cookies.forDetails": "for details.",
     "cookies.rejectAll": "Reject all",
@@ -425,11 +456,14 @@ const dictionaries: Dict = {
     "cookies.acceptAll": "Accept all",
     "cookies.title": "Cookie consent",
     "cookies.essential": "Essential",
-    "cookies.essentialDescription": "Required for the site to function (auth, security, preferences). Cannot be disabled.",
+    "cookies.essentialDescription":
+      "Required for the site to function (auth, security, preferences). Cannot be disabled.",
     "cookies.analytics": "Analytics",
-    "cookies.analyticsDescription": "Helps us understand how visitors use the site (e.g. page views, flows). No personal data is shared.",
+    "cookies.analyticsDescription":
+      "Helps us understand how visitors use the site (e.g. page views, flows). No personal data is shared.",
     "cookies.marketing": "Marketing",
-    "cookies.marketingDescription": "Used for advertising and remarketing. May share data with partners.",
+    "cookies.marketingDescription":
+      "Used for advertising and remarketing. May share data with partners.",
     "cookies.cancel": "Cancel",
     "cookies.savePreferences": "Save preferences",
 
@@ -454,14 +488,16 @@ const dictionaries: Dict = {
     "login.secure": "Secure • Encrypted • No passwords stored",
     "login.sidebarTitleLine1": "Your AI agent",
     "login.sidebarTitleLine2": "is ready to hunt",
-    "login.sidebarSubtitle": "Sign in to access your dashboard, track applications, and land more interviews.",
+    "login.sidebarSubtitle":
+      "Sign in to access your dashboard, track applications, and land more interviews.",
     "login.feature1": "100+ tailored applications daily",
     "login.feature2": "Matches from 50+ job boards",
     "login.feature3": "One-click apply everywhere",
 
     "404.title": "404",
     "404.heading": "This page doesn't exist.",
-    "404.description": "The page you're looking for couldn't be found. Try searching for jobs or head back to the homepage.",
+    "404.description":
+      "The page you're looking for couldn't be found. Try searching for jobs or head back to the homepage.",
     "404.startFree": "Start free — 10 applications on us",
     "404.backHome": "Back to home",
     "404.popularSearches": "Popular job searches",
@@ -477,12 +513,15 @@ const dictionaries: Dict = {
     "settings.headline": "Headline",
     "settings.headlinePlaceholder": "e.g., Product Designer @ Stripe",
     "settings.bio": "Bio",
-    "settings.bioPlaceholder": "Tell companies what makes you a standout candidate",
+    "settings.bioPlaceholder":
+      "Tell companies what makes you a standout candidate",
     "settings.saveProfile": "Save profile",
     "settings.saving": "Saving…",
     "settings.resume": "Resume",
-    "settings.resumeOnFile": "You have a resume on file. Upload a new one to replace it or keep building your profile.",
-    "settings.resumeUploadHint": "Upload your resume so we can personalize applications.",
+    "settings.resumeOnFile":
+      "You have a resume on file. Upload a new one to replace it or keep building your profile.",
+    "settings.resumeUploadHint":
+      "Upload your resume so we can personalize applications.",
     "settings.uploadNewResume": "Upload new resume",
     "settings.uploading": "Uploading…",
     "settings.jobPreferences": "Job preferences",
@@ -497,22 +536,27 @@ const dictionaries: Dict = {
     "settings.remoteOnly": "Remote only",
     "settings.remoteOnlyDesc": "Prioritize remote-first roles",
     "settings.workAuthorized": "Work authorized",
-    "settings.workAuthorizedDesc": "I am authorized to work in my target location",
+    "settings.workAuthorizedDesc":
+      "I am authorized to work in my target location",
     "settings.visaSponsorship": "Need visa sponsorship",
     "settings.visaSponsorshipDesc": "Only show roles offering visa sponsorship",
     "settings.excludedCompanies": "Excluded companies",
     "settings.excludedKeywords": "Excluded keywords",
     "settings.dataPrivacy": "Data & privacy",
-    "settings.exportDescription": "Export your data (profile, applications, events) for portability. See our",
+    "settings.exportDescription":
+      "Export your data (profile, applications, events) for portability. See our",
     "settings.exportForDetails": "for details.",
     "settings.exportData": "Export my data",
     "settings.exporting": "Exporting…",
 
     "maintenance.title": "We're making things better",
-    "maintenance.description": "JobHuntin is temporarily unavailable for scheduled maintenance. We're improving performance and adding new features.",
-    "maintenance.expectedBack": "We expect to be back within 15–30 minutes. You can check back shortly or contact support if you need assistance.",
+    "maintenance.description":
+      "JobHuntin is temporarily unavailable for scheduled maintenance. We're improving performance and adding new features.",
+    "maintenance.expectedBack":
+      "We expect to be back within 15–30 minutes. You can check back shortly or contact support if you need assistance.",
     "maintenance.contactSupport": "Contact support",
-    "maintenance.progressSaved": "Your progress is saved. When we're back, you can pick up right where you left off.",
+    "maintenance.progressSaved":
+      "Your progress is saved. When we're back, you can pick up right where you left off.",
 
     "homepage.checkInbox": "Check your inbox",
     "homepage.magicLinkSent": "Magic link sent!",
@@ -520,7 +564,8 @@ const dictionaries: Dict = {
     "homepage.startFree": "Start free",
     "homepage.sending": "Sending…",
 
-    "pricing.subtitle": "One interview from JobHuntin covers this cost forever. People who wait lose roles to people who don't.",
+    "pricing.subtitle":
+      "One interview from JobHuntin covers this cost forever. People who wait lose roles to people who don't.",
     "pricing.monthly": "Monthly",
     "pricing.annual": "Annual",
     "pricing.save20": "Save 20% with annual billing",
@@ -537,27 +582,33 @@ const dictionaries: Dict = {
     "pricing.contactSales": "Contact Sales",
     "pricing.faqTitle": "Questions? We've got answers.",
     "pricing.faqCancel": "Can I cancel anytime?",
-    "pricing.faqCancelA": "Yes. One click in your dashboard. No awkward phone calls.",
+    "pricing.faqCancelA":
+      "Yes. One click in your dashboard. No awkward phone calls.",
     "pricing.faqWork": "Does this actually work?",
-    "pricing.faqWorkA": "We've sent over 1M applications. Our users interview at Google, Amazon, and startups daily.",
+    "pricing.faqWorkA":
+      "We've sent over 1M applications. Our users interview at Google, Amazon, and startups daily.",
     "pricing.faqSafe": "Is my data safe?",
-    "pricing.faqSafeA": "We use bank-level encryption. Your resume is only shared with employers you apply to.",
+    "pricing.faqSafeA":
+      "We use bank-level encryption. Your resume is only shared with employers you apply to.",
     "pricing.faqHired": "What if I get hired?",
-    "pricing.faqHiredA": "Then we did our job! Cancel your sub and pop the champagne.",
+    "pricing.faqHiredA":
+      "Then we did our job! Cancel your sub and pop the champagne.",
 
     "successStories.headingWon": "THEY",
     "successStories.headingNext": "WON.",
     "successStories.headingYou": "YOU'RE NEXT.",
     "successStories.subtitle": "Real people. Real offers. No BS.",
     "successStories.ctaTitle": "YOUR TURN.",
-    "successStories.ctaDescription": "Every hour you wait, someone else gets the interview you wanted.",
+    "successStories.ctaDescription":
+      "Every hour you wait, someone else gets the interview you wanted.",
     "successStories.startFreeTrial": "Start free trial",
     "successStories.hired": "HIRED",
 
     "chromeExt.badge": "v2.0 Now Available",
-    "chromeExt.heading1": "The \"Add to Cart\"",
+    "chromeExt.heading1": 'The "Add to Cart"',
     "chromeExt.heading2": "for your career.",
-    "chromeExt.description": "Browse LinkedIn, Indeed, or Glassdoor. See a job you like? Click one button. Our AI handles the resume tailoring, cover letter, and submission.",
+    "chromeExt.description":
+      "Browse LinkedIn, Indeed, or Glassdoor. See a job you like? Click one button. Our AI handles the resume tailoring, cover letter, and submission.",
     "chromeExt.addToChrome": "Add to Chrome",
     "chromeExt.watchDemo": "Watch Demo",
     "chromeExt.addedToQueue": "Added to Queue",
@@ -573,7 +624,8 @@ const dictionaries: Dict = {
     "chromeExt.autonomousSync": "Autonomous Sync",
     "chromeExt.applicationPending": "Application pending submission",
     "chromeExt.worksWhere": "Works where you hunt.",
-    "chromeExt.platformsHint": "Native integration with the platforms you already use.",
+    "chromeExt.platformsHint":
+      "Native integration with the platforms you already use.",
     "chromeExt.parsingLatency": "Parsing Latency",
     "chromeExt.fieldAccuracy": "Field Accuracy",
     "chromeExt.activeScouting": "Active Scouting",
@@ -581,37 +633,48 @@ const dictionaries: Dict = {
     "about.badge": "12,000+ job seekers stopped scrolling",
     "about.heading1": "The end of the",
     "about.heading2": "infinite scroll.",
-    "about.heroDescription": "We built JobHuntin because finding a job shouldn't be a full-time job. So we moved the hard part to an engine that never sleeps.",
+    "about.heroDescription":
+      "We built JobHuntin because finding a job shouldn't be a full-time job. So we moved the hard part to an engine that never sleeps.",
     "about.experienceMagic": "Experience the magic",
     "about.watchStory": "Watch the story",
     "about.enterpriseIntelligence": "Enterprise-Grade Intelligence",
     "about.digitalDouble": "A digital double that hunts for you.",
-    "about.digitalDoubleDesc": "Our system doesn't just \"find\" jobs. It analyzes your unique skills, matches them against real market demand, and handles the entire application lifecycle — from the initial find to the final submit.",
+    "about.digitalDoubleDesc":
+      'Our system doesn\'t just "find" jobs. It analyzes your unique skills, matches them against real market demand, and handles the entire application lifecycle — from the initial find to the final submit.',
     "about.privacyFirst": "Privacy First",
-    "about.privacyFirstDesc": "Encrypted, never sold. Recruiters only see what you approve.",
+    "about.privacyFirstDesc":
+      "Encrypted, never sold. Recruiters only see what you approve.",
     "about.lightningPrecision": "Lightning Precision",
-    "about.lightningPrecisionDesc": "Thousands of jobs parsed per minute. Your match scores update in milliseconds.",
+    "about.lightningPrecisionDesc":
+      "Thousands of jobs parsed per minute. Your match scores update in milliseconds.",
     "about.successRate": "Success Rate",
     "about.timeSaved": "Time Saved",
     "about.howEngineWorks": "How the engine works.",
-    "about.howEngineDesc": "Four steps. Zero effort from you. Applications that actually get responses.",
+    "about.howEngineDesc":
+      "Four steps. Zero effort from you. Applications that actually get responses.",
     "about.parse": "Parse",
-    "about.parseDesc": "We build your digital twin from your resume and LinkedIn.",
+    "about.parseDesc":
+      "We build your digital twin from your resume and LinkedIn.",
     "about.scout": "Scout",
     "about.scoutDesc": "AI agents scan the web for jobs that match your DNA.",
     "about.tailor": "Tailor",
-    "about.tailorDesc": "Resumes and cover letters are rewritten for every single job.",
+    "about.tailorDesc":
+      "Resumes and cover letters are rewritten for every single job.",
     "about.apply": "Apply",
-    "about.applyDesc": "Submissions happen automatically. You just track notifications.",
+    "about.applyDesc":
+      "Submissions happen automatically. You just track notifications.",
     "about.visionHeading": "Every day you wait, someone else gets hired.",
-    "about.visionDescription": "Your time should be spent in interviews, not on job boards. The people who start today land roles 3x faster.",
+    "about.visionDescription":
+      "Your time should be spent in interviews, not on job boards. The people who start today land roles 3x faster.",
     "about.getStartedFree": "Get Started for Free",
-    "about.noCardRequired": "No credit card required. Cancel anytime. Actually works.",
+    "about.noCardRequired":
+      "No credit card required. Cancel anytime. Actually works.",
 
     "contact.getInTouch": "Get in Touch",
     "contact.headingLine1": "We're here to help you",
     "contact.headingLine2": "land your dream job.",
-    "contact.subtitle": "Whether you have questions, need support, or want to explore partnerships, our team is ready to help.",
+    "contact.subtitle":
+      "Whether you have questions, need support, or want to explore partnerships, our team is ready to help.",
     "contact.sendMessage": "Send us a message",
     "contact.name": "Name",
     "contact.email": "Email",
@@ -627,7 +690,8 @@ const dictionaries: Dict = {
     "contact.sending": "Sending...",
     "contact.sendMessageBtn": "Send Message",
     "contact.messageSent": "Message Sent!",
-    "contact.messageSentDescription": "We'll get back to you within 24 hours. Keep an eye on your inbox for a response from our team.",
+    "contact.messageSentDescription":
+      "We'll get back to you within 24 hours. Keep an eye on your inbox for a response from our team.",
     "contact.backToHomepage": "Back to Homepage",
     "contact.otherWays": "Other ways to reach us",
     "contact.emailLabel": "Email",
@@ -637,77 +701,96 @@ const dictionaries: Dict = {
     "contact.securityPrivacy": "Security & Privacy",
     "contact.privacyHint": "For data protection inquiries",
     "contact.needImmediateHelp": "Need immediate help?",
-    "contact.faqHint": "Check out our comprehensive FAQ section or browse our documentation for quick answers to common questions.",
+    "contact.faqHint":
+      "Check out our comprehensive FAQ section or browse our documentation for quick answers to common questions.",
     "contact.browseGuides": "Browse Guides",
     "contact.viewPricing": "View Pricing",
     "contact.responseTime": "Response Time",
-    "contact.responseTimeDesc": "We typically respond to all inquiries within 24 hours during business days (Monday-Friday, 9AM-5PM EST).",
+    "contact.responseTimeDesc":
+      "We typically respond to all inquiries within 24 hours during business days (Monday-Friday, 9AM-5PM EST).",
   },
   fr: {
     "dashboard.activeRadar": "Radar actif",
-    "dashboard.swipeRight": "Faites glisser à droite pour laisser l'IA postuler pour vous.",
+    "dashboard.swipeRight":
+      "Faites glisser à droite pour laisser l'IA postuler pour vous.",
     "dashboard.resetFilters": "Réinitialiser les filtres et relancer",
     "dashboard.loadMore": "Charger plus d'offres",
     "dashboard.loadingMore": "Chargement...",
-    "dashboard.noMatches": "Vous avez examiné toutes les offres pour ces filtres. Élargissez la localisation ou abaissez le salaire minimum pour en trouver plus.",
+    "dashboard.noMatches":
+      "Vous avez examiné toutes les offres pour ces filtres. Élargissez la localisation ou abaissez le salaire minimum pour en trouver plus.",
     "dashboard.reviewSwipes": "Revoir les swipes",
     "dashboard.filterPlaceholder": "Filtrer par localisation...",
     "dashboard.matchAlert": "Alerte match ! Offre très adaptée détectée.",
     "dashboard.sweepComplete": "Balayage terminé",
     "dashboard.aiAgentMonitoring": "Votre agent IA surveille activement les",
     "dashboard.aiAgentMonitoringNewListings": "nouvelles offres d'emploi",
-    "dashboard.aiAgentMonitoringSource": "sur LinkedIn et Wellfound. Les nouveaux matchs apparaîtront bientôt sur votre tableau de bord.",
+    "dashboard.aiAgentMonitoringSource":
+      "sur LinkedIn et Wellfound. Les nouveaux matchs apparaîtront bientôt sur votre tableau de bord.",
     "dashboard.jobsRemaining": "offres restantes",
-    "dashboard.showingApplications": "{count} sur {total} candidatures affichées",
+    "dashboard.showingApplications":
+      "{count} sur {total} candidatures affichées",
     "dashboard.firstStepsTitle": "Vos 3 premières étapes",
-    "dashboard.firstSteps1": "Swipez à droite sur les offres qui vous plaisent — notre IA postulera pour vous",
+    "dashboard.firstSteps1":
+      "Swipez à droite sur les offres qui vous plaisent — notre IA postulera pour vous",
     "dashboard.firstSteps2": "Consultez Candidatures pour suivre le statut",
-    "dashboard.firstSteps3": "Répondez aux questions HOLD pour faire avancer vos candidatures",
+    "dashboard.firstSteps3":
+      "Répondez aux questions HOLD pour faire avancer vos candidatures",
     "dashboard.dismiss": "Fermer",
     "dashboard.dismissFirstSteps": "Fermer les premières étapes",
 
     "applications.emptyTitle": "Aucune candidature",
-    "applications.emptyDescription": "Votre agent n'a pas encore trouvé d'opportunités. Commencez à swiper sur des offres pour obtenir des matchs.",
+    "applications.emptyDescription":
+      "Votre agent n'a pas encore trouvé d'opportunités. Commencez à swiper sur des offres pour obtenir des matchs.",
     "applications.noResults": "Aucun résultat",
     "applications.noActiveApplications": "Aucune candidature active",
-    "applications.searchNoResults": "Aucune candidature ne correspond à votre recherche.",
-    "applications.searchNoResultsDesktop": "Aucune candidature ne correspond à votre recherche.",
+    "applications.searchNoResults":
+      "Aucune candidature ne correspond à votre recherche.",
+    "applications.searchNoResultsDesktop":
+      "Aucune candidature ne correspond à votre recherche.",
     "applications.errorLoading": "Impossible de charger les candidatures.",
-    "applications.emptyDesktopDescription": "Aucune candidature pour l'instant. Commencez à rechercher pour trouver des opportunités.",
+    "applications.emptyDesktopDescription":
+      "Aucune candidature pour l'instant. Commencez à rechercher pour trouver des opportunités.",
     "applications.startSearching": "Commencer la recherche",
     "applications.loadMore": "Charger plus",
 
     // Onboarding - Welcome Step (French)
     "onboarding.welcomeTitle": "Trouvez l'emploi de vos rêves.",
-    "onboarding.welcomeSubtitle": "Nous vous aiderons à postuler automatiquement. La configuration prend environ 2–3 minutes.",
+    "onboarding.welcomeSubtitle":
+      "Nous vous aiderons à postuler automatiquement. La configuration prend environ 2–3 minutes.",
     "onboarding.startSetup": "Commencer",
     "onboarding.feature1Title": "Télécharger le CV",
-    "onboarding.feature1Desc": "Nous analyserons vos compétences et votre expérience",
+    "onboarding.feature1Desc":
+      "Nous analyserons vos compétences et votre expérience",
     "onboarding.feature2Title": "Définir les préférences",
     "onboarding.feature2Desc": "Dites-nous où et quoi vous voulez travailler",
     "onboarding.feature3Title": "Candidature auto",
-    "onboarding.feature3Desc": "Nous postulerons aux emplois pour vous automatiquement",
+    "onboarding.feature3Desc":
+      "Nous postulerons aux emplois pour vous automatiquement",
 
     // Onboarding - Resume Step (French)
     "onboarding.resumeTitle": "Téléchargez votre CV",
-    "onboarding.resumeSubtitle": "Nous l'utiliserons pour trouver les matchs parfaits",
+    "onboarding.resumeSubtitle":
+      "Nous l'utiliserons pour trouver les matchs parfaits",
     "onboarding.uploadResume": "Télécharger le CV",
     "onboarding.dragAndDrop": "Glissez-déposez votre CV ici",
     "onboarding.fileTypes": "PDF, DOCX jusqu'à 15 Mo",
     "onboarding.linkedinPlaceholder": "Profil LinkedIn (optionnel)",
     "onboarding.linkedinError": "Veuillez entrer une URL LinkedIn valide",
     "onboarding.skipResumeTitle": "Passer le CV ?",
-    "onboarding.skipResumeDesc": "Le CV améliore la qualité des matchs d'environ 40%. Vous pouvez l'ajouter plus tard dans Paramètres.",
+    "onboarding.skipResumeDesc":
+      "Le CV améliore la qualité des matchs d'environ 40%. Vous pouvez l'ajouter plus tard dans Paramètres.",
     "onboarding.skipForNow": "Passer pour l'instant",
     "onboarding.goBack": "Retour",
     "onboarding.parsingPreview": "Voici ce que nous avons trouvé :",
     "onboarding.looksGoodContinue": "Ça semble bien, continuer",
     "onboarding.reupload": "Re-télécharger",
-    "onboarding.parsingErrorHint": "Vous pouvez essayer un autre fichier, ou passer et ajouter vos informations manuellement aux étapes suivantes.",
+    "onboarding.parsingErrorHint":
+      "Vous pouvez essayer un autre fichier, ou passer et ajouter vos informations manuellement aux étapes suivantes.",
 
     // Onboarding - Skill Review Step (French)
     "onboarding.skillsTitle": "Vérifiez vos compétences",
-    "onboarding.skillsSubtitle": "Vérifiez les compétences que nous avons détectées",
+    "onboarding.skillsSubtitle":
+      "Vérifiez les compétences que nous avons détectées",
     "onboarding.noSkills": "Aucune compétence détectée dans votre CV",
     "onboarding.addSkillPlaceholder": "Ajouter une compétence...",
     "onboarding.saveSkill": "Enregistrer",
@@ -716,9 +799,11 @@ const dictionaries: Dict = {
     "onboarding.confidence": "confiance",
     "onboarding.skillsCount": "{count} compétences",
     "onboarding.maxSkillsReached": "Maximum atteint",
-    "onboarding.maxSkillsDesc": "Vous pouvez ajouter jusqu'à 100 compétences. Supprimez-en pour en ajouter plus.",
+    "onboarding.maxSkillsDesc":
+      "Vous pouvez ajouter jusqu'à 100 compétences. Supprimez-en pour en ajouter plus.",
     "onboarding.contextLengthHint": "Max 200 caractères",
-    "onboarding.careerGoalsRequired": "Veuillez sélectionner le niveau d'expérience et l'urgence de recherche.",
+    "onboarding.careerGoalsRequired":
+      "Veuillez sélectionner le niveau d'expérience et l'urgence de recherche.",
     "onboarding.expLevelEntry": "Débutant",
     "onboarding.expLevelEntrySub": "0–1 an",
     "onboarding.expLevelJunior": "Junior",
@@ -751,7 +836,8 @@ const dictionaries: Dict = {
 
     // Onboarding - Contact Step (French)
     "onboarding.contactTitle": "Confirmez vos coordonnées",
-    "onboarding.contactSubtitle": "Vérifiez les informations que nous avons extraites",
+    "onboarding.contactSubtitle":
+      "Vérifiez les informations que nous avons extraites",
     "onboarding.firstName": "Prénom",
     "onboarding.lastName": "Nom",
     "onboarding.email": "E-mail",
@@ -773,9 +859,11 @@ const dictionaries: Dict = {
     "onboarding.remoteOnly": "Télétravail uniquement",
     "onboarding.onsiteOnly": "Sur site uniquement",
     "onboarding.workAuthorized": "Autorisé à travailler",
-    "onboarding.workAuthorizedDesc": "Je suis autorisé à travailler dans ma zone cible",
+    "onboarding.workAuthorizedDesc":
+      "Je suis autorisé à travailler dans ma zone cible",
     "onboarding.visaSponsorship": "Besoin de parrainage visa",
-    "onboarding.visaSponsorshipDesc": "Afficher uniquement les offres avec parrainage",
+    "onboarding.visaSponsorshipDesc":
+      "Afficher uniquement les offres avec parrainage",
     "onboarding.excludedCompanies": "Entreprises exclues",
     "onboarding.excludedKeywords": "Mots-clés exclus",
     "onboarding.useAISuggestion": "Utiliser la suggestion IA",
@@ -784,7 +872,8 @@ const dictionaries: Dict = {
 
     // Onboarding - Work Style Step (French)
     "onboarding.workStyleTitle": "Style de travail",
-    "onboarding.workStyleSubtitle": "Aidez-nous à trouver votre environnement idéal",
+    "onboarding.workStyleSubtitle":
+      "Aidez-nous à trouver votre environnement idéal",
     "onboarding.workStyleQuestion1": "Comment préférez-vous travailler ?",
     "onboarding.workStyleQuestion2": "Comment apprenez-vous le mieux ?",
     "onboarding.workStyleQuestion3": "Quelle étape d'entreprise ?",
@@ -798,7 +887,8 @@ const dictionaries: Dict = {
 
     // Onboarding - Ready Step (French)
     "onboarding.readyTitle": "Vous êtes prêt !",
-    "onboarding.readySubtitle": "Il est temps de commencer à chercher un emploi",
+    "onboarding.readySubtitle":
+      "Il est temps de commencer à chercher un emploi",
     "onboarding.profileStrength": "Force du profil",
     "onboarding.startJobHunting": "Commencer la recherche",
     "onboarding.setupComplete": "Configuration terminée !",
@@ -812,9 +902,11 @@ const dictionaries: Dict = {
     "onboarding.step": "Étape",
     "onboarding.of": "sur",
     "onboarding.restart": "Recommencer",
-    "onboarding.confirmRestart": "Êtes-vous sûr ? Cela effacera votre progression.",
+    "onboarding.confirmRestart":
+      "Êtes-vous sûr ? Cela effacera votre progression.",
     "onboarding.confirmRestartTitle": "Recommencer l'intégration ?",
-    "onboarding.growthEndpointHint": "Une étape optionnelle n'a pas abouti. Vous êtes prêt à chercher !",
+    "onboarding.growthEndpointHint":
+      "Une étape optionnelle n'a pas abouti. Vous êtes prêt à chercher !",
     "onboarding.welcomeBack": "Bon retour !",
     "onboarding.pickingUp": "Reprise à",
 
@@ -823,8 +915,10 @@ const dictionaries: Dict = {
     "app.loading": "Chargement...",
     "app.error": "Une erreur est survenue. Veuillez réessayer.",
     "app.retry": "Réessayer",
-    "resumeRetry.offline": "Hors ligne. Le CV sera téléchargé automatiquement à la reconnexion.",
-    "resumeRetry.maxReached": "Nombre maximum de tentatives atteint. Réessayez ou contactez le support.",
+    "resumeRetry.offline":
+      "Hors ligne. Le CV sera téléchargé automatiquement à la reconnexion.",
+    "resumeRetry.maxReached":
+      "Nombre maximum de tentatives atteint. Réessayez ou contactez le support.",
     "resumeRetry.retryingIn": "Nouvelle tentative dans {minutes} min...",
     "resumeRetry.ready": "Prêt à réessayer.",
     "resumeRetry.offlineTitle": "Hors ligne - CV enregistré",
@@ -834,7 +928,8 @@ const dictionaries: Dict = {
     "resumeRetry.retryNow": "Réessayer maintenant",
     "resumeRetry.clear": "Effacer",
     "resumeRetry.attemptOf": "Tentative {current} sur {max}",
-    "resumeRetry.reuploadHint": "Téléchargez à nouveau votre CV pour réessayer.",
+    "resumeRetry.reuploadHint":
+      "Téléchargez à nouveau votre CV pour réessayer.",
     "app.save": "Enregistrer",
     "app.cancel": "Annuler",
     "app.delete": "Supprimer",
@@ -852,7 +947,8 @@ const dictionaries: Dict = {
     "status.processing": "En cours",
 
     "jobAlerts.title": "Alertes emploi",
-    "jobAlerts.description": "Gérez vos alertes de recherche et soyez notifié des offres correspondantes",
+    "jobAlerts.description":
+      "Gérez vos alertes de recherche et soyez notifié des offres correspondantes",
     "jobAlerts.createAlert": "Créer une alerte",
     "jobAlerts.createFirstAlert": "Créer votre première alerte",
     "jobAlerts.editAlert": "Modifier l'alerte",
@@ -874,16 +970,20 @@ const dictionaries: Dict = {
     "jobAlerts.remoteOnly": "Télétravail uniquement",
     "jobAlerts.searchPlaceholder": "Rechercher des alertes...",
     "jobAlerts.noAlerts": "Aucune alerte emploi",
-    "jobAlerts.noAlertsDescription": "Créez votre première alerte pour être notifié des offres correspondantes",
-    "jobAlerts.noSearchResults": "Aucune alerte ne correspond à votre recherche",
+    "jobAlerts.noAlertsDescription":
+      "Créez votre première alerte pour être notifié des offres correspondantes",
+    "jobAlerts.noSearchResults":
+      "Aucune alerte ne correspond à votre recherche",
     "jobAlerts.active": "Active",
     "jobAlerts.inactive": "Inactive",
     "jobAlerts.toggle": "Activer/Désactiver",
     "jobAlerts.lastSent": "Dernier envoi",
-    "jobAlerts.confirmDelete": "Êtes-vous sûr de vouloir supprimer cette alerte ?",
+    "jobAlerts.confirmDelete":
+      "Êtes-vous sûr de vouloir supprimer cette alerte ?",
     "jobAlerts.errorLoading": "Erreur de chargement des alertes",
 
-    "cookies.description": "Nous utilisons des cookies pour analyser le trafic et optimiser votre expérience. En cliquant sur \"Tout accepter\", vous consentez à l'utilisation de nos cookies d'analyse et de marketing. \"Tout refuser\" utilise uniquement les cookies système essentiels. Voir notre",
+    "cookies.description":
+      'Nous utilisons des cookies pour analyser le trafic et optimiser votre expérience. En cliquant sur "Tout accepter", vous consentez à l\'utilisation de nos cookies d\'analyse et de marketing. "Tout refuser" utilise uniquement les cookies système essentiels. Voir notre',
     "cookies.privacyPolicy": "Politique de confidentialité",
     "cookies.forDetails": "pour plus de détails.",
     "cookies.rejectAll": "Tout refuser",
@@ -892,11 +992,14 @@ const dictionaries: Dict = {
     "cookies.acceptAll": "Tout accepter",
     "cookies.title": "Consentement aux cookies",
     "cookies.essential": "Essentiels",
-    "cookies.essentialDescription": "Nécessaires au fonctionnement du site (auth, sécurité, préférences). Non désactivables.",
+    "cookies.essentialDescription":
+      "Nécessaires au fonctionnement du site (auth, sécurité, préférences). Non désactivables.",
     "cookies.analytics": "Analytiques",
-    "cookies.analyticsDescription": "Nous aident à comprendre l'utilisation du site (pages vues, parcours). Aucune donnée personnelle partagée.",
+    "cookies.analyticsDescription":
+      "Nous aident à comprendre l'utilisation du site (pages vues, parcours). Aucune donnée personnelle partagée.",
     "cookies.marketing": "Marketing",
-    "cookies.marketingDescription": "Utilisés pour la publicité et le remarketing. Peuvent partager des données avec des partenaires.",
+    "cookies.marketingDescription":
+      "Utilisés pour la publicité et le remarketing. Peuvent partager des données avec des partenaires.",
     "cookies.cancel": "Annuler",
     "cookies.savePreferences": "Enregistrer les préférences",
 
@@ -912,7 +1015,8 @@ const dictionaries: Dict = {
     "login.useDifferentEmail": "Utiliser un autre e-mail",
     "login.welcomeBack": "Décrochez votre prochain poste",
     "login.signInTitle": "Connexion à JobHuntin",
-    "login.magicLinkHint": "Nous vous enverrons un lien magique. Pas de mot de passe requis.",
+    "login.magicLinkHint":
+      "Nous vous enverrons un lien magique. Pas de mot de passe requis.",
     "login.email": "Adresse e-mail",
     "login.emailPlaceholder": "vous@exemple.com",
     "login.continue": "Continuer",
@@ -921,14 +1025,16 @@ const dictionaries: Dict = {
     "login.secure": "Sécurisé • Chiffré • Aucun mot de passe stocké",
     "login.sidebarTitleLine1": "Votre agent IA",
     "login.sidebarTitleLine2": "est prêt à chasser",
-    "login.sidebarSubtitle": "Connectez-vous pour accéder à votre tableau de bord, suivre vos candidatures et décrocher plus d'entretiens.",
+    "login.sidebarSubtitle":
+      "Connectez-vous pour accéder à votre tableau de bord, suivre vos candidatures et décrocher plus d'entretiens.",
     "login.feature1": "100+ candidatures personnalisées par jour",
     "login.feature2": "Offres de 50+ plateformes",
     "login.feature3": "Postuler en un clic partout",
 
     "404.title": "404",
     "404.heading": "Cette page n'existe pas.",
-    "404.description": "La page demandée est introuvable. Essayez de rechercher des emplois ou retournez à l'accueil.",
+    "404.description":
+      "La page demandée est introuvable. Essayez de rechercher des emplois ou retournez à l'accueil.",
     "404.startFree": "Commencer gratuitement — 10 candidatures offertes",
     "404.backHome": "Retour à l'accueil",
     "404.popularSearches": "Recherches populaires",
@@ -948,8 +1054,10 @@ const dictionaries: Dict = {
     "settings.saveProfile": "Enregistrer le profil",
     "settings.saving": "Enregistrement…",
     "settings.resume": "CV",
-    "settings.resumeOnFile": "Vous avez un CV enregistré. Téléchargez-en un nouveau pour le remplacer.",
-    "settings.resumeUploadHint": "Téléchargez votre CV pour personnaliser les candidatures.",
+    "settings.resumeOnFile":
+      "Vous avez un CV enregistré. Téléchargez-en un nouveau pour le remplacer.",
+    "settings.resumeUploadHint":
+      "Téléchargez votre CV pour personnaliser les candidatures.",
     "settings.uploadNewResume": "Télécharger un nouveau CV",
     "settings.uploading": "Téléchargement…",
     "settings.jobPreferences": "Préférences d'emploi",
@@ -964,22 +1072,28 @@ const dictionaries: Dict = {
     "settings.remoteOnly": "Télétravail uniquement",
     "settings.remoteOnlyDesc": "Prioriser les rôles à distance",
     "settings.workAuthorized": "Autorisé à travailler",
-    "settings.workAuthorizedDesc": "Je suis autorisé à travailler dans ma zone cible",
+    "settings.workAuthorizedDesc":
+      "Je suis autorisé à travailler dans ma zone cible",
     "settings.visaSponsorship": "Besoin de parrainage visa",
-    "settings.visaSponsorshipDesc": "Afficher uniquement les offres avec parrainage",
+    "settings.visaSponsorshipDesc":
+      "Afficher uniquement les offres avec parrainage",
     "settings.excludedCompanies": "Entreprises exclues",
     "settings.excludedKeywords": "Mots-clés exclus",
     "settings.dataPrivacy": "Données et confidentialité",
-    "settings.exportDescription": "Exportez vos données (profil, candidatures, événements). Consultez notre",
+    "settings.exportDescription":
+      "Exportez vos données (profil, candidatures, événements). Consultez notre",
     "settings.exportForDetails": "pour plus de détails.",
     "settings.exportData": "Exporter mes données",
     "settings.exporting": "Export en cours…",
 
     "maintenance.title": "Nous améliorons le service",
-    "maintenance.description": "JobHuntin est temporairement indisponible pour maintenance. Nous améliorons les performances et ajoutons de nouvelles fonctionnalités.",
-    "maintenance.expectedBack": "Retour prévu sous 15 à 30 minutes. Réessayez bientôt ou contactez le support si besoin.",
+    "maintenance.description":
+      "JobHuntin est temporairement indisponible pour maintenance. Nous améliorons les performances et ajoutons de nouvelles fonctionnalités.",
+    "maintenance.expectedBack":
+      "Retour prévu sous 15 à 30 minutes. Réessayez bientôt ou contactez le support si besoin.",
     "maintenance.contactSupport": "Contacter le support",
-    "maintenance.progressSaved": "Votre progression est enregistrée. À notre retour, vous pourrez reprendre là où vous en étiez.",
+    "maintenance.progressSaved":
+      "Votre progression est enregistrée. À notre retour, vous pourrez reprendre là où vous en étiez.",
 
     "homepage.checkInbox": "Vérifiez votre boîte de réception",
     "homepage.magicLinkSent": "Lien magique envoyé !",
@@ -987,7 +1101,8 @@ const dictionaries: Dict = {
     "homepage.startFree": "Commencer gratuitement",
     "homepage.sending": "Envoi…",
 
-    "pricing.subtitle": "Un entretien décroché via JobHuntin couvre ce coût pour toujours. Ceux qui attendent perdent des postes au profit de ceux qui agissent.",
+    "pricing.subtitle":
+      "Un entretien décroché via JobHuntin couvre ce coût pour toujours. Ceux qui attendent perdent des postes au profit de ceux qui agissent.",
     "pricing.monthly": "Mensuel",
     "pricing.annual": "Annuel",
     "pricing.save20": "Économisez 20 % avec l'abonnement annuel",
@@ -1004,27 +1119,33 @@ const dictionaries: Dict = {
     "pricing.contactSales": "Contacter les ventes",
     "pricing.faqTitle": "Des questions ? Nous avons les réponses.",
     "pricing.faqCancel": "Puis-je annuler à tout moment ?",
-    "pricing.faqCancelA": "Oui. Un clic dans votre tableau de bord. Pas d'appels gênants.",
+    "pricing.faqCancelA":
+      "Oui. Un clic dans votre tableau de bord. Pas d'appels gênants.",
     "pricing.faqWork": "Est-ce que ça marche vraiment ?",
-    "pricing.faqWorkA": "Nous avons envoyé plus d'1 million de candidatures. Nos utilisateurs passent des entretiens chez Google, Amazon et des startups chaque jour.",
+    "pricing.faqWorkA":
+      "Nous avons envoyé plus d'1 million de candidatures. Nos utilisateurs passent des entretiens chez Google, Amazon et des startups chaque jour.",
     "pricing.faqSafe": "Mes données sont-elles en sécurité ?",
-    "pricing.faqSafeA": "Nous utilisons un chiffrement de niveau bancaire. Votre CV n'est partagé qu'avec les employeurs auxquels vous postulez.",
+    "pricing.faqSafeA":
+      "Nous utilisons un chiffrement de niveau bancaire. Votre CV n'est partagé qu'avec les employeurs auxquels vous postulez.",
     "pricing.faqHired": "Et si je suis embauché ?",
-    "pricing.faqHiredA": "Alors nous avons réussi ! Annulez votre abonnement et sabrez le champagne.",
+    "pricing.faqHiredA":
+      "Alors nous avons réussi ! Annulez votre abonnement et sabrez le champagne.",
 
     "successStories.headingWon": "ILS",
     "successStories.headingNext": "ONT RÉUSSI.",
     "successStories.headingYou": "À VOUS.",
     "successStories.subtitle": "De vrais gens. De vraies offres. Sans blabla.",
     "successStories.ctaTitle": "VOTRE TOUR.",
-    "successStories.ctaDescription": "Chaque heure d'attente, quelqu'un d'autre décroche l'entretien que vous vouliez.",
+    "successStories.ctaDescription":
+      "Chaque heure d'attente, quelqu'un d'autre décroche l'entretien que vous vouliez.",
     "successStories.startFreeTrial": "Essai gratuit",
     "successStories.hired": "EMBAUCHÉ",
 
     "chromeExt.badge": "v2.0 disponible",
-    "chromeExt.heading1": "Le \"Ajouter au panier\"",
+    "chromeExt.heading1": 'Le "Ajouter au panier"',
     "chromeExt.heading2": "pour votre carrière.",
-    "chromeExt.description": "Parcourez LinkedIn, Indeed ou Glassdoor. Une offre vous plaît ? Un clic. Notre IA gère le CV, la lettre de motivation et l'envoi.",
+    "chromeExt.description":
+      "Parcourez LinkedIn, Indeed ou Glassdoor. Une offre vous plaît ? Un clic. Notre IA gère le CV, la lettre de motivation et l'envoi.",
     "chromeExt.addToChrome": "Ajouter à Chrome",
     "chromeExt.watchDemo": "Voir la démo",
     "chromeExt.addedToQueue": "Ajouté à la file",
@@ -1040,7 +1161,8 @@ const dictionaries: Dict = {
     "chromeExt.autonomousSync": "Synchronisation autonome",
     "chromeExt.applicationPending": "Candidature en attente",
     "chromeExt.worksWhere": "Là où vous cherchez.",
-    "chromeExt.platformsHint": "Intégration native avec les plateformes que vous utilisez.",
+    "chromeExt.platformsHint":
+      "Intégration native avec les plateformes que vous utilisez.",
     "chromeExt.parsingLatency": "Latence d'analyse",
     "chromeExt.fieldAccuracy": "Précision des champs",
     "chromeExt.activeScouting": "Recherche active",
@@ -1048,37 +1170,50 @@ const dictionaries: Dict = {
     "about.badge": "12 000+ chercheurs d'emploi ont arrêté de scroller",
     "about.heading1": "La fin du",
     "about.heading2": "scroll infini.",
-    "about.heroDescription": "Nous avons créé JobHuntin car chercher un emploi ne devrait pas être un travail à temps plein. Nous avons délégué la partie difficile à un moteur qui ne dort jamais.",
+    "about.heroDescription":
+      "Nous avons créé JobHuntin car chercher un emploi ne devrait pas être un travail à temps plein. Nous avons délégué la partie difficile à un moteur qui ne dort jamais.",
     "about.experienceMagic": "Découvrez la magie",
     "about.watchStory": "Voir l'histoire",
     "about.enterpriseIntelligence": "Intelligence de niveau entreprise",
     "about.digitalDouble": "Un double numérique qui chasse pour vous.",
-    "about.digitalDoubleDesc": "Notre système ne \"trouve\" pas juste des offres. Il analyse vos compétences, les compare à la demande réelle et gère tout le cycle de candidature.",
+    "about.digitalDoubleDesc":
+      'Notre système ne "trouve" pas juste des offres. Il analyse vos compétences, les compare à la demande réelle et gère tout le cycle de candidature.',
     "about.privacyFirst": "Confidentialité d'abord",
-    "about.privacyFirstDesc": "Chiffré, jamais vendu. Les recruteurs ne voient que ce que vous approuvez.",
+    "about.privacyFirstDesc":
+      "Chiffré, jamais vendu. Les recruteurs ne voient que ce que vous approuvez.",
     "about.lightningPrecision": "Précision éclair",
-    "about.lightningPrecisionDesc": "Des milliers d'offres analysées par minute. Vos scores de match se mettent à jour en millisecondes.",
+    "about.lightningPrecisionDesc":
+      "Des milliers d'offres analysées par minute. Vos scores de match se mettent à jour en millisecondes.",
     "about.successRate": "Taux de succès",
     "about.timeSaved": "Temps gagné",
     "about.howEngineWorks": "Comment fonctionne le moteur.",
-    "about.howEngineDesc": "Quatre étapes. Zéro effort de votre part. Des candidatures qui obtiennent des réponses.",
+    "about.howEngineDesc":
+      "Quatre étapes. Zéro effort de votre part. Des candidatures qui obtiennent des réponses.",
     "about.parse": "Analyser",
-    "about.parseDesc": "Nous créons votre jumeau numérique à partir de votre CV et LinkedIn.",
+    "about.parseDesc":
+      "Nous créons votre jumeau numérique à partir de votre CV et LinkedIn.",
     "about.scout": "Explorer",
-    "about.scoutDesc": "Les agents IA scannent le web pour des offres qui correspondent à votre profil.",
+    "about.scoutDesc":
+      "Les agents IA scannent le web pour des offres qui correspondent à votre profil.",
     "about.tailor": "Adapter",
-    "about.tailorDesc": "CV et lettres de motivation réécrits pour chaque offre.",
+    "about.tailorDesc":
+      "CV et lettres de motivation réécrits pour chaque offre.",
     "about.apply": "Postuler",
-    "about.applyDesc": "Les envois sont automatiques. Vous suivez les notifications.",
-    "about.visionHeading": "Chaque jour d'attente, quelqu'un d'autre est embauché.",
-    "about.visionDescription": "Votre temps devrait être passé en entretiens, pas sur les sites d'emploi. Ceux qui commencent aujourd'hui décrochent des postes 3× plus vite.",
+    "about.applyDesc":
+      "Les envois sont automatiques. Vous suivez les notifications.",
+    "about.visionHeading":
+      "Chaque jour d'attente, quelqu'un d'autre est embauché.",
+    "about.visionDescription":
+      "Votre temps devrait être passé en entretiens, pas sur les sites d'emploi. Ceux qui commencent aujourd'hui décrochent des postes 3× plus vite.",
     "about.getStartedFree": "Commencer gratuitement",
-    "about.noCardRequired": "Pas de carte bancaire. Annulez quand vous voulez. Ça marche vraiment.",
+    "about.noCardRequired":
+      "Pas de carte bancaire. Annulez quand vous voulez. Ça marche vraiment.",
 
     "contact.getInTouch": "Contactez-nous",
     "contact.headingLine1": "Nous sommes là pour vous aider à",
     "contact.headingLine2": "décrocher l'emploi de vos rêves.",
-    "contact.subtitle": "Questions, support ou partenariats : notre équipe est prête à vous aider.",
+    "contact.subtitle":
+      "Questions, support ou partenariats : notre équipe est prête à vous aider.",
     "contact.sendMessage": "Envoyez-nous un message",
     "contact.name": "Nom",
     "contact.email": "E-mail",
@@ -1090,11 +1225,13 @@ const dictionaries: Dict = {
     "contact.salesInquiry": "Demande commerciale",
     "contact.partnership": "Partenariat",
     "contact.message": "Message",
-    "contact.messagePlaceholder": "Dites-nous comment nous pouvons vous aider...",
+    "contact.messagePlaceholder":
+      "Dites-nous comment nous pouvons vous aider...",
     "contact.sending": "Envoi...",
     "contact.sendMessageBtn": "Envoyer",
     "contact.messageSent": "Message envoyé !",
-    "contact.messageSentDescription": "Nous vous répondrons sous 24 heures. Surveillez votre boîte de réception.",
+    "contact.messageSentDescription":
+      "Nous vous répondrons sous 24 heures. Surveillez votre boîte de réception.",
     "contact.backToHomepage": "Retour à l'accueil",
     "contact.otherWays": "Autres moyens de nous joindre",
     "contact.emailLabel": "E-mail",
@@ -1104,11 +1241,13 @@ const dictionaries: Dict = {
     "contact.securityPrivacy": "Sécurité et confidentialité",
     "contact.privacyHint": "Pour les demandes de protection des données",
     "contact.needImmediateHelp": "Besoin d'aide immédiate ?",
-    "contact.faqHint": "Consultez notre FAQ ou notre documentation pour des réponses rapides.",
+    "contact.faqHint":
+      "Consultez notre FAQ ou notre documentation pour des réponses rapides.",
     "contact.browseGuides": "Parcourir les guides",
     "contact.viewPricing": "Voir les tarifs",
     "contact.responseTime": "Délai de réponse",
-    "contact.responseTimeDesc": "Nous répondons généralement sous 24 heures en jours ouvrés (lun-ven, 9h-17h EST).",
+    "contact.responseTimeDesc":
+      "Nous répondons généralement sous 24 heures en jours ouvrés (lun-ven, 9h-17h EST).",
   },
 };
 
@@ -1116,12 +1255,12 @@ const rtlLocales = ["ar", "he", "fa", "ur"];
 
 // RTL language detection and support
 export function isRTLLanguage(locale: string): boolean {
-  const rtlLanguages = ['ar', 'he', 'fa', 'ur', 'ps', 'yi'];
+  const rtlLanguages = ["ar", "he", "fa", "ur", "ps", "yi"];
   return rtlLanguages.includes(locale);
 }
 
-export function getDirection(locale: string): 'ltr' | 'rtl' {
-  return isRTLLanguage(locale) ? 'rtl' : 'ltr';
+export function getDirection(locale: string): "ltr" | "rtl" {
+  return isRTLLanguage(locale) ? "rtl" : "ltr";
 }
 
 export function setDocumentDirection(locale: string) {
@@ -1146,10 +1285,14 @@ export function t(key: string, locale?: string): string {
 }
 
 /** Format a translation with {param} placeholders */
-export function formatT(key: string, params: Record<string, string | number>, locale?: string): string {
-  let str = t(key, locale);
-  for (const [k, v] of Object.entries(params)) {
-    str = str.replace(new RegExp(`\\{${k}\\}`, "g"), String(v));
+export function formatT(
+  key: string,
+  parameters: Record<string, string | number>,
+  locale?: string,
+): string {
+  let string_ = t(key, locale);
+  for (const [k, v] of Object.entries(parameters)) {
+    string_ = string_.replaceAll(new RegExp(`\\{${k}\\}`, "g"), String(v));
   }
-  return str;
+  return string_;
 }

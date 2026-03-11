@@ -3,58 +3,58 @@
  * All console logs are stripped in production builds
  */
 
-const isDev = import.meta.env.DEV;
+const isDevelopment = import.meta.env.DEV;
 
 export const logger = {
-  log: (...args: unknown[]) => {
-    if (isDev) {
-      console.log(...args);
+  log: (...arguments_: unknown[]) => {
+    if (isDevelopment) {
+      console.log(...arguments_);
     }
   },
-  
-  warn: (...args: unknown[]) => {
-    if (isDev) {
-      console.warn(...args);
+
+  warn: (...arguments_: unknown[]) => {
+    if (isDevelopment) {
+      console.warn(...arguments_);
     }
   },
-  
-  error: (...args: unknown[]) => {
+
+  error: (...arguments_: unknown[]) => {
     // Always log errors, but could send to error reporting service in production
-    console.error(...args);
+    console.error(...arguments_);
   },
-  
-  debug: (...args: unknown[]) => {
-    if (isDev) {
-      console.debug(...args);
+
+  debug: (...arguments_: unknown[]) => {
+    if (isDevelopment) {
+      console.debug(...arguments_);
     }
   },
-  
-  info: (...args: unknown[]) => {
-    if (isDev) {
-      console.info(...args);
+
+  info: (...arguments_: unknown[]) => {
+    if (isDevelopment) {
+      console.info(...arguments_);
     }
   },
-  
+
   group: (label: string) => {
-    if (isDev) {
+    if (isDevelopment) {
       console.group(label);
     }
   },
-  
+
   groupEnd: () => {
-    if (isDev) {
+    if (isDevelopment) {
       console.groupEnd();
     }
   },
-  
+
   time: (label: string) => {
-    if (isDev) {
+    if (isDevelopment) {
       console.time(label);
     }
   },
-  
+
   timeEnd: (label: string) => {
-    if (isDev) {
+    if (isDevelopment) {
       console.timeEnd(label);
     }
   },
@@ -66,14 +66,14 @@ export const logger = {
  */
 export const telemetry = {
   track: (event: string, data?: Record<string, unknown>) => {
-    if (isDev) {
+    if (isDevelopment) {
       console.log("[Telemetry]", event, data);
     }
     // In production, this would send to an analytics service
   },
-  
+
   identify: (userId: string, traits?: Record<string, unknown>) => {
-    if (isDev) {
+    if (isDevelopment) {
       console.log("[Telemetry] Identify:", userId, traits);
     }
   },

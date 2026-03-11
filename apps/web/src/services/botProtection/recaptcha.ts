@@ -16,15 +16,21 @@ async function getRecaptchaToken(action: string): Promise<string | null> {
           .then((token: string) => {
             resolve(token);
           })
-          .catch((err: any) => {
-            console.error("reCAPTCHA execution error:", err);
-            telemetry.track("recaptcha_error", { error: err?.message || "unknown error", action });
+          .catch((error: any) => {
+            console.error("reCAPTCHA execution error:", error);
+            telemetry.track("recaptcha_error", {
+              error: error?.message || "unknown error",
+              action,
+            });
             resolve(null);
           });
       });
     } else {
       console.error("reCAPTCHA script not loaded.");
-      telemetry.track("recaptcha_error", { error: "script_not_loaded", action });
+      telemetry.track("recaptcha_error", {
+        error: "script_not_loaded",
+        action,
+      });
       resolve(null);
     }
   });

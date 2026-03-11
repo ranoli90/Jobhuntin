@@ -5,12 +5,15 @@ import { cn } from "../lib/utils";
 
 type Theme = "light" | "dark" | "system";
 
-interface DarkModeToggleProps {
+interface DarkModeToggleProperties {
   className?: string;
   showLabel?: boolean;
 }
 
-export function DarkModeToggle({ className, showLabel }: DarkModeToggleProps) {
+export function DarkModeToggle({
+  className,
+  showLabel,
+}: DarkModeToggleProperties) {
   const [theme, setTheme] = React.useState<Theme>("system");
   const [mounted, setMounted] = React.useState(false);
 
@@ -30,7 +33,8 @@ export function DarkModeToggle({ className, showLabel }: DarkModeToggleProps) {
     root.classList.remove("light", "dark");
 
     if (theme === "system") {
-      const systemTheme = window.matchMedia("(prefers-color-scheme: dark)").matches
+      const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
+        .matches
         ? "dark"
         : "light";
       root.classList.add(systemTheme);
@@ -58,7 +62,12 @@ export function DarkModeToggle({ className, showLabel }: DarkModeToggleProps) {
 
   if (!mounted) {
     return (
-      <div className={cn("w-10 h-10 rounded-xl bg-slate-100 animate-pulse", className)} />
+      <div
+        className={cn(
+          "w-10 h-10 rounded-xl bg-slate-100 animate-pulse",
+          className,
+        )}
+      />
     );
   }
 
@@ -69,7 +78,12 @@ export function DarkModeToggle({ className, showLabel }: DarkModeToggleProps) {
   ];
 
   return (
-    <div className={cn("flex items-center gap-1 bg-slate-100 dark:bg-slate-800 rounded-xl p-1", className)}>
+    <div
+      className={cn(
+        "flex items-center gap-1 bg-slate-100 dark:bg-slate-800 rounded-xl p-1",
+        className,
+      )}
+    >
       {options.map((option) => (
         <button
           key={option.value}
@@ -78,7 +92,7 @@ export function DarkModeToggle({ className, showLabel }: DarkModeToggleProps) {
             "relative flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all",
             theme === option.value
               ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-sm"
-              : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+              : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300",
           )}
           aria-label={`Switch to ${option.label} mode`}
           aria-pressed={theme === option.value}
@@ -92,25 +106,26 @@ export function DarkModeToggle({ className, showLabel }: DarkModeToggleProps) {
 }
 
 // Simple toggle switch version
-interface ThemeToggleSwitchProps {
+interface ThemeToggleSwitchProperties {
   className?: string;
 }
 
-export function ThemeToggleSwitch({ className }: ThemeToggleSwitchProps) {
+export function ThemeToggleSwitch({ className }: ThemeToggleSwitchProperties) {
   const [isDark, setIsDark] = React.useState(false);
   const [mounted, setMounted] = React.useState(false);
 
   React.useEffect(() => {
     setMounted(true);
     const saved = localStorage.getItem("theme");
-    const isDarkMode = saved === "dark" || 
+    const isDarkMode =
+      saved === "dark" ||
       (!saved && window.matchMedia("(prefers-color-scheme: dark)").matches);
     setIsDark(isDarkMode);
   }, []);
 
   React.useEffect(() => {
     if (!mounted) return;
-    
+
     const root = window.document.documentElement;
     if (isDark) {
       root.classList.add("dark");
@@ -122,7 +137,14 @@ export function ThemeToggleSwitch({ className }: ThemeToggleSwitchProps) {
   }, [isDark, mounted]);
 
   if (!mounted) {
-    return <div className={cn("w-14 h-8 rounded-full bg-slate-200 animate-pulse", className)} />;
+    return (
+      <div
+        className={cn(
+          "w-14 h-8 rounded-full bg-slate-200 animate-pulse",
+          className,
+        )}
+      />
+    );
   }
 
   return (
@@ -130,7 +152,7 @@ export function ThemeToggleSwitch({ className }: ThemeToggleSwitchProps) {
       onClick={() => setIsDark(!isDark)}
       className={cn(
         "relative w-14 h-8 rounded-full transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2",
-        isDark ? "bg-slate-700" : "bg-slate-200"
+        isDark ? "bg-slate-700" : "bg-slate-200",
       )}
       aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
     >
@@ -139,7 +161,7 @@ export function ThemeToggleSwitch({ className }: ThemeToggleSwitchProps) {
         transition={{ type: "spring", damping: 20, stiffness: 300 }}
         className={cn(
           "absolute top-1 w-6 h-6 rounded-full flex items-center justify-center shadow-sm",
-          isDark ? "bg-slate-900" : "bg-white"
+          isDark ? "bg-slate-900" : "bg-white",
         )}
       >
         {isDark ? (

@@ -8,7 +8,8 @@ const badgeVariants = cva(
     variants: {
       variant: {
         default: "bg-slate-100 text-slate-700 border-slate-200",
-        primary: "bg-brand-primary/10 text-brand-primary border-brand-primary/20",
+        primary:
+          "bg-brand-primary/10 text-brand-primary border-brand-primary/20",
         secondary: "bg-slate-100 text-slate-700 border-slate-200",
         success: "bg-success-100 text-success-700 border-success-200",
         warning: "bg-warning-100 text-warning-700 border-warning-200",
@@ -32,11 +33,18 @@ const badgeVariants = cva(
   },
 );
 
-export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement>, VariantProps<typeof badgeVariants> {}
+export interface BadgeProperties
+  extends
+    React.HTMLAttributes<HTMLSpanElement>,
+    VariantProps<typeof badgeVariants> {}
 
-export const Badge = React.forwardRef<HTMLSpanElement, BadgeProps>(
-  ({ className, variant, size, ...props }: BadgeProps, ref) => (
-    <span ref={ref} className={cn(badgeVariants({ variant, size }), className)} {...props} />
+export const Badge = React.forwardRef<HTMLSpanElement, BadgeProperties>(
+  ({ className, variant, size, ...properties }: BadgeProperties, reference) => (
+    <span
+      ref={reference}
+      className={cn(badgeVariants({ variant, size }), className)}
+      {...properties}
+    />
   ),
 );
 Badge.displayName = "Badge";

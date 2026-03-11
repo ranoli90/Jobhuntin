@@ -4,7 +4,7 @@ import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import { Button } from "../ui/Button";
 
-interface MobileDrawerProps {
+interface MobileDrawerProperties {
   isOpen: boolean;
   onClose: () => void;
   children: ReactNode;
@@ -15,10 +15,16 @@ interface MobileDrawerProps {
 const FOCUSABLE_SELECTOR =
   'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
-export function MobileDrawer({ isOpen, onClose, children, side = "left", drawerId }: MobileDrawerProps) {
+export function MobileDrawer({
+  isOpen,
+  onClose,
+  children,
+  side = "left",
+  drawerId,
+}: MobileDrawerProperties) {
   const [mounted, setMounted] = useState(false);
-  const drawerRef = useRef<HTMLDivElement>(null);
-  const triggerRef = useRef<Element | null>(null);
+  const drawerReference = useRef<HTMLDivElement>(null);
+  const triggerReference = useRef<Element | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -28,30 +34,33 @@ export function MobileDrawer({ isOpen, onClose, children, side = "left", drawerI
   // Lock body scroll when drawer is open
   useEffect(() => {
     if (isOpen) {
-      document.body.style.overflow = 'hidden';
-      document.body.style.touchAction = 'none';
-      document.body.classList.add('menu-open');
+      document.body.style.overflow = "hidden";
+      document.body.style.touchAction = "none";
+      document.body.classList.add("menu-open");
     } else {
       // Immediately unlock on close
-      document.body.style.overflow = '';
-      document.body.style.touchAction = '';
-      document.body.classList.remove('menu-open');
+      document.body.style.overflow = "";
+      document.body.style.touchAction = "";
+      document.body.classList.remove("menu-open");
     }
     return () => {
       // Always clean up on unmount or re-render
-      document.body.style.overflow = '';
-      document.body.style.touchAction = '';
-      document.body.classList.remove('menu-open');
+      document.body.style.overflow = "";
+      document.body.style.touchAction = "";
+      document.body.classList.remove("menu-open");
     };
   }, [isOpen]);
 
   // Save trigger element to restore focus on close
   useEffect(() => {
     if (isOpen) {
-      triggerRef.current = document.activeElement;
-    } else if (triggerRef.current && triggerRef.current instanceof HTMLElement) {
-      triggerRef.current.focus();
-      triggerRef.current = null;
+      triggerReference.current = document.activeElement;
+    } else if (
+      triggerReference.current &&
+      triggerReference.current instanceof HTMLElement
+    ) {
+      triggerReference.current.focus();
+      triggerReference.current = null;
     }
   }, [isOpen]);
 
@@ -69,30 +78,28 @@ export function MobileDrawer({ isOpen, onClose, children, side = "left", drawerI
   }, [isOpen, onClose]);
 
   // Focus trap: keep Tab cycling within the drawer
-  const handleFocusTrap = useCallback(
-    (e: KeyboardEvent) => {
-      if (e.key !== "Tab" || !drawerRef.current) return;
+  const handleFocusTrap = useCallback((e: KeyboardEvent) => {
+    if (e.key !== "Tab" || !drawerReference.current) return;
 
-      const focusableElements = drawerRef.current.querySelectorAll(FOCUSABLE_SELECTOR);
-      if (focusableElements.length === 0) return;
+    const focusableElements =
+      drawerReference.current.querySelectorAll(FOCUSABLE_SELECTOR);
+    if (focusableElements.length === 0) return;
 
-      const firstFocusable = focusableElements[0] as HTMLElement;
-      const lastFocusable = focusableElements[focusableElements.length - 1] as HTMLElement;
+    const firstFocusable = focusableElements[0] as HTMLElement;
+    const lastFocusable = focusableElements.at(-1) as HTMLElement;
 
-      if (e.shiftKey) {
-        if (document.activeElement === firstFocusable) {
-          e.preventDefault();
-          lastFocusable.focus();
-        }
-      } else {
-        if (document.activeElement === lastFocusable) {
-          e.preventDefault();
-          firstFocusable.focus();
-        }
+    if (e.shiftKey) {
+      if (document.activeElement === firstFocusable) {
+        e.preventDefault();
+        lastFocusable.focus();
       }
-    },
-    []
-  );
+    } else {
+      if (document.activeElement === lastFocusable) {
+        e.preventDefault();
+        firstFocusable.focus();
+      }
+    }
+  }, []);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -140,11 +147,16 @@ export function MobileDrawer({ isOpen, onClose, children, side = "left", drawerI
 
           {/* Drawer */}
           <motion.div
-            ref={drawerRef}
+            ref={drawerReference}
             initial={{ x: side === "left" ? "-100%" : "100%" }}
             animate={{ x: 0 }}
             exit={{ x: side === "left" ? "-100%" : "100%" }}
-            transition={{ type: "spring", damping: 30, stiffness: 350, mass: 0.8 }}
+            transition={{
+              type: "spring",
+              damping: 30,
+              stiffness: 350,
+              mass: 0.8,
+            }}
             className={`absolute inset-y-0 ${side === "left" ? "left-0 border-r" : "right-0 border-l"} w-[85vw] max-w-[360px] flex flex-col bg-white dark:bg-slate-900 shadow-2xl shadow-slate-900/20 dark:shadow-black/40 border-slate-100 dark:border-slate-700`}
             onClick={(e) => e.stopPropagation()}
             style={{ zIndex: 9999 }}
@@ -154,16 +166,25 @@ export function MobileDrawer({ isOpen, onClose, children, side = "left", drawerI
         </div>
       )}
     </AnimatePresence>,
-    document.body
+    document.body,
   );
 }
 
-export function MobileDrawerHeader({ children, onClose }: { children: ReactNode; onClose?: () => void }) {
-  const handleClose = useCallback((e: React.MouseEvent | React.PointerEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    onClose?.();
-  }, [onClose]);
+export function MobileDrawerHeader({
+  children,
+  onClose,
+}: {
+  children: ReactNode;
+  onClose?: () => void;
+}) {
+  const handleClose = useCallback(
+    (e: React.MouseEvent | React.PointerEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      onClose?.();
+    },
+    [onClose],
+  );
 
   return (
     <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-700 px-6 py-5">
@@ -184,11 +205,7 @@ export function MobileDrawerHeader({ children, onClose }: { children: ReactNode;
 }
 
 export function MobileDrawerBody({ children }: { children: ReactNode }) {
-  return (
-    <div className="flex-1 overflow-y-auto px-5 py-5">
-      {children}
-    </div>
-  );
+  return <div className="flex-1 overflow-y-auto px-5 py-5">{children}</div>;
 }
 
 export function MobileDrawerFooter({ children }: { children: ReactNode }) {

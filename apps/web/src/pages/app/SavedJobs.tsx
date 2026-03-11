@@ -11,31 +11,27 @@ import { Card } from "../../components/ui/Card";
 import { Badge } from "../../components/ui/Badge";
 import { useSavedJobs, type SavedJob } from "../../hooks/useSavedJobs";
 import { formatCurrency } from "../../lib/format";
-import { 
-  Briefcase, 
-  MapPin, 
-  Calendar, 
+import {
+  Briefcase,
+  MapPin,
+  Calendar,
   ExternalLink,
   Trash2,
   Bookmark,
-  Search
+  Search,
 } from "lucide-react";
 
 export default function SavedJobsPage() {
   const { t } = useTranslation();
   const locale = localStorage.getItem("language") || "en";
-  
-  const {
-    savedJobs,
-    isLoading,
-    error,
-    isJobSaved,
-    unsaveJob,
-    isUnsaving,
-  } = useSavedJobs();
+
+  const { savedJobs, isLoading, error, isJobSaved, unsaveJob, isUnsaving } =
+    useSavedJobs();
 
   const [searchTerm, setSearchTerm] = React.useState("");
-  const [sortBy, setSortBy] = React.useState<"date" | "title" | "company">("date");
+  const [sortBy, setSortBy] = React.useState<"date" | "title" | "company">(
+    "date",
+  );
 
   // Filter and sort jobs
   const filteredJobs = React.useMemo(() => {
@@ -44,32 +40,38 @@ export default function SavedJobsPage() {
     // Apply search filter
     if (searchTerm) {
       const searchLower = searchTerm.toLowerCase();
-      filtered = filtered.filter(job => 
-        job.job_data.title.toLowerCase().includes(searchLower) ||
-        job.job_data.company.toLowerCase().includes(searchLower) ||
-        job.job_data.location?.toLowerCase().includes(searchLower)
+      filtered = filtered.filter(
+        (job) =>
+          job.job_data.title.toLowerCase().includes(searchLower) ||
+          job.job_data.company.toLowerCase().includes(searchLower) ||
+          job.job_data.location?.toLowerCase().includes(searchLower),
       );
     }
 
     // Apply sorting
     return filtered.sort((a, b) => {
       switch (sortBy) {
-        case "title":
+        case "title": {
           return a.job_data.title.localeCompare(b.job_data.title);
-        case "company":
+        }
+        case "company": {
           return a.job_data.company.localeCompare(b.job_data.company);
+        }
         case "date":
-        default:
-          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        default: {
+          return (
+            new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+          );
+        }
       }
     });
   }, [savedJobs, searchTerm, sortBy]);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString(locale, {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
+      year: "numeric",
+      month: "short",
+      day: "numeric",
     });
   };
 
@@ -90,9 +92,7 @@ export default function SavedJobsPage() {
           <h2 className="text-xl font-semibold text-red-600 mb-2">
             {t("savedJobs.errorLoading", locale) || "Error Loading Saved Jobs"}
           </h2>
-          <p className="text-slate-600">
-            {error}
-          </p>
+          <p className="text-slate-600">{error}</p>
           <Button onClick={() => window.location.reload()}>
             {t("common.retry", locale) || "Retry"}
           </Button>
@@ -110,7 +110,8 @@ export default function SavedJobsPage() {
             {t("savedJobs.title", locale) || "Saved Jobs"}
           </h1>
           <p className="text-slate-500 font-medium">
-            {t("savedJobs.description", locale) || "Jobs you've bookmarked for later review"}
+            {t("savedJobs.description", locale) ||
+              "Jobs you've bookmarked for later review"}
           </p>
         </div>
         <div className="text-sm text-slate-500">
@@ -127,14 +128,17 @@ export default function SavedJobsPage() {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
               <input
                 type="text"
-                placeholder={t("savedJobs.searchPlaceholder", locale) || "Search saved jobs..."}
+                placeholder={
+                  t("savedJobs.searchPlaceholder", locale) ||
+                  "Search saved jobs..."
+                }
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
               />
             </div>
           </div>
-          
+
           {/* Sort */}
           <div className="flex items-center gap-2">
             <span className="text-sm text-slate-600">
@@ -142,7 +146,9 @@ export default function SavedJobsPage() {
             </span>
             <select
               value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as "date" | "title" | "company")}
+              onChange={(e) =>
+                setSortBy(e.target.value as "date" | "title" | "company")
+              }
               className="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
             >
               <option value="date">
@@ -164,16 +170,17 @@ export default function SavedJobsPage() {
         <Card className="p-8 text-center">
           <Bookmark className="w-12 h-12 mx-auto text-slate-300 mb-4" />
           <h3 className="text-xl font-semibold text-slate-900 mb-2">
-            {searchTerm 
-              ? (t("savedJobs.noSearchResults", locale) || "No saved jobs match your search")
-              : (t("savedJobs.noSavedJobs", locale) || "No saved jobs yet")
-            }
+            {searchTerm
+              ? t("savedJobs.noSearchResults", locale) ||
+                "No saved jobs match your search"
+              : t("savedJobs.noSavedJobs", locale) || "No saved jobs yet"}
           </h3>
           <p className="text-slate-600 mb-4">
             {searchTerm
-              ? (t("savedJobs.tryDifferentSearch", locale) || "Try adjusting your search terms")
-              : (t("savedJobs.startSaving", locale) || "Start saving jobs you're interested in to see them here")
-            }
+              ? t("savedJobs.tryDifferentSearch", locale) ||
+                "Try adjusting your search terms"
+              : t("savedJobs.startSaving", locale) ||
+                "Start saving jobs you're interested in to see them here"}
           </p>
           {!searchTerm && (
             <Button onClick={() => setSearchTerm("")}>
@@ -184,7 +191,10 @@ export default function SavedJobsPage() {
       ) : (
         <div className="space-y-4">
           {filteredJobs.map((savedJob) => (
-            <Card key={savedJob.id} className="p-6 hover:shadow-lg transition-shadow">
+            <Card
+              key={savedJob.id}
+              className="p-6 hover:shadow-lg transition-shadow"
+            >
               <div className="flex flex-col lg:flex-row gap-6">
                 {/* Job Details */}
                 <div className="flex-1">
@@ -207,13 +217,15 @@ export default function SavedJobsPage() {
                         </div>
                       </div>
                     </div>
-                    
+
                     {/* Actions */}
                     <div className="flex items-center gap-2">
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => window.open(`/app/jobs/${savedJob.job_id}`, '_blank')}
+                        onClick={() =>
+                          window.open(`/app/jobs/${savedJob.job_id}`, "_blank")
+                        }
                       >
                         <ExternalLink className="w-4 h-4 mr-1" />
                         {t("savedJobs.viewJob", locale) || "View Job"}
@@ -235,16 +247,18 @@ export default function SavedJobsPage() {
                   </div>
 
                   {/* Salary */}
-                  {savedJob.job_data.salary_min && savedJob.job_data.salary_max && (
-                    <div className="flex items-center gap-2 mb-3">
-                      <span className="text-sm text-slate-600">
-                        {t("savedJobs.salaryRange", locale) || "Salary:"}
-                      </span>
-                      <Badge variant="lagoon">
-                        {formatCurrency(savedJob.job_data.salary_min)} - {formatCurrency(savedJob.job_data.salary_max)}
-                      </Badge>
-                    </div>
-                  )}
+                  {savedJob.job_data.salary_min &&
+                    savedJob.job_data.salary_max && (
+                      <div className="flex items-center gap-2 mb-3">
+                        <span className="text-sm text-slate-600">
+                          {t("savedJobs.salaryRange", locale) || "Salary:"}
+                        </span>
+                        <Badge variant="lagoon">
+                          {formatCurrency(savedJob.job_data.salary_min)} -{" "}
+                          {formatCurrency(savedJob.job_data.salary_max)}
+                        </Badge>
+                      </div>
+                    )}
 
                   {/* Description */}
                   {savedJob.job_data.description && (

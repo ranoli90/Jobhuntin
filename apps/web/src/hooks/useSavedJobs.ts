@@ -61,12 +61,17 @@ export function useSavedJobs() {
 
   // Update state when data changes
   useEffect(() => {
-    const savedIds = new Set(savedJobs.map(job => job.job_id));
-    setState(prev => ({
-      ...prev,
+    const savedIds = new Set(savedJobs.map((job) => job.job_id));
+    setState((previous) => ({
+      ...previous,
       savedJobs,
       isLoading: savedJobsLoading,
-      error: savedJobsError instanceof Error ? savedJobsError.message : (savedJobsError ? String(savedJobsError) : null),
+      error:
+        savedJobsError instanceof Error
+          ? savedJobsError.message
+          : (savedJobsError
+            ? String(savedJobsError)
+            : null),
       savedJobIds: savedIds,
     }));
   }, [savedJobs, savedJobsLoading, savedJobsError]);
@@ -78,7 +83,7 @@ export function useSavedJobs() {
     },
     onMutate: async (request) => {
       // Optimistic update
-      const tempJob: SavedJob = {
+      const temporaryJob: SavedJob = {
         id: `temp-${Date.now()}`,
         job_id: request.job_id,
         user_id: "",
@@ -93,43 +98,50 @@ export function useSavedJobs() {
         },
       };
 
-      setState(prev => ({
-        ...prev,
-        savedJobs: [tempJob, ...prev.savedJobs],
-        savedJobIds: new Set([...prev.savedJobIds, request.job_id]),
+      setState((previous) => ({
+        ...previous,
+        savedJobs: [temporaryJob, ...previous.savedJobs],
+        savedJobIds: new Set([...previous.savedJobIds, request.job_id]),
       }));
 
       // Update cache
-      queryClient.setQueryData(
-        ["saved-jobs"],
-        (old: SavedJob[] | undefined) => old ? [tempJob, ...old] : [tempJob]
+      queryClient.setQueryData(["saved-jobs"], (old: SavedJob[] | undefined) =>
+        old ? [temporaryJob, ...old] : [temporaryJob],
       );
     },
     onSuccess: (savedJob) => {
       // Replace optimistic update with real data
-      setState(prev => ({
-        ...prev,
-        savedJobs: [savedJob, ...prev.savedJobs.filter(job => job.job_id !== savedJob.job_id)],
+      setState((previous) => ({
+        ...previous,
+        savedJobs: [
+          savedJob,
+          ...previous.savedJobs.filter((job) => job.job_id !== savedJob.job_id),
+        ],
       }));
 
       queryClient.setQueryData(
         ["saved-jobs"],
         (old: SavedJob[] | undefined) => {
           if (!old) return [savedJob];
-          return [savedJob, ...old.filter(job => job.job_id !== savedJob.job_id)];
-        }
+          return [
+            savedJob,
+            ...old.filter((job) => job.job_id !== savedJob.job_id),
+          ];
+        },
       );
     },
     onError: (error) => {
       // Revert optimistic update
-      setState(prev => {
+      setState((previous) => {
         const jobId = (error as any)?.config?.data?.job_id;
-        if (!jobId) return prev;
-        
+        if (!jobId) return previous;
+
         return {
-          ...prev,
-          savedJobs: prev.savedJobs.filter(job => job.job_id !== jobId),
-          savedJobIds: new Set([...prev.savedJobIds].filter(id => id !== jobId)),
+          ...previous,
+          savedJobs: previous.savedJobs.filter((job) => job.job_id !== jobId),
+          savedJobIds: new Set(
+            [...previous.savedJobIds].filter((id) => id !== jobId),
+          ),
         };
       });
 
@@ -144,16 +156,19 @@ export function useSavedJobs() {
     },
     onMutate: async (jobId) => {
       // Optimistic update
-      setState(prev => ({
-        ...prev,
-        savedJobs: prev.savedJobs.filter(job => job.job_id !== jobId),
-        savedJobIds: new Set([...prev.savedJobIds].filter(id => id !== jobId)),
+      setState((previous) => ({
+        ...previous,
+        savedJobs: previous.savedJobs.filter((job) => job.job_id !== jobId),
+        savedJobIds: new Set(
+          [...previous.savedJobIds].filter((id) => id !== jobId),
+        ),
       }));
 
       // Update cache
       queryClient.setQueryData(
         ["saved-jobs"],
-        (old: SavedJob[] | undefined) => old?.filter(job => job.job_id !== jobId) || []
+        (old: SavedJob[] | undefined) =>
+          old?.filter((job) => job.job_id !== jobId) || [],
       );
     },
     onSuccess: (_, jobId) => {
@@ -167,41 +182,53 @@ export function useSavedJobs() {
   });
 
   // Memoized functions
-  const saveJob = useCallback((jobId: string) => {
-    if (state.savedJobIds.has(jobId)) {
-      return; // Already saved
-    }
-    saveJobMutation.mutate({ job_id: jobId });
-  }, [saveJobMutation, state.savedJobIds]);
+  const saveJob = useCallback(
+    (jobId: string) => {
+      if (state.savedJobIds.has(jobId)) {
+        return; // Already saved
+      }
+      saveJobMutation.mutate({ job_id: jobId });
+    },
+    [saveJobMutation, state.savedJobIds],
+  );
 
-  const unsaveJob = useCallback((jobId: string) => {
-    if (!state.savedJobIds.has(jobId)) {
-      return; // Not saved
-    }
-    unsaveJobMutation.mutate(jobId);
-  }, [unsaveJobMutation, state.savedJobIds]);
+  const unsaveJob = useCallback(
+    (jobId: string) => {
+      if (!state.savedJobIds.has(jobId)) {
+        return; // Not saved
+      }
+      unsaveJobMutation.mutate(jobId);
+    },
+    [unsaveJobMutation, state.savedJobIds],
+  );
 
-  const isJobSaved = useCallback((jobId: string) => {
-    return state.savedJobIds.has(jobId);
-  }, [state.savedJobIds]);
+  const isJobSaved = useCallback(
+    (jobId: string) => {
+      return state.savedJobIds.has(jobId);
+    },
+    [state.savedJobIds],
+  );
 
-  const getSavedJob = useCallback((jobId: string) => {
-    return state.savedJobs.find(job => job.job_id === jobId);
-  }, [state.savedJobs]);
+  const getSavedJob = useCallback(
+    (jobId: string) => {
+      return state.savedJobs.find((job) => job.job_id === jobId);
+    },
+    [state.savedJobs],
+  );
 
   return {
     // State
     ...state,
-    
+
     // Actions
     saveJob,
     unsaveJob,
     refetchSavedJobs,
-    
+
     // Queries
     isJobSaved,
     getSavedJob,
-    
+
     // Mutation states
     isSaving: saveJobMutation.isPending,
     isUnsaving: unsaveJobMutation.isPending,

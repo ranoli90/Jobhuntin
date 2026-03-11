@@ -44,11 +44,71 @@ interface MatchesData {
 
 const mockMatchesData: MatchesData = {
   matches: [
-    { id: "1", job_id: "j1", job_title: "Retail Associate", company: "Walmart", tenant_id: "t1", tenant_name: "Walmart", user_id: "u1", score: 92, passed_dealbreakers: true, status: "completed", created_at: "2026-02-12T10:30:00Z" },
-    { id: "2", job_id: "j2", job_title: "Cashier", company: "Target", tenant_id: "t2", tenant_name: "Target Inc", user_id: "u2", score: 78, passed_dealbreakers: true, status: "completed", created_at: "2026-02-12T09:45:00Z" },
-    { id: "3", job_id: "j3", job_title: "Sales Associate", company: "Best Buy", tenant_id: "t3", tenant_name: "Best Buy", user_id: "u3", score: 45, passed_dealbreakers: false, status: "completed", created_at: "2026-02-12T09:30:00Z" },
-    { id: "4", job_id: "j4", job_title: "Customer Service", company: "Amazon", tenant_id: "t4", tenant_name: "Amazon", user_id: "u4", score: 0, passed_dealbreakers: false, status: "failed", created_at: "2026-02-12T09:15:00Z" },
-    { id: "5", job_id: "j5", job_title: "Warehouse Worker", company: "Costco", tenant_id: "t1", tenant_name: "Costco", user_id: "u1", score: 85, passed_dealbreakers: true, status: "completed", created_at: "2026-02-12T08:00:00Z" },
+    {
+      id: "1",
+      job_id: "j1",
+      job_title: "Retail Associate",
+      company: "Walmart",
+      tenant_id: "t1",
+      tenant_name: "Walmart",
+      user_id: "u1",
+      score: 92,
+      passed_dealbreakers: true,
+      status: "completed",
+      created_at: "2026-02-12T10:30:00Z",
+    },
+    {
+      id: "2",
+      job_id: "j2",
+      job_title: "Cashier",
+      company: "Target",
+      tenant_id: "t2",
+      tenant_name: "Target Inc",
+      user_id: "u2",
+      score: 78,
+      passed_dealbreakers: true,
+      status: "completed",
+      created_at: "2026-02-12T09:45:00Z",
+    },
+    {
+      id: "3",
+      job_id: "j3",
+      job_title: "Sales Associate",
+      company: "Best Buy",
+      tenant_id: "t3",
+      tenant_name: "Best Buy",
+      user_id: "u3",
+      score: 45,
+      passed_dealbreakers: false,
+      status: "completed",
+      created_at: "2026-02-12T09:30:00Z",
+    },
+    {
+      id: "4",
+      job_id: "j4",
+      job_title: "Customer Service",
+      company: "Amazon",
+      tenant_id: "t4",
+      tenant_name: "Amazon",
+      user_id: "u4",
+      score: 0,
+      passed_dealbreakers: false,
+      status: "failed",
+      created_at: "2026-02-12T09:15:00Z",
+    },
+    {
+      id: "5",
+      job_id: "j5",
+      job_title: "Warehouse Worker",
+      company: "Costco",
+      tenant_id: "t1",
+      tenant_name: "Costco",
+      user_id: "u1",
+      score: 85,
+      passed_dealbreakers: true,
+      status: "completed",
+      created_at: "2026-02-12T08:00:00Z",
+    },
   ],
   total: 1250,
   page: 1,
@@ -58,7 +118,7 @@ const mockMatchesData: MatchesData = {
 
 export default function AdminMatchesPage() {
   const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParameters, setSearchParameters] = useSearchParams();
 
   const [loading, setLoading] = useState(true);
   const [matchesData, setMatchesData] = useState<MatchesData | null>(null);
@@ -70,22 +130,24 @@ export default function AdminMatchesPage() {
   const [editingMatch, setEditingMatch] = useState<string | null>(null);
   const [overrideScore, setOverrideScore] = useState<number>(0);
 
-  const page = Number.parseInt(searchParams.get("page") || "1", 10);
+  const page = Number.parseInt(searchParameters.get("page") || "1", 10);
 
   const fetchMatches = async () => {
     setLoading(true);
     setError(null);
     try {
-      const params = new URLSearchParams({
+      const parameters = new URLSearchParams({
         page: page.toString(),
         ...(tenantFilter && { tenant: tenantFilter }),
         ...(scoreMin && { score_min: scoreMin }),
         ...(scoreMax && { score_max: scoreMax }),
       });
-      const data = await apiGet<MatchesData>(`admin/matches?${params}`);
+      const data = await apiGet<MatchesData>(`admin/matches?${parameters}`);
       setMatchesData(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load matches");
+    } catch (error_) {
+      setError(
+        error_ instanceof Error ? error_.message : "Failed to load matches",
+      );
       setMatchesData(null);
     } finally {
       setLoading(false);
@@ -98,7 +160,9 @@ export default function AdminMatchesPage() {
 
   const handleOverride = async (matchId: string) => {
     try {
-      await apiPatch(`admin/matches/${matchId}/override`, { score: overrideScore });
+      await apiPatch(`admin/matches/${matchId}/override`, {
+        score: overrideScore,
+      });
       pushToast({
         title: "Score Overridden",
         description: `Match ${matchId} score updated to ${overrideScore}`,
@@ -115,7 +179,7 @@ export default function AdminMatchesPage() {
   };
 
   const handlePageChange = (newPage: number) => {
-    setSearchParams({ page: newPage.toString() });
+    setSearchParameters({ page: newPage.toString() });
   };
 
   const getScoreBadge = (score: number) => {
@@ -137,7 +201,9 @@ export default function AdminMatchesPage() {
       <div className="max-w-6xl mx-auto p-6">
         <div className="flex flex-col items-center justify-center min-h-[40vh] gap-4 text-center">
           <AlertTriangle className="w-12 h-12 text-red-500" />
-          <h2 className="text-lg font-semibold text-slate-900">Failed to load matches</h2>
+          <h2 className="text-lg font-semibold text-slate-900">
+            Failed to load matches
+          </h2>
           <p className="text-sm text-slate-600">{error}</p>
           <Button onClick={() => fetchMatches()}>Retry</Button>
         </div>
@@ -149,13 +215,22 @@ export default function AdminMatchesPage() {
     <div className="max-w-6xl mx-auto p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate(-1)}
+            className="gap-2"
+          >
             <ArrowLeft className="w-4 h-4" />
             Back
           </Button>
           <div>
-            <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Admin</p>
-            <h1 className="text-2xl font-bold text-slate-900">Match Monitoring</h1>
+            <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">
+              Admin
+            </p>
+            <h1 className="text-2xl font-bold text-slate-900">
+              Match Monitoring
+            </h1>
           </div>
         </div>
       </div>
@@ -165,7 +240,9 @@ export default function AdminMatchesPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-slate-500">Total Matches</p>
-              <p className="text-2xl font-bold text-slate-900">{matchesData?.total.toLocaleString()}</p>
+              <p className="text-2xl font-bold text-slate-900">
+                {matchesData?.total.toLocaleString()}
+              </p>
             </div>
             <CheckCircle className="w-8 h-8 text-emerald-500" />
           </div>
@@ -174,7 +251,9 @@ export default function AdminMatchesPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-slate-500">Success Rate</p>
-              <p className="text-2xl font-bold text-slate-900">{matchesData?.success_rate}%</p>
+              <p className="text-2xl font-bold text-slate-900">
+                {matchesData?.success_rate}%
+              </p>
             </div>
             <CheckCircle className="w-8 h-8 text-primary-500" />
           </div>
@@ -184,7 +263,10 @@ export default function AdminMatchesPage() {
             <div>
               <p className="text-sm text-slate-500">Failed Matches</p>
               <p className="text-2xl font-bold text-slate-900">
-                {Math.round((matchesData?.total ?? 0) * (1 - (matchesData?.success_rate ?? 100) / 100))}
+                {Math.round(
+                  (matchesData?.total ?? 0) *
+                    (1 - (matchesData?.success_rate ?? 100) / 100),
+                )}
               </p>
             </div>
             <XCircle className="w-8 h-8 text-red-500" />
@@ -269,11 +351,15 @@ export default function AdminMatchesPage() {
               {matchesData?.matches.map((match) => (
                 <tr key={match.id} className="hover:bg-slate-50">
                   <td className="py-4 px-4">
-                    <p className="font-medium text-slate-900">{match.job_title}</p>
+                    <p className="font-medium text-slate-900">
+                      {match.job_title}
+                    </p>
                     <p className="text-xs text-slate-500">{match.company}</p>
                   </td>
                   <td className="py-4 px-4">
-                    <p className="text-sm text-slate-700">{match.tenant_name}</p>
+                    <p className="text-sm text-slate-700">
+                      {match.tenant_name}
+                    </p>
                   </td>
                   <td className="py-4 px-4">
                     {editingMatch === match.id ? (
@@ -281,13 +367,24 @@ export default function AdminMatchesPage() {
                         <input
                           type="number"
                           value={overrideScore}
-                          onChange={(e) => setOverrideScore(Number.parseInt(e.target.value, 10))}
+                          onChange={(e) =>
+                            setOverrideScore(
+                              Number.parseInt(e.target.value, 10),
+                            )
+                          }
                           className="w-16 px-2 py-1 rounded border border-slate-200 text-sm"
                         />
-                        <Button size="sm" onClick={() => handleOverride(match.id)}>
+                        <Button
+                          size="sm"
+                          onClick={() => handleOverride(match.id)}
+                        >
                           Save
                         </Button>
-                        <Button size="sm" variant="ghost" onClick={() => setEditingMatch(null)}>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => setEditingMatch(null)}
+                        >
                           Cancel
                         </Button>
                       </div>
@@ -333,7 +430,9 @@ export default function AdminMatchesPage() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => navigate(`/app/matches?jobId=${match.job_id}`)}
+                        onClick={() =>
+                          navigate(`/app/matches?jobId=${match.job_id}`)
+                        }
                       >
                         <Eye className="w-4 h-4" />
                       </Button>
@@ -350,7 +449,8 @@ export default function AdminMatchesPage() {
         <div className="flex items-center justify-between">
           <p className="text-sm text-slate-500">
             Showing {(page - 1) * matchesData.per_page + 1} -{" "}
-            {Math.min(page * matchesData.per_page, matchesData.total)} of {matchesData.total}
+            {Math.min(page * matchesData.per_page, matchesData.total)} of{" "}
+            {matchesData.total}
           </p>
           <div className="flex items-center gap-2">
             <Button

@@ -23,7 +23,7 @@ interface SkillMatchPreview {
   missing: string[];
 }
 
-export interface JobCardProps {
+export interface JobCardProperties {
   job: JobPosting;
   index: number;
   isActive: boolean;
@@ -52,10 +52,7 @@ function DealbreakerIndicator({
   tooltip: string;
 }) {
   return (
-    <div
-      className="flex items-center gap-1 text-amber-800"
-      title={tooltip}
-    >
+    <div className="flex items-center gap-1 text-amber-800" title={tooltip}>
       <AlertTriangle className="w-3.5 h-3.5" />
       <span className="text-xs font-medium">
         {type === "salary" && "Salary"}
@@ -85,9 +82,9 @@ function SkillMatchTooltip({
             Matched ({skillMatch.matched.length})
           </p>
           <div className="flex flex-wrap gap-1">
-            {skillMatch.matched.slice(0, 5).map((skill, i) => (
+            {skillMatch.matched.slice(0, 5).map((skill, index) => (
               <span
-                key={i}
+                key={index}
                 className="px-1.5 py-0.5 bg-emerald-500/20 text-emerald-300 rounded text-[10px]"
               >
                 {skill}
@@ -105,9 +102,9 @@ function SkillMatchTooltip({
             Missing ({skillMatch.missing.length})
           </p>
           <div className="flex flex-wrap gap-1">
-            {skillMatch.missing.slice(0, 3).map((skill, i) => (
+            {skillMatch.missing.slice(0, 3).map((skill, index) => (
               <span
-                key={i}
+                key={index}
                 className="px-1.5 py-0.5 bg-red-500/20 text-red-300 rounded text-[10px]"
               >
                 {skill}
@@ -126,12 +123,22 @@ function SkillMatchTooltip({
   );
 }
 
-function MatchExplanationTooltip({ explanation, visible }: { explanation: string; visible?: boolean }) {
+function MatchExplanationTooltip({
+  explanation,
+  visible,
+}: {
+  explanation: string;
+  visible?: boolean;
+}) {
   return (
-    <div className={cn(
-      "absolute bottom-full right-0 mb-2 w-72 p-3 bg-slate-900 text-white text-xs rounded-lg shadow-xl transition-opacity pointer-events-none z-50",
-      visible ? "opacity-100" : "opacity-0 group-hover/explain:opacity-100 group-focus-within/explain:opacity-100"
-    )}>
+    <div
+      className={cn(
+        "absolute bottom-full right-0 mb-2 w-72 p-3 bg-slate-900 text-white text-xs rounded-lg shadow-xl transition-opacity pointer-events-none z-50",
+        visible
+          ? "opacity-100"
+          : "opacity-0 group-hover/explain:opacity-100 group-focus-within/explain:opacity-100",
+      )}
+    >
       <p className="text-slate-300 leading-relaxed">{explanation}</p>
       <div className="absolute bottom-0 right-4 translate-y-1/2 rotate-45 w-2 h-2 bg-slate-900" />
     </div>
@@ -151,7 +158,7 @@ export function JobCard({
   skillMatch,
   onQuickApply,
   isApplying = false,
-}: Omit<JobCardProps, 'isSaved' | 'onSave'>) {
+}: Omit<JobCardProperties, "isSaved" | "onSave">) {
   const { isJobSaved, saveJob, isSaving } = useSavedJobs();
   const isSaved = isJobSaved(job.id);
   const [showExplanation, setShowExplanation] = React.useState(false);
@@ -187,7 +194,10 @@ export function JobCard({
                   size="sm"
                 />
                 {skillMatch && matchScore !== undefined && (
-                  <SkillMatchTooltip skillMatch={skillMatch} score={matchScore} />
+                  <SkillMatchTooltip
+                    skillMatch={skillMatch}
+                    score={matchScore}
+                  />
                 )}
               </div>
             ) : null}
@@ -196,7 +206,12 @@ export function JobCard({
           <p className="text-brand-ink/70">{job.company}</p>
         </div>
         {job.logo_url ? (
-          <img src={job.logo_url} alt={`${job.company} logo`} className="h-16 w-16 rounded-2xl object-cover" loading="lazy" />
+          <img
+            src={job.logo_url}
+            alt={`${job.company} logo`}
+            className="h-16 w-16 rounded-2xl object-cover"
+            loading="lazy"
+          />
         ) : null}
       </div>
 
@@ -208,7 +223,9 @@ export function JobCard({
           </div>
           <div className="flex items-center gap-2">
             {job.is_remote && (
-              <Badge variant="success" size="sm" className="text-[10px]">Remote</Badge>
+              <Badge variant="success" size="sm" className="text-[10px]">
+                Remote
+              </Badge>
             )}
             {dealbreakers?.locationMismatch && (
               <DealbreakerIndicator
@@ -259,8 +276,13 @@ export function JobCard({
 
         {skillMatch && skillMatch.matched.length > 0 && (
           <div className="flex flex-wrap gap-1.5">
-            {skillMatch.matched.slice(0, 4).map((skill, i) => (
-              <Badge key={i} variant="success" size="sm" className="text-[10px]">
+            {skillMatch.matched.slice(0, 4).map((skill, index_) => (
+              <Badge
+                key={index_}
+                variant="success"
+                size="sm"
+                className="text-[10px]"
+              >
                 {skill}
               </Badge>
             ))}
@@ -294,18 +316,33 @@ export function JobCard({
           )}
         </Button>
 
-        <Button size="lg" variant="ghost" onClick={() => onSwipe("REJECT", job)}>
+        <Button
+          size="lg"
+          variant="ghost"
+          onClick={() => onSwipe("REJECT", job)}
+        >
           Pass
         </Button>
 
-        <Button variant="ghost" size="sm" className="gap-2" onClick={onViewDetail}>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="gap-2"
+          onClick={onViewDetail}
+        >
           <Eye className="h-4 w-4" />
           View details
         </Button>
 
-        <Button variant="ghost" size="sm" className="gap-2" onClick={handleSave} disabled={isSaving}>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="gap-2"
+          onClick={handleSave}
+          disabled={isSaving}
+        >
           <Bookmark className={`h-4 w-4 ${isSaved ? "fill-current" : ""}`} />
-          {isSaving ? "Saving..." : (isSaved ? "Saved" : "Save")}
+          {isSaving ? "Saving..." : isSaved ? "Saved" : "Save"}
         </Button>
 
         {matchExplanation && (
@@ -319,7 +356,10 @@ export function JobCard({
               <Sparkles className="w-3 h-3" />
               Why this match?
             </button>
-            <MatchExplanationTooltip explanation={matchExplanation} visible={showExplanation} />
+            <MatchExplanationTooltip
+              explanation={matchExplanation}
+              visible={showExplanation}
+            />
           </div>
         )}
 

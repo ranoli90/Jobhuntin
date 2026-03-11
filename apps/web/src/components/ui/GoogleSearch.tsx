@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import { Search, Loader2, ExternalLink } from 'lucide-react';
-import { Button } from './Button';
-import { Input } from './Input';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useState } from "react";
+import { Search, Loader2, ExternalLink } from "lucide-react";
+import { Button } from "./Button";
+import { Input } from "./Input";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface SearchResult {
   title: string;
@@ -11,7 +11,7 @@ interface SearchResult {
 }
 
 export function GoogleSearch() {
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -26,7 +26,10 @@ export function GoogleSearch() {
 
     if (!apiKey || !searchEngineId) {
       // Fallback to external Google search if API/CX not configured
-      window.open(`https://www.google.com/search?q=site:jobhuntin.com+${encodeURIComponent(query)}`, '_blank');
+      window.open(
+        `https://www.google.com/search?q=site:jobhuntin.com+${encodeURIComponent(query)}`,
+        "_blank",
+      );
       return;
     }
 
@@ -36,18 +39,18 @@ export function GoogleSearch() {
 
     try {
       const response = await fetch(
-        `https://www.googleapis.com/customsearch/v1?key=${apiKey}&cx=${searchEngineId}&q=${encodeURIComponent(query)}`
+        `https://www.googleapis.com/customsearch/v1?key=${apiKey}&cx=${searchEngineId}&q=${encodeURIComponent(query)}`,
       );
 
       if (!response.ok) {
-        throw new Error('Failed to fetch search results');
+        throw new Error("Failed to fetch search results");
       }
 
       const data = await response.json();
       setResults(data.items || []);
-    } catch (err) {
-      setError('Failed to perform search. Please try again.');
-      if (import.meta.env.DEV) console.error('Google Search Error:', err);
+    } catch (error_) {
+      setError("Failed to perform search. Please try again.");
+      if (import.meta.env.DEV) console.error("Google Search Error:", error_);
     } finally {
       setIsLoading(false);
     }
@@ -66,12 +69,12 @@ export function GoogleSearch() {
           />
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
         </div>
-        <Button 
-          type="submit" 
+        <Button
+          type="submit"
           disabled={isLoading || !query.trim()}
           className="rounded-xl px-6 shadow-lg shadow-primary-500/10"
         >
-          {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Search'}
+          {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Search"}
         </Button>
       </form>
 
@@ -90,7 +93,7 @@ export function GoogleSearch() {
         {error && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
+            animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             className="mt-4 p-4 bg-red-50 text-red-600 rounded-xl text-sm font-medium border border-red-100"
           >
@@ -98,15 +101,20 @@ export function GoogleSearch() {
           </motion.div>
         )}
 
-        {hasSearched && !isLoading && !error && results.length === 0 && (apiKey && searchEngineId) && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="mt-8 text-center text-slate-500"
-          >
-            No results found for "{query}"
-          </motion.div>
-        )}
+        {hasSearched &&
+          !isLoading &&
+          !error &&
+          results.length === 0 &&
+          apiKey &&
+          searchEngineId && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="mt-8 text-center text-slate-500"
+            >
+              No results found for "{query}"
+            </motion.div>
+          )}
 
         {results.length > 0 && (
           <motion.div
@@ -122,11 +130,18 @@ export function GoogleSearch() {
                 transition={{ delay: index * 0.05 }}
                 className="p-4 bg-white rounded-xl border border-slate-100 hover:border-primary-200 hover:shadow-md transition-all group"
               >
-                <a href={result.link} target="_blank" rel="noopener noreferrer" className="block">
+                <a
+                  href={result.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block"
+                >
                   <h3 className="text-lg font-bold text-slate-900 group-hover:text-primary-600 transition-colors mb-1">
                     {result.title}
                   </h3>
-                  <p className="text-xs text-green-600 mb-2 truncate">{result.link}</p>
+                  <p className="text-xs text-green-600 mb-2 truncate">
+                    {result.link}
+                  </p>
                   <p className="text-sm text-slate-600 leading-relaxed">
                     {result.snippet}
                   </p>

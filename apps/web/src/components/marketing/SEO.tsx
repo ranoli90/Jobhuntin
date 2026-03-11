@@ -1,18 +1,18 @@
-import React from 'react';
-import { Helmet } from 'react-helmet-async';
+import React from "react";
+import { Helmet } from "react-helmet-async";
 
-const BASE_URL = 'https://jobhuntin.com';
-const SITE_NAME = 'JobHuntin';
-const DEFAULT_OG_IMAGE = 'https://jobhuntin.com/og-image.png';
-const TWITTER_SITE = '@jobhuntin';
-const DEFAULT_LOCALE = 'en_US';
+const BASE_URL = "https://jobhuntin.com";
+const SITE_NAME = "JobHuntin";
+const DEFAULT_OG_IMAGE = "https://jobhuntin.com/og-image.png";
+const TWITTER_SITE = "@jobhuntin";
+const DEFAULT_LOCALE = "en_US";
 
 export interface BreadcrumbItem {
   name: string;
   url: string;
 }
 
-export interface SEOProps {
+export interface SEOProperties {
   title: string;
   description: string;
   /** Override for og:title (defaults to title) */
@@ -24,7 +24,7 @@ export interface SEOProps {
   /** OG image URL (defaults to DEFAULT_OG_IMAGE) */
   ogImage?: string;
   /** og:type - website, article, etc. */
-  ogType?: 'website' | 'article';
+  ogType?: "website" | "article";
   /** Schema.org JSON-LD (single object or array) */
   schema?: object | object[];
   /** Breadcrumbs for BreadcrumbList schema */
@@ -46,25 +46,30 @@ export interface SEOProps {
 }
 
 function resolveOgImage(ogImage?: string): string {
-  if (ogImage && ogImage.startsWith('http')) return ogImage;
-  if (ogImage) return `${BASE_URL}${ogImage.startsWith('/') ? '' : '/'}${ogImage}`;
+  if (ogImage?.startsWith("http")) return ogImage;
+  if (ogImage)
+    return `${BASE_URL}${ogImage.startsWith("/") ? "" : "/"}${ogImage}`;
   return DEFAULT_OG_IMAGE;
 }
 
 function resolveCanonicalUrl(canonicalUrl?: string): string {
   if (!canonicalUrl) return BASE_URL;
-  return canonicalUrl.startsWith('http') ? canonicalUrl : `${BASE_URL}${canonicalUrl.startsWith('/') ? '' : '/'}${canonicalUrl}`;
+  return canonicalUrl.startsWith("http")
+    ? canonicalUrl
+    : `${BASE_URL}${canonicalUrl.startsWith("/") ? "" : "/"}${canonicalUrl}`;
 }
 
 function buildBreadcrumbSchema(breadcrumbs: BreadcrumbItem[]): object {
   return {
-    '@context': 'https://schema.org',
-    '@type': 'BreadcrumbList',
-    itemListElement: breadcrumbs.map((item, i) => ({
-      '@type': 'ListItem',
-      position: i + 1,
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: breadcrumbs.map((item, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
       name: item.name,
-      item: item.url.startsWith('http') ? item.url : `${BASE_URL}${item.url.startsWith('/') ? '' : '/'}${item.url}`,
+      item: item.url.startsWith("http")
+        ? item.url
+        : `${BASE_URL}${item.url.startsWith("/") ? "" : "/"}${item.url}`,
     })),
   };
 }
@@ -74,14 +79,14 @@ function normalizeSchema(schema: object | object[] | undefined): object[] {
   return Array.isArray(schema) ? schema : [schema];
 }
 
-export const SEO: React.FC<SEOProps> = ({
+export const SEO: React.FC<SEOProperties> = ({
   title,
   description,
   ogTitle,
   ogDescription,
   canonicalUrl,
   ogImage,
-  ogType = 'website',
+  ogType = "website",
   schema,
   breadcrumbs,
   keywords,
@@ -103,7 +108,9 @@ export const SEO: React.FC<SEOProps> = ({
 
   const allSchemas = [
     ...normalizeSchema(schema),
-    ...(breadcrumbs && breadcrumbs.length > 0 ? [buildBreadcrumbSchema(breadcrumbs)] : []),
+    ...(breadcrumbs && breadcrumbs.length > 0
+      ? [buildBreadcrumbSchema(breadcrumbs)]
+      : []),
   ];
 
   return (
@@ -117,7 +124,11 @@ export const SEO: React.FC<SEOProps> = ({
 
       {/* hreflang - English + French (SEO #50: i18n support) */}
       <link rel="alternate" hrefLang="en" href={resolvedCanonical} />
-      <link rel="alternate" hrefLang="fr" href={`${resolvedCanonical}${resolvedCanonical.includes('?') ? '&' : '?'}lang=fr`} />
+      <link
+        rel="alternate"
+        hrefLang="fr"
+        href={`${resolvedCanonical}${resolvedCanonical.includes("?") ? "&" : "?"}lang=fr`}
+      />
 
       {/* Open Graph */}
       <meta property="og:title" content={displayOgTitle} />
@@ -127,7 +138,7 @@ export const SEO: React.FC<SEOProps> = ({
       <meta property="og:image:width" content="1200" />
       <meta property="og:image:height" content="630" />
       <meta property="og:image:alt" content={displayOgTitle} />
-      <meta property="og:type" content={article ? 'article' : ogType} />
+      <meta property="og:type" content={article ? "article" : ogType} />
       <meta property="og:site_name" content={SITE_NAME} />
       <meta property="og:locale" content={DEFAULT_LOCALE} />
 
@@ -140,7 +151,10 @@ export const SEO: React.FC<SEOProps> = ({
 
       {/* Article meta (when article=true or includeDate with dates) */}
       {showArticleMeta && hasPublishedDate && (
-        <meta property="article:published_time" content={articlePublishedDate} />
+        <meta
+          property="article:published_time"
+          content={articlePublishedDate}
+        />
       )}
       {showArticleMeta && hasModifiedDate && (
         <meta property="article:modified_time" content={articleModifiedDate} />
@@ -150,8 +164,8 @@ export const SEO: React.FC<SEOProps> = ({
       )}
 
       {/* JSON-LD Schema */}
-      {allSchemas.map((s, i) => (
-        <script key={i} type="application/ld+json">
+      {allSchemas.map((s, index) => (
+        <script key={index} type="application/ld+json">
           {JSON.stringify(s)}
         </script>
       ))}

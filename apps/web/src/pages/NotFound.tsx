@@ -1,22 +1,29 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { ArrowRight, TrendingUp, Briefcase, Compass, Search, X } from 'lucide-react';
-import { SEO } from '../components/marketing/SEO';
-import { Button } from '../components/ui/Button';
-import { t, getLocale } from '../lib/i18n';
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+import {
+  ArrowRight,
+  TrendingUp,
+  Briefcase,
+  Compass,
+  Search,
+  X,
+} from "lucide-react";
+import { SEO } from "../components/marketing/SEO";
+import { Button } from "../components/ui/Button";
+import { t, getLocale } from "../lib/i18n";
 
 export default function NotFound() {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
-  
+
   const trendingSearches = [
     { label: "Cashier Jobs", path: "/app/jobs?role=cashier" },
     { label: "Sales Associate Jobs", path: "/app/jobs?role=sales-associate" },
     { label: "Customer Service Jobs", path: "/app/jobs?role=customer-service" },
     { label: "Retail Jobs", path: "/app/jobs?role=retail" },
   ];
-  
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
@@ -26,20 +33,23 @@ export default function NotFound() {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 font-sans text-slate-900 dark:text-slate-100 selection:bg-primary-500/20 selection:text-primary-700">
-      <SEO 
+      <SEO
         title="404 | Page Not Found | JobHuntin"
         description="This page doesn't exist. Return to JobHuntin to find your next role."
         noindex
       />
-      
+
       <main className="flex flex-col items-center justify-center min-h-screen px-6 text-center relative overflow-hidden">
         {/* Background Elements */}
         <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-           <div className="absolute top-[20%] left-[20%] w-64 h-64 bg-primary-500/10 rounded-full blur-3xl animate-pulse" />
-           <div className="absolute bottom-[20%] right-[20%] w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+          <div className="absolute top-[20%] left-[20%] w-64 h-64 bg-primary-500/10 rounded-full blur-3xl animate-pulse" />
+          <div
+            className="absolute bottom-[20%] right-[20%] w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse"
+            style={{ animationDelay: "1s" }}
+          />
         </div>
 
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5 }}
@@ -52,12 +62,15 @@ export default function NotFound() {
             transition={{ delay: 0.3 }}
             className="inline-flex items-center gap-2 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm px-4 py-2 rounded-full shadow-sm mb-6 border border-emerald-100 dark:border-emerald-900/50"
           >
-            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" aria-hidden />
+            <div
+              className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"
+              aria-hidden
+            />
             <span className="text-xs font-bold text-slate-600 dark:text-slate-400">
               {t("404.findNextRole", getLocale())}
             </span>
           </motion.div>
-          
+
           <h1 className="text-7xl sm:text-8xl font-sans font-black text-slate-900 dark:text-slate-100 mb-4 tracking-tighter">
             404
           </h1>
@@ -69,7 +82,10 @@ export default function NotFound() {
           </p>
 
           {/* Search Box */}
-          <form onSubmit={handleSearch} className="w-full max-w-md mx-auto mb-8">
+          <form
+            onSubmit={handleSearch}
+            className="w-full max-w-md mx-auto mb-8"
+          >
             <div className="relative">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
               <input
@@ -99,13 +115,20 @@ export default function NotFound() {
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-12">
             <Link to="/login" aria-label={t("404.startFree", getLocale())}>
-              <Button size="lg" className="rounded-xl px-8 shadow-xl shadow-primary-500/20 font-bold">
+              <Button
+                size="lg"
+                className="rounded-xl px-8 shadow-xl shadow-primary-500/20 font-bold"
+              >
                 <Compass className="w-4 h-4 mr-2" aria-hidden />
                 {t("404.startFree", getLocale())}
               </Button>
             </Link>
             <Link to="/" aria-label={t("404.backHome", getLocale())}>
-              <Button variant="outline" size="lg" className="rounded-xl px-8 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 font-bold">
+              <Button
+                variant="outline"
+                size="lg"
+                className="rounded-xl px-8 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 font-bold"
+              >
                 {t("404.backHome", getLocale())}
               </Button>
             </Link>
@@ -115,7 +138,9 @@ export default function NotFound() {
           <div className="text-left">
             <div className="flex items-center gap-2 mb-4 justify-center">
               <TrendingUp className="w-4 h-4 text-primary-500" aria-hidden />
-              <span className="text-sm font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">{t("404.popularSearches", getLocale())}</span>
+              <span className="text-sm font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">
+                {t("404.popularSearches", getLocale())}
+              </span>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {trendingSearches.map((search) => (
@@ -129,10 +154,17 @@ export default function NotFound() {
                     <Briefcase className="w-4 h-4" aria-hidden />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-bold text-slate-900 truncate">{search.label}</p>
-                    <p className="text-[10px] text-slate-500 font-medium">{t("404.applyWithAI", getLocale())}</p>
+                    <p className="text-sm font-bold text-slate-900 truncate">
+                      {search.label}
+                    </p>
+                    <p className="text-[10px] text-slate-500 font-medium">
+                      {t("404.applyWithAI", getLocale())}
+                    </p>
                   </div>
-                  <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-primary-500 transition-colors shrink-0" aria-hidden />
+                  <ArrowRight
+                    className="w-4 h-4 text-slate-300 group-hover:text-primary-500 transition-colors shrink-0"
+                    aria-hidden
+                  />
                 </Link>
               ))}
             </div>

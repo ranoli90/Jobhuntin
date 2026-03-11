@@ -1,21 +1,21 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { apiGet, apiPost, apiDelete } from '@/lib/api';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { Badge } from '@/components/ui/Badge';
-import { Alert, AlertDescription } from '@/components/ui/Alert';
-import { Progress } from '@/components/ui/Progress';
-import { 
-  RefreshCw, 
-  Trash2, 
-  CheckCircle, 
-  AlertTriangle, 
+import React, { useState, useEffect, useRef } from "react";
+import { apiGet, apiPost, apiDelete } from "@/lib/api";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
+import { Badge } from "@/components/ui/Badge";
+import { Alert, AlertDescription } from "@/components/ui/Alert";
+import { Progress } from "@/components/ui/Progress";
+import {
+  RefreshCw,
+  Trash2,
+  CheckCircle,
+  AlertTriangle,
   Clock,
   Download,
   Eye,
   Search,
-  Filter
-} from 'lucide-react';
+  Filter,
+} from "lucide-react";
 
 interface DLQItem {
   id: string;
@@ -25,7 +25,7 @@ interface DLQItem {
   max_retries: number;
   next_retry_at?: string;
   created_at: string;
-  status: 'pending' | 'retrying' | 'completed' | 'failed';
+  status: "pending" | "retrying" | "completed" | "failed";
   error_details: any;
 }
 
@@ -35,7 +35,7 @@ interface ConcurrentUsageSession {
   application_id?: string;
   start_time: string;
   end_time?: string;
-  status: 'active' | 'completed' | 'failed' | 'cancelled';
+  status: "active" | "completed" | "failed" | "cancelled";
   steps_completed: number;
   total_steps: number;
   error_count: number;
@@ -45,7 +45,9 @@ interface ConcurrentUsageSession {
 
 const DLQDashboardPage: React.FC = () => {
   const [dlqItems, setDLQItems] = useState<DLQItem[]>([]);
-  const [concurrentSessions, setConcurrentSessions] = useState<ConcurrentUsageSession[]>([]);
+  const [concurrentSessions, setConcurrentSessions] = useState<
+    ConcurrentUsageSession[]
+  >([]);
   const [stats, setStats] = useState({
     totalDLQItems: 0,
     pendingItems: 0,
@@ -58,9 +60,9 @@ const DLQDashboardPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
-  const consecutiveErrorsRef = useRef(0);
-  const BASE_POLL_MS = 30000;
-  const MAX_POLL_MS = 300000;
+  const consecutiveErrorsReference = useRef(0);
+  const BASE_POLL_MS = 30_000;
+  const MAX_POLL_MS = 300_000;
 
   const fetchData = async (): Promise<boolean> => {
     try {
@@ -68,18 +70,23 @@ const DLQDashboardPage: React.FC = () => {
       setError(null);
 
       const [dlqData, concurrentData, statsData] = await Promise.all([
-        apiGet<DLQItem[] | DLQItem>('admin/dlq/items').then((d) =>
-          Array.isArray(d) ? (d as DLQItem[]) : ([d] as DLQItem[])
+        apiGet<DLQItem[] | DLQItem>("admin/dlq/items").then((d) =>
+          Array.isArray(d) ? d : ([d] as DLQItem[]),
         ),
-        apiGet<{ active_tasks?: ConcurrentUsageSession[]; total_active?: number; max_concurrent?: number }>(
-          'admin/dlq/concurrent-usage'
-        ),
-        apiGet<{ total_items?: number; pending_count?: number; retrying_count?: number; failed_count?: number }>(
-          'admin/dlq/stats'
-        ),
+        apiGet<{
+          active_tasks?: ConcurrentUsageSession[];
+          total_active?: number;
+          max_concurrent?: number;
+        }>("admin/dlq/concurrent-usage"),
+        apiGet<{
+          total_items?: number;
+          pending_count?: number;
+          retrying_count?: number;
+          failed_count?: number;
+        }>("admin/dlq/stats"),
       ]);
 
-      setDLQItems(dlqData as DLQItem[]);
+      setDLQItems(dlqData);
       setConcurrentSessions(concurrentData.active_tasks || []);
 
       setStats({
@@ -91,11 +98,11 @@ const DLQDashboardPage: React.FC = () => {
         maxConcurrent: concurrentData.max_concurrent || 10,
         currentConcurrent: concurrentData.total_active || 0,
       });
-      consecutiveErrorsRef.current = 0;
+      consecutiveErrorsReference.current = 0;
       return true;
-    } catch (err) {
-      consecutiveErrorsRef.current += 1;
-      setError(err instanceof Error ? err.message : 'An error occurred');
+    } catch (error_) {
+      consecutiveErrorsReference.current += 1;
+      setError(error_ instanceof Error ? error_.message : "An error occurred");
       return false;
     } finally {
       setLoading(false);
@@ -108,8 +115,8 @@ const DLQDashboardPage: React.FC = () => {
     const scheduleNext = () => {
       if (cancelled) return;
       const delay = Math.min(
-        BASE_POLL_MS * Math.pow(2, consecutiveErrorsRef.current),
-        MAX_POLL_MS
+        BASE_POLL_MS * Math.pow(2, consecutiveErrorsReference.current),
+        MAX_POLL_MS,
       );
       timeoutId = setTimeout(() => {
         if (cancelled) return;
@@ -125,55 +132,58 @@ const DLQDashboardPage: React.FC = () => {
 
   const handleRetryItem = async (itemId: string, force = false) => {
     try {
-      await apiPost(
-        `admin/dlq/retry/${itemId}${force ? '?force=true' : ''}`,
-        undefined
-      );
+      await apiPost(`admin/dlq/retry/${itemId}${force ? "?force=true" : ""}`);
       await fetchData();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to retry item');
+    } catch (error_) {
+      setError(
+        error_ instanceof Error ? error_.message : "Failed to retry item",
+      );
     }
   };
 
   const handleBulkRetry = async (force = false) => {
     try {
-      await apiPost('admin/dlq/retry', { item_ids: selectedItems, force });
+      await apiPost("admin/dlq/retry", { item_ids: selectedItems, force });
       await fetchData();
       setSelectedItems([]);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to bulk retry');
+    } catch (error_) {
+      setError(
+        error_ instanceof Error ? error_.message : "Failed to bulk retry",
+      );
     }
   };
 
   const handleDeleteItem = async (itemId: string) => {
-    if (!confirm('Are you sure you want to delete this DLQ item?')) return;
+    if (!confirm("Are you sure you want to delete this DLQ item?")) return;
 
     try {
       await apiDelete(`admin/dlq/items/${itemId}`);
       await fetchData();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete item');
+    } catch (error_) {
+      setError(
+        error_ instanceof Error ? error_.message : "Failed to delete item",
+      );
     }
   };
 
   const handleSelectItem = (itemId: string) => {
-    setSelectedItems(prev => 
-      prev.includes(itemId) 
-        ? prev.filter(id => id !== itemId)
-        : [...prev, itemId]
+    setSelectedItems((previous) =>
+      previous.includes(itemId)
+        ? previous.filter((id) => id !== itemId)
+        : [...previous, itemId],
     );
   };
 
   const getStatusBadge = (status: string) => {
     const variants = {
-      pending: 'secondary',
-      retrying: 'default',
-      completed: 'success',
-      failed: 'destructive',
+      pending: "secondary",
+      retrying: "default",
+      completed: "success",
+      failed: "destructive",
     } as const;
-    
+
     return (
-      <Badge variant={variants[status as keyof typeof variants] || 'secondary'}>
+      <Badge variant={variants[status as keyof typeof variants] || "secondary"}>
         {status.toUpperCase()}
       </Badge>
     );
@@ -187,8 +197,8 @@ const DLQDashboardPage: React.FC = () => {
     return (
       <div className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {[1, 2, 3, 4].map((i) => (
-            <Card key={i} className="animate-pulse">
+          {[1, 2, 3, 4].map((index) => (
+            <Card key={index} className="animate-pulse">
               <CardContent className="p-6">
                 <div className="h-4 bg-gray-200 rounded mb-2"></div>
                 <div className="h-8 bg-gray-200 rounded"></div>
@@ -231,37 +241,47 @@ const DLQDashboardPage: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Total DLQ Items</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Total DLQ Items
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalDLQItems}</div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium">Pending</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-yellow-600">{stats.pendingItems}</div>
+            <div className="text-2xl font-bold text-yellow-600">
+              {stats.pendingItems}
+            </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium">Failed</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600">{stats.failedItems}</div>
+            <div className="text-2xl font-bold text-red-600">
+              {stats.failedItems}
+            </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Active Sessions</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Active Sessions
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-blue-600">{stats.activeSessions}</div>
+            <div className="text-2xl font-bold text-blue-600">
+              {stats.activeSessions}
+            </div>
             <div className="text-sm text-gray-500">
               {stats.currentConcurrent}/{stats.maxConcurrent}
             </div>
@@ -280,13 +300,16 @@ const DLQDashboardPage: React.FC = () => {
       <div className="space-y-4">
         <div className="flex justify-between items-center">
           <h2 className="text-xl font-semibold">DLQ Items</h2>
-          <div className="text-sm text-gray-500">
-            {dlqItems.length} items
-          </div>
+          <div className="text-sm text-gray-500">{dlqItems.length} items</div>
         </div>
 
         {dlqItems.map((item) => (
-          <Card key={item.id} className={selectedItems.includes(item.id) ? 'ring-2 ring-blue-500' : ''}>
+          <Card
+            key={item.id}
+            className={
+              selectedItems.includes(item.id) ? "ring-2 ring-blue-500" : ""
+            }
+          >
             <CardContent className="p-6">
               <div className="flex justify-between items-start mb-4">
                 <div className="space-y-2">
@@ -303,7 +326,8 @@ const DLQDashboardPage: React.FC = () => {
                     </p>
                     {item.next_retry_at && (
                       <p className="text-sm text-gray-500">
-                        Next retry: {new Date(item.next_retry_at).toLocaleString()}
+                        Next retry:{" "}
+                        {new Date(item.next_retry_at).toLocaleString()}
                       </p>
                     )}
                   </div>
@@ -315,16 +339,13 @@ const DLQDashboardPage: React.FC = () => {
                     onChange={() => handleSelectItem(item.id)}
                     className="rounded"
                   />
-                  {item.status === 'pending' && (
-                    <Button
-                      size="sm"
-                      onClick={() => handleRetryItem(item.id)}
-                    >
+                  {item.status === "pending" && (
+                    <Button size="sm" onClick={() => handleRetryItem(item.id)}>
                       <RefreshCw className="h-4 w-4 mr-1" />
                       Retry
                     </Button>
                   )}
-                  {item.status === 'failed' && (
+                  {item.status === "failed" && (
                     <Button
                       size="sm"
                       variant="outline"
@@ -343,19 +364,21 @@ const DLQDashboardPage: React.FC = () => {
                   </Button>
                 </div>
               </div>
-              
+
               {/* Retry Progress */}
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
                   <span>Retry Progress</span>
-                  <span>{item.attempt_count}/{item.max_retries}</span>
+                  <span>
+                    {item.attempt_count}/{item.max_retries}
+                  </span>
                 </div>
                 <Progress value={getRetryProgress(item)} className="h-2" />
               </div>
             </CardContent>
           </Card>
         ))}
-        
+
         {dlqItems.length === 0 && (
           <Card>
             <CardContent className="p-6 text-center">
@@ -384,19 +407,28 @@ const DLQDashboardPage: React.FC = () => {
               <div>
                 <div className="flex justify-between text-sm mb-2">
                   <span>Current Usage</span>
-                  <span>{stats.currentConcurrent}/{stats.maxConcurrent}</span>
+                  <span>
+                    {stats.currentConcurrent}/{stats.maxConcurrent}
+                  </span>
                 </div>
-                <Progress value={(stats.currentConcurrent / stats.maxConcurrent) * 100} className="h-2" />
+                <Progress
+                  value={(stats.currentConcurrent / stats.maxConcurrent) * 100}
+                  className="h-2"
+                />
               </div>
-              
+
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
                   <span className="text-gray-500">Active Sessions:</span>
-                  <span className="ml-2 font-medium">{stats.activeSessions}</span>
+                  <span className="ml-2 font-medium">
+                    {stats.activeSessions}
+                  </span>
                 </div>
                 <div>
                   <span className="text-gray-500">Max Concurrent:</span>
-                  <span className="ml-2 font-medium">{stats.maxConcurrent}</span>
+                  <span className="ml-2 font-medium">
+                    {stats.maxConcurrent}
+                  </span>
                 </div>
               </div>
             </div>
@@ -415,13 +447,23 @@ const DLQDashboardPage: React.FC = () => {
                     </span>
                   </div>
                   <div className="text-sm text-gray-500">
-                    <p>Started: {new Date(session.start_time).toLocaleString()}</p>
+                    <p>
+                      Started: {new Date(session.start_time).toLocaleString()}
+                    </p>
                     {session.duration_seconds && (
-                      <p>Duration: {Math.floor(session.duration_seconds / 60)}m {session.duration_seconds % 60}s</p>
+                      <p>
+                        Duration: {Math.floor(session.duration_seconds / 60)}m{" "}
+                        {session.duration_seconds % 60}s
+                      </p>
                     )}
-                    <p>Progress: {session.steps_completed}/{session.total_steps} steps</p>
+                    <p>
+                      Progress: {session.steps_completed}/{session.total_steps}{" "}
+                      steps
+                    </p>
                     {session.error_count > 0 && (
-                      <p className="text-red-500">Errors: {session.error_count}</p>
+                      <p className="text-red-500">
+                        Errors: {session.error_count}
+                      </p>
                     )}
                   </div>
                 </div>
@@ -429,7 +471,7 @@ const DLQDashboardPage: React.FC = () => {
             </CardContent>
           </Card>
         ))}
-        
+
         {concurrentSessions.length === 0 && (
           <Card>
             <CardContent className="p-6 text-center">

@@ -2,27 +2,29 @@
  * NOTE: This module is used by SEO build scripts (server-side only via tsx/node).
  * It should NOT be imported by any browser-side React component.
  */
-import { createClient } from 'redis';
+import { createClient } from "redis";
 
 // SECURITY: This module must ONLY run server-side. Never import in browser bundles.
-if (typeof window !== 'undefined') {
-  console.error('[SECURITY] redis.ts was imported in a browser context — this is a configuration error.');
+if (typeof window !== "undefined") {
+  console.error(
+    "[SECURITY] redis.ts was imported in a browser context — this is a configuration error.",
+  );
 }
 
 // Redis client configuration — all values MUST come from environment variables
 const redis = createClient({
   socket: {
     host: process.env.REDIS_HOST,
-    port: parseInt(process.env.REDIS_PORT || '6379'),
+    port: Number.parseInt(process.env.REDIS_PORT || "6379"),
   },
   password: process.env.REDIS_PASSWORD,
 });
 
 // Redis connection events
-redis.on('error', (err) => console.error('Redis Client Error', err));
-redis.on('connect', () => console.log('Redis Client Connected'));
-redis.on('ready', () => console.log('Redis Client Ready'));
-redis.on('end', () => console.log('Redis Client Ended'));
+redis.on("error", (error) => console.error("Redis Client Error", error));
+redis.on("connect", () => console.log("Redis Client Connected"));
+redis.on("ready", () => console.log("Redis Client Ready"));
+redis.on("end", () => console.log("Redis Client Ended"));
 
 // Connect to Redis
 redis.connect().catch(console.error);
@@ -48,9 +50,9 @@ export class CacheService {
   async get<T>(key: string): Promise<T | null> {
     try {
       const value = await this.client.get(key);
-      return value ? JSON.parse(value) as T : null;
+      return value ? (JSON.parse(value) as T) : null;
     } catch (error) {
-      console.error('Cache get error:', error);
+      console.error("Cache get error:", error);
       return null;
     }
   }
@@ -58,13 +60,11 @@ export class CacheService {
   async set<T>(key: string, value: T, ttl?: number): Promise<void> {
     try {
       const serialized = JSON.stringify(value);
-      if (ttl) {
-        await this.client.setEx(key, ttl, serialized);
-      } else {
-        await this.client.set(key, serialized);
-      }
+      await (ttl
+        ? this.client.setEx(key, ttl, serialized)
+        : this.client.set(key, serialized));
     } catch (error) {
-      console.error('Cache set error:', error);
+      console.error("Cache set error:", error);
     }
   }
 
@@ -72,7 +72,7 @@ export class CacheService {
     try {
       await this.client.del(key);
     } catch (error) {
-      console.error('Cache delete error:', error);
+      console.error("Cache delete error:", error);
     }
   }
 
@@ -84,17 +84,17 @@ export class CacheService {
       }
       await this.client.mSet(serializedPairs);
     } catch (error) {
-      console.error('Cache mset error:', error);
+      console.error("Cache mset error:", error);
     }
   }
 
   async mget(keys: string[]): Promise<(any | null)[]> {
     try {
       const values = await this.client.mGet(keys);
-      return values.map(value => value ? JSON.parse(value) : null);
+      return values.map((value) => (value ? JSON.parse(value) : null));
     } catch (error) {
-      console.error('Cache mget error:', error);
-      return new Array(keys.length).fill(null);
+      console.error("Cache mget error:", error);
+      return Array.from({ length: keys.length }).fill(null);
     }
   }
 
@@ -116,7 +116,7 @@ export class CacheService {
   }
 
   async cacheUserPreferences(userId: string, preferences: any): Promise<void> {
-    await this.set(`preferences:${userId}`, preferences, 86400); // 24 hours TTL
+    await this.set(`preferences:${userId}`, preferences, 86_400); // 24 hours TTL
   }
 
   async getUserPreferences(userId: string): Promise<any | null> {
@@ -145,24 +145,24 @@ export class CacheService {
       `resume:parsed:${userId}`,
       `preferences:${userId}`,
       `matches:${userId}`,
-      `skills:${userId}`
+      `skills:${userId}`,
     ];
 
     try {
-      await Promise.all(keys.map(key => this.del(key)));
+      await Promise.all(keys.map((key) => this.del(key)));
     } catch (error) {
-      console.error('Cache clear error:', error);
+      console.error("Cache clear error:", error);
     }
   }
 
   async healthCheck(): Promise<{ healthy: boolean; message: string }> {
     try {
       await this.client.ping();
-      return { healthy: true, message: 'Redis is healthy' };
+      return { healthy: true, message: "Redis is healthy" };
     } catch (error) {
       return {
         healthy: false,
-        message: `Redis error: ${error instanceof Error ? error.message : 'Unknown error'}`
+        message: `Redis error: ${error instanceof Error ? error.message : "Unknown error"}`,
       };
     }
   }
@@ -171,7 +171,7 @@ export class CacheService {
     try {
       return await this.client.info();
     } catch (error) {
-      console.error('Redis info error:', error);
+      console.error("Redis info error:", error);
       return null;
     }
   }
@@ -180,7 +180,7 @@ export class CacheService {
     try {
       await this.client.quit();
     } catch (error) {
-      console.error('Redis close error:', error);
+      console.error("Redis close error:", error);
     }
   }
 }

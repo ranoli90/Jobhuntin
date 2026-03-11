@@ -1,14 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { Badge } from '@/components/ui/Badge';
-import { Alert, AlertDescription } from '@/components/ui/Alert';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs';
-import { 
-  Mail, 
-  Bell, 
-  Shield, 
-  Settings, 
+import React, { useState, useEffect } from "react";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
+import { Badge } from "@/components/ui/Badge";
+import { Alert, AlertDescription } from "@/components/ui/Alert";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/Tabs";
+import {
+  Mail,
+  Bell,
+  Shield,
+  Settings,
   RefreshCw,
   Activity,
   BarChart3,
@@ -18,19 +18,19 @@ import {
   AlertTriangle,
   Brain,
   Heart,
-  Users
-} from 'lucide-react';
+  Users,
+} from "lucide-react";
 
 // Import components
-import EmailManager from '@/components/communications/EmailManager';
-import NotificationManager from '@/components/communications/NotificationManager';
-import AlertProcessor from '@/components/communications/AlertProcessor';
-import SemanticMatcher from '@/components/communications/SemanticMatcher';
-import UserInterests from '@/components/communications/UserInterests';
-import BatchProcessor from '@/components/communications/BatchProcessor';
+import EmailManager from "@/components/communications/EmailManager";
+import NotificationManager from "@/components/communications/NotificationManager";
+import AlertProcessor from "@/components/communications/AlertProcessor";
+import SemanticMatcher from "@/components/communications/SemanticMatcher";
+import UserInterests from "@/components/communications/UserInterests";
+import BatchProcessor from "@/components/communications/BatchProcessor";
 
 const CommunicationsPage: React.FC = () => {
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState("overview");
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -39,7 +39,9 @@ const CommunicationsPage: React.FC = () => {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold">Communications Center</h1>
-          <p className="text-gray-600">Manage all communication channels and preferences</p>
+          <p className="text-gray-600">
+            Manage all communication channels and preferences
+          </p>
         </div>
         <div className="flex space-x-2">
           <Button
@@ -47,8 +49,10 @@ const CommunicationsPage: React.FC = () => {
             size="sm"
             onClick={() => setAutoRefresh(!autoRefresh)}
           >
-            <RefreshCw className={`h-4 w-4 mr-2 ${autoRefresh ? 'animate-spin' : ''}`} />
-            {autoRefresh ? 'Auto-refresh' : 'Manual refresh'}
+            <RefreshCw
+              className={`h-4 w-4 mr-2 ${autoRefresh ? "animate-spin" : ""}`}
+            />
+            {autoRefresh ? "Auto-refresh" : "Manual refresh"}
           </Button>
         </div>
       </div>
@@ -83,7 +87,9 @@ const CommunicationsPage: React.FC = () => {
                     <div className="flex items-center space-x-2">
                       <Mail className="h-8 w-8 text-blue-600" />
                       <div>
-                        <h3 className="text-lg font-medium">Email Communications</h3>
+                        <h3 className="text-lg font-medium">
+                          Email Communications
+                        </h3>
                         <p className="text-sm text-gray-500">
                           Send and receive emails with templates
                         </p>
@@ -95,7 +101,9 @@ const CommunicationsPage: React.FC = () => {
                     <div className="flex items-center space-x-2">
                       <Bell className="h-8 w-8 text-green-600" />
                       <div>
-                        <h3 className="text-lg font-medium">Push Notifications</h3>
+                        <h3 className="text-lg font-medium">
+                          Push Notifications
+                        </h3>
                         <p className="text-sm text-gray-500">
                           Real-time notifications with semantic matching
                         </p>
@@ -107,7 +115,9 @@ const CommunicationsPage: React.FC = () => {
                     <div className="flex items-center space-x-2">
                       <Shield className="h-8 w-8 text-red-600" />
                       <div>
-                        <h3 className="alert-lg font-medium">Alert Processing</h3>
+                        <h3 className="alert-lg font-medium">
+                          Alert Processing
+                        </h3>
                         <p className="text-sm text-gray-500">
                           Rule-based alert system
                         </p>
@@ -119,7 +129,9 @@ const CommunicationsPage: React.FC = () => {
                     <div className="flex items-center space-x-2">
                       <Brain className="h-8 w-8 text-purple-600" />
                       <div>
-                        <h3 className="text-lg font-medium">Semantic Matching</h3>
+                        <h3 className="text-lg font-medium">
+                          Semantic Matching
+                        </h3>
                         <p className="text-sm text-gray-500">
                           AI-powered relevance scoring
                         </p>
@@ -143,7 +155,9 @@ const CommunicationsPage: React.FC = () => {
                     <div className="flex items-center space-x-2">
                       <Users className="h-8 w-8 text-indigo-600" />
                       <div>
-                        <h3 className="text-lg font-medium">Batch Processing</h3>
+                        <h3 className="text-lg font-medium">
+                          Batch Processing
+                        </h3>
                         <p className="text-sm text-gray-500">
                           Intelligent batch processing
                         </p>
@@ -165,7 +179,9 @@ const CommunicationsPage: React.FC = () => {
                       <Mail />
                     </div>
                     <div>
-                      <div className="text-lg font-medium text-gray-600">Emails Sent Today</div>
+                      <div className="text-lg font-medium text-gray-600">
+                        Emails Sent Today
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -183,7 +199,9 @@ const CommunicationsPage: React.FC = () => {
                       <Mail className="h-6 w-6 text-green-600" />
                     </div>
                     <div>
-                      <div className="text-lg font-medium text-green-600">Online</div>
+                      <div className="text-lg font-medium text-green-600">
+                        Online
+                      </div>
                       <div className="text-sm text-gray-500">Email System</div>
                     </div>
                   </div>
@@ -193,8 +211,12 @@ const CommunicationsPage: React.FC = () => {
                       <Bell className="h-6 w-6 text-green-600" />
                     </div>
                     <div>
-                      <div className="text-lg font-medium text-green-600">Online</div>
-                      <div className="text-sm text-gray-500">Notification System</div>
+                      <div className="text-lg font-medium text-green-600">
+                        Online
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        Notification System
+                      </div>
                     </div>
                   </div>
 
@@ -203,7 +225,9 @@ const CommunicationsPage: React.FC = () => {
                       <Shield className="h-6 w-6 text-red-600" />
                     </div>
                     <div>
-                      <div className="text-lg font-medium text-red-600">Online</div>
+                      <div className="text-lg font-medium text-red-600">
+                        Online
+                      </div>
                       <div className="text-sm text-gray-500">Alert System</div>
                     </div>
                   </div>

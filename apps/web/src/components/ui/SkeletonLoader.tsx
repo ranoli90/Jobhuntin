@@ -1,36 +1,40 @@
-import React from 'react';
-import { cn } from '../../lib/utils';
+import React from "react";
+import { cn } from "../../lib/utils";
 
 // Skeleton loader components for loading states
 
-interface SkeletonProps {
+interface SkeletonProperties {
   className?: string;
-  variant?: 'text' | 'circular' | 'rectangular' | 'button';
-  size?: 'sm' | 'md' | 'lg' | 'xl';
+  variant?: "text" | "circular" | "rectangular" | "button";
+  size?: "sm" | "md" | "lg" | "xl";
 }
 
-export function Skeleton({ className, variant = 'rectangular', size = 'md' }: SkeletonProps) {
+export function Skeleton({
+  className,
+  variant = "rectangular",
+  size = "md",
+}: SkeletonProperties) {
   const variants = {
-    text: 'h-4 w-full',
-    circular: 'rounded-full',
-    rectangular: 'rounded-lg',
-    button: 'rounded-lg h-10 w-24',
+    text: "h-4 w-full",
+    circular: "rounded-full",
+    rectangular: "rounded-lg",
+    button: "rounded-lg h-10 w-24",
   };
 
   const sizes = {
-    sm: 'h-4 w-4',
-    md: 'h-6 w-6', 
-    lg: 'h-8 w-8',
-    xl: 'h-12 w-12',
+    sm: "h-4 w-4",
+    md: "h-6 w-6",
+    lg: "h-8 w-8",
+    xl: "h-12 w-12",
   };
 
   return (
     <div
       className={cn(
-        'animate-pulse bg-[#E9E9E7]',
+        "animate-pulse bg-[#E9E9E7]",
         variants[variant],
-        size !== 'md' && variant === 'circular' && sizes[size],
-        className
+        size !== "md" && variant === "circular" && sizes[size],
+        className,
       )}
     />
   );
@@ -47,8 +51,12 @@ export function CardSkeleton({ lines = 3 }: { lines?: number }) {
           <Skeleton variant="text" className="w-3/4" />
         </div>
         <div className="space-y-2">
-          {Array.from({ length: lines }).map((_, i) => (
-            <Skeleton key={i} variant="text" className={i === lines - 1 ? 'w-2/3' : ''} />
+          {Array.from({ length: lines }).map((_, index) => (
+            <Skeleton
+              key={index}
+              variant="text"
+              className={index === lines - 1 ? "w-2/3" : ""}
+            />
           ))}
         </div>
       </div>
@@ -74,25 +82,30 @@ export function FeatureCardSkeleton() {
 }
 
 // Button skeleton loader
-export function ButtonSkeleton({ width = 'w-24' }: { width?: string }) {
+export function ButtonSkeleton({ width = "w-24" }: { width?: string }) {
   return (
-    <div className={cn('animate-pulse bg-[#E9E9E7] rounded-lg h-10', width)} />
+    <div className={cn("animate-pulse bg-[#E9E9E7] rounded-lg h-10", width)} />
   );
 }
 
 // Progress indicator
-interface ProgressProps {
+interface ProgressProperties {
   value?: number;
   max?: number;
   className?: string;
   showLabel?: boolean;
 }
 
-export function Progress({ value = 0, max = 100, className = '', showLabel = false }: ProgressProps) {
+export function Progress({
+  value = 0,
+  max = 100,
+  className = "",
+  showLabel = false,
+}: ProgressProperties) {
   const percentage = Math.min(Math.max((value / max) * 100, 0), 100);
-  
+
   return (
-    <div className={cn('w-full space-y-2', className)}>
+    <div className={cn("w-full space-y-2", className)}>
       {showLabel && (
         <div className="flex justify-between text-sm text-[#5A5653]">
           <span>Progress</span>
@@ -100,7 +113,7 @@ export function Progress({ value = 0, max = 100, className = '', showLabel = fal
         </div>
       )}
       <div className="w-full bg-[#E9E9E7] rounded-full h-2 overflow-hidden">
-        <div 
+        <div
           className="bg-[#2D2A26] h-full rounded-full transition-all duration-300 ease-out"
           style={{ width: `${percentage}%` }}
         />
@@ -110,15 +123,21 @@ export function Progress({ value = 0, max = 100, className = '', showLabel = fal
 }
 
 // Loading spinner
-export function Spinner({ size = 'md', className = '' }: { size?: 'sm' | 'md' | 'lg'; className?: string }) {
+export function Spinner({
+  size = "md",
+  className = "",
+}: {
+  size?: "sm" | "md" | "lg";
+  className?: string;
+}) {
   const sizes = {
-    sm: 'w-4 h-4',
-    md: 'w-6 h-6',
-    lg: 'w-8 h-8',
+    sm: "w-4 h-4",
+    md: "w-6 h-6",
+    lg: "w-8 h-8",
   };
 
   return (
-    <div className={cn('animate-spin', sizes[size], className)}>
+    <div className={cn("animate-spin", sizes[size], className)}>
       <svg
         className="w-full h-full text-[#2D2A26]"
         xmlns="http://www.w3.org/2000/svg"
@@ -144,13 +163,17 @@ export function Spinner({ size = 'md', className = '' }: { size?: 'sm' | 'md' | 
 }
 
 // Loading overlay
-interface LoadingOverlayProps {
+interface LoadingOverlayProperties {
   isLoading: boolean;
   children: React.ReactNode;
   message?: string;
 }
 
-export function LoadingOverlay({ isLoading, children, message = 'Loading...' }: LoadingOverlayProps) {
+export function LoadingOverlay({
+  isLoading,
+  children,
+  message = "Loading...",
+}: LoadingOverlayProperties) {
   return (
     <div className="relative">
       {children}

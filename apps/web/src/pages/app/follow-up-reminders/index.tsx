@@ -1,9 +1,9 @@
-import React from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { Badge } from '@/components/ui/Badge';
-import { Alert, AlertDescription } from '@/components/ui/Alert';
-import { Clock, Calendar, Bell, CheckCircle } from 'lucide-react';
+import React from "react";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
+import { Badge } from "@/components/ui/Badge";
+import { Alert, AlertDescription } from "@/components/ui/Alert";
+import { Clock, Calendar, Bell, CheckCircle } from "lucide-react";
 
 const FollowUpRemindersPage: React.FC = () => {
   return (
@@ -11,7 +11,9 @@ const FollowUpRemindersPage: React.FC = () => {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold">Follow-up Reminders</h1>
-          <p className="text-gray-600">Automated follow-up reminders for job applications</p>
+          <p className="text-gray-600">
+            Automated follow-up reminders for job applications
+          </p>
         </div>
         <div className="flex space-x-2">
           <Button>
@@ -23,7 +25,8 @@ const FollowUpRemindersPage: React.FC = () => {
 
       <Alert>
         <AlertDescription>
-          Set up automated follow-up reminders to stay on top of your job applications and never miss an important deadline.
+          Set up automated follow-up reminders to stay on top of your job
+          applications and never miss an important deadline.
         </AlertDescription>
       </Alert>
 
@@ -39,7 +42,9 @@ const FollowUpRemindersPage: React.FC = () => {
                   <Clock className="h-5 w-5 text-blue-500" />
                   <div>
                     <div className="font-medium">Follow-up with Google</div>
-                    <div className="text-sm text-gray-500">Application submitted 3 days ago</div>
+                    <div className="text-sm text-gray-500">
+                      Application submitted 3 days ago
+                    </div>
                   </div>
                 </div>
                 <div className="text-right">
@@ -47,13 +52,15 @@ const FollowUpRemindersPage: React.FC = () => {
                   <Badge variant="secondary">Active</Badge>
                 </div>
               </div>
-              
+
               <div className="flex items-center justify-between p-4 border rounded-lg">
                 <div className="flex items-center space-x-3">
                   <Clock className="h-5 w-5 text-green-500" />
                   <div>
                     <div className="font-medium">Interview Preparation</div>
-                    <div className="text-sm text-gray-500">Interview scheduled for next week</div>
+                    <div className="text-sm text-gray-500">
+                      Interview scheduled for next week
+                    </div>
                   </div>
                 </div>
                 <div className="text-right">
@@ -74,17 +81,23 @@ const FollowUpRemindersPage: React.FC = () => {
               <div className="p-4 border rounded-lg">
                 <div className="font-medium">Application Follow-up</div>
                 <div className="text-sm text-gray-500 mt-1">
-                  "I wanted to follow up on my application for the [Position] role. I'm very interested in this opportunity..."
+                  "I wanted to follow up on my application for the [Position]
+                  role. I'm very interested in this opportunity..."
                 </div>
-                <Badge variant="outline" className="mt-2">Professional</Badge>
+                <Badge variant="outline" className="mt-2">
+                  Professional
+                </Badge>
               </div>
-              
+
               <div className="p-4 border rounded-lg">
                 <div className="font-medium">Interview Thank You</div>
                 <div className="text-sm text-gray-500 mt-1">
-                  "Thank you for taking the time to interview with me for the [Position] position. I enjoyed learning more about..."
+                  "Thank you for taking the time to interview with me for the
+                  [Position] position. I enjoyed learning more about..."
                 </div>
-                <Badge variant="outline" className="mt-2">Gratitude</Badge>
+                <Badge variant="outline" className="mt-2">
+                  Gratitude
+                </Badge>
               </div>
             </div>
           </CardContent>

@@ -1,11 +1,11 @@
-import React from 'react';
-import { AlertCircle, RefreshCw, Home, ArrowLeft } from 'lucide-react';
-import * as Sentry from '@sentry/react';
-import { Button } from './ui/Button';
-import { cn } from '../lib/utils';
-import { pushToast } from '../lib/toast';
+import React from "react";
+import { AlertCircle, RefreshCw, Home, ArrowLeft } from "lucide-react";
+import * as Sentry from "@sentry/react";
+import { Button } from "./ui/Button";
+import { cn } from "../lib/utils";
+import { pushToast } from "../lib/toast";
 
-interface ErrorBoundaryProps {
+interface ErrorBoundaryProperties {
   children: React.ReactNode;
   fallback?: React.ReactNode;
   onError?: (error: Error, errorInfo: React.ErrorInfo) => void;
@@ -19,9 +19,12 @@ interface ErrorBoundaryState {
   errorInfo: React.ErrorInfo | null;
 }
 
-export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  constructor(props: ErrorBoundaryProps) {
-    super(props);
+export class ErrorBoundary extends React.Component<
+  ErrorBoundaryProperties,
+  ErrorBoundaryState
+> {
+  constructor(properties: ErrorBoundaryProperties) {
+    super(properties);
     this.state = { hasError: false, error: null, errorInfo: null };
   }
 
@@ -33,15 +36,15 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
     this.setState({ error, errorInfo });
 
     // Log error to console for debugging - ALWAYS log, not just in DEV
-    console.error('[ErrorBoundary] Caught error:', error);
-    console.error('[ErrorBoundary] Error info:', errorInfo);
-    console.error('[ErrorBoundary] Stack:', error.stack);
+    console.error("[ErrorBoundary] Caught error:", error);
+    console.error("[ErrorBoundary] Error info:", errorInfo);
+    console.error("[ErrorBoundary] Stack:", error.stack);
 
     // Report error if enabled
     if (this.props.reportError && !import.meta.env.DEV) {
       this._reportError({ error, errorInfo });
     }
-    
+
     // Show user-facing toast
     if (this.props.showToast) {
       pushToast({
@@ -50,14 +53,17 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
         tone: "error",
       });
     }
-    
+
     // Call custom error handler
     if (this.props.onError) {
       this.props.onError(error, errorInfo);
     }
   }
 
-  _reportError = async (errorDetails: { error: Error; errorInfo: React.ErrorInfo }) => {
+  _reportError = async (errorDetails: {
+    error: Error;
+    errorInfo: React.ErrorInfo;
+  }) => {
     try {
       // Report to Sentry if available (H4: Frontend Error Tracking)
       Sentry.captureException(errorDetails.error, {
@@ -71,47 +77,68 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
         },
       });
       if (import.meta.env.DEV) {
-        console.log('[ErrorBoundary] Error reported to Sentry');
+        console.log("[ErrorBoundary] Error reported to Sentry");
       }
     } catch (reportingError) {
       // Fallback: log to console if Sentry fails
       if (import.meta.env.DEV) {
-        console.error('Failed to report error to Sentry:', reportingError);
-        console.error('Original error:', errorDetails);
+        console.error("Failed to report error to Sentry:", reportingError);
+        console.error("Original error:", errorDetails);
       }
     }
   };
 
   render() {
     if (this.state.hasError) {
-      return this.props.fallback || (
-        <div className="p-6 max-w-md mx-auto text-center">
-          <div className="mb-4">
-            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto">
-              <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
-              </svg>
+      return (
+        this.props.fallback || (
+          <div className="p-6 max-w-md mx-auto text-center">
+            <div className="mb-4">
+              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto">
+                <svg
+                  className="w-8 h-8 text-red-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"
+                  />
+                </svg>
+              </div>
+            </div>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-slate-100 mb-2">
+              This page failed to load
+            </h2>
+            <p className="text-gray-600 dark:text-slate-400 mb-4">
+              {this.state.error?.message ||
+                "An unexpected error occurred. Please try refreshing."}
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <button
+                onClick={() =>
+                  this.setState({
+                    hasError: false,
+                    error: null,
+                    errorInfo: null,
+                  })
+                }
+                className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-medium"
+              >
+                Try again
+              </button>
+              <a
+                href="mailto:support@jobhuntin.com?subject=Error%20Report"
+                className="px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors font-medium text-center"
+              >
+                Report issue
+              </a>
             </div>
           </div>
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-slate-100 mb-2">This page failed to load</h2>
-          <p className="text-gray-600 dark:text-slate-400 mb-4">
-            {this.state.error?.message || 'An unexpected error occurred. Please try refreshing.'}
-          </p>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <button
-              onClick={() => this.setState({ hasError: false, error: null, errorInfo: null })}
-              className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-medium"
-            >
-              Try again
-            </button>
-            <a
-              href="mailto:support@jobhuntin.com?subject=Error%20Report"
-              className="px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors font-medium text-center"
-            >
-              Report issue
-            </a>
-          </div>
-        </div>
+        )
       );
     }
 
@@ -143,25 +170,29 @@ export function useAsyncError() {
 // HOC for wrapping components with error boundaries
 export function withErrorBoundary<P extends object>(
   Component: React.ComponentType<P>,
-  errorBoundaryProps?: Partial<ErrorBoundaryProps>
+  errorBoundaryProperties?: Partial<ErrorBoundaryProperties>,
 ) {
-  return function WrappedComponent(props: P) {
+  return function WrappedComponent(properties: P) {
     return (
-      <ErrorBoundary {...errorBoundaryProps}>
-        <Component {...props} />
+      <ErrorBoundary {...errorBoundaryProperties}>
+        <Component {...properties} />
       </ErrorBoundary>
     );
   };
 }
 
 // Enhanced Error Fallback UI
-interface ErrorFallbackProps {
+interface ErrorFallbackProperties {
   error: Error | null;
   onReset?: () => void;
   className?: string;
 }
 
-export function ErrorFallback({ error, onReset, className }: ErrorFallbackProps) {
+export function ErrorFallback({
+  error,
+  onReset,
+  className,
+}: ErrorFallbackProperties) {
   const handleGoBack = () => {
     window.history.back();
   };
@@ -178,7 +209,7 @@ export function ErrorFallback({ error, onReset, className }: ErrorFallbackProps)
     <div
       className={cn(
         "min-h-screen bg-slate-50 flex items-center justify-center p-4",
-        className
+        className,
       )}
     >
       <div className="max-w-md w-full bg-white rounded-3xl shadow-xl border border-slate-200 p-8 text-center">
@@ -191,13 +222,15 @@ export function ErrorFallback({ error, onReset, className }: ErrorFallbackProps)
         </h1>
 
         <p className="text-slate-500 mb-6 leading-relaxed">
-          An unexpected error occurred. We've been notified and are looking into it.
-          Please try refreshing or going back.
+          An unexpected error occurred. We've been notified and are looking into
+          it. Please try refreshing or going back.
         </p>
 
         {error && import.meta.env.DEV && (
           <div className="mb-6 p-4 bg-slate-50 rounded-xl border border-slate-200 text-left overflow-auto">
-            <p className="text-xs font-mono text-red-600 mb-2">{error.toString()}</p>
+            <p className="text-xs font-mono text-red-600 mb-2">
+              {error.toString()}
+            </p>
             {error.stack && (
               <pre className="text-[10px] font-mono text-slate-400 whitespace-pre-wrap">
                 {error.stack}
@@ -208,10 +241,7 @@ export function ErrorFallback({ error, onReset, className }: ErrorFallbackProps)
 
         <div className="space-y-3">
           {onReset && (
-            <Button
-              onClick={onReset}
-              className="w-full h-12 rounded-xl"
-            >
+            <Button onClick={onReset} className="w-full h-12 rounded-xl">
               <RefreshCw className="w-4 h-4 mr-2" />
               Try Again
             </Button>
@@ -250,11 +280,11 @@ export function ErrorFallback({ error, onReset, className }: ErrorFallbackProps)
 }
 
 // Route-specific error boundary wrapper
-interface RouteErrorBoundaryProps {
+interface RouteErrorBoundaryProperties {
   children: React.ReactNode;
 }
 
-export function RouteErrorBoundary({ children }: RouteErrorBoundaryProps) {
+export function RouteErrorBoundary({ children }: RouteErrorBoundaryProperties) {
   return (
     <ErrorBoundary
       showToast
@@ -265,8 +295,12 @@ export function RouteErrorBoundary({ children }: RouteErrorBoundaryProps) {
             <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <AlertCircle className="w-8 h-8 text-red-500" />
             </div>
-            <h1 className="text-xl font-bold text-slate-900 mb-2">This page failed to load</h1>
-            <p className="text-slate-500 mb-4">An error occurred. Try refreshing or going back.</p>
+            <h1 className="text-xl font-bold text-slate-900 mb-2">
+              This page failed to load
+            </h1>
+            <p className="text-slate-500 mb-4">
+              An error occurred. Try refreshing or going back.
+            </p>
             <Button onClick={() => window.location.reload()}>
               Reload Page
             </Button>

@@ -1,6 +1,6 @@
 /**
  * M8: Keyboard Navigation - Comprehensive keyboard shortcuts hook
- * 
+ *
  * Provides keyboard shortcuts for common actions across the application.
  * WCAG 2.1 AA requirement for keyboard accessibility.
  */
@@ -18,14 +18,21 @@ export interface KeyboardShortcut {
   preventDefault?: boolean;
 }
 
-export function useKeyboardShortcuts(shortcuts: KeyboardShortcut[], enabled: boolean = true) {
+export function useKeyboardShortcuts(
+  shortcuts: KeyboardShortcut[],
+  enabled: boolean = true,
+) {
   const handleKeyDown = useCallback(
     (event: KeyboardEvent) => {
       if (!enabled) return;
 
       for (const shortcut of shortcuts) {
-        const keyMatch = event.key === shortcut.key || event.key.toLowerCase() === shortcut.key.toLowerCase();
-        const ctrlMatch = shortcut.ctrl ? event.ctrlKey || event.metaKey : !event.ctrlKey && !event.metaKey;
+        const keyMatch =
+          event.key === shortcut.key ||
+          event.key.toLowerCase() === shortcut.key.toLowerCase();
+        const ctrlMatch = shortcut.ctrl
+          ? event.ctrlKey || event.metaKey
+          : !event.ctrlKey && !event.metaKey;
         const shiftMatch = shortcut.shift ? event.shiftKey : !event.shiftKey;
         const altMatch = shortcut.alt ? event.altKey : !event.altKey;
 
@@ -38,7 +45,7 @@ export function useKeyboardShortcuts(shortcuts: KeyboardShortcut[], enabled: boo
         }
       }
     },
-    [shortcuts, enabled]
+    [shortcuts, enabled],
   );
 
   useEffect(() => {
@@ -56,15 +63,24 @@ export const COMMON_SHORTCUTS = {
   // Navigation
   GO_TO_DASHBOARD: { key: "d", ctrl: true, description: "Go to Dashboard" },
   GO_TO_JOBS: { key: "j", ctrl: true, description: "Go to Jobs" },
-  GO_TO_APPLICATIONS: { key: "a", ctrl: true, description: "Go to Applications" },
+  GO_TO_APPLICATIONS: {
+    key: "a",
+    ctrl: true,
+    description: "Go to Applications",
+  },
   GO_TO_SETTINGS: { key: ",", ctrl: true, description: "Go to Settings" },
-  
+
   // Actions
   NEW_APPLICATION: { key: "n", ctrl: true, description: "New Application" },
   SEARCH: { key: "k", ctrl: true, description: "Search" },
   HELP: { key: "?", shift: true, description: "Show Help" },
-  
+
   // UI
-  TOGGLE_DARK_MODE: { key: "d", ctrl: true, shift: true, description: "Toggle Dark Mode" },
+  TOGGLE_DARK_MODE: {
+    key: "d",
+    ctrl: true,
+    shift: true,
+    description: "Toggle Dark Mode",
+  },
   CLOSE_MODAL: { key: "Escape", description: "Close Modal/Dialog" },
 };

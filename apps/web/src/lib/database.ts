@@ -1,45 +1,45 @@
-import { Pool } from 'pg';
+import { Pool } from "pg";
 
 // Database connection pool configuration
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   max: 20, // Maximum number of connections in the pool
-  idleTimeoutMillis: 30000, // How long a client is allowed to remain idle before being closed
+  idleTimeoutMillis: 30_000, // How long a client is allowed to remain idle before being closed
   connectionTimeoutMillis: 2000, // How long to wait when connecting a new client
   ssl: {
-    rejectUnauthorized: true
-  }
+    rejectUnauthorized: true,
+  },
 });
 
 // Pool event listeners for monitoring
-pool.on('connect', (client) => {
-  console.log('New database connection established');
+pool.on("connect", (client) => {
+  console.log("New database connection established");
 });
 
-pool.on('acquire', (client) => {
-  console.log('Database connection acquired from pool');
+pool.on("acquire", (client) => {
+  console.log("Database connection acquired from pool");
 });
 
-pool.on('remove', (client) => {
-  console.log('Database connection removed from pool');
+pool.on("remove", (client) => {
+  console.log("Database connection removed from pool");
 });
 
-pool.on('error', (err, client) => {
-  console.error('Database pool error:', err);
+pool.on("error", (error, client) => {
+  console.error("Database pool error:", error);
 });
 
 // Query wrapper with timing and error handling
-export async function query(text: string, params?: any[]) {
+export async function query(text: string, parameters?: any[]) {
   const start = Date.now();
   try {
     const client = await pool.connect();
     try {
-      const res = await client.query(text, params);
+      const res = await client.query(text, parameters);
       const duration = Date.now() - start;
-      console.log('Database query executed', { 
-        query: text.substring(0, 100), 
-        duration: `${duration}ms`, 
-        rows: res.rowCount 
+      console.log("Database query executed", {
+        query: text.slice(0, 100),
+        duration: `${duration}ms`,
+        rows: res.rowCount,
       });
       return res;
     } finally {
@@ -47,25 +47,27 @@ export async function query(text: string, params?: any[]) {
     }
   } catch (error) {
     const duration = Date.now() - start;
-    console.error('Database query error', { 
-      query: text.substring(0, 100), 
-      duration: `${duration}ms`, 
-      error: error instanceof Error ? error.message : 'Unknown error'
+    console.error("Database query error", {
+      query: text.slice(0, 100),
+      duration: `${duration}ms`,
+      error: error instanceof Error ? error.message : "Unknown error",
     });
     throw error;
   }
 }
 
 // Transaction helper
-export async function transaction<T>(callback: (client: any) => Promise<T>): Promise<T> {
+export async function transaction<T>(
+  callback: (client: any) => Promise<T>,
+): Promise<T> {
   const client = await pool.connect();
   try {
-    await client.query('BEGIN');
+    await client.query("BEGIN");
     const result = await callback(client);
-    await client.query('COMMIT');
+    await client.query("COMMIT");
     return result;
   } catch (error) {
-    await client.query('ROLLBACK');
+    await client.query("ROLLBACK");
     throw error;
   } finally {
     client.release();
@@ -75,17 +77,17 @@ export async function transaction<T>(callback: (client: any) => Promise<T>): Pro
 // Health check function
 export async function healthCheck() {
   try {
-    const result = await query('SELECT 1 as health_check');
-    return { 
-      healthy: true, 
-      message: 'Database connection successful',
-      timestamp: new Date().toISOString()
+    const result = await query("SELECT 1 as health_check");
+    return {
+      healthy: true,
+      message: "Database connection successful",
+      timestamp: new Date().toISOString(),
     };
   } catch (error) {
-    return { 
-      healthy: false, 
-      message: error instanceof Error ? error.message : 'Unknown error',
-      timestamp: new Date().toISOString()
+    return {
+      healthy: false,
+      message: error instanceof Error ? error.message : "Unknown error",
+      timestamp: new Date().toISOString(),
     };
   }
 }
@@ -96,14 +98,14 @@ export function getPoolStats() {
     totalCount: pool.totalCount,
     idleCount: pool.idleCount,
     waitingCount: pool.waitingCount,
-    max: pool.options.max
+    max: pool.options.max,
   };
 }
 
 // Graceful shutdown
 export async function closePool() {
   await pool.end();
-  console.log('Database connection pool closed');
+  console.log("Database connection pool closed");
 }
 
 export default pool;

@@ -9,11 +9,11 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "../../components/ui/Button";
 import { Card } from "../../components/ui/Card";
 import { Badge } from "../../components/ui/Badge";
-import { 
-  Bell, 
-  BellOff, 
-  Check, 
-  X, 
+import {
+  Bell,
+  BellOff,
+  Check,
+  X,
   Filter,
   Search,
   Archive,
@@ -29,7 +29,7 @@ import {
   Info,
   Star,
   Settings,
-  RefreshCw
+  RefreshCw,
 } from "lucide-react";
 
 export default function NotificationCenterPage() {
@@ -38,10 +38,14 @@ export default function NotificationCenterPage() {
   const queryClient = useQueryClient();
 
   // State
-  const [selectedFilter, setSelectedFilter] = React.useState<"all" | "unread" | "read" | "archived">("all");
+  const [selectedFilter, setSelectedFilter] = React.useState<
+    "all" | "unread" | "read" | "archived"
+  >("all");
   const [selectedType, setSelectedType] = React.useState<string>("all");
   const [searchTerm, setSearchTerm] = React.useState("");
-  const [selectedNotifications, setSelectedNotifications] = React.useState<Set<string>>(new Set());
+  const [selectedNotifications, setSelectedNotifications] = React.useState<
+    Set<string>
+  >(new Set());
 
   // Mock notification data (would come from API)
   const mockNotifications = [
@@ -49,7 +53,8 @@ export default function NotificationCenterPage() {
       id: "1",
       type: "application_status",
       title: "Application Status Update",
-      message: "Your application for Senior Software Engineer at TechCorp has been viewed",
+      message:
+        "Your application for Senior Software Engineer at TechCorp has been viewed",
       timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
       read: false,
       archived: false,
@@ -58,14 +63,15 @@ export default function NotificationCenterPage() {
       metadata: {
         company: "TechCorp",
         job_title: "Senior Software Engineer",
-        application_id: "123"
-      }
+        application_id: "123",
+      },
     },
     {
       id: "2",
       type: "interview_scheduled",
       title: "Interview Scheduled",
-      message: "You have an interview scheduled for tomorrow at 2:00 PM with StartupXYZ",
+      message:
+        "You have an interview scheduled for tomorrow at 2:00 PM with StartupXYZ",
       timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000), // 4 hours ago
       read: false,
       archived: false,
@@ -74,14 +80,15 @@ export default function NotificationCenterPage() {
       metadata: {
         company: "StartupXYZ",
         time: "2:00 PM",
-        date: "Tomorrow"
-      }
+        date: "Tomorrow",
+      },
     },
     {
       id: "3",
       type: "job_alert",
       title: "New Job Match",
-      message: "5 new jobs match your saved search criteria for React Developer",
+      message:
+        "5 new jobs match your saved search criteria for React Developer",
       timestamp: new Date(Date.now() - 6 * 60 * 60 * 1000), // 6 hours ago
       read: true,
       archived: false,
@@ -89,37 +96,39 @@ export default function NotificationCenterPage() {
       action_url: "/jobs?search=react",
       metadata: {
         job_count: 5,
-        search_term: "React Developer"
-      }
+        search_term: "React Developer",
+      },
     },
     {
       id: "4",
       type: "career_insight",
       title: "Career Insight Available",
-      message: "Your career path analysis is ready with personalized recommendations",
+      message:
+        "Your career path analysis is ready with personalized recommendations",
       timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000), // 1 day ago
       read: true,
       archived: false,
       priority: "medium",
       action_url: "/career-path",
       metadata: {
-        analysis_type: "career_path"
-      }
+        analysis_type: "career_path",
+      },
     },
     {
       id: "5",
       type: "system_update",
       title: "System Update",
-      message: "New features have been added to improve your job search experience",
+      message:
+        "New features have been added to improve your job search experience",
       timestamp: new Date(Date.now() - 48 * 60 * 60 * 1000), // 2 days ago
       read: true,
       archived: true,
       priority: "low",
       action_url: "/whats-new",
       metadata: {
-        update_version: "2.1.0"
-      }
-    }
+        update_version: "2.1.0",
+      },
+    },
   ];
 
   // Fetch notifications (would be from API)
@@ -189,29 +198,43 @@ export default function NotificationCenterPage() {
     let filtered = notifications;
 
     // Apply status filter
-    if (selectedFilter === "unread") {
-      filtered = filtered.filter(n => !n.read);
-    } else if (selectedFilter === "read") {
-      filtered = filtered.filter(n => n.read);
-    } else if (selectedFilter === "archived") {
-      filtered = filtered.filter(n => n.archived);
+    switch (selectedFilter) {
+      case "unread": {
+        filtered = filtered.filter((n) => !n.read);
+
+        break;
+      }
+      case "read": {
+        filtered = filtered.filter((n) => n.read);
+
+        break;
+      }
+      case "archived": {
+        filtered = filtered.filter((n) => n.archived);
+
+        break;
+      }
+      // No default
     }
 
     // Apply type filter
     if (selectedType !== "all") {
-      filtered = filtered.filter(n => n.type === selectedType);
+      filtered = filtered.filter((n) => n.type === selectedType);
     }
 
     // Apply search filter
     if (searchTerm) {
       const searchLower = searchTerm.toLowerCase();
-      filtered = filtered.filter(n => 
-        n.title.toLowerCase().includes(searchLower) ||
-        n.message.toLowerCase().includes(searchLower)
+      filtered = filtered.filter(
+        (n) =>
+          n.title.toLowerCase().includes(searchLower) ||
+          n.message.toLowerCase().includes(searchLower),
       );
     }
 
-    return filtered.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+    return filtered.sort(
+      (a, b) => b.timestamp.getTime() - a.timestamp.getTime(),
+    );
   }, [notifications, selectedFilter, selectedType, searchTerm]);
 
   // Get notification type icon
@@ -257,18 +280,27 @@ export default function NotificationCenterPage() {
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
     if (diffMins < 60) {
-      return t("notificationCenter.minutesAgo", locale, { count: diffMins }) || `${diffMins} minutes ago`;
+      return (
+        t("notificationCenter.minutesAgo", locale, { count: diffMins }) ||
+        `${diffMins} minutes ago`
+      );
     } else if (diffHours < 24) {
-      return t("notificationCenter.hoursAgo", locale, { count: diffHours }) || `${diffHours} hours ago`;
+      return (
+        t("notificationCenter.hoursAgo", locale, { count: diffHours }) ||
+        `${diffHours} hours ago`
+      );
     } else {
-      return t("notificationCenter.daysAgo", locale, { count: diffDays }) || `${diffDays} days ago`;
+      return (
+        t("notificationCenter.daysAgo", locale, { count: diffDays }) ||
+        `${diffDays} days ago`
+      );
     }
   };
 
   // Handlers
   const handleSelectNotification = (id: string) => {
-    setSelectedNotifications(prev => {
-      const newSet = new Set(prev);
+    setSelectedNotifications((previous) => {
+      const newSet = new Set(previous);
       if (newSet.has(id)) {
         newSet.delete(id);
       } else {
@@ -282,27 +314,31 @@ export default function NotificationCenterPage() {
     if (selectedNotifications.size === filteredNotifications.length) {
       setSelectedNotifications(new Set());
     } else {
-      setSelectedNotifications(new Set(filteredNotifications.map(n => n.id)));
+      setSelectedNotifications(new Set(filteredNotifications.map((n) => n.id)));
     }
   };
 
   const handleMarkAsRead = () => {
     if (selectedNotifications.size > 0) {
-      markAsReadMutation.mutate(Array.from(selectedNotifications));
+      markAsReadMutation.mutate([...selectedNotifications]);
     }
   };
 
   const handleArchive = () => {
     if (selectedNotifications.size > 0) {
-      archiveMutation.mutate(Array.from(selectedNotifications));
+      archiveMutation.mutate([...selectedNotifications]);
     }
   };
 
   const handleDelete = () => {
-    if (selectedNotifications.size > 0) {
-      if (window.confirm(t("notificationCenter.confirmDelete", locale) || "Are you sure you want to delete these notifications?")) {
-        deleteMutation.mutate(Array.from(selectedNotifications));
-      }
+    if (
+      selectedNotifications.size > 0 &&
+      window.confirm(
+        t("notificationCenter.confirmDelete", locale) ||
+          "Are you sure you want to delete these notifications?",
+      )
+    ) {
+      deleteMutation.mutate([...selectedNotifications]);
     }
   };
 
@@ -321,19 +357,47 @@ export default function NotificationCenterPage() {
   };
 
   const notificationTypes = [
-    { value: "all", label: t("notificationCenter.allTypes", locale) || "All Types" },
-    { value: "application_status", label: t("notificationCenter.applicationStatus", locale) || "Application Status" },
-    { value: "interview_scheduled", label: t("notificationCenter.interviewScheduled", locale) || "Interview Scheduled" },
-    { value: "job_alert", label: t("notificationCenter.jobAlert", locale) || "Job Alerts" },
-    { value: "career_insight", label: t("notificationCenter.careerInsight", locale) || "Career Insights" },
-    { value: "system_update", label: t("notificationCenter.systemUpdate", locale) || "System Updates" },
+    {
+      value: "all",
+      label: t("notificationCenter.allTypes", locale) || "All Types",
+    },
+    {
+      value: "application_status",
+      label:
+        t("notificationCenter.applicationStatus", locale) ||
+        "Application Status",
+    },
+    {
+      value: "interview_scheduled",
+      label:
+        t("notificationCenter.interviewScheduled", locale) ||
+        "Interview Scheduled",
+    },
+    {
+      value: "job_alert",
+      label: t("notificationCenter.jobAlert", locale) || "Job Alerts",
+    },
+    {
+      value: "career_insight",
+      label: t("notificationCenter.careerInsight", locale) || "Career Insights",
+    },
+    {
+      value: "system_update",
+      label: t("notificationCenter.systemUpdate", locale) || "System Updates",
+    },
   ];
 
   const filterOptions = [
     { value: "all", label: t("notificationCenter.all", locale) || "All" },
-    { value: "unread", label: t("notificationCenter.unread", locale) || "Unread" },
+    {
+      value: "unread",
+      label: t("notificationCenter.unread", locale) || "Unread",
+    },
     { value: "read", label: t("notificationCenter.read", locale) || "Read" },
-    { value: "archived", label: t("notificationCenter.archived", locale) || "Archived" },
+    {
+      value: "archived",
+      label: t("notificationCenter.archived", locale) || "Archived",
+    },
   ];
 
   if (isLoading) {
@@ -352,9 +416,12 @@ export default function NotificationCenterPage() {
         <Card className="p-6 text-center">
           <Bell className="w-12 h-12 mx-auto text-red-500 mb-4" />
           <h2 className="text-xl font-semibold text-red-600 mb-2">
-            {t("notificationCenter.errorLoading", locale) || "Error Loading Notifications"}
+            {t("notificationCenter.errorLoading", locale) ||
+              "Error Loading Notifications"}
           </h2>
-          <p className="text-slate-600">{error instanceof Error ? error.message : String(error)}</p>
+          <p className="text-slate-600">
+            {error instanceof Error ? error.message : String(error)}
+          </p>
           <Button onClick={() => refetchNotifications()}>
             {t("common.retry", locale) || "Retry"}
           </Button>
@@ -372,7 +439,8 @@ export default function NotificationCenterPage() {
             {t("notificationCenter.title", locale) || "Notification Center"}
           </h1>
           <p className="text-slate-500 font-medium">
-            {t("notificationCenter.description", locale) || "Manage your notifications and stay updated on your job search progress"}
+            {t("notificationCenter.description", locale) ||
+              "Manage your notifications and stay updated on your job search progress"}
           </p>
         </div>
         <div className="flex gap-2">
@@ -399,7 +467,10 @@ export default function NotificationCenterPage() {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
             <input
               type="text"
-              placeholder={t("notificationCenter.searchPlaceholder", locale) || "Search notifications..."}
+              placeholder={
+                t("notificationCenter.searchPlaceholder", locale) ||
+                "Search notifications..."
+              }
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
@@ -412,7 +483,7 @@ export default function NotificationCenterPage() {
             onChange={(e) => setSelectedFilter(e.target.value as any)}
             className="px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
           >
-            {filterOptions.map(option => (
+            {filterOptions.map((option) => (
               <option key={option.value} value={option.value}>
                 {option.label}
               </option>
@@ -425,7 +496,7 @@ export default function NotificationCenterPage() {
             onChange={(e) => setSelectedType(e.target.value)}
             className="px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
           >
-            {notificationTypes.map(type => (
+            {notificationTypes.map((type) => (
               <option key={type.value} value={type.value}>
                 {type.label}
               </option>
@@ -440,7 +511,8 @@ export default function NotificationCenterPage() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium text-blue-900">
-                {selectedNotifications.size} {t("notificationCenter.selected", locale) || "selected"}
+                {selectedNotifications.size}{" "}
+                {t("notificationCenter.selected", locale) || "selected"}
               </span>
             </div>
             <div className="flex gap-2">
@@ -482,10 +554,12 @@ export default function NotificationCenterPage() {
           <Card className="p-8 text-center">
             <BellOff className="w-12 h-12 mx-auto text-slate-300 mb-4" />
             <h3 className="text-xl font-semibold text-slate-900 mb-2">
-              {t("notificationCenter.noNotifications", locale) || "No Notifications"}
+              {t("notificationCenter.noNotifications", locale) ||
+                "No Notifications"}
             </h3>
             <p className="text-slate-600">
-              {t("notificationCenter.noNotificationsDescription", locale) || "You're all caught up! No notifications to display."}
+              {t("notificationCenter.noNotificationsDescription", locale) ||
+                "You're all caught up! No notifications to display."}
             </p>
           </Card>
         ) : (
@@ -494,7 +568,9 @@ export default function NotificationCenterPage() {
             <div className="flex items-center p-3 bg-slate-50 rounded-lg">
               <input
                 type="checkbox"
-                checked={selectedNotifications.size === filteredNotifications.length}
+                checked={
+                  selectedNotifications.size === filteredNotifications.length
+                }
                 onChange={handleSelectAll}
                 className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-slate-300 rounded"
               />
@@ -508,7 +584,7 @@ export default function NotificationCenterPage() {
               <Card
                 key={notification.id}
                 className={`p-4 cursor-pointer transition-all hover:shadow-md ${
-                  !notification.read ? "bg-blue-50 border-blue-200" : ""
+                  notification.read ? "" : "bg-blue-50 border-blue-200"
                 } ${selectedNotifications.has(notification.id) ? "ring-2 ring-primary-500" : ""}`}
                 onClick={() => handleNotificationClick(notification)}
               >
@@ -523,7 +599,9 @@ export default function NotificationCenterPage() {
                   />
 
                   {/* Icon */}
-                  <div className={`p-2 rounded-full ${getNotificationColor(notification.type)}`}>
+                  <div
+                    className={`p-2 rounded-full ${getNotificationColor(notification.type)}`}
+                  >
                     {getNotificationIcon(notification.type)}
                   </div>
 
@@ -537,7 +615,10 @@ export default function NotificationCenterPage() {
                         <p className="text-slate-600">{notification.message}</p>
                       </div>
                       <div className="flex items-center gap-2 ml-4">
-                        <Badge variant="outline" className={getPriorityColor(notification.priority)}>
+                        <Badge
+                          variant="outline"
+                          className={getPriorityColor(notification.priority)}
+                        >
                           {notification.priority}
                         </Badge>
                         {!notification.read && (
@@ -562,7 +643,8 @@ export default function NotificationCenterPage() {
                       </div>
                       {notification.action_url && (
                         <span className="text-primary-600 hover:text-primary-700">
-                          {t("notificationCenter.viewDetails", locale) || "View Details"}
+                          {t("notificationCenter.viewDetails", locale) ||
+                            "View Details"}
                         </span>
                       )}
                     </div>
@@ -578,7 +660,8 @@ export default function NotificationCenterPage() {
       <Card className="p-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-semibold text-slate-900">
-            {t("notificationCenter.settings", locale) || "Notification Settings"}
+            {t("notificationCenter.settings", locale) ||
+              "Notification Settings"}
           </h2>
           <Button variant="outline">
             <Settings className="w-4 h-4 mr-2" />
@@ -589,10 +672,12 @@ export default function NotificationCenterPage() {
           <div className="flex items-center justify-between p-3 border border-slate-200 rounded-lg">
             <div>
               <h4 className="font-medium text-slate-900">
-                {t("notificationCenter.emailNotifications", locale) || "Email Notifications"}
+                {t("notificationCenter.emailNotifications", locale) ||
+                  "Email Notifications"}
               </h4>
               <p className="text-sm text-slate-600">
-                {t("notificationCenter.emailDescription", locale) || "Receive notifications via email"}
+                {t("notificationCenter.emailDescription", locale) ||
+                  "Receive notifications via email"}
               </p>
             </div>
             <input
@@ -604,10 +689,12 @@ export default function NotificationCenterPage() {
           <div className="flex items-center justify-between p-3 border border-slate-200 rounded-lg">
             <div>
               <h4 className="font-medium text-slate-900">
-                {t("notificationCenter.pushNotifications", locale) || "Push Notifications"}
+                {t("notificationCenter.pushNotifications", locale) ||
+                  "Push Notifications"}
               </h4>
               <p className="text-sm text-slate-600">
-                {t("notificationCenter.pushDescription", locale) || "Receive browser push notifications"}
+                {t("notificationCenter.pushDescription", locale) ||
+                  "Receive browser push notifications"}
               </p>
             </div>
             <input

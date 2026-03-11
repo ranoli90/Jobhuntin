@@ -1,20 +1,20 @@
-import React from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { Badge } from '@/components/ui/Badge';
-import { Alert, AlertDescription } from '@/components/ui/Alert';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs';
-import { 
-  Camera, 
-  Search, 
-  Settings, 
-  BarChart3, 
+import React from "react";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
+import { Badge } from "@/components/ui/Badge";
+import { Alert, AlertDescription } from "@/components/ui/Alert";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/Tabs";
+import {
+  Camera,
+  Search,
+  Settings,
+  BarChart3,
   FileText,
   Monitor,
   Users,
   AlertTriangle,
-  CheckCircle
-} from 'lucide-react';
+  CheckCircle,
+} from "lucide-react";
 
 const AgentImprovementsPage: React.FC = () => {
   return (
@@ -22,7 +22,9 @@ const AgentImprovementsPage: React.FC = () => {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold">Agent Improvements</h1>
-          <p className="text-gray-600">Enhanced automation capabilities and monitoring</p>
+          <p className="text-gray-600">
+            Enhanced automation capabilities and monitoring
+          </p>
         </div>
         <div className="flex space-x-2">
           <Button variant="outline">
@@ -36,14 +38,18 @@ const AgentImprovementsPage: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Button Detection</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Button Detection
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center space-x-2">
               <Camera className="h-8 w-8 text-blue-500" />
               <div>
                 <div className="text-2xl font-bold">4 Strategies</div>
-                <p className="text-sm text-gray-500">Text, Attributes, Visual, ML</p>
+                <p className="text-sm text-gray-500">
+                  Text, Attributes, Visual, ML
+                </p>
               </div>
             </div>
           </CardContent>
@@ -51,7 +57,9 @@ const AgentImprovementsPage: React.FC = () => {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Form Detection</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Form Detection
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center space-x-2">
@@ -66,7 +74,9 @@ const AgentImprovementsPage: React.FC = () => {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Concurrent Usage</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Concurrent Usage
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center space-x-2">
@@ -81,7 +91,9 @@ const AgentImprovementsPage: React.FC = () => {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">DLQ Management</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              DLQ Management
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center space-x-2">
@@ -112,7 +124,8 @@ const AgentImprovementsPage: React.FC = () => {
           <Alert>
             <CheckCircle className="h-4 w-4" />
             <AlertDescription>
-              All agent improvements are fully integrated and operational. Enhanced detection algorithms and monitoring systems are active.
+              All agent improvements are fully integrated and operational.
+              Enhanced detection algorithms and monitoring systems are active.
             </AlertDescription>
           </Alert>
 
@@ -184,15 +197,28 @@ const AgentImprovementsPage: React.FC = () => {
                     <li>• Text-based detection using pattern matching</li>
                     <li>• Attribute-based detection using HTML properties</li>
                     <li>• Visual detection using computer vision</li>
-                    <li>• Machine learning detection with confidence scoring</li>
+                    <li>
+                      • Machine learning detection with confidence scoring
+                    </li>
                   </ul>
                 </div>
-                
+
                 <div>
                   <h4 className="font-medium">Supported Button Types</h4>
                   <div className="mt-2 flex flex-wrap gap-2">
-                    {['submit', 'apply', 'next', 'continue', 'save', 'cancel', 'upload', 'download'].map(type => (
-                      <Badge key={type} variant="outline">{type}</Badge>
+                    {[
+                      "submit",
+                      "apply",
+                      "next",
+                      "continue",
+                      "save",
+                      "cancel",
+                      "upload",
+                      "download",
+                    ].map((type) => (
+                      <Badge key={type} variant="outline">
+                        {type}
+                      </Badge>
                     ))}
                   </div>
                 </div>
@@ -222,12 +248,23 @@ const AgentImprovementsPage: React.FC = () => {
                     <li>• Validation rule extraction</li>
                   </ul>
                 </div>
-                
+
                 <div>
                   <h4 className="font-medium">Field Types Supported</h4>
                   <div className="mt-2 flex flex-wrap gap-2">
-                    {['text', 'email', 'password', 'file', 'select', 'checkbox', 'radio', 'textarea'].map(type => (
-                      <Badge key={type} variant="outline">{type}</Badge>
+                    {[
+                      "text",
+                      "email",
+                      "password",
+                      "file",
+                      "select",
+                      "checkbox",
+                      "radio",
+                      "textarea",
+                    ].map((type) => (
+                      <Badge key={type} variant="outline">
+                        {type}
+                      </Badge>
                     ))}
                   </div>
                 </div>
@@ -251,12 +288,23 @@ const AgentImprovementsPage: React.FC = () => {
                 <div>
                   <h4 className="font-medium">Supported Providers</h4>
                   <div className="mt-2 grid grid-cols-2 md:grid-cols-3 gap-2">
-                    {['Google', 'LinkedIn', 'Microsoft', 'GitHub', 'Facebook', 'Twitter', 'Salesforce', 'Workday'].map(provider => (
-                      <Badge key={provider} variant="outline">{provider}</Badge>
+                    {[
+                      "Google",
+                      "LinkedIn",
+                      "Microsoft",
+                      "GitHub",
+                      "Facebook",
+                      "Twitter",
+                      "Salesforce",
+                      "Workday",
+                    ].map((provider) => (
+                      <Badge key={provider} variant="outline">
+                        {provider}
+                      </Badge>
                     ))}
                   </div>
                 </div>
-                
+
                 <div>
                   <h4 className="font-medium">Features</h4>
                   <ul className="mt-2 space-y-1 text-sm text-gray-600">
@@ -293,7 +341,7 @@ const AgentImprovementsPage: React.FC = () => {
                     <li>• Error detection and logging</li>
                   </ul>
                 </div>
-                
+
                 <div>
                   <h4 className="font-medium">Recent Captures</h4>
                   <div className="mt-2 text-sm text-gray-500">
@@ -405,8 +453,20 @@ const AgentImprovementsPage: React.FC = () => {
                 <div>
                   <h4 className="font-medium">Supported Formats</h4>
                   <div className="mt-2 grid grid-cols-3 md:grid-cols-6 gap-2">
-                    {['PDF', 'DOCX', 'DOC', 'TXT', 'RTF', 'PNG', 'JPEG', 'TIFF', 'BMP'].map(format => (
-                      <Badge key={format} variant="outline">{format}</Badge>
+                    {[
+                      "PDF",
+                      "DOCX",
+                      "DOC",
+                      "TXT",
+                      "RTF",
+                      "PNG",
+                      "JPEG",
+                      "TIFF",
+                      "BMP",
+                    ].map((format) => (
+                      <Badge key={format} variant="outline">
+                        {format}
+                      </Badge>
                     ))}
                   </div>
                 </div>

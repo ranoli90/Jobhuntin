@@ -1,8 +1,8 @@
 // Telemetry tracking utility - respects cookie consent (must match CookieConsent.tsx)
-const CONSENT_KEY = 'jobhuntin-cookie-consent-v2';
+const CONSENT_KEY = "jobhuntin-cookie-consent-v2";
 
 function hasAnalyticsConsent(): boolean {
-  if (typeof window === 'undefined') return false;
+  if (typeof window === "undefined") return false;
   try {
     const consent = localStorage.getItem(CONSENT_KEY);
     if (!consent) return false;
@@ -25,11 +25,11 @@ export const telemetry = {
     if (!hasAnalyticsConsent()) return;
 
     try {
-      if (typeof window !== 'undefined' && (window as any).gtag) {
-        (window as any).gtag('event', event, properties);
+      if (typeof window !== "undefined" && (window as any).gtag) {
+        (window as any).gtag("event", event, properties);
       }
     } catch (error) {
-      console.warn('Telemetry tracking failed:', error);
+      console.warn("Telemetry tracking failed:", error);
     }
-  }
+  },
 };

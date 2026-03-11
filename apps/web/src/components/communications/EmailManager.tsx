@@ -1,29 +1,35 @@
-import React, { useState, useEffect } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { Badge } from '@/components/ui/Badge';
-import { Alert, AlertDescription } from '@/components/ui/Alert';
-import { Input } from '@/components/ui/Input';
-import { Label } from '@/components/ui/Label';
-import { Textarea } from '@/components/ui/Textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/Select';
-import { Switch } from '@/components/ui/Switch';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs';
-import { 
-  Mail, 
-  Send, 
-  Clock, 
-  CheckCircle, 
-  AlertTriangle, 
-  Settings, 
+import React, { useState, useEffect } from "react";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
+import { Badge } from "@/components/ui/Badge";
+import { Alert, AlertDescription } from "@/components/ui/Alert";
+import { Input } from "@/components/ui/Input";
+import { Label } from "@/components/ui/Label";
+import { Textarea } from "@/components/ui/Textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/Select";
+import { Switch } from "@/components/ui/Switch";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/Tabs";
+import {
+  Mail,
+  Send,
+  Clock,
+  CheckCircle,
+  AlertTriangle,
+  Settings,
   RefreshCw,
   Eye,
   EyeOff,
   Filter,
   Search,
   Download,
-  Trash2
-} from 'lucide-react';
+  Trash2,
+} from "lucide-react";
 
 interface EmailCommunication {
   id: string;
@@ -63,18 +69,18 @@ const EmailManager: React.FC = () => {
   const [templates, setTemplates] = useState<EmailTemplate[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [showCompose, setShowCompose] = useState(false);
   const [showPreferences, setShowPreferences] = useState(false);
   const [autoRefresh, setAutoRefresh] = useState(true);
 
   // Compose form state
   const [composeForm, setComposeForm] = useState({
-    to_email: '',
-    subject: '',
-    body: '',
-    category: 'general',
-    template_id: '',
+    to_email: "",
+    subject: "",
+    body: "",
+    category: "general",
+    template_id: "",
     variables: {} as Record<string, string>,
   });
 
@@ -84,37 +90,39 @@ const EmailManager: React.FC = () => {
     categories: {} as Record<string, boolean>,
     frequency_limits: {} as Record<string, number>,
     quiet_hours_enabled: false,
-    quiet_hours_start: '',
-    quiet_hours_end: '',
+    quiet_hours_start: "",
+    quiet_hours_end: "",
   });
 
   useEffect(() => {
     fetchEmails();
     fetchPreferences();
     fetchTemplates();
-    
+
     if (autoRefresh) {
       const interval = setInterval(() => {
         fetchEmails();
-      }, 30000);
-      
+      }, 30_000);
+
       return () => clearInterval(interval);
     }
   }, [autoRefresh, selectedCategory]);
 
   const fetchEmails = async () => {
     try {
-      const response = await fetch('/api/communications/email/history', {
+      const response = await fetch("/api/communications/email/history", {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
       });
 
-      if (!response.ok) throw new Error('Failed to fetch emails');
+      if (!response.ok) throw new Error("Failed to fetch emails");
       const data = await response.json();
       setEmails(data.emails || []);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch emails');
+    } catch (error_) {
+      setError(
+        error_ instanceof Error ? error_.message : "Failed to fetch emails",
+      );
     } finally {
       setLoading(false);
     }
@@ -122,13 +130,13 @@ const EmailManager: React.FC = () => {
 
   const fetchPreferences = async () => {
     try {
-      const response = await fetch('/api/communications/email/preferences', {
+      const response = await fetch("/api/communications/email/preferences", {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
       });
 
-      if (!response.ok) throw new Error('Failed to fetch preferences');
+      if (!response.ok) throw new Error("Failed to fetch preferences");
       const data = await response.json();
       setPreferences(data);
       setPreferencesForm({
@@ -136,82 +144,94 @@ const EmailManager: React.FC = () => {
         categories: data.categories,
         frequency_limits: data.frequency_limits,
         quiet_hours_enabled: data.quiet_hours_enabled,
-        quiet_hours_start: data.quiet_hours_start || '',
-        quiet_hours_end: data.quiet_hours_end || '',
+        quiet_hours_start: data.quiet_hours_start || "",
+        quiet_hours_end: data.quiet_hours_end || "",
       });
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch preferences');
+    } catch (error_) {
+      setError(
+        error_ instanceof Error
+          ? error_.message
+          : "Failed to fetch preferences",
+      );
     }
   };
 
   const fetchTemplates = async () => {
     try {
-      const response = await fetch('/api/communications/email/templates', {
+      const response = await fetch("/api/communications/email/templates", {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
       });
 
-      if (!response.ok) throw new Error('Failed to fetch templates');
+      if (!response.ok) throw new Error("Failed to fetch templates");
       const data = await response.json();
       setTemplates(data.templates || []);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch templates');
+    } catch (error_) {
+      setError(
+        error_ instanceof Error ? error_.message : "Failed to fetch templates",
+      );
     }
   };
 
   const handleSendEmail = async () => {
     try {
-      const response = await fetch('/api/communications/email/send', {
-        method: 'POST',
+      const response = await fetch("/api/communications/email/send", {
+        method: "POST",
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(composeForm),
       });
 
-      if (!response.ok) throw new Error('Failed to send email');
-      
+      if (!response.ok) throw new Error("Failed to send email");
+
       await fetchEmails();
       setShowCompose(false);
       setComposeForm({
-        to_email: '',
-        subject: '',
-        body: '',
-        category: 'general',
-        template_id: '',
+        to_email: "",
+        subject: "",
+        body: "",
+        category: "general",
+        template_id: "",
         variables: {},
       });
       setError(null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to send email');
+    } catch (error_) {
+      setError(
+        error_ instanceof Error ? error_.message : "Failed to send email",
+      );
     }
   };
 
   const handleUpdatePreferences = async () => {
     try {
-      const response = await fetch('/api/communications/email/preferences', {
-        method: 'PUT',
+      const response = await fetch("/api/communications/email/preferences", {
+        method: "PUT",
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(preferencesForm),
       });
 
-      if (!response.ok) throw new Error('Failed to update preferences');
-      
+      if (!response.ok) throw new Error("Failed to update preferences");
+
       await fetchPreferences();
       setShowPreferences(false);
       setError(null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update preferences');
+    } catch (error_) {
+      setError(
+        error_ instanceof Error
+          ? error_.message
+          : "Failed to update preferences",
+      );
     }
   };
 
   const handleTemplateSelect = (templateId: string) => {
-    const template = templates.find(t => t.id === templateId);
+    const template = templates.find((t) => t.id === templateId);
     if (template) {
       setComposeForm({
         ...composeForm,
@@ -225,12 +245,12 @@ const EmailManager: React.FC = () => {
 
   const getStatusColor = (status: string) => {
     const colors = {
-      sent: 'bg-green-100 text-green-800',
-      pending: 'bg-yellow-100 text-yellow-800',
-      failed: 'bg-red-100 text-red-800',
-      bounced: 'bg-gray-100 text-gray-800',
+      sent: "bg-green-100 text-green-800",
+      pending: "bg-yellow-100 text-yellow-800",
+      failed: "bg-red-100 text-red-800",
+      bounced: "bg-gray-100 text-gray-800",
     };
-    return colors[status as keyof typeof colors] || 'bg-gray-100 text-gray-800';
+    return colors[status as keyof typeof colors] || "bg-gray-100 text-gray-800";
   };
 
   const getStatusIcon = (status: string) => {
@@ -248,23 +268,28 @@ const EmailManager: React.FC = () => {
     const now = new Date();
     const diffMs = now.getTime() - date.getTime();
     const diffSeconds = Math.floor(diffMs / 1000);
-    
-    if (diffSeconds < 60) return 'Just now';
-    if (diffSeconds < 3600) return `${Math.floor(diffSeconds / 60)} minutes ago`;
-    if (diffSeconds < 86400) return `${Math.floor(diffSeconds / 3600)} hours ago`;
-    return `${Math.floor(diffSeconds / 86400)} days ago`;
+
+    if (diffSeconds < 60) return "Just now";
+    if (diffSeconds < 3600)
+      return `${Math.floor(diffSeconds / 60)} minutes ago`;
+    if (diffSeconds < 86_400)
+      return `${Math.floor(diffSeconds / 3600)} hours ago`;
+    return `${Math.floor(diffSeconds / 86_400)} days ago`;
   };
 
-  const filteredEmails = selectedCategory === 'all' 
-    ? emails 
-    : emails.filter(email => email.category === selectedCategory);
+  const filteredEmails =
+    selectedCategory === "all"
+      ? emails
+      : emails.filter((email) => email.category === selectedCategory);
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold">Email Manager</h1>
-          <p className="text-gray-600">Manage email communications and preferences</p>
+          <p className="text-gray-600">
+            Manage email communications and preferences
+          </p>
         </div>
         <div className="flex space-x-2">
           <Button onClick={() => setShowCompose(true)}>
@@ -280,8 +305,10 @@ const EmailManager: React.FC = () => {
             size="sm"
             onClick={() => setAutoRefresh(!autoRefresh)}
           >
-            <RefreshCw className={`h-4 w-4 mr-2 ${autoRefresh ? 'animate-spin' : ''}`} />
-            {autoRefresh ? 'Auto-refresh' : 'Manual refresh'}
+            <RefreshCw
+              className={`h-4 w-4 mr-2 ${autoRefresh ? "animate-spin" : ""}`}
+            />
+            {autoRefresh ? "Auto-refresh" : "Manual refresh"}
           </Button>
         </div>
       </div>
@@ -308,13 +335,18 @@ const EmailManager: React.FC = () => {
                   type="email"
                   placeholder="recipient@example.com"
                   value={composeForm.to_email}
-                  onChange={(e) => setComposeForm({ ...composeForm, to_email: e.target.value })}
+                  onChange={(e) =>
+                    setComposeForm({ ...composeForm, to_email: e.target.value })
+                  }
                 />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="template">Template (Optional)</Label>
-                <Select value={composeForm.template_id} onValueChange={handleTemplateSelect}>
+                <Select
+                  value={composeForm.template_id}
+                  onValueChange={handleTemplateSelect}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select a template" />
                   </SelectTrigger>
@@ -334,7 +366,9 @@ const EmailManager: React.FC = () => {
                   id="subject"
                   placeholder="Email subject"
                   value={composeForm.subject}
-                  onChange={(e) => setComposeForm({ ...composeForm, subject: e.target.value })}
+                  onChange={(e) =>
+                    setComposeForm({ ...composeForm, subject: e.target.value })
+                  }
                 />
               </div>
 
@@ -345,19 +379,28 @@ const EmailManager: React.FC = () => {
                   placeholder="Email body (HTML supported)"
                   rows={8}
                   value={composeForm.body}
-                  onChange={(e) => setComposeForm({ ...composeForm, body: e.target.value })}
+                  onChange={(e) =>
+                    setComposeForm({ ...composeForm, body: e.target.value })
+                  }
                 />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="category">Category</Label>
-                <Select value={composeForm.category} onValueChange={(value) => setComposeForm({ ...composeForm, category: value })}>
+                <Select
+                  value={composeForm.category}
+                  onValueChange={(value) =>
+                    setComposeForm({ ...composeForm, category: value })
+                  }
+                >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="general">General</SelectItem>
-                    <SelectItem value="application_status">Application Status</SelectItem>
+                    <SelectItem value="application_status">
+                      Application Status
+                    </SelectItem>
                     <SelectItem value="job_matches">Job Matches</SelectItem>
                     <SelectItem value="security">Security</SelectItem>
                     <SelectItem value="marketing">Marketing</SelectItem>
@@ -368,7 +411,14 @@ const EmailManager: React.FC = () => {
               </div>
 
               <div className="flex space-x-2">
-                <Button onClick={handleSendEmail} disabled={!composeForm.to_email || !composeForm.subject || !composeForm.body}>
+                <Button
+                  onClick={handleSendEmail}
+                  disabled={
+                    !composeForm.to_email ||
+                    !composeForm.subject ||
+                    !composeForm.body
+                  }
+                >
                   <Send className="h-4 w-4 mr-2" />
                   Send Email
                 </Button>
@@ -393,34 +443,49 @@ const EmailManager: React.FC = () => {
                 <Switch
                   id="email-enabled"
                   checked={preferencesForm.email_enabled}
-                  onCheckedChange={(checked) => setPreferencesForm({ ...preferencesForm, email_enabled: checked })}
+                  onCheckedChange={(checked) =>
+                    setPreferencesForm({
+                      ...preferencesForm,
+                      email_enabled: checked,
+                    })
+                  }
                 />
-                <Label htmlFor="email-enabled">Enable Email Communications</Label>
+                <Label htmlFor="email-enabled">
+                  Enable Email Communications
+                </Label>
               </div>
 
               <div className="space-y-4">
                 <h4 className="font-medium">Category Preferences</h4>
                 <div className="space-y-2">
-                  {Object.entries(preferencesForm.categories).map(([category, enabled]) => (
-                    <div key={category} className="flex items-center space-x-2">
-                      <Switch
-                        id={`category-${category}`}
-                        checked={enabled}
-                        onCheckedChange={(checked) => {
-                          setPreferencesForm({
-                            ...preferencesForm,
-                            categories: {
-                              ...preferencesForm.categories,
-                              [category]: checked,
-                            },
-                          });
-                        }}
-                      />
-                      <Label htmlFor={`category-${category}`} className="capitalize">
-                        {category.replace('_', ' ')}
-                      </Label>
-                    </div>
-                  ))}
+                  {Object.entries(preferencesForm.categories).map(
+                    ([category, enabled]) => (
+                      <div
+                        key={category}
+                        className="flex items-center space-x-2"
+                      >
+                        <Switch
+                          id={`category-${category}`}
+                          checked={enabled}
+                          onCheckedChange={(checked) => {
+                            setPreferencesForm({
+                              ...preferencesForm,
+                              categories: {
+                                ...preferencesForm.categories,
+                                [category]: checked,
+                              },
+                            });
+                          }}
+                        />
+                        <Label
+                          htmlFor={`category-${category}`}
+                          className="capitalize"
+                        >
+                          {category.replace("_", " ")}
+                        </Label>
+                      </div>
+                    ),
+                  )}
                 </div>
               </div>
 
@@ -430,11 +495,18 @@ const EmailManager: React.FC = () => {
                   <Switch
                     id="quiet-hours-enabled"
                     checked={preferencesForm.quiet_hours_enabled}
-                    onCheckedChange={(checked) => setPreferencesForm({ ...preferencesForm, quiet_hours_enabled: checked })}
+                    onCheckedChange={(checked) =>
+                      setPreferencesForm({
+                        ...preferencesForm,
+                        quiet_hours_enabled: checked,
+                      })
+                    }
                   />
-                  <Label htmlFor="quiet-hours-enabled">Enable Quiet Hours</Label>
+                  <Label htmlFor="quiet-hours-enabled">
+                    Enable Quiet Hours
+                  </Label>
                 </div>
-                
+
                 {preferencesForm.quiet_hours_enabled && (
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
@@ -443,7 +515,12 @@ const EmailManager: React.FC = () => {
                         id="quiet-hours-start"
                         type="time"
                         value={preferencesForm.quiet_hours_start}
-                        onChange={(e) => setPreferencesForm({ ...preferencesForm, quiet_hours_start: e.target.value })}
+                        onChange={(e) =>
+                          setPreferencesForm({
+                            ...preferencesForm,
+                            quiet_hours_start: e.target.value,
+                          })
+                        }
                       />
                     </div>
                     <div className="space-y-2">
@@ -452,7 +529,12 @@ const EmailManager: React.FC = () => {
                         id="quiet-hours-end"
                         type="time"
                         value={preferencesForm.quiet_hours_end}
-                        onChange={(e) => setPreferencesForm({ ...preferencesForm, quiet_hours_end: e.target.value })}
+                        onChange={(e) =>
+                          setPreferencesForm({
+                            ...preferencesForm,
+                            quiet_hours_end: e.target.value,
+                          })
+                        }
                       />
                     </div>
                   </div>
@@ -464,7 +546,10 @@ const EmailManager: React.FC = () => {
                   <Settings className="h-4 w-4 mr-2" />
                   Update Preferences
                 </Button>
-                <Button variant="outline" onClick={() => setShowPreferences(false)}>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowPreferences(false)}
+                >
                   Cancel
                 </Button>
               </div>
@@ -481,20 +566,27 @@ const EmailManager: React.FC = () => {
         <CardContent>
           <div className="flex flex-wrap gap-2 mb-4">
             <Button
-              variant={selectedCategory === 'all' ? 'default' : 'outline'}
+              variant={selectedCategory === "all" ? "default" : "outline"}
               size="sm"
-              onClick={() => setSelectedCategory('all')}
+              onClick={() => setSelectedCategory("all")}
             >
               All Categories
             </Button>
-            {['application_status', 'job_matches', 'security', 'marketing', 'usage_limits', 'reminders'].map((category) => (
+            {[
+              "application_status",
+              "job_matches",
+              "security",
+              "marketing",
+              "usage_limits",
+              "reminders",
+            ].map((category) => (
               <Button
                 key={category}
-                variant={selectedCategory === category ? 'default' : 'outline'}
+                variant={selectedCategory === category ? "default" : "outline"}
                 size="sm"
                 onClick={() => setSelectedCategory(category)}
               >
-                {category.replace('_', ' ')}
+                {category.replace("_", " ")}
               </Button>
             ))}
           </div>
@@ -522,7 +614,9 @@ const EmailManager: React.FC = () => {
                   </div>
                   <div className="flex items-center space-x-2">
                     <div className="text-sm text-gray-500">
-                      {email.sent_at ? formatTimeAgo(email.sent_at) : formatTimeAgo(email.created_at)}
+                      {email.sent_at
+                        ? formatTimeAgo(email.sent_at)
+                        : formatTimeAgo(email.created_at)}
                     </div>
                     {email.error_message && (
                       <div className="text-xs text-red-600 max-w-xs truncate">
@@ -539,10 +633,9 @@ const EmailManager: React.FC = () => {
             <div className="text-center py-8">
               <Mail className="h-12 w-12 text-gray-400 mx-auto mb-4" />
               <p className="text-gray-500">
-                {selectedCategory === 'all' 
-                  ? 'No emails sent yet' 
-                  : `No ${selectedCategory} emails sent yet`
-                }
+                {selectedCategory === "all"
+                  ? "No emails sent yet"
+                  : `No ${selectedCategory} emails sent yet`}
               </p>
               <p className="text-sm text-gray-400 mt-2">
                 Click "Compose" to send your first email

@@ -7,33 +7,51 @@ export const sharedLocale = getLocale();
 export const sharedRtl = isRTLLanguage(sharedLocale);
 
 // N-10: Centralised status → Badge variant mapping
-export function statusVariant(status: string): 'success' | 'warning' | 'error' | 'default' {
+export function statusVariant(
+  status: string,
+): "success" | "warning" | "error" | "default" {
   switch (status) {
-    case 'APPLIED': return 'success';
-    case 'HOLD': return 'warning';
-    case 'FAILED':
-    case 'REJECTED': return 'error';
-    default: return 'default';
+    case "APPLIED": {
+      return "success";
+    }
+    case "HOLD": {
+      return "warning";
+    }
+    case "FAILED":
+    case "REJECTED": {
+      return "error";
+    }
+    default: {
+      return "default";
+    }
   }
 }
 
 // M-12: Page size for ApplicationsView pagination
 export const APPLICATIONS_PAGE_SIZE = 20;
 
-export const AnimatedNumber = ({ value, duration = 1000, shouldReduceMotion = false }: { value: number | string; duration?: number; shouldReduceMotion?: boolean }) => {
+export const AnimatedNumber = ({
+  value,
+  duration = 1000,
+  shouldReduceMotion = false,
+}: {
+  value: number | string;
+  duration?: number;
+  shouldReduceMotion?: boolean;
+}) => {
   const [displayValue, setDisplayValue] = useState(0);
-  const prevValueRef = useRef(0);
+  const previousValueReference = useRef(0);
 
   useEffect(() => {
-    const numValue = Number(value);
-    if (isNaN(numValue) || numValue < 0) {
-      setDisplayValue(numValue || 0);
+    const numberValue = Number(value);
+    if (isNaN(numberValue) || numberValue < 0) {
+      setDisplayValue(numberValue || 0);
       return;
     }
 
-    const start = prevValueRef.current;
-    const end = numValue;
-    prevValueRef.current = end;
+    const start = previousValueReference.current;
+    const end = numberValue;
+    previousValueReference.current = end;
 
     if (start === end || shouldReduceMotion) {
       setDisplayValue(end);
@@ -57,5 +75,5 @@ export const AnimatedNumber = ({ value, duration = 1000, shouldReduceMotion = fa
     return () => cancelAnimationFrame(rafId);
   }, [value, duration, shouldReduceMotion]);
 
-  return <span>{typeof value === 'string' ? value : displayValue}</span>;
+  return <span>{typeof value === "string" ? value : displayValue}</span>;
 };

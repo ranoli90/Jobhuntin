@@ -300,6 +300,19 @@ async def export_user_data(
 
     incr("gdpr.export_completed", tags={"tenant_id": tenant_id})
 
+    # PRIV-006: Record in gdpr_requests for status lookup with ownership verification
+    try:
+        await pool.execute(
+            """
+            INSERT INTO public.gdpr_requests (id, user_id, request_type, status, completed_at)
+            VALUES ($1, $2, 'export', 'completed', NOW())
+            """,
+            export_id,
+            user_id,
+        )
+    except Exception as e:
+        logger.warning("Failed to record export in gdpr_requests: %s", e)
+
     return DataExportResponse(
         export_id=export_id,
         status="completed",
@@ -428,6 +441,19 @@ async def delete_user_data(
 
     incr("gdpr.deletion_completed", tags={"tenant_id": tenant_id})
 
+    # PRIV-006: Record in gdpr_requests for status lookup with ownership verification
+    try:
+        await pool.execute(
+            """
+            INSERT INTO public.gdpr_requests (id, user_id, request_type, status, completed_at)
+            VALUES ($1, $2, 'delete', 'completed', NOW())
+            """,
+            deletion_id,
+            user_id,
+        )
+    except Exception as e:
+        logger.warning("Failed to record deletion in gdpr_requests: %s", e)
+
     return DeletionResponse(
         deletion_id=deletion_id,
         status="completed",
@@ -488,22 +514,33 @@ async def download_export(
 async def get_request_status(
     request_id: str,
     user_id: str = Depends(_get_user_id),
+    pool: asyncpg.Pool = Depends(_get_pool),
 ) -> dict[str, Any]:
-    """Get the status of a GDPR request.
-    Note: request_id verification blocked until gdpr_requests table exists (PRIV-001)."""
-    from shared.validators import validate_uuid
-
+    """Get the status of a GDPR request. PRIV-006: Verifies ownership via gdpr_requests."""
     try:
         validate_uuid(request_id, "request_id")
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid request ID format")
 
-    # PRIV-001: Status lookup not implemented; return 501 until gdpr_requests table exists.
-    # Prevents IDOR where request_id ownership cannot be verified.
-    raise HTTPException(
-        status_code=501,
-        detail="Request status lookup is not yet implemented. Check your email for export/deletion confirmation.",
+    row = await pool.fetchrow(
+        """
+        SELECT id, request_type, status, created_at, completed_at
+        FROM public.gdpr_requests
+        WHERE id = $1 AND user_id = $2
+        """,
+        request_id,
+        user_id,
     )
+    if not row:
+        raise HTTPException(status_code=404, detail="Request not found or access denied")
+
+    return {
+        "request_id": str(row["id"]),
+        "request_type": row["request_type"],
+        "status": row["status"],
+        "created_at": row["created_at"].isoformat() if row["created_at"] else None,
+        "completed_at": row["completed_at"].isoformat() if row["completed_at"] else None,
+    }
 
 
 @router.get("/data-categories")

@@ -1,9 +1,9 @@
-import React from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { Badge } from '@/components/ui/Badge';
-import { Alert, AlertDescription } from '@/components/ui/Alert';
-import { Bell, Clock, CheckCircle, Eye } from 'lucide-react';
+import React from "react";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
+import { Badge } from "@/components/ui/Badge";
+import { Alert, AlertDescription } from "@/components/ui/Alert";
+import { Bell, Clock, CheckCircle, Eye } from "lucide-react";
 
 const NotificationHistoryPage: React.FC = () => {
   return (
@@ -11,7 +11,9 @@ const NotificationHistoryPage: React.FC = () => {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold">Notification History</h1>
-          <p className="text-gray-600">View your notification history and preferences</p>
+          <p className="text-gray-600">
+            View your notification history and preferences
+          </p>
         </div>
         <div className="flex space-x-2">
           <Button variant="outline">
@@ -23,7 +25,8 @@ const NotificationHistoryPage: React.FC = () => {
 
       <Alert>
         <AlertDescription>
-          View your complete notification history, including email notifications and push notifications sent to your devices.
+          View your complete notification history, including email notifications
+          and push notifications sent to your devices.
         </AlertDescription>
       </Alert>
 
@@ -37,8 +40,12 @@ const NotificationHistoryPage: React.FC = () => {
               <div className="flex items-center space-x-3">
                 <Bell className="h-5 w-5 text-blue-500" />
                 <div>
-                  <div className="font-medium">Application Submitted Successfully</div>
-                  <div className="text-sm text-gray-500">Your application to Google was submitted successfully</div>
+                  <div className="font-medium">
+                    Application Submitted Successfully
+                  </div>
+                  <div className="text-sm text-gray-500">
+                    Your application to Google was submitted successfully
+                  </div>
                 </div>
               </div>
               <div className="text-right">
@@ -46,13 +53,15 @@ const NotificationHistoryPage: React.FC = () => {
                 <Badge variant="secondary">Email</Badge>
               </div>
             </div>
-            
+
             <div className="flex items-center justify-between p-4 border rounded-lg">
               <div className="flex items-center space-x-3">
                 <Bell className="h-5 w-5 text-green-500" />
                 <div>
                   <div className="font-medium">New Job Match</div>
-                  <div className="text-sm text-gray-500">We found a new job matching your profile</div>
+                  <div className="text-sm text-gray-500">
+                    We found a new job matching your profile
+                  </div>
                 </div>
               </div>
               <div className="text-right">
@@ -60,13 +69,15 @@ const NotificationHistoryPage: React.FC = () => {
                 <Badge variant="secondary">Push</Badge>
               </div>
             </div>
-            
+
             <div className="flex items-center justify-between p-4 border rounded-lg">
               <div className="flex items-center space-x-3">
                 <Bell className="h-5 w-5 text-orange-500" />
                 <div>
                   <div className="font-medium">Rate Limit Warning</div>
-                  <div className="text-sm text-gray-500">You're approaching your monthly limit</div>
+                  <div className="text-sm text-gray-500">
+                    You're approaching your monthly limit
+                  </div>
                 </div>
               </div>
               <div className="text-right">

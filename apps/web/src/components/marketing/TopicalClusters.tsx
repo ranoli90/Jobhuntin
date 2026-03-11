@@ -1,10 +1,10 @@
-import React from 'react';
+import React from "react";
 
-interface TopicalClustersProps {
+interface TopicalClustersProperties {
   clusters: string[][];
 }
 
-const TopicalClusters: React.FC<TopicalClustersProps> = ({ clusters }) => {
+const TopicalClusters: React.FC<TopicalClustersProperties> = ({ clusters }) => {
   if (!clusters || clusters.length === 0) {
     return null;
   }
@@ -18,10 +18,14 @@ const TopicalClusters: React.FC<TopicalClustersProps> = ({ clusters }) => {
             <h4 className="font-bold text-lg mb-2">Cluster #{index + 1}</h4>
             <div className="flex flex-wrap gap-4">
               {cluster.map((topic) => {
-                const slug = topic.toLowerCase().replace(/ /g, '-');
+                const slug = topic.toLowerCase().replaceAll(" ", "-");
                 const url = `/topics/${slug}`;
                 return (
-                  <a href={url} key={slug} className="bg-white hover:bg-slate-200 text-slate-800 font-semibold py-2 px-4 border border-slate-300 rounded-full shadow-sm transition-colors duration-200">
+                  <a
+                    href={url}
+                    key={slug}
+                    className="bg-white hover:bg-slate-200 text-slate-800 font-semibold py-2 px-4 border border-slate-300 rounded-full shadow-sm transition-colors duration-200"
+                  >
                     {topic}
                   </a>
                 );

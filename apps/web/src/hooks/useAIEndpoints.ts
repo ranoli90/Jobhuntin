@@ -127,11 +127,15 @@ export function useSemanticMatch() {
   const match = useCallback(async (request: SemanticMatchRequest) => {
     setState({ data: null, loading: true, error: null });
     try {
-      const result = await apiPost<SemanticMatchResponse>("ai/semantic-match", request);
+      const result = await apiPost<SemanticMatchResponse>(
+        "ai/semantic-match",
+        request,
+      );
       setState({ data: result, loading: false, error: null });
       return result;
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Semantic matching failed";
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Semantic matching failed";
       setState({ data: null, loading: false, error: message });
       return null;
     }
@@ -149,7 +153,9 @@ export function useSemanticMatch() {
 }
 
 export function useBatchSemanticMatch() {
-  const [state, setState] = useState<AIEndpointState<BatchSemanticMatchResponse>>({
+  const [state, setState] = useState<
+    AIEndpointState<BatchSemanticMatchResponse>
+  >({
     data: null,
     loading: false,
     error: null,
@@ -164,11 +170,15 @@ export function useBatchSemanticMatch() {
 
     setState({ data: null, loading: true, error: null });
     try {
-      const result = await apiPost<BatchSemanticMatchResponse>("ai/semantic-match/batch", request);
+      const result = await apiPost<BatchSemanticMatchResponse>(
+        "ai/semantic-match/batch",
+        request,
+      );
       setState({ data: result, loading: false, error: null });
       return result;
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Batch matching failed";
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Batch matching failed";
       setState({ data: null, loading: false, error: message });
       return null;
     }
@@ -198,19 +208,23 @@ export function useResumeTailor() {
     setProgress(0);
 
     const progressInterval = setInterval(() => {
-      setProgress(prev => Math.min(prev + 10, 90));
+      setProgress((previous) => Math.min(previous + 10, 90));
     }, 200);
 
     try {
-      const result = await apiPost<TailorResumeResponse>("ai/tailor-resume", request);
+      const result = await apiPost<TailorResumeResponse>(
+        "ai/tailor-resume",
+        request,
+      );
       clearInterval(progressInterval);
       setProgress(100);
       setState({ data: result, loading: false, error: null });
       return result;
-    } catch (err) {
+    } catch (error) {
       clearInterval(progressInterval);
       setProgress(0);
-      const message = err instanceof Error ? err.message : "Resume tailoring failed";
+      const message =
+        error instanceof Error ? error.message : "Resume tailoring failed";
       setState({ data: null, loading: false, error: message });
       return null;
     }
@@ -242,8 +256,9 @@ export function useATSScore() {
       const result = await apiPost<ATSScoreResponse>("ai/ats-score", request);
       setState({ data: result, loading: false, error: null });
       return result;
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "ATS scoring failed";
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "ATS scoring failed";
       setState({ data: null, loading: false, error: message });
       return null;
     }
@@ -261,7 +276,9 @@ export function useATSScore() {
 }
 
 export function useCoverLetterGenerate() {
-  const [state, setState] = useState<AIEndpointState<CoverLetterGenerateResponse>>({
+  const [state, setState] = useState<
+    AIEndpointState<CoverLetterGenerateResponse>
+  >({
     data: null,
     loading: false,
     error: null,
@@ -270,11 +287,17 @@ export function useCoverLetterGenerate() {
   const generate = useCallback(async (request: CoverLetterGenerateRequest) => {
     setState({ data: null, loading: true, error: null });
     try {
-      const result = await apiPost<CoverLetterGenerateResponse>("ai/cover-letters/generate", request);
+      const result = await apiPost<CoverLetterGenerateResponse>(
+        "ai/cover-letters/generate",
+        request,
+      );
       setState({ data: result, loading: false, error: null });
       return result;
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Cover letter generation failed";
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Cover letter generation failed";
       setState({ data: null, loading: false, error: message });
       return null;
     }

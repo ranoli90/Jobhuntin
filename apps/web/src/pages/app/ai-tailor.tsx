@@ -29,6 +29,9 @@ export default function AITailorPage() {
   const atsScore = useATSScore();
   const tailoringEnabled = useFeatureFlag("resume_tailoring");
 
+  const MAX_FILE_SIZE_MB = 5;
+  const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
+
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [resumeText, setResumeText] = useState("");
   const [jobUrl, setJobUrl] = useState("");
@@ -36,7 +39,9 @@ export default function AITailorPage() {
   const [inputMode, setInputMode] = useState<"url" | "paste">("url");
   const [beforeScore, setBeforeScore] = useState<number | null>(null);
   const [afterScore, setAfterScore] = useState<number | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [parseError, setParseError] = useState<{ file: string; message: string } | null>(null);
+  const [isParsing, setIsParsing] = useState(false);
+  const fileInputReference = useRef<HTMLInputElement>(null);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -51,15 +56,57 @@ export default function AITailorPage() {
       return;
     }
 
+    if (file.size > MAX_FILE_SIZE_BYTES) {
+      pushToast({
+        title: "File Too Large",
+        description: `Please upload a PDF under ${MAX_FILE_SIZE_MB}MB. Your file is ${(file.size / 1024 / 1024).toFixed(1)}MB.`,
+        tone: "error",
+      });
+      return;
+    }
+
     setResumeFile(file);
+    setParseError(null);
 
     const formData = new FormData();
     formData.append("file", file);
 
+    setIsParsing(true);
     try {
       const result = await apiPostFormData<{ text: string }>(
         "parse-resume",
-        formData
+        formData,
+      );
+      setResumeText(result.text);
+      setParseError(null);
+      pushToast({
+        title: "Resume Uploaded",
+        description: "Resume parsed successfully.",
+        tone: "success",
+      });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Could not parse resume.";
+      setParseError({ file: file.name, message });
+      pushToast({
+        title: "Parse Failed",
+        description: `${file.name}: ${message}. Click "Try again" below to retry.`,
+        tone: "error",
+      });
+    } finally {
+      setIsParsing(false);
+    }
+  };
+
+  const handleRetryParse = async () => {
+    if (!resumeFile) return;
+    setParseError(null);
+    setIsParsing(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", resumeFile);
+      const result = await apiPostFormData<{ text: string }>(
+        "parse-resume",
+        formData,
       );
       setResumeText(result.text);
       pushToast({
@@ -67,12 +114,16 @@ export default function AITailorPage() {
         description: "Resume parsed successfully.",
         tone: "success",
       });
-    } catch {
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Could not parse resume.";
+      setParseError({ file: resumeFile.name, message });
       pushToast({
         title: "Parse Failed",
-        description: "Could not parse resume. Please try again.",
+        description: `${resumeFile.name}: ${message}. Click "Try again" below to retry.`,
         tone: "error",
       });
+    } finally {
+      setIsParsing(false);
     }
   };
 
@@ -104,12 +155,14 @@ export default function AITailorPage() {
       return;
     }
 
-    const beforeScoreResult = await atsScore.score({
-      resume_text: resumeText,
-      job_description: jobDescription,
-    });
-    if (beforeScoreResult) {
-      setBeforeScore(beforeScoreResult.overall_score);
+    if (beforeScore === null) {
+      const beforeScoreResult = await atsScore.score({
+        resume_text: resumeText,
+        job_description: jobDescription,
+      });
+      if (beforeScoreResult) {
+        setBeforeScore(beforeScoreResult.overall_score);
+      }
     }
 
     const result = await tailor.tailor({
@@ -154,6 +207,7 @@ export default function AITailorPage() {
     setJobDescription("");
     setBeforeScore(null);
     setAfterScore(null);
+    setParseError(null);
     tailor.reset();
     atsScore.reset();
   };
@@ -176,11 +230,18 @@ export default function AITailorPage() {
               <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">
                 AI Tools
               </p>
-              <h1 className="text-2xl font-bold text-slate-900">Resume Tailor</h1>
+              <h1 className="text-2xl font-bold text-slate-900">
+                Resume Tailor
+              </h1>
             </div>
           </div>
           {tailor.data && (
-            <Button variant="outline" size="sm" onClick={handleReset} className="gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleReset}
+              className="gap-2"
+            >
               <RefreshCw className="w-4 h-4" />
               Start Over
             </Button>
@@ -206,7 +267,7 @@ export default function AITailorPage() {
             </h3>
 
             <input
-              ref={fileInputRef}
+              ref={fileInputReference}
               type="file"
               accept=".pdf"
               onChange={handleFileUpload}
@@ -214,18 +275,50 @@ export default function AITailorPage() {
             />
 
             <div
-              onClick={() => fileInputRef.current?.click()}
+              onClick={() => !parseError && fileInputReference.current?.click()}
               className={cn(
-                "border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-colors",
-                resumeFile
+                "border-2 border-dashed rounded-xl p-8 text-center transition-colors",
+                parseError
+                  ? "border-red-200 bg-red-50 cursor-default"
+                  : "cursor-pointer",
+                resumeFile && !parseError
                   ? "border-emerald-300 bg-emerald-50"
-                  : "border-slate-200 hover:border-slate-300 hover:bg-slate-50"
+                  : !parseError && "border-slate-200 hover:border-slate-300 hover:bg-slate-50",
               )}
             >
-              {resumeFile ? (
+              {parseError ? (
+                <div className="space-y-3">
+                  <AlertTriangle className="w-8 h-8 text-red-500 mx-auto" />
+                  <p className="font-medium text-red-700">{parseError.file}</p>
+                  <p className="text-sm text-red-600">{parseError.message}</p>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleRetryParse();
+                    }}
+                    disabled={isParsing}
+                    className="gap-2"
+                  >
+                    {isParsing ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <RefreshCw className="w-4 h-4" />
+                    )}
+                    Try again
+                  </Button>
+                </div>
+              ) : resumeFile ? (
                 <div className="space-y-2">
-                  <CheckCircle className="w-8 h-8 text-emerald-500 mx-auto" />
-                  <p className="font-medium text-emerald-700">{resumeFile.name}</p>
+                  {isParsing ? (
+                    <Loader2 className="w-8 h-8 text-primary-500 mx-auto animate-spin" />
+                  ) : (
+                    <CheckCircle className="w-8 h-8 text-emerald-500 mx-auto" />
+                  )}
+                  <p className="font-medium text-emerald-700">
+                    {resumeFile.name}
+                  </p>
                   <p className="text-xs text-emerald-600">Click to change</p>
                 </div>
               ) : (
@@ -348,7 +441,7 @@ export default function AITailorPage() {
                           ? "text-emerald-600"
                           : beforeScore >= 0.5
                             ? "text-amber-600"
-                            : "text-red-600"
+                            : "text-red-600",
                       )}
                     >
                       {Math.round(beforeScore * 100)}%
@@ -363,14 +456,15 @@ export default function AITailorPage() {
                           ? "text-emerald-600"
                           : afterScore >= 0.5
                             ? "text-amber-600"
-                            : "text-red-600"
+                            : "text-red-600",
                       )}
                     >
                       {Math.round(afterScore * 100)}%
                     </p>
                     {afterScore > beforeScore && (
                       <Badge variant="success" className="mt-2">
-                        +{Math.round((afterScore - beforeScore) * 100)}% improved
+                        +{Math.round((afterScore - beforeScore) * 100)}%
+                        improved
                       </Badge>
                     )}
                   </div>
@@ -380,8 +474,15 @@ export default function AITailorPage() {
 
             <Card className="p-6">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="font-semibold text-slate-900">Tailored Summary</h3>
-                <Button variant="outline" size="sm" onClick={handleDownload} className="gap-2">
+                <h3 className="font-semibold text-slate-900">
+                  Tailored Summary
+                </h3>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleDownload}
+                  className="gap-2"
+                >
                   <Download className="w-4 h-4" />
                   Download
                 </Button>
@@ -399,11 +500,13 @@ export default function AITailorPage() {
                   Highlighted Skills
                 </h4>
                 <div className="flex flex-wrap gap-2">
-                  {(tailor.data.highlighted_skills ?? []).map((skill, i) => (
-                    <Badge key={i} variant="primary" size="sm">
-                      {skill}
-                    </Badge>
-                  ))}
+                  {(tailor.data.highlighted_skills ?? []).map(
+                    (skill, index) => (
+                      <Badge key={index} variant="primary" size="sm">
+                        {skill}
+                      </Badge>
+                    ),
+                  )}
                 </div>
               </Card>
               <Card className="p-4">
@@ -411,8 +514,8 @@ export default function AITailorPage() {
                   Added Keywords
                 </h4>
                 <div className="flex flex-wrap gap-2">
-                  {(tailor.data.added_keywords ?? []).map((keyword, i) => (
-                    <Badge key={i} variant="lagoon" size="sm">
+                  {(tailor.data.added_keywords ?? []).map((keyword, index) => (
+                    <Badge key={index} variant="lagoon" size="sm">
                       {keyword}
                     </Badge>
                   ))}

@@ -16,22 +16,51 @@ export function sanitizeHtml(html: string): string {
 
   return DOMPurify.sanitize(html, {
     ALLOWED_TAGS: [
-      'p', 'br', 'strong', 'b', 'em', 'i', 'u', 'strike', 'del',
-      'a', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-      'ul', 'ol', 'li', 'blockquote', 'code', 'pre',
-      'span', 'div', 'img'
+      "p",
+      "br",
+      "strong",
+      "b",
+      "em",
+      "i",
+      "u",
+      "strike",
+      "del",
+      "a",
+      "h1",
+      "h2",
+      "h3",
+      "h4",
+      "h5",
+      "h6",
+      "ul",
+      "ol",
+      "li",
+      "blockquote",
+      "code",
+      "pre",
+      "span",
+      "div",
+      "img",
     ],
     ALLOWED_ATTR: [
-      'href', 'title', 'target', 'rel',
-      'src', 'alt', 'width', 'height',
-      'class', 'id'
+      "href",
+      "title",
+      "target",
+      "rel",
+      "src",
+      "alt",
+      "width",
+      "height",
+      "class",
+      "id",
     ],
     ALLOW_DATA_ATTR: false,
     SANITIZE_DOM: true,
     // Force all links to open in new tab with no opener
-    FORBID_ATTR: ['onerror', 'onload', 'onclick'],
+    FORBID_ATTR: ["onerror", "onload", "onclick"],
     // Only allow safe URI schemes (blocks javascript:, vbscript:, data: etc.)
-    ALLOWED_URI_REGEXP: /^(?:(?:https?|mailto|tel):|[^a-z]|[a-z+.-]+(?:[^a-z+.\-:]|$))/i,
+    ALLOWED_URI_REGEXP:
+      /^(?:(?:https?|mailto|tel):|[^a-z]|[+.a-z-]+(?:[^+.:a-z\-]|$))/i,
   });
 }
 
@@ -44,19 +73,20 @@ export function escapeHtml(text: string): string {
   if (!text) return "";
 
   const htmlEscapes: Record<string, string> = {
-    '&': '&amp;',
-    '<': '&lt;',
-    '>': '&gt;',
-    '"': '&quot;',
-    "'": '&#39;'
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;",
   };
 
-  return text.replace(/[&<>"']/g, (char) => htmlEscapes[char] || char);
+  return text.replaceAll(/["&'<>]/g, (char) => htmlEscapes[char] || char);
 }
 
 /** Check if error is QuotaExceededError (localStorage full) */
 function isQuotaExceeded(e: unknown): boolean {
-  if (e instanceof DOMException) return e.name === "QuotaExceededError" || e.code === 22;
+  if (e instanceof DOMException)
+    return e.name === "QuotaExceededError" || e.code === 22;
   return false;
 }
 
@@ -69,8 +99,8 @@ export function safeSetStorage(key: string, value: string): boolean {
   try {
     localStorage.setItem(key, value);
     return true;
-  } catch (e) {
-    if (isQuotaExceeded(e)) {
+  } catch (error) {
+    if (isQuotaExceeded(error)) {
       try {
         localStorage.removeItem(key);
         localStorage.setItem(key, value);
@@ -80,12 +110,13 @@ export function safeSetStorage(key: string, value: string): boolean {
           sessionStorage.setItem(key, value);
           return true;
         } catch {
-          if (import.meta.env.DEV) console.warn("[safeStorage] QuotaExceeded recovery failed");
+          if (import.meta.env.DEV)
+            console.warn("[safeStorage] QuotaExceeded recovery failed");
           return false;
         }
       }
     }
-    throw e;
+    throw error;
   }
 }
 

@@ -3,7 +3,7 @@
  * Matches: linkedin.com/in/username and optional path segments.
  */
 export const LINKEDIN_PROFILE_REGEX =
-  /^(https?:\/\/)?(www\.)?linkedin\.com\/in\/[a-zA-Z0-9_-]+(\/[a-zA-Z0-9_-]*)*\/?$/i;
+  /^(https?:\/\/)?(www\.)?linkedin\.com\/in\/[\w-]+(\/[\w-]*)*\/?$/i;
 
 export function isValidLinkedInUrl(url: string | null | undefined): boolean {
   if (!url || typeof url !== "string") return false;

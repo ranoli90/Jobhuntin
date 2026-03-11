@@ -1,9 +1,15 @@
-import React from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { Badge } from '@/components/ui/Badge';
-import { Alert, AlertDescription } from '@/components/ui/Alert';
-import { FileText, Upload, TrendingUp, BarChart3, CheckCircle } from 'lucide-react';
+import React from "react";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
+import { Badge } from "@/components/ui/Badge";
+import { Alert, AlertDescription } from "@/components/ui/Alert";
+import {
+  FileText,
+  Upload,
+  TrendingUp,
+  BarChart3,
+  CheckCircle,
+} from "lucide-react";
 
 const MultiResumePage: React.FC = () => {
   return (
@@ -11,7 +17,9 @@ const MultiResumePage: React.FC = () => {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold">Multi-Resume Support</h1>
-          <p className="text-gray-600">Manage multiple resume versions with analytics and recommendations</p>
+          <p className="text-gray-600">
+            Manage multiple resume versions with analytics and recommendations
+          </p>
         </div>
         <div className="flex space-x-2">
           <Button>
@@ -23,7 +31,8 @@ const MultiResumePage: React.FC = () => {
 
       <Alert>
         <AlertDescription>
-          Create and manage multiple resume versions tailored for different job types and industries with AI-powered recommendations.
+          Create and manage multiple resume versions tailored for different job
+          types and industries with AI-powered recommendations.
         </AlertDescription>
       </Alert>
 
@@ -39,7 +48,9 @@ const MultiResumePage: React.FC = () => {
                   <FileText className="h-5 w-5 text-blue-500" />
                   <div>
                     <div className="font-medium">Software Engineer Resume</div>
-                    <div className="text-sm text-gray-500">Primary resume • 85% match rate</div>
+                    <div className="text-sm text-gray-500">
+                      Primary resume • 85% match rate
+                    </div>
                   </div>
                 </div>
                 <div className="text-right">
@@ -47,13 +58,15 @@ const MultiResumePage: React.FC = () => {
                   <Badge variant="secondary">Active</Badge>
                 </div>
               </div>
-              
+
               <div className="flex items-center justify-between p-4 border rounded-lg">
                 <div className="flex items-center space-x-3">
                   <FileText className="h-5 w-5 text-green-500" />
                   <div>
                     <div className="font-medium">Frontend Developer Resume</div>
-                    <div className="text-sm text-gray-500">Specialized • 78% match rate</div>
+                    <div className="text-sm text-gray-500">
+                      Specialized • 78% match rate
+                    </div>
                   </div>
                 </div>
                 <div className="text-right">
@@ -74,7 +87,8 @@ const MultiResumePage: React.FC = () => {
               <div className="p-4 border rounded-lg">
                 <div className="font-medium">Performance Comparison</div>
                 <div className="text-sm text-gray-500 mt-1">
-                  Software Engineer resume performs 15% better than Frontend Developer resume for technical roles
+                  Software Engineer resume performs 15% better than Frontend
+                  Developer resume for technical roles
                 </div>
                 <div className="mt-2">
                   <div className="flex items-center space-x-2">
@@ -83,11 +97,12 @@ const MultiResumePage: React.FC = () => {
                   </div>
                 </div>
               </div>
-              
+
               <div className="p-4 border rounded-lg">
                 <div className="font-medium">ATS Optimization</div>
                 <div className="text-sm text-gray-500 mt-1">
-                  Your resumes are optimized for ATS systems with 92% average compliance score
+                  Your resumes are optimized for ATS systems with 92% average
+                  compliance score
                 </div>
                 <div className="mt-2">
                   <div className="flex items-center space-x-2">

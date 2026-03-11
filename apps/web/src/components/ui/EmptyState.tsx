@@ -11,7 +11,7 @@ import {
   Mail,
   Calendar,
   Sparkles,
-  Plus
+  Plus,
 } from "lucide-react";
 import { Button } from "./Button";
 import { cn } from "../../lib/utils";
@@ -29,7 +29,7 @@ const iconMap = {
   sparkles: Sparkles,
 };
 
-interface EmptyStateProps {
+interface EmptyStateProperties {
   title: string;
   description?: string;
   actionLabel?: string;
@@ -52,8 +52,8 @@ export function EmptyState({
   className,
   compact = false,
   secondaryActionLabel,
-  onSecondaryAction
-}: EmptyStateProps) {
+  onSecondaryAction,
+}: EmptyStateProperties) {
   const shouldReduceMotion = useReducedMotion();
 
   // Get icon component if iconName is provided
@@ -65,11 +65,13 @@ export function EmptyState({
       aria-live="polite"
       initial={shouldReduceMotion ? undefined : { opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={shouldReduceMotion ? undefined : { duration: 0.4, ease: "easeOut" }}
+      transition={
+        shouldReduceMotion ? undefined : { duration: 0.4, ease: "easeOut" }
+      }
       className={cn(
         "rounded-3xl border-2 border-dashed border-slate-200 bg-gradient-to-br from-white to-slate-50 text-center relative overflow-hidden",
         compact ? "px-6 py-8" : "px-8 py-14",
-        className
+        className,
       )}
     >
       <div className="absolute -top-16 -right-16 w-48 h-48 bg-primary-500/5 rounded-full blur-3xl pointer-events-none" />
@@ -77,29 +79,74 @@ export function EmptyState({
         <motion.div
           initial={shouldReduceMotion ? undefined : { scale: 0.8 }}
           animate={{ scale: 1 }}
-          transition={shouldReduceMotion ? undefined : { delay: 0.15, type: "spring", stiffness: 200 }}
+          transition={
+            shouldReduceMotion
+              ? undefined
+              : { delay: 0.15, type: "spring", stiffness: 200 }
+          }
           className={cn(
             "mx-auto mb-5 flex items-center justify-center rounded-2xl bg-slate-100 shadow-inner",
-            compact ? "h-12 w-12" : "h-16 w-16"
+            compact ? "h-12 w-12" : "h-16 w-16",
           )}
         >
-          {icon || (IconComponent && <IconComponent className={cn("text-slate-400", compact ? "w-6 h-6" : "w-8 h-8")} />)}
+          {icon ||
+            (IconComponent && (
+              <IconComponent
+                className={cn(
+                  "text-slate-400",
+                  compact ? "w-6 h-6" : "w-8 h-8",
+                )}
+              />
+            ))}
         </motion.div>
       )}
-      <p className={cn("font-display font-bold text-slate-900", compact ? "text-lg" : "text-xl")}>{title}</p>
-      {description ? <p className={cn("mt-2 text-slate-500 max-w-md mx-auto font-medium", compact ? "text-sm" : "text-base")}>{description}</p> : null}
-      {(actionLabel || secondaryActionLabel) ? (
-        <div className={cn("flex gap-3 justify-center", compact ? "mt-4" : "mt-6", secondaryActionLabel ? "flex-col sm:flex-row" : "")}>
+      <p
+        className={cn(
+          "font-display font-bold text-slate-900",
+          compact ? "text-lg" : "text-xl",
+        )}
+      >
+        {title}
+      </p>
+      {description ? (
+        <p
+          className={cn(
+            "mt-2 text-slate-500 max-w-md mx-auto font-medium",
+            compact ? "text-sm" : "text-base",
+          )}
+        >
+          {description}
+        </p>
+      ) : null}
+      {actionLabel || secondaryActionLabel ? (
+        <div
+          className={cn(
+            "flex gap-3 justify-center",
+            compact ? "mt-4" : "mt-6",
+            secondaryActionLabel ? "flex-col sm:flex-row" : "",
+          )}
+        >
           {actionLabel ? (
-            <motion.div whileHover={shouldReduceMotion ? undefined : { scale: 1.03 }} whileTap={shouldReduceMotion ? undefined : { scale: 0.97 }}>
-              <Button className="shadow-lg shadow-primary-500/10" onClick={onAction} size={compact ? "sm" : "md"}>
+            <motion.div
+              whileHover={shouldReduceMotion ? undefined : { scale: 1.03 }}
+              whileTap={shouldReduceMotion ? undefined : { scale: 0.97 }}
+            >
+              <Button
+                className="shadow-lg shadow-primary-500/10"
+                onClick={onAction}
+                size={compact ? "sm" : "md"}
+              >
                 <Plus className="w-4 h-4 mr-2" />
                 {actionLabel}
               </Button>
             </motion.div>
           ) : null}
           {secondaryActionLabel ? (
-            <Button variant="outline" onClick={onSecondaryAction} size={compact ? "sm" : "md"}>
+            <Button
+              variant="outline"
+              onClick={onSecondaryAction}
+              size={compact ? "sm" : "md"}
+            >
               {secondaryActionLabel}
             </Button>
           ) : null}
@@ -123,7 +170,11 @@ export function NoJobsEmptyState({ onSearch }: { onSearch?: () => void }) {
   );
 }
 
-export function NoApplicationsEmptyState({ onBrowse }: { onBrowse?: () => void }) {
+export function NoApplicationsEmptyState({
+  onBrowse,
+}: {
+  onBrowse?: () => void;
+}) {
   return (
     <EmptyState
       iconName="file"
@@ -146,7 +197,11 @@ export function NoNotificationsEmptyState() {
   );
 }
 
-export function NoMatchesEmptyState({ onAdjustPreferences }: { onAdjustPreferences?: () => void }) {
+export function NoMatchesEmptyState({
+  onAdjustPreferences,
+}: {
+  onAdjustPreferences?: () => void;
+}) {
   return (
     <EmptyState
       iconName="search"
@@ -170,7 +225,11 @@ export function NoResumesEmptyState({ onUpload }: { onUpload?: () => void }) {
   );
 }
 
-export function NoSearchResultsEmptyState({ onClear }: { onClear?: () => void }) {
+export function NoSearchResultsEmptyState({
+  onClear,
+}: {
+  onClear?: () => void;
+}) {
   return (
     <EmptyState
       iconName="search"
@@ -194,7 +253,11 @@ export function InboxEmptyState() {
   );
 }
 
-export function NoTeamMembersEmptyState({ onInvite }: { onInvite?: () => void }) {
+export function NoTeamMembersEmptyState({
+  onInvite,
+}: {
+  onInvite?: () => void;
+}) {
   return (
     <EmptyState
       iconName="users"

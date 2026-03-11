@@ -1,9 +1,16 @@
-import React from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { Badge } from '@/components/ui/Badge';
-import { Alert, AlertDescription } from '@/components/ui/Alert';
-import { FileText, Plus, Search, Tag, Calendar, CheckCircle } from 'lucide-react';
+import React from "react";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
+import { Badge } from "@/components/ui/Badge";
+import { Alert, AlertDescription } from "@/components/ui/Alert";
+import {
+  FileText,
+  Plus,
+  Search,
+  Tag,
+  Calendar,
+  CheckCircle,
+} from "lucide-react";
 
 const ApplicationNotesPage: React.FC = () => {
   return (
@@ -11,7 +18,9 @@ const ApplicationNotesPage: React.FC = () => {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold">Application Notes</h1>
-          <p className="text-gray-600">Rich note-taking system with templates and search capabilities</p>
+          <p className="text-gray-600">
+            Rich note-taking system with templates and search capabilities
+          </p>
         </div>
         <div className="flex space-x-2">
           <Button>
@@ -23,7 +32,8 @@ const ApplicationNotesPage: React.FC = () => {
 
       <Alert>
         <AlertDescription>
-          Keep detailed notes for each application with templates, search functionality, and reminder integration.
+          Keep detailed notes for each application with templates, search
+          functionality, and reminder integration.
         </AlertDescription>
       </Alert>
 
@@ -38,8 +48,12 @@ const ApplicationNotesPage: React.FC = () => {
                 <div className="flex items-center space-x-3">
                   <FileText className="h-5 w-5 text-blue-500" />
                   <div>
-                    <div className="font-medium">Interview Preparation Notes</div>
-                    <div className="text-sm text-gray-500">Google • Technical interview prep</div>
+                    <div className="font-medium">
+                      Interview Preparation Notes
+                    </div>
+                    <div className="text-sm text-gray-500">
+                      Google • Technical interview prep
+                    </div>
                   </div>
                 </div>
                 <div className="text-right">
@@ -47,13 +61,15 @@ const ApplicationNotesPage: React.FC = () => {
                   <Badge variant="secondary">Interview</Badge>
                 </div>
               </div>
-              
+
               <div className="flex items-center justify-between p-4 border rounded-lg">
                 <div className="flex items-center space-x-3">
                   <FileText className="h-5 w-5 text-green-500" />
                   <div>
                     <div className="font-medium">Company Research</div>
-                    <div className="text-sm text-gray-500">Microsoft • Company culture and values</div>
+                    <div className="text-sm text-gray-500">
+                      Microsoft • Company culture and values
+                    </div>
                   </div>
                 </div>
                 <div className="text-right">
@@ -74,25 +90,33 @@ const ApplicationNotesPage: React.FC = () => {
               <div className="p-4 border rounded-lg">
                 <div className="font-medium">Interview Preparation</div>
                 <div className="text-sm text-gray-500 mt-1">
-                  Template for preparing for interviews with key questions and talking points
+                  Template for preparing for interviews with key questions and
+                  talking points
                 </div>
-                <Badge variant="outline" className="mt-2">Popular</Badge>
+                <Badge variant="outline" className="mt-2">
+                  Popular
+                </Badge>
               </div>
-              
+
               <div className="p-4 border rounded-lg">
                 <div className="font-medium">Contact Information</div>
                 <div className="text-sm text-gray-500 mt-1">
-                  Template for storing recruiter and hiring manager contact details
+                  Template for storing recruiter and hiring manager contact
+                  details
                 </div>
-                <Badge variant="outline" className="mt-2">Essential</Badge>
+                <Badge variant="outline" className="mt-2">
+                  Essential
+                </Badge>
               </div>
-              
+
               <div className="p-4 border rounded-lg">
                 <div className="font-medium">Follow-up Actions</div>
                 <div className="text-sm text-gray-500 mt-1">
                   Template for tracking follow-up actions and next steps
                 </div>
-                <Badge variant="outline" className="mt-2">Professional</Badge>
+                <Badge variant="outline" className="mt-2">
+                  Professional
+                </Badge>
               </div>
             </div>
           </CardContent>

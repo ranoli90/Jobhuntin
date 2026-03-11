@@ -1,27 +1,33 @@
-import React, { useState, useEffect } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { Badge } from '@/components/ui/Badge';
-import { Input } from '@/components/ui/Input';
-import { Label } from '@/components/ui/Label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/Select';
-import { Checkbox } from '@/components/ui/Checkbox';
-import { Textarea } from '@/components/ui/Textarea';
-import { Alert, AlertDescription } from '@/components/ui/Alert';
-import { Progress } from '@/components/ui/Progress';
-import { 
-  Download, 
-  FileText, 
-  Table, 
-  FileSpreadsheet, 
+import React, { useState, useEffect } from "react";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
+import { Badge } from "@/components/ui/Badge";
+import { Input } from "@/components/ui/Input";
+import { Label } from "@/components/ui/Label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/Select";
+import { Checkbox } from "@/components/ui/Checkbox";
+import { Textarea } from "@/components/ui/Textarea";
+import { Alert, AlertDescription } from "@/components/ui/Alert";
+import { Progress } from "@/components/ui/Progress";
+import {
+  Download,
+  FileText,
+  Table,
+  FileSpreadsheet,
   FileImage,
   Calendar,
   Filter,
   Search,
   CheckCircle,
   AlertCircle,
-  Clock
-} from 'lucide-react';
+  Clock,
+} from "lucide-react";
 
 interface Application {
   id: string;
@@ -47,7 +53,7 @@ interface ExportTemplate {
 }
 
 interface ExportConfig {
-  format: 'csv' | 'xlsx' | 'pdf' | 'json';
+  format: "csv" | "xlsx" | "pdf" | "json";
   fields: string[];
   filters: {
     status?: string;
@@ -60,17 +66,20 @@ interface ExportConfig {
   include_reminders: boolean;
 }
 
-interface ApplicationExportProps {
+interface ApplicationExportProperties {
   tenantId: string;
   userId: string;
 }
 
-export const ApplicationExport: React.FC<ApplicationExportProps> = ({ tenantId, userId }) => {
+export const ApplicationExport: React.FC<ApplicationExportProperties> = ({
+  tenantId,
+  userId,
+}) => {
   const [applications, setApplications] = useState<Application[]>([]);
   const [templates, setTemplates] = useState<ExportTemplate[]>([]);
   const [exportConfig, setExportConfig] = useState<ExportConfig>({
-    format: 'csv',
-    fields: ['company', 'job_title', 'status', 'location', 'created_at'],
+    format: "csv",
+    fields: ["company", "job_title", "status", "location", "created_at"],
     filters: {},
     include_notes: false,
     include_reminders: false,
@@ -82,17 +91,29 @@ export const ApplicationExport: React.FC<ApplicationExportProps> = ({ tenantId, 
   const [isExporting, setIsExporting] = useState(false);
 
   const availableFields = [
-    { id: 'id', label: 'Application ID', description: 'Unique identifier' },
-    { id: 'company', label: 'Company', description: 'Company name' },
-    { id: 'job_title', label: 'Job Title', description: 'Position title' },
-    { id: 'status', label: 'Status', description: 'Application status' },
-    { id: 'location', label: 'Location', description: 'Job location' },
-    { id: 'salary_min', label: 'Min Salary', description: 'Minimum salary' },
-    { id: 'salary_max', label: 'Max Salary', description: 'Maximum salary' },
-    { id: 'created_at', label: 'Created Date', description: 'Application creation date' },
-    { id: 'last_activity', label: 'Last Activity', description: 'Last activity date' },
-    { id: 'notes_count', label: 'Notes Count', description: 'Number of notes' },
-    { id: 'reminders_count', label: 'Reminders Count', description: 'Number of reminders' },
+    { id: "id", label: "Application ID", description: "Unique identifier" },
+    { id: "company", label: "Company", description: "Company name" },
+    { id: "job_title", label: "Job Title", description: "Position title" },
+    { id: "status", label: "Status", description: "Application status" },
+    { id: "location", label: "Location", description: "Job location" },
+    { id: "salary_min", label: "Min Salary", description: "Minimum salary" },
+    { id: "salary_max", label: "Max Salary", description: "Maximum salary" },
+    {
+      id: "created_at",
+      label: "Created Date",
+      description: "Application creation date",
+    },
+    {
+      id: "last_activity",
+      label: "Last Activity",
+      description: "Last activity date",
+    },
+    { id: "notes_count", label: "Notes Count", description: "Number of notes" },
+    {
+      id: "reminders_count",
+      label: "Reminders Count",
+      description: "Number of reminders",
+    },
   ];
 
   useEffect(() => {
@@ -102,33 +123,39 @@ export const ApplicationExport: React.FC<ApplicationExportProps> = ({ tenantId, 
 
   const fetchApplications = async () => {
     try {
-      const response = await fetch('/api/applications', {
+      const response = await fetch("/api/applications", {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
       });
 
-      if (!response.ok) throw new Error('Failed to fetch applications');
+      if (!response.ok) throw new Error("Failed to fetch applications");
       const data = await response.json();
       setApplications(data.applications || []);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch applications');
+    } catch (error_) {
+      setError(
+        error_ instanceof Error
+          ? error_.message
+          : "Failed to fetch applications",
+      );
     }
   };
 
   const fetchTemplates = async () => {
     try {
-      const response = await fetch('/api/ux/export/templates', {
+      const response = await fetch("/api/ux/export/templates", {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
       });
 
-      if (!response.ok) throw new Error('Failed to fetch templates');
+      if (!response.ok) throw new Error("Failed to fetch templates");
       const data = await response.json();
       setTemplates(data.templates || []);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch templates');
+    } catch (error_) {
+      setError(
+        error_ instanceof Error ? error_.message : "Failed to fetch templates",
+      );
     }
   };
 
@@ -139,34 +166,34 @@ export const ApplicationExport: React.FC<ApplicationExportProps> = ({ tenantId, 
       setSuccess(null);
       setExportProgress(0);
 
-      const response = await fetch('/api/ux/export/applications', {
-        method: 'POST',
+      const response = await fetch("/api/ux/export/applications", {
+        method: "POST",
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(exportConfig),
       });
 
-      if (!response.ok) throw new Error('Export failed');
+      if (!response.ok) throw new Error("Export failed");
 
       // Get the blob for download
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
-      
+
       // Create download link
-      const a = document.createElement('a');
+      const a = document.createElement("a");
       a.href = url;
-      a.download = `applications-export-${new Date().toISOString().split('T')[0]}.${exportConfig.format}`;
-      document.body.appendChild(a);
+      a.download = `applications-export-${new Date().toISOString().split("T")[0]}.${exportConfig.format}`;
+      document.body.append(a);
       a.click();
       window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
+      a.remove();
 
-      setSuccess('Export completed successfully!');
+      setSuccess("Export completed successfully!");
       setExportProgress(100);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Export failed');
+    } catch (error_) {
+      setError(error_ instanceof Error ? error_.message : "Export failed");
     } finally {
       setIsExporting(false);
     }
@@ -189,41 +216,65 @@ export const ApplicationExport: React.FC<ApplicationExportProps> = ({ tenantId, 
     } else {
       setExportConfig({
         ...exportConfig,
-        fields: exportConfig.fields.filter(field => field !== fieldId),
+        fields: exportConfig.fields.filter((field) => field !== fieldId),
       });
     }
   };
 
   const getFormatIcon = (format: string) => {
     switch (format) {
-      case 'csv':
+      case "csv": {
         return <FileText className="h-4 w-4" />;
-      case 'xlsx':
+      }
+      case "xlsx": {
         return <FileSpreadsheet className="h-4 w-4" />;
-      case 'pdf':
+      }
+      case "pdf": {
         return <FileImage className="h-4 w-4" />;
-      case 'json':
+      }
+      case "json": {
         return <FileText className="h-4 w-4" />;
-      default:
+      }
+      default: {
         return <FileText className="h-4 w-4" />;
+      }
     }
   };
 
   const getFilteredApplications = () => {
-    return applications.filter(app => {
-      if (exportConfig.filters.status && app.status !== exportConfig.filters.status) {
+    return applications.filter((app) => {
+      if (
+        exportConfig.filters.status &&
+        app.status !== exportConfig.filters.status
+      ) {
         return false;
       }
-      if (exportConfig.filters.company && !app.company.toLowerCase().includes(exportConfig.filters.company.toLowerCase())) {
+      if (
+        exportConfig.filters.company &&
+        !app.company
+          .toLowerCase()
+          .includes(exportConfig.filters.company.toLowerCase())
+      ) {
         return false;
       }
-      if (exportConfig.filters.location && !app.location.toLowerCase().includes(exportConfig.filters.location.toLowerCase())) {
+      if (
+        exportConfig.filters.location &&
+        !app.location
+          .toLowerCase()
+          .includes(exportConfig.filters.location.toLowerCase())
+      ) {
         return false;
       }
-      if (exportConfig.filters.date_from && new Date(app.created_at) < new Date(exportConfig.filters.date_from)) {
+      if (
+        exportConfig.filters.date_from &&
+        new Date(app.created_at) < new Date(exportConfig.filters.date_from)
+      ) {
         return false;
       }
-      if (exportConfig.filters.date_to && new Date(app.created_at) > new Date(exportConfig.filters.date_to)) {
+      if (
+        exportConfig.filters.date_to &&
+        new Date(app.created_at) > new Date(exportConfig.filters.date_to)
+      ) {
         return false;
       }
       return true;
@@ -245,13 +296,13 @@ export const ApplicationExport: React.FC<ApplicationExportProps> = ({ tenantId, 
             <Label>Quick Templates</Label>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               {templates.map((template) => (
-                <Card 
-                  key={template.id} 
+                <Card
+                  key={template.id}
                   className={`cursor-pointer transition-all ${
-                    exportConfig.fields.length === template.fields.length && 
-                    exportConfig.format === template.format 
-                      ? 'ring-2 ring-blue-500' 
-                      : 'hover:shadow-md'
+                    exportConfig.fields.length === template.fields.length &&
+                    exportConfig.format === template.format
+                      ? "ring-2 ring-blue-500"
+                      : "hover:shadow-md"
                   }`}
                   onClick={() => handleTemplateSelect(template)}
                 >
@@ -260,12 +311,17 @@ export const ApplicationExport: React.FC<ApplicationExportProps> = ({ tenantId, 
                       {getFormatIcon(template.format)}
                       <span className="font-medium">{template.name}</span>
                       {template.is_default && (
-                        <Badge variant="secondary" className="text-xs">Default</Badge>
+                        <Badge variant="secondary" className="text-xs">
+                          Default
+                        </Badge>
                       )}
                     </div>
-                    <p className="text-sm text-gray-600">{template.description}</p>
+                    <p className="text-sm text-gray-600">
+                      {template.description}
+                    </p>
                     <p className="text-xs text-gray-500 mt-1">
-                      {template.fields.length} fields • {template.format.toUpperCase()}
+                      {template.fields.length} fields •{" "}
+                      {template.format.toUpperCase()}
                     </p>
                   </CardContent>
                 </Card>
@@ -276,7 +332,12 @@ export const ApplicationExport: React.FC<ApplicationExportProps> = ({ tenantId, 
           {/* Export Format */}
           <div className="space-y-2">
             <Label>Export Format</Label>
-            <Select value={exportConfig.format} onValueChange={(value: any) => setExportConfig({...exportConfig, format: value})}>
+            <Select
+              value={exportConfig.format}
+              onValueChange={(value: any) =>
+                setExportConfig({ ...exportConfig, format: value })
+              }
+            >
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
@@ -311,14 +372,18 @@ export const ApplicationExport: React.FC<ApplicationExportProps> = ({ tenantId, 
 
           {/* Field Selection */}
           <div className="space-y-4">
-            <Label>Fields to Export ({exportConfig.fields.length} selected)</Label>
+            <Label>
+              Fields to Export ({exportConfig.fields.length} selected)
+            </Label>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {availableFields.map((field) => (
                 <div key={field.id} className="flex items-start space-x-2">
                   <Checkbox
                     id={field.id}
                     checked={exportConfig.fields.includes(field.id)}
-                    onCheckedChange={(checked) => handleFieldToggle(field.id, checked as boolean)}
+                    onCheckedChange={(checked) =>
+                      handleFieldToggle(field.id, checked)
+                    }
                   />
                   <div className="flex-1">
                     <Label htmlFor={field.id} className="text-sm font-medium">
@@ -337,12 +402,17 @@ export const ApplicationExport: React.FC<ApplicationExportProps> = ({ tenantId, 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="status-filter">Status</Label>
-                <Select 
-                  value={exportConfig.filters.status || ''} 
-                  onValueChange={(value) => setExportConfig({
-                    ...exportConfig,
-                    filters: { ...exportConfig.filters, status: value || undefined }
-                  })}
+                <Select
+                  value={exportConfig.filters.status || ""}
+                  onValueChange={(value) =>
+                    setExportConfig({
+                      ...exportConfig,
+                      filters: {
+                        ...exportConfig.filters,
+                        status: value || undefined,
+                      },
+                    })
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="All statuses" />
@@ -351,7 +421,9 @@ export const ApplicationExport: React.FC<ApplicationExportProps> = ({ tenantId, 
                     <SelectItem value="">All statuses</SelectItem>
                     <SelectItem value="QUEUED">Queued</SelectItem>
                     <SelectItem value="PROCESSING">Processing</SelectItem>
-                    <SelectItem value="REQUIRES_INPUT">Requires Input</SelectItem>
+                    <SelectItem value="REQUIRES_INPUT">
+                      Requires Input
+                    </SelectItem>
                     <SelectItem value="APPLIED">Applied</SelectItem>
                     <SelectItem value="SUBMITTED">Submitted</SelectItem>
                     <SelectItem value="COMPLETED">Completed</SelectItem>
@@ -365,11 +437,16 @@ export const ApplicationExport: React.FC<ApplicationExportProps> = ({ tenantId, 
                 <Input
                   id="company-filter"
                   placeholder="Filter by company..."
-                  value={exportConfig.filters.company || ''}
-                  onChange={(e) => setExportConfig({
-                    ...exportConfig,
-                    filters: { ...exportConfig.filters, company: e.target.value || undefined }
-                  })}
+                  value={exportConfig.filters.company || ""}
+                  onChange={(e) =>
+                    setExportConfig({
+                      ...exportConfig,
+                      filters: {
+                        ...exportConfig.filters,
+                        company: e.target.value || undefined,
+                      },
+                    })
+                  }
                 />
               </div>
 
@@ -378,11 +455,16 @@ export const ApplicationExport: React.FC<ApplicationExportProps> = ({ tenantId, 
                 <Input
                   id="location-filter"
                   placeholder="Filter by location..."
-                  value={exportConfig.filters.location || ''}
-                  onChange={(e) => setExportConfig({
-                    ...exportConfig,
-                    filters: { ...exportConfig.filters, location: e.target.value || undefined }
-                  })}
+                  value={exportConfig.filters.location || ""}
+                  onChange={(e) =>
+                    setExportConfig({
+                      ...exportConfig,
+                      filters: {
+                        ...exportConfig.filters,
+                        location: e.target.value || undefined,
+                      },
+                    })
+                  }
                 />
               </div>
 
@@ -391,11 +473,16 @@ export const ApplicationExport: React.FC<ApplicationExportProps> = ({ tenantId, 
                 <Input
                   id="date-from"
                   type="date"
-                  value={exportConfig.filters.date_from || ''}
-                  onChange={(e) => setExportConfig({
-                    ...exportConfig,
-                    filters: { ...exportConfig.filters, date_from: e.target.value || undefined }
-                  })}
+                  value={exportConfig.filters.date_from || ""}
+                  onChange={(e) =>
+                    setExportConfig({
+                      ...exportConfig,
+                      filters: {
+                        ...exportConfig.filters,
+                        date_from: e.target.value || undefined,
+                      },
+                    })
+                  }
                 />
               </div>
 
@@ -404,11 +491,16 @@ export const ApplicationExport: React.FC<ApplicationExportProps> = ({ tenantId, 
                 <Input
                   id="date-to"
                   type="date"
-                  value={exportConfig.filters.date_to || ''}
-                  onChange={(e) => setExportConfig({
-                    ...exportConfig,
-                    filters: { ...exportConfig.filters, date_to: e.target.value || undefined }
-                  })}
+                  value={exportConfig.filters.date_to || ""}
+                  onChange={(e) =>
+                    setExportConfig({
+                      ...exportConfig,
+                      filters: {
+                        ...exportConfig.filters,
+                        date_to: e.target.value || undefined,
+                      },
+                    })
+                  }
                 />
               </div>
             </div>
@@ -422,7 +514,12 @@ export const ApplicationExport: React.FC<ApplicationExportProps> = ({ tenantId, 
                 <Checkbox
                   id="include-notes"
                   checked={exportConfig.include_notes}
-                  onCheckedChange={(checked) => setExportConfig({...exportConfig, include_notes: checked as boolean})}
+                  onCheckedChange={(checked) =>
+                    setExportConfig({
+                      ...exportConfig,
+                      include_notes: checked,
+                    })
+                  }
                 />
                 <Label htmlFor="include-notes">Include application notes</Label>
               </div>
@@ -430,7 +527,12 @@ export const ApplicationExport: React.FC<ApplicationExportProps> = ({ tenantId, 
                 <Checkbox
                   id="include-reminders"
                   checked={exportConfig.include_reminders}
-                  onCheckedChange={(checked) => setExportConfig({...exportConfig, include_reminders: checked as boolean})}
+                  onCheckedChange={(checked) =>
+                    setExportConfig({
+                      ...exportConfig,
+                      include_reminders: checked,
+                    })
+                  }
                 />
                 <Label htmlFor="include-reminders">Include reminders</Label>
               </div>
@@ -470,7 +572,9 @@ export const ApplicationExport: React.FC<ApplicationExportProps> = ({ tenantId, 
             size="lg"
           >
             <Download className="h-4 w-4 mr-2" />
-            {isExporting ? 'Exporting...' : `Export ${filteredApplications.length} Applications`}
+            {isExporting
+              ? "Exporting..."
+              : `Export ${filteredApplications.length} Applications`}
           </Button>
         </CardContent>
       </Card>
@@ -502,8 +606,12 @@ export const ApplicationExport: React.FC<ApplicationExportProps> = ({ tenantId, 
                   <thead className="bg-gray-50">
                     <tr>
                       {exportConfig.fields.map((field) => (
-                        <th key={field} className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          {availableFields.find(f => f.id === field)?.label || field}
+                        <th
+                          key={field}
+                          className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                        >
+                          {availableFields.find((f) => f.id === field)?.label ||
+                            field}
                         </th>
                       ))}
                     </tr>
@@ -512,18 +620,25 @@ export const ApplicationExport: React.FC<ApplicationExportProps> = ({ tenantId, 
                     {filteredApplications.slice(0, 5).map((app) => (
                       <tr key={app.id}>
                         {exportConfig.fields.map((field) => (
-                          <td key={field} className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
-                            {field === 'salary_min' && app.salary_min 
+                          <td
+                            key={field}
+                            className="px-4 py-2 whitespace-nowrap text-sm text-gray-900"
+                          >
+                            {field === "salary_min" && app.salary_min
                               ? `$${app.salary_min.toLocaleString()}`
-                              : field === 'salary_max' && app.salary_max
-                              ? `$${app.salary_max.toLocaleString()}`
-                              : field === 'created_at' || field === 'last_activity'
-                              ? (() => {
-                                  const val = app[field as keyof Application];
-                                  return val ? new Date(val as string | number).toLocaleDateString() : '-';
-                                })()
-                              : (app[field as keyof Application] ?? '-') as string
-                            }
+                              : field === "salary_max" && app.salary_max
+                                ? `$${app.salary_max.toLocaleString()}`
+                                : field === "created_at" ||
+                                    field === "last_activity"
+                                  ? (() => {
+                                      const value =
+                                        app[field as keyof Application];
+                                      return value
+                                        ? new Date(value).toLocaleDateString()
+                                        : "-";
+                                    })()
+                                  : ((app[field as keyof Application] ??
+                                      "-") as string)}
                           </td>
                         ))}
                       </tr>

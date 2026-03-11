@@ -14,12 +14,18 @@ const buttonVariants = cva(
           "bg-brand-gray text-brand-text hover:bg-brand-border/50 focus-visible:ring-brand-primary active:scale-[0.98]",
         default:
           "bg-brand-primary text-white hover:bg-brand-primaryHover focus-visible:ring-brand-primary shadow-sm active:scale-[0.98]",
-        ghost: "bg-transparent text-gray-700 hover:bg-gray-100 focus-visible:ring-gray-300 active:scale-[0.98]",
-        outline: "bg-transparent border border-gray-200 text-black hover:bg-gray-50 focus-visible:ring-gray-300 active:scale-[0.98]",
-        danger: "bg-red-500 text-white hover:bg-red-600 focus-visible:ring-red-400 shadow-sm active:scale-[0.98]",
-        destructive: "bg-red-500 text-white hover:bg-red-600 focus-visible:ring-red-400 shadow-sm active:scale-[0.98]",
-        success: "bg-emerald-500 text-white hover:bg-emerald-600 focus-visible:ring-emerald-400 shadow-sm active:scale-[0.98]",
-        lagoon: "bg-gray-800 text-white hover:bg-black focus-visible:ring-gray-500 shadow-sm active:scale-[0.98]",
+        ghost:
+          "bg-transparent text-gray-700 hover:bg-gray-100 focus-visible:ring-gray-300 active:scale-[0.98]",
+        outline:
+          "bg-transparent border border-gray-200 text-black hover:bg-gray-50 focus-visible:ring-gray-300 active:scale-[0.98]",
+        danger:
+          "bg-red-500 text-white hover:bg-red-600 focus-visible:ring-red-400 shadow-sm active:scale-[0.98]",
+        destructive:
+          "bg-red-500 text-white hover:bg-red-600 focus-visible:ring-red-400 shadow-sm active:scale-[0.98]",
+        success:
+          "bg-emerald-500 text-white hover:bg-emerald-600 focus-visible:ring-emerald-400 shadow-sm active:scale-[0.98]",
+        lagoon:
+          "bg-gray-800 text-white hover:bg-black focus-visible:ring-gray-500 shadow-sm active:scale-[0.98]",
       },
       size: {
         // H10: All sizes meet 44px minimum touch target requirement
@@ -43,18 +49,18 @@ export type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> &
   };
 
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, asChild = false, ...props }, ref) => {
+  ({ className, variant, size, asChild = false, ...properties }, reference) => {
     const Comp = asChild ? Slot : "button";
     // M6: Accessibility - Ensure buttons have proper type and accessibility attributes
-    const buttonProps = {
-      type: props.type || (Comp === "button" ? "button" : undefined),
-      ...props,
+    const buttonProperties = {
+      type: properties.type || (Comp === "button" ? "button" : undefined),
+      ...properties,
     };
     return (
       <Comp
         className={cn(buttonVariants({ variant, size }), className)}
-        ref={ref}
-        {...buttonProps}
+        ref={reference}
+        {...buttonProperties}
       />
     );
   },

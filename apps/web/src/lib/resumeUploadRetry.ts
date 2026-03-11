@@ -1,4 +1,4 @@
-import { BrowserCacheService } from './browserCache';
+import { BrowserCacheService } from "./browserCache";
 
 export interface ResumeUploadMetadata {
   file: File;
@@ -27,7 +27,7 @@ export interface ResumeUploadState {
 
 const MAX_RETRIES = 3;
 const BASE_DELAY = 1000; // 1 second
-const MAX_DELAY = 30000; // 30 seconds
+const MAX_DELAY = 30_000; // 30 seconds
 
 export class ResumeUploadRetryManager {
   private cacheService: BrowserCacheService;
@@ -45,7 +45,9 @@ export class ResumeUploadRetryManager {
    * Large files (>4MB) are not stored to avoid localStorage QuotaExceeded; retry will require re-upload.
    */
   async saveResumeMetadata(file: File, error?: string): Promise<void> {
-    const metadata: Omit<ResumeUploadMetadata, 'file'> & { fileBase64?: string } = {
+    const metadata: Omit<ResumeUploadMetadata, "file"> & {
+      fileBase64?: string;
+    } = {
       fileName: file.name,
       fileSize: file.size,
       fileType: file.type,
@@ -66,15 +68,17 @@ export class ResumeUploadRetryManager {
       }
     }
     // Omit file (not serializable); only fileBase64 is stored
-    await this.cacheService.set('resume_upload_metadata', metadata);
+    await this.cacheService.set("resume_upload_metadata", metadata);
   }
 
   /**
    * Get current upload state
    */
   async getUploadState(): Promise<ResumeUploadState> {
-    const metadata = await this.cacheService.get<ResumeUploadMetadata>('resume_upload_metadata');
-    
+    const metadata = await this.cacheService.get<ResumeUploadMetadata>(
+      "resume_upload_metadata",
+    );
+
     if (!metadata) {
       return {
         isUploading: false,
@@ -86,11 +90,14 @@ export class ResumeUploadRetryManager {
     }
 
     const now = Date.now();
-    const hasFileData = !!(metadata as ResumeUploadMetadata & { fileBase64?: string }).fileBase64;
-    const canRetry = hasFileData &&
-                      metadata.uploadAttempts < MAX_RETRIES &&
-                      metadata.nextRetryTime <= now &&
-                      navigator.onLine;
+    const hasFileData = !!(
+      metadata as ResumeUploadMetadata & { fileBase64?: string }
+    ).fileBase64;
+    const canRetry =
+      hasFileData &&
+      metadata.uploadAttempts < MAX_RETRIES &&
+      metadata.nextRetryTime <= now &&
+      navigator.onLine;
 
     return {
       isUploading: false,
@@ -117,7 +124,9 @@ export class ResumeUploadRetryManager {
    * Preserves fileBase64 if present; does not re-add (file not available in this context).
    */
   async updateAfterFailure(error: string): Promise<void> {
-    const metadata = await this.cacheService.get<ResumeUploadMetadata & { fileBase64?: string }>('resume_upload_metadata');
+    const metadata = await this.cacheService.get<
+      ResumeUploadMetadata & { fileBase64?: string }
+    >("resume_upload_metadata");
     if (!metadata) return;
 
     const nextBackoff = this.calculateBackoff(metadata.uploadAttempts + 1);
@@ -130,14 +139,14 @@ export class ResumeUploadRetryManager {
       backoffMs: nextBackoff,
     };
     delete updatedMetadata.file; // Not serializable
-    await this.cacheService.set('resume_upload_metadata', updatedMetadata);
+    await this.cacheService.set("resume_upload_metadata", updatedMetadata);
   }
 
   /**
    * Clear metadata after successful upload
    */
   async clearMetadata(): Promise<void> {
-    await this.cacheService.del('resume_upload_metadata');
+    await this.cacheService.del("resume_upload_metadata");
     this.clearRetryTimer();
   }
 
@@ -145,10 +154,16 @@ export class ResumeUploadRetryManager {
    * Get stored file from metadata
    */
   async getStoredFile(): Promise<File | null> {
-    const metadata = await this.cacheService.get<ResumeUploadMetadata>('resume_upload_metadata');
+    const metadata = await this.cacheService.get<ResumeUploadMetadata>(
+      "resume_upload_metadata",
+    );
     if (!metadata?.fileBase64) return null;
 
-    return this.base64ToFile(metadata.fileBase64, metadata.fileName, metadata.fileType);
+    return this.base64ToFile(
+      metadata.fileBase64,
+      metadata.fileName,
+      metadata.fileType,
+    );
   }
 
   /**
@@ -157,7 +172,7 @@ export class ResumeUploadRetryManager {
   private async fileToBase64(file: File): Promise<string> {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
-      reader.onload = () => resolve(reader.result as string);
+      reader.addEventListener("load", () => resolve(reader.result as string));
       reader.onerror = reject;
       reader.readAsDataURL(file);
     });
@@ -166,17 +181,22 @@ export class ResumeUploadRetryManager {
   /**
    * Convert base64 back to File
    */
-  private base64ToFile(base64: string, fileName: string, fileType: string): File {
-    const dataPart = base64.split(',')[1];
-    if (!dataPart) throw new Error("Invalid base64 data URL: missing data part");
+  private base64ToFile(
+    base64: string,
+    fileName: string,
+    fileType: string,
+  ): File {
+    const dataPart = base64.split(",")[1];
+    if (!dataPart)
+      throw new Error("Invalid base64 data URL: missing data part");
     const byteString = atob(dataPart);
     const arrayBuffer = new ArrayBuffer(byteString.length);
     const uint8Array = new Uint8Array(arrayBuffer);
-    
-    for (let i = 0; i < byteString.length; i++) {
-      uint8Array[i] = byteString.charCodeAt(i);
+
+    for (let index = 0; index < byteString.length; index++) {
+      uint8Array[index] = byteString.charCodeAt(index);
     }
-    
+
     return new File([arrayBuffer], fileName, { type: fileType });
   }
 
@@ -185,30 +205,32 @@ export class ResumeUploadRetryManager {
    */
   setupRetryTimer(onRetry: () => void): void {
     this.clearRetryTimer();
-    
-    this.cacheService.get<ResumeUploadMetadata>('resume_upload_metadata').then((metadata: ResumeUploadMetadata | null) => {
-      if (!metadata || metadata.uploadAttempts >= MAX_RETRIES) return;
-      
-      const delay = Math.max(0, metadata.nextRetryTime - Date.now());
-      
-      const timer = setTimeout(() => {
-        if (navigator.onLine) {
-          onRetry();
-        }
-      }, delay);
-      
-      this.retryTimers.set('resume_upload', timer);
-    });
+
+    this.cacheService
+      .get<ResumeUploadMetadata>("resume_upload_metadata")
+      .then((metadata: ResumeUploadMetadata | null) => {
+        if (!metadata || metadata.uploadAttempts >= MAX_RETRIES) return;
+
+        const delay = Math.max(0, metadata.nextRetryTime - Date.now());
+
+        const timer = setTimeout(() => {
+          if (navigator.onLine) {
+            onRetry();
+          }
+        }, delay);
+
+        this.retryTimers.set("resume_upload", timer);
+      });
   }
 
   /**
    * Clear retry timer
    */
   clearRetryTimer(): void {
-    const timer = this.retryTimers.get('resume_upload');
+    const timer = this.retryTimers.get("resume_upload");
     if (timer) {
       clearTimeout(timer);
-      this.retryTimers.delete('resume_upload');
+      this.retryTimers.delete("resume_upload");
     }
   }
 
@@ -225,11 +247,13 @@ export class ResumeUploadRetryManager {
    */
   async getRetryMessage(): Promise<string> {
     const { key, params } = await this.getRetryMessageI18n();
-    if (key === "resumeRetry.offline") return "You're offline. The resume will be automatically uploaded when you reconnect.";
-    if (key === "resumeRetry.maxReached") return "Maximum retry attempts reached. Please try uploading again or contact support.";
+    if (key === "resumeRetry.offline")
+      return "You're offline. The resume will be automatically uploaded when you reconnect.";
+    if (key === "resumeRetry.maxReached")
+      return "Maximum retry attempts reached. Please try uploading again or contact support.";
     if (key === "resumeRetry.retryingIn") {
       const minutes = params?.minutes ?? 1;
-      return `Retrying in ${minutes} minute${minutes !== 1 ? "s" : ""}...`;
+      return `Retrying in ${minutes} minute${minutes === 1 ? "" : "s"}...`;
     }
     return "Ready to retry.";
   }
@@ -237,12 +261,16 @@ export class ResumeUploadRetryManager {
   /**
    * Get retry message as i18n key + params for component translation (I2)
    */
-  async getRetryMessageI18n(): Promise<{ key: string; params?: Record<string, string | number> }> {
+  async getRetryMessageI18n(): Promise<{
+    key: string;
+    params?: Record<string, string | number>;
+  }> {
     const state = await this.getUploadState();
     if (!navigator.onLine) return { key: "resumeRetry.offline" };
-    if (state.retryCount >= MAX_RETRIES) return { key: "resumeRetry.maxReached" };
+    if (state.retryCount >= MAX_RETRIES)
+      return { key: "resumeRetry.maxReached" };
     if (state.nextRetryIn > 0) {
-      const minutes = Math.ceil(state.nextRetryIn / 60000);
+      const minutes = Math.ceil(state.nextRetryIn / 60_000);
       return { key: "resumeRetry.retryingIn", params: { minutes } };
     }
     return { key: "resumeRetry.ready" };

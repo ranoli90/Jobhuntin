@@ -1,299 +1,351 @@
-import React, { useRef, useState, useEffect } from 'react';
-import { motion, useScroll, useTransform } from 'framer-motion';
-import { Link } from 'react-router-dom';
-import { Briefcase, Search, FileText, Send, ArrowRight, ShieldCheck, Zap } from 'lucide-react';
-import { Button } from '../components/ui/Button';
-import { SEO } from '../components/marketing/SEO';
-import { t, getLocale } from '../lib/i18n';
+import React, { useRef, useState, useEffect } from "react";
+import { motion, useScroll, useTransform } from "framer-motion";
+import { Link } from "react-router-dom";
+import {
+  Briefcase,
+  Search,
+  FileText,
+  Send,
+  ArrowRight,
+  ShieldCheck,
+  Zap,
+} from "lucide-react";
+import { Button } from "../components/ui/Button";
+import { SEO } from "../components/marketing/SEO";
+import { t, getLocale } from "../lib/i18n";
 
 // --- Simulation Components ---
 
 const SimulationLog = () => {
-    const [logs, setLogs] = useState<string[]>([
-        "Initializing JobHuntin Engine v2.4...",
-        "Scanning for 'Retail Jobs' near you...",
-        "Found matching job at Walmart (Score: 94%)",
-        "Tailoring cover letter based on summary..."
-    ]);
+  const [logs, setLogs] = useState<string[]>([
+    "Initializing JobHuntin Engine v2.4...",
+    "Scanning for 'Retail Jobs' near you...",
+    "Found matching job at Walmart (Score: 94%)",
+    "Tailoring cover letter based on summary...",
+  ]);
 
-    useEffect(() => {
-        const timer = setInterval(() => {
-            const newLogs = [
-                "Analyzing req: 'Must have Framer Motion exp'...",
-                "Updating resume skillset: +Customer Service",
-                "Submitting application to Walmart...",
-                "Success! ID: app_492013",
-                "Next scan in 3.4s..."
-            ];
-            setLogs(prev => [...prev.slice(-4), newLogs[Math.floor(Math.random() * newLogs.length)]]);
-        }, 2500);
-        return () => clearInterval(timer);
-    }, []);
+  useEffect(() => {
+    const timer = setInterval(() => {
+      const newLogs = [
+        "Analyzing req: 'Must have Framer Motion exp'...",
+        "Updating resume skillset: +Customer Service",
+        "Submitting application to Walmart...",
+        "Success! ID: app_492013",
+        "Next scan in 3.4s...",
+      ];
+      setLogs((previous) => [
+        ...previous.slice(-4),
+        newLogs[Math.floor(Math.random() * newLogs.length)],
+      ]);
+    }, 2500);
+    return () => clearInterval(timer);
+  }, []);
 
-    return (
-        <div className="font-mono text-[10px] md:text-sm text-primary-400 p-6 bg-slate-900/50 backdrop-blur-xl rounded-2xl border border-white/10 shadow-2xl">
-            {logs.map((log, i) => (
-                <motion.div
-                    key={i + log}
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    className="mb-1 flex gap-2"
-                >
-                    <span className="text-primary-600/50">[{new Date().toLocaleTimeString()}]</span>
-                    <span>{log}</span>
-                </motion.div>
-            ))}
-            <motion.div
-                animate={{ opacity: [1, 0] }}
-                transition={{ repeat: Infinity, duration: 0.8 }}
-                className="w-2 h-4 bg-primary-500 inline-block align-middle ml-1"
-            />
-        </div>
-    );
+  return (
+    <div className="font-mono text-[10px] md:text-sm text-primary-400 p-6 bg-slate-900/50 backdrop-blur-xl rounded-2xl border border-white/10 shadow-2xl">
+      {logs.map((log, index) => (
+        <motion.div
+          key={index + log}
+          initial={{ opacity: 0, x: -10 }}
+          animate={{ opacity: 1, x: 0 }}
+          className="mb-1 flex gap-2"
+        >
+          <span className="text-primary-600/50">
+            [{new Date().toLocaleTimeString()}]
+          </span>
+          <span>{log}</span>
+        </motion.div>
+      ))}
+      <motion.div
+        animate={{ opacity: [1, 0] }}
+        transition={{ repeat: Infinity, duration: 0.8 }}
+        className="w-2 h-4 bg-primary-500 inline-block align-middle ml-1"
+      />
+    </div>
+  );
 };
 
 import type { LucideIcon } from "lucide-react";
 
-const ProcessStep = ({ icon: Icon, title, desc, delay }: { icon: LucideIcon, title: string, desc: string, delay: number }) => (
-    <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        transition={{ delay, duration: 0.8 }}
-        viewport={{ once: true }}
-        className="relative group"
-    >
-        <div className="absolute -inset-4 bg-primary-500/5 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity blur-xl" />
-        <div className="relative z-10 flex flex-col items-center text-center">
-            <div className="w-16 h-16 rounded-2xl bg-white shadow-xl shadow-slate-200/50 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500">
-                <Icon className="w-8 h-8 text-primary-600" />
-            </div>
-            <h3 className="text-xl font-black text-slate-900 mb-2">{title}</h3>
-            <p className="text-slate-500 leading-relaxed font-medium">{desc}</p>
-        </div>
-    </motion.div>
+const ProcessStep = ({
+  icon: Icon,
+  title,
+  desc,
+  delay,
+}: {
+  icon: LucideIcon;
+  title: string;
+  desc: string;
+  delay: number;
+}) => (
+  <motion.div
+    initial={{ opacity: 0, y: 20 }}
+    whileInView={{ opacity: 1, y: 0 }}
+    transition={{ delay, duration: 0.8 }}
+    viewport={{ once: true }}
+    className="relative group"
+  >
+    <div className="absolute -inset-4 bg-primary-500/5 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity blur-xl" />
+    <div className="relative z-10 flex flex-col items-center text-center">
+      <div className="w-16 h-16 rounded-2xl bg-white shadow-xl shadow-slate-200/50 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500">
+        <Icon className="w-8 h-8 text-primary-600" />
+      </div>
+      <h3 className="text-xl font-black text-slate-900 mb-2">{title}</h3>
+      <p className="text-slate-500 leading-relaxed font-medium">{desc}</p>
+    </div>
+  </motion.div>
 );
 
 export default function About() {
-    const locale = getLocale();
-    const containerRef = useRef<HTMLDivElement>(null);
-    const { scrollYProgress } = useScroll({
-        target: containerRef,
-        offset: ["start start", "end end"]
-    });
+  const locale = getLocale();
+  const containerReference = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: containerReference,
+    offset: ["start start", "end end"],
+  });
 
-    const heroScale = useTransform(scrollYProgress, [0, 0.1], [1, 0.85]);
-    const heroOpacity = useTransform(scrollYProgress, [0, 0.1], [1, 0]);
+  const heroScale = useTransform(scrollYProgress, [0, 0.1], [1, 0.85]);
+  const heroOpacity = useTransform(scrollYProgress, [0, 0.1], [1, 0]);
 
-    return (
-        <div className="bg-white dark:bg-slate-950 overflow-x-hidden">
-            <SEO
-                title="About JobHuntin | AI Job Search Automation That Works While You Sleep"
-                description="JobHuntin is an AI-powered job search automation platform. Our autonomous agent discovers jobs, tailors resumes, and auto-applies 24/7. Built by job seekers, for job seekers."
-                ogTitle="About JobHuntin | AI Job Search Automation"
-                ogImage="https://jobhuntin.com/og-image.png"
-                canonicalUrl="https://jobhuntin.com/about"
-                schema={[
-                    {
-                        "@context": "https://schema.org",
-                        "@type": "AboutPage",
-                        "name": "About JobHuntin",
-                        "description": "AI-powered job search automation platform",
-                        "url": "https://jobhuntin.com/about",
-                        "mainEntity": {
-                            "@type": "Organization",
-                            "name": "JobHuntin",
-                            "url": "https://jobhuntin.com",
-                            "description": "Autonomous AI job search automation"
-                        }
-                    },
-                    {
-                        "@context": "https://schema.org",
-                        "@type": "Organization",
-                        "name": "JobHuntin",
-                        "url": "https://jobhuntin.com",
-                        "logo": "https://jobhuntin.com/favicon.svg",
-                        "description": "AI-powered job search automation platform",
-                        "foundingDate": "2025",
-                        "contactPoint": {
-                            "@type": "ContactPoint",
-                            "email": "support@jobhuntin.com",
-                            "contactType": "customer service"
-                        }
-                    }
-                ]}
-            />
-            {/* --- HERO SECTION --- */}
-            <section className="relative min-h-[80vh] flex items-center justify-center pt-32 px-6">
-                <div className="absolute inset-0 z-0">
-                    <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary-500/10 rounded-full blur-[120px] animate-pulse" />
-                    <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-[120px] animate-pulse delay-1000" />
-                </div>
-
-                <motion.div
-                    style={{ scale: heroScale, opacity: heroOpacity }}
-                    className="max-w-5xl mx-auto text-center relative z-10"
-                >
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="inline-flex items-center gap-2 bg-slate-900/5 backdrop-blur-sm border border-slate-900/10 px-4 py-2 rounded-full text-sm font-bold text-slate-800 mb-8"
-                    >
-                        <Briefcase className="w-4 h-4 text-gray-700" />
-                        <span>{t("about.badge", locale)}</span>
-                    </motion.div>
-
-                    <h1 className="text-6xl md:text-8xl font-sans font-black text-slate-900 dark:text-slate-100 leading-[0.9] tracking-tighter mb-8">
-                        {t("about.heading1", locale)} <br />
-                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-500 to-primary-600">{t("about.heading2", locale)}</span>
-                    </h1>
-
-                    <p className="text-xl md:text-2xl text-slate-500 dark:text-slate-400 max-w-3xl mx-auto font-medium leading-relaxed mb-12">
-                        {t("about.heroDescription", locale)}
-                    </p>
-
-                    <div className="flex flex-wrap justify-center gap-4">
-                        <Link to="/login">
-                            <Button variant="primary" size="lg" className="rounded-2xl px-8 py-6 text-lg font-bold shadow-2xl shadow-primary-500/20">
-                                {t("about.experienceMagic", locale)}
-                            </Button>
-                        </Link>
-                        <Button variant="ghost" size="lg" className="rounded-2xl px-8 py-6 text-lg font-bold">
-                            {t("about.watchStory", locale)}
-                        </Button>
-                    </div>
-                </motion.div>
-            </section>
-
-            {/* --- SUPERIOR TECHNOLOGY SECTION --- */}
-            <section className="py-32 px-6 relative">
-                <div className="max-w-7xl mx-auto">
-                    <div className="grid lg:grid-cols-2 gap-20 items-center">
-                        <div className="space-y-8">
-                            <div className="space-y-4">
-                                <p className="text-primary-600 font-black tracking-widest uppercase text-sm">{t("about.enterpriseIntelligence", locale)}</p>
-                                <h2 className="text-4xl md:text-5xl font-sans font-black text-slate-900 dark:text-slate-100 leading-tight">
-                                    {t("about.digitalDouble", locale)}
-                                </h2>
-                                <p className="text-lg text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
-                                    {t("about.digitalDoubleDesc", locale)}
-                                </p>
-                            </div>
-
-                            <div className="space-y-6">
-                                <div className="flex gap-4 p-6 rounded-3xl bg-slate-50 border border-slate-100 transition-transform hover:-translate-y-1">
-                                    <div className="flex-shrink-0 w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center">
-                                        <ShieldCheck className="w-6 h-6 text-green-600" />
-                                    </div>
-                                    <div>
-                                        <h4 className="font-bold text-slate-900 dark:text-slate-100">{t("about.privacyFirst", locale)}</h4>
-                                        <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">{t("about.privacyFirstDesc", locale)}</p>
-                                    </div>
-                                </div>
-                                <div className="flex gap-4 p-6 rounded-3xl bg-slate-50 border border-slate-100 transition-transform hover:-translate-y-1">
-                                    <div className="flex-shrink-0 w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center">
-                                        <Zap className="w-6 h-6 text-primary-600" />
-                                    </div>
-                                    <div>
-                                        <h4 className="font-bold text-slate-900 dark:text-slate-100">{t("about.lightningPrecision", locale)}</h4>
-                                        <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">{t("about.lightningPrecisionDesc", locale)}</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="relative">
-                            <div className="absolute -inset-4 bg-gradient-to-tr from-primary-500 to-blue-500 rounded-[3rem] blur-2xl opacity-10 animate-pulse" />
-                            <div className="relative bg-white rounded-[2.5rem] border border-slate-100 shadow-2xl overflow-hidden p-8 aspect-square flex flex-col justify-center gap-8">
-                                <SimulationLog />
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="p-4 bg-primary-50 rounded-2xl border border-primary-100 text-center">
-                                        <p className="text-[10px] uppercase font-black text-primary-600 mb-1">{t("about.successRate", locale)}</p>
-                                        <p className="text-3xl font-black text-primary-700">92%</p>
-                                    </div>
-                                    <div className="p-4 bg-blue-50 rounded-2xl border border-blue-100 text-center">
-                                        <p className="text-[10px] uppercase font-black text-blue-600 mb-1">{t("about.timeSaved", locale)}</p>
-                                        <p className="text-3xl font-black text-blue-700">40h+</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            {/* --- THE PROCESS --- */}
-            <section className="py-32 bg-slate-50/50 px-6">
-                <div className="max-w-7xl mx-auto">
-                    <div className="text-center mb-24 max-w-3xl mx-auto">
-                        <h2 className="text-4xl md:text-5xl font-sans font-black text-slate-900 dark:text-slate-100 mb-6 tracking-tight">{t("about.howEngineWorks", locale)}</h2>
-                        <p className="text-lg text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
-                            {t("about.howEngineDesc", locale)}
-                        </p>
-                    </div>
-
-                    <div className="grid md:grid-cols-4 gap-12">
-                        <ProcessStep
-                            icon={Briefcase}
-                            title={t("about.parse", locale)}
-                            desc={t("about.parseDesc", locale)}
-                            delay={0.1}
-                        />
-                        <ProcessStep
-                            icon={Search}
-                            title={t("about.scout", locale)}
-                            desc={t("about.scoutDesc", locale)}
-                            delay={0.2}
-                        />
-                        <ProcessStep
-                            icon={FileText}
-                            title={t("about.tailor", locale)}
-                            desc={t("about.tailorDesc", locale)}
-                            delay={0.3}
-                        />
-                        <ProcessStep
-                            icon={Send}
-                            title={t("about.apply", locale)}
-                            desc={t("about.applyDesc", locale)}
-                            delay={0.4}
-                        />
-                    </div>
-                </div>
-            </section>
-
-            {/* --- THE VISION --- */}
-            <section className="py-40 px-6 relative overflow-hidden">
-                <div className="max-w-4xl mx-auto text-center relative z-10">
-                    <h2 className="text-5xl md:text-7xl font-sans font-black text-slate-900 dark:text-slate-100 mb-8 leading-tight tracking-tight">
-                        {t("about.visionHeading", locale)}
-                    </h2>
-                    <p className="text-xl text-slate-500 dark:text-slate-400 mb-12 font-medium">
-                        {t("about.visionDescription", locale)}
-                    </p>
-                    <Link to="/login">
-                        <Button size="lg" className="rounded-2xl px-12 py-8 text-xl font-bold bg-slate-900 text-white hover:bg-black hover:shadow-2xl transition-all group">
-                            {t("about.getStartedFree", locale)}
-                            <ArrowRight className="ml-3 group-hover:translate-x-1 transition-transform" />
-                        </Button>
-                    </Link>
-                    <p className="mt-8 text-slate-400 font-medium text-sm">{t("about.noCardRequired", locale)}</p>
-                </div>
-
-                {/* Floating Background Sparkles */}
-                <div className="absolute top-1/2 left-0 w-full h-full pointer-events-none">
-                    <motion.div
-                        animate={{ y: [0, -20, 0], opacity: [0.3, 0.6, 0.3] }}
-                        transition={{ repeat: Infinity, duration: 5 }}
-                        className="absolute top-0 left-10 w-2 h-2 bg-primary-500 rounded-full"
-                    />
-                    <motion.div
-                        animate={{ y: [0, 30, 0], opacity: [0.2, 0.5, 0.2] }}
-                        transition={{ repeat: Infinity, duration: 7, delay: 1 }}
-                        className="absolute bottom-10 right-20 w-3 h-3 bg-blue-500 rounded-full"
-                    />
-                </div>
-            </section>
-
-
+  return (
+    <div className="bg-white dark:bg-slate-950 overflow-x-hidden">
+      <SEO
+        title="About JobHuntin | AI Job Search Automation That Works While You Sleep"
+        description="JobHuntin is an AI-powered job search automation platform. Our autonomous agent discovers jobs, tailors resumes, and auto-applies 24/7. Built by job seekers, for job seekers."
+        ogTitle="About JobHuntin | AI Job Search Automation"
+        ogImage="https://jobhuntin.com/og-image.png"
+        canonicalUrl="https://jobhuntin.com/about"
+        schema={[
+          {
+            "@context": "https://schema.org",
+            "@type": "AboutPage",
+            name: "About JobHuntin",
+            description: "AI-powered job search automation platform",
+            url: "https://jobhuntin.com/about",
+            mainEntity: {
+              "@type": "Organization",
+              name: "JobHuntin",
+              url: "https://jobhuntin.com",
+              description: "Autonomous AI job search automation",
+            },
+          },
+          {
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            name: "JobHuntin",
+            url: "https://jobhuntin.com",
+            logo: "https://jobhuntin.com/favicon.svg",
+            description: "AI-powered job search automation platform",
+            foundingDate: "2025",
+            contactPoint: {
+              "@type": "ContactPoint",
+              email: "support@jobhuntin.com",
+              contactType: "customer service",
+            },
+          },
+        ]}
+      />
+      {/* --- HERO SECTION --- */}
+      <section className="relative min-h-[80vh] flex items-center justify-center pt-32 px-6">
+        <div className="absolute inset-0 z-0">
+          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary-500/10 rounded-full blur-[120px] animate-pulse" />
+          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-[120px] animate-pulse delay-1000" />
         </div>
-    );
+
+        <motion.div
+          style={{ scale: heroScale, opacity: heroOpacity }}
+          className="max-w-5xl mx-auto text-center relative z-10"
+        >
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="inline-flex items-center gap-2 bg-slate-900/5 backdrop-blur-sm border border-slate-900/10 px-4 py-2 rounded-full text-sm font-bold text-slate-800 mb-8"
+          >
+            <Briefcase className="w-4 h-4 text-gray-700" />
+            <span>{t("about.badge", locale)}</span>
+          </motion.div>
+
+          <h1 className="text-6xl md:text-8xl font-sans font-black text-slate-900 dark:text-slate-100 leading-[0.9] tracking-tighter mb-8">
+            {t("about.heading1", locale)} <br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-500 to-primary-600">
+              {t("about.heading2", locale)}
+            </span>
+          </h1>
+
+          <p className="text-xl md:text-2xl text-slate-500 dark:text-slate-400 max-w-3xl mx-auto font-medium leading-relaxed mb-12">
+            {t("about.heroDescription", locale)}
+          </p>
+
+          <div className="flex flex-wrap justify-center gap-4">
+            <Link to="/login">
+              <Button
+                variant="primary"
+                size="lg"
+                className="rounded-2xl px-8 py-6 text-lg font-bold shadow-2xl shadow-primary-500/20"
+              >
+                {t("about.experienceMagic", locale)}
+              </Button>
+            </Link>
+            <Button
+              variant="ghost"
+              size="lg"
+              className="rounded-2xl px-8 py-6 text-lg font-bold"
+            >
+              {t("about.watchStory", locale)}
+            </Button>
+          </div>
+        </motion.div>
+      </section>
+
+      {/* --- SUPERIOR TECHNOLOGY SECTION --- */}
+      <section className="py-32 px-6 relative">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid lg:grid-cols-2 gap-20 items-center">
+            <div className="space-y-8">
+              <div className="space-y-4">
+                <p className="text-primary-600 font-black tracking-widest uppercase text-sm">
+                  {t("about.enterpriseIntelligence", locale)}
+                </p>
+                <h2 className="text-4xl md:text-5xl font-sans font-black text-slate-900 dark:text-slate-100 leading-tight">
+                  {t("about.digitalDouble", locale)}
+                </h2>
+                <p className="text-lg text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
+                  {t("about.digitalDoubleDesc", locale)}
+                </p>
+              </div>
+
+              <div className="space-y-6">
+                <div className="flex gap-4 p-6 rounded-3xl bg-slate-50 border border-slate-100 transition-transform hover:-translate-y-1">
+                  <div className="flex-shrink-0 w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center">
+                    <ShieldCheck className="w-6 h-6 text-green-600" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-slate-900 dark:text-slate-100">
+                      {t("about.privacyFirst", locale)}
+                    </h4>
+                    <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
+                      {t("about.privacyFirstDesc", locale)}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex gap-4 p-6 rounded-3xl bg-slate-50 border border-slate-100 transition-transform hover:-translate-y-1">
+                  <div className="flex-shrink-0 w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center">
+                    <Zap className="w-6 h-6 text-primary-600" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-slate-900 dark:text-slate-100">
+                      {t("about.lightningPrecision", locale)}
+                    </h4>
+                    <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
+                      {t("about.lightningPrecisionDesc", locale)}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="relative">
+              <div className="absolute -inset-4 bg-gradient-to-tr from-primary-500 to-blue-500 rounded-[3rem] blur-2xl opacity-10 animate-pulse" />
+              <div className="relative bg-white rounded-[2.5rem] border border-slate-100 shadow-2xl overflow-hidden p-8 aspect-square flex flex-col justify-center gap-8">
+                <SimulationLog />
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="p-4 bg-primary-50 rounded-2xl border border-primary-100 text-center">
+                    <p className="text-[10px] uppercase font-black text-primary-600 mb-1">
+                      {t("about.successRate", locale)}
+                    </p>
+                    <p className="text-3xl font-black text-primary-700">92%</p>
+                  </div>
+                  <div className="p-4 bg-blue-50 rounded-2xl border border-blue-100 text-center">
+                    <p className="text-[10px] uppercase font-black text-blue-600 mb-1">
+                      {t("about.timeSaved", locale)}
+                    </p>
+                    <p className="text-3xl font-black text-blue-700">40h+</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* --- THE PROCESS --- */}
+      <section className="py-32 bg-slate-50/50 px-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-24 max-w-3xl mx-auto">
+            <h2 className="text-4xl md:text-5xl font-sans font-black text-slate-900 dark:text-slate-100 mb-6 tracking-tight">
+              {t("about.howEngineWorks", locale)}
+            </h2>
+            <p className="text-lg text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
+              {t("about.howEngineDesc", locale)}
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-4 gap-12">
+            <ProcessStep
+              icon={Briefcase}
+              title={t("about.parse", locale)}
+              desc={t("about.parseDesc", locale)}
+              delay={0.1}
+            />
+            <ProcessStep
+              icon={Search}
+              title={t("about.scout", locale)}
+              desc={t("about.scoutDesc", locale)}
+              delay={0.2}
+            />
+            <ProcessStep
+              icon={FileText}
+              title={t("about.tailor", locale)}
+              desc={t("about.tailorDesc", locale)}
+              delay={0.3}
+            />
+            <ProcessStep
+              icon={Send}
+              title={t("about.apply", locale)}
+              desc={t("about.applyDesc", locale)}
+              delay={0.4}
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* --- THE VISION --- */}
+      <section className="py-40 px-6 relative overflow-hidden">
+        <div className="max-w-4xl mx-auto text-center relative z-10">
+          <h2 className="text-5xl md:text-7xl font-sans font-black text-slate-900 dark:text-slate-100 mb-8 leading-tight tracking-tight">
+            {t("about.visionHeading", locale)}
+          </h2>
+          <p className="text-xl text-slate-500 dark:text-slate-400 mb-12 font-medium">
+            {t("about.visionDescription", locale)}
+          </p>
+          <Link to="/login">
+            <Button
+              size="lg"
+              className="rounded-2xl px-12 py-8 text-xl font-bold bg-slate-900 text-white hover:bg-black hover:shadow-2xl transition-all group"
+            >
+              {t("about.getStartedFree", locale)}
+              <ArrowRight className="ml-3 group-hover:translate-x-1 transition-transform" />
+            </Button>
+          </Link>
+          <p className="mt-8 text-slate-400 font-medium text-sm">
+            {t("about.noCardRequired", locale)}
+          </p>
+        </div>
+
+        {/* Floating Background Sparkles */}
+        <div className="absolute top-1/2 left-0 w-full h-full pointer-events-none">
+          <motion.div
+            animate={{ y: [0, -20, 0], opacity: [0.3, 0.6, 0.3] }}
+            transition={{ repeat: Infinity, duration: 5 }}
+            className="absolute top-0 left-10 w-2 h-2 bg-primary-500 rounded-full"
+          />
+          <motion.div
+            animate={{ y: [0, 30, 0], opacity: [0.2, 0.5, 0.2] }}
+            transition={{ repeat: Infinity, duration: 7, delay: 1 }}
+            className="absolute bottom-10 right-20 w-3 h-3 bg-blue-500 rounded-full"
+          />
+        </div>
+      </section>
+    </div>
+  );
 }

@@ -1,9 +1,17 @@
-import React from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { Badge } from '@/components/ui/Badge';
-import { Alert, AlertDescription } from '@/components/ui/Alert';
-import { Camera, Download, Eye, EyeOff, ZoomIn, ZoomOut, RotateCw } from 'lucide-react';
+import React from "react";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
+import { Badge } from "@/components/ui/Badge";
+import { Alert, AlertDescription } from "@/components/ui/Alert";
+import {
+  Camera,
+  Download,
+  Eye,
+  EyeOff,
+  ZoomIn,
+  ZoomOut,
+  RotateCw,
+} from "lucide-react";
 
 const ScreenshotCapturePage: React.FC = () => {
   return (
@@ -11,7 +19,9 @@ const ScreenshotCapturePage: React.FC = () => {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold">Screenshot Capture</h1>
-          <p className="text-gray-600">Professional screenshot capture tool for debugging and analysis</p>
+          <p className="text-gray-600">
+            Professional screenshot capture tool for debugging and analysis
+          </p>
         </div>
         <div className="flex space-x-2">
           <Button variant="outline">
@@ -23,7 +33,8 @@ const ScreenshotCapturePage: React.FC = () => {
 
       <Alert>
         <AlertDescription>
-          Screenshot capture tool allows you to capture screenshots during the application process for debugging and analysis purposes.
+          Screenshot capture tool allows you to capture screenshots during the
+          application process for debugging and analysis purposes.
         </AlertDescription>
       </Alert>
 

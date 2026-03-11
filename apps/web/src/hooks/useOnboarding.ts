@@ -3,7 +3,11 @@ import { telemetry } from "../lib/telemetry";
 import { securePIIStorage } from "../lib/secureStorage";
 import { safeSetStorage, safeGetStorage } from "../lib/utils";
 
-import { OnboardingStep, OnboardingState, OnboardingFormData } from "../types/onboarding";
+import {
+  OnboardingStep,
+  OnboardingState,
+  OnboardingFormData,
+} from "../types/onboarding";
 
 interface OfflineAction {
   type: string;
@@ -15,41 +19,75 @@ const STORAGE_KEY = "onboarding_state";
 
 /** A6: Flush onboarding state before 401 redirect - registered by useOnboarding when active */
 let _onboardingFlush: (() => void) | null = null;
-export function registerOnboardingFlush(fn: (() => void) | null) {
-  _onboardingFlush = fn;
+export function registerOnboardingFlush(function_: (() => void) | null) {
+  _onboardingFlush = function_;
 }
 export function flushOnboardingBeforeRedirect() {
   _onboardingFlush?.();
 }
 
 // PII fields that should be stored securely
-const PII_FIELDS = ['contactInfo'];
+const PII_FIELDS = new Set(["contactInfo"]);
 
 // Helper to separate PII from non-PII data
 const separatePII = (formData: OnboardingFormData) => {
   const pii: Partial<OnboardingFormData> = {};
   const nonPii: Partial<OnboardingFormData> = {};
 
-  Object.keys(formData).forEach(key => {
-    if (PII_FIELDS.includes(key)) {
-      (pii as Record<string, unknown>)[key] = formData[key as keyof OnboardingFormData];
+  for (const key of Object.keys(formData)) {
+    if (PII_FIELDS.has(key)) {
+      (pii as Record<string, unknown>)[key] =
+        formData[key as keyof OnboardingFormData];
     } else {
-      (nonPii as Record<string, unknown>)[key] = formData[key as keyof OnboardingFormData];
+      (nonPii as Record<string, unknown>)[key] =
+        formData[key as keyof OnboardingFormData];
     }
-  });
+  }
 
   return { pii, nonPii };
 };
 
 const STEPS: OnboardingStep[] = [
-  { id: "welcome", title: "Welcome to JobHuntin", description: "Let's get you set up in 2 minutes" },
-  { id: "resume", title: "Upload your resume", description: "We'll use this to find perfect matches" },
-  { id: "skill-review", title: "Review your skills", description: "Verify the skills we detected" },
-  { id: "confirm-contact", title: "Confirm your details", description: "Verify the info we extracted" },
-  { id: "preferences", title: "Job preferences", description: "Tell us what you're looking for" },
-  { id: "work-style", title: "Work style", description: "Help us find your ideal environment" },
-  { id: "career-goals", title: "Career goals", description: "Where are you headed?" },
-  { id: "ready", title: "You're ready!", description: "Time to start job hunting" },
+  {
+    id: "welcome",
+    title: "Welcome to JobHuntin",
+    description: "Let's get you set up in 2 minutes",
+  },
+  {
+    id: "resume",
+    title: "Upload your resume",
+    description: "We'll use this to find perfect matches",
+  },
+  {
+    id: "skill-review",
+    title: "Review your skills",
+    description: "Verify the skills we detected",
+  },
+  {
+    id: "confirm-contact",
+    title: "Confirm your details",
+    description: "Verify the info we extracted",
+  },
+  {
+    id: "preferences",
+    title: "Job preferences",
+    description: "Tell us what you're looking for",
+  },
+  {
+    id: "work-style",
+    title: "Work style",
+    description: "Help us find your ideal environment",
+  },
+  {
+    id: "career-goals",
+    title: "Career goals",
+    description: "Where are you headed?",
+  },
+  {
+    id: "ready",
+    title: "You're ready!",
+    description: "Time to start job hunting",
+  },
 ];
 
 export interface UseOnboardingOptions {
@@ -60,11 +98,12 @@ export interface UseOnboardingOptions {
   /** N1: Deep-link to step from URL ?step=N */
   initialStepFromUrl?: number | null;
   /** OB-009: Called when syncToServer fails (e.g. to show toast) */
-  onSyncError?: (err: unknown) => void;
+  onSyncError?: (error: unknown) => void;
 }
 
 export function useOnboarding(options: UseOnboardingOptions = {}) {
-  const { serverProgress, syncToServer, initialStepFromUrl, onSyncError } = options;
+  const { serverProgress, syncToServer, initialStepFromUrl, onSyncError } =
+    options;
   const [isLoading, setIsLoading] = useState(true);
 
   // Parse localStorage and secure storage once on mount for all state initializers
@@ -75,26 +114,32 @@ export function useOnboarding(options: UseOnboardingOptions = {}) {
         const stored = safeGetStorage(STORAGE_KEY);
         if (stored) storedState = JSON.parse(stored);
       } catch {
-        if (import.meta.env.DEV) console.warn("[useOnboarding] Failed to parse stored state");
+        if (import.meta.env.DEV)
+          console.warn("[useOnboarding] Failed to parse stored state");
       }
       // Get PII data from secure storage
       let piiData: Partial<OnboardingFormData> = {};
       try {
-        piiData = (await securePIIStorage.get('contact_info')) || {};
+        piiData = (await securePIIStorage.get("contact_info")) || {};
       } catch (error) {
-        if (import.meta.env.DEV) console.warn('[useOnboarding] Failed to load PII from secure storage:', error);
+        if (import.meta.env.DEV)
+          console.warn(
+            "[useOnboarding] Failed to load PII from secure storage:",
+            error,
+          );
       }
 
       // Merge the data
-      const mergedFormData = { ...(storedState?.formData || {}), ...piiData };
+      const mergedFormData = { ...storedState?.formData, ...piiData };
 
       return storedState ? { ...storedState, formData: mergedFormData } : null;
-    } catch (e) {
-      if (import.meta.env.DEV) console.warn('[useOnboarding] Corrupted storage, resetting:', e);
+    } catch (error) {
+      if (import.meta.env.DEV)
+        console.warn("[useOnboarding] Corrupted storage, resetting:", error);
       try {
         localStorage.removeItem(STORAGE_KEY);
         securePIIStorage.clear();
-      } catch { }
+      } catch {}
     }
     return null;
   }, []);
@@ -108,35 +153,46 @@ export function useOnboarding(options: UseOnboardingOptions = {}) {
   useEffect(() => {
     let cancelled = false;
     loadInitialState()
-      .then(initialState => {
-      if (cancelled) return;
-      let step = 0;
-      let completed: string[] = [];
-      if (initialState) {
-        step = initialState.currentStep;
-        completed = initialState.completedSteps || [];
-      }
-      if (serverProgress && serverProgress.step >= 0) {
-        if (!initialState || serverProgress.step > step) {
+      .then((initialState) => {
+        if (cancelled) return;
+        let step = 0;
+        let completed: string[] = [];
+        if (initialState) {
+          step = initialState.currentStep;
+          completed = initialState.completedSteps || [];
+        }
+        if (
+          serverProgress &&
+          serverProgress.step >= 0 &&
+          (!initialState || serverProgress.step > step)
+        ) {
           step = serverProgress.step;
           completed = serverProgress.completed || [];
-          if (import.meta.env.DEV) console.log('[useOnboarding] Using server progress:', step, completed);
+          if (import.meta.env.DEV)
+            console.log(
+              "[useOnboarding] Using server progress:",
+              step,
+              completed,
+            );
         }
-      }
-      if (initialStepFromUrl != null && initialStepFromUrl >= 0) {
-        step = Math.min(initialStepFromUrl, 7); // Max step index (8 steps)
-        if (import.meta.env.DEV) console.log('[useOnboarding] Using URL step:', step);
-      }
-      setCurrentStep(step);
-      setCompletedSteps(completed);
-      if (initialState) setFormData(initialState.formData);
-      setIsLoading(false);
-    })
-      .catch((err) => {
-        if (!cancelled && import.meta.env.DEV) console.warn("[useOnboarding] loadInitialState failed:", err);
+        if (initialStepFromUrl != undefined && initialStepFromUrl >= 0) {
+          step = Math.min(initialStepFromUrl, 7); // Max step index (8 steps)
+          if (import.meta.env.DEV)
+            console.log("[useOnboarding] Using URL step:", step);
+        }
+        setCurrentStep(step);
+        setCompletedSteps(completed);
+        if (initialState) setFormData(initialState.formData);
+        setIsLoading(false);
+      })
+      .catch((error) => {
+        if (!cancelled && import.meta.env.DEV)
+          console.warn("[useOnboarding] loadInitialState failed:", error);
         if (!cancelled) setIsLoading(false);
       });
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [loadInitialState, serverProgress, initialStepFromUrl]);
 
   const saveState = useCallback(async () => {
@@ -148,48 +204,74 @@ export function useOnboarding(options: UseOnboardingOptions = {}) {
     };
 
     try {
-      if (import.meta.env.DEV) console.log('[useOnboarding] Saving non-PII state:', state);
-      if (!safeSetStorage(STORAGE_KEY, JSON.stringify(state))) {
-        if (import.meta.env.DEV) console.warn('[useOnboarding] Could not persist state; progress may be lost on refresh');
-      }
+      if (import.meta.env.DEV)
+        console.log("[useOnboarding] Saving non-PII state:", state);
+      if (
+        !safeSetStorage(STORAGE_KEY, JSON.stringify(state)) &&
+        import.meta.env.DEV
+      )
+        console.warn(
+          "[useOnboarding] Could not persist state; progress may be lost on refresh",
+        );
 
       if (syncToServer) {
         try {
           await syncToServer(currentStep, completedSteps);
-        } catch (e) {
-          if (import.meta.env.DEV) console.warn('[useOnboarding] Server sync failed:', e);
-          onSyncError?.(e);
+        } catch (error) {
+          if (import.meta.env.DEV)
+            console.warn("[useOnboarding] Server sync failed:", error);
+          onSyncError?.(error);
         }
       }
 
       if (Object.keys(pii).length > 0) {
         try {
-          await securePIIStorage.set('contact_info', pii);
-          if (import.meta.env.DEV) console.log('[useOnboarding] Saved PII to secure storage');
-        } catch (e) {
-          if (import.meta.env.DEV) console.warn('[useOnboarding] PII save failed (storage may be full):', e);
+          await securePIIStorage.set("contact_info", pii);
+          if (import.meta.env.DEV)
+            console.log("[useOnboarding] Saved PII to secure storage");
+        } catch (error) {
+          if (import.meta.env.DEV)
+            console.warn(
+              "[useOnboarding] PII save failed (storage may be full):",
+              error,
+            );
         }
       }
     } catch (error) {
-      if (import.meta.env.DEV) console.error('[useOnboarding] Failed to save state:', error);
+      if (import.meta.env.DEV)
+        console.error("[useOnboarding] Failed to save state:", error);
       try {
         localStorage.removeItem(STORAGE_KEY);
         securePIIStorage.clear();
-        const minimalState = { currentStep: 0, completedSteps: [], formData: {} };
+        const minimalState = {
+          currentStep: 0,
+          completedSteps: [],
+          formData: {},
+        };
         safeSetStorage(STORAGE_KEY, JSON.stringify(minimalState));
-        if (import.meta.env.DEV) console.log('[useOnboarding] Recovered with minimal state');
+        if (import.meta.env.DEV)
+          console.log("[useOnboarding] Recovered with minimal state");
       } catch (recoveryError) {
-        if (import.meta.env.DEV) console.error('[useOnboarding] Failed to recover state:', recoveryError);
+        if (import.meta.env.DEV)
+          console.error(
+            "[useOnboarding] Failed to recover state:",
+            recoveryError,
+          );
       }
     }
   }, [currentStep, completedSteps, formData, syncToServer, onSyncError]);
 
-  const updateFormData = useCallback((updates: Partial<OnboardingState['formData']>) => {
-    setFormData(prev => ({ ...prev, ...updates }));
-  }, []);
+  const updateFormData = useCallback(
+    (updates: Partial<OnboardingState["formData"]>) => {
+      setFormData((previous) => ({ ...previous, ...updates }));
+    },
+    [],
+  );
 
   // A/B Test: Variant Assignment
-  const [abVariant, setAbVariant] = useState<"resume_first" | "role_first">("resume_first");
+  const [abVariant, setAbVariant] = useState<"resume_first" | "role_first">(
+    "resume_first",
+  );
 
   useEffect(() => {
     const storedVariant = safeGetStorage("onboarding_ab_variant");
@@ -197,9 +279,13 @@ export function useOnboarding(options: UseOnboardingOptions = {}) {
       setAbVariant(storedVariant as "resume_first" | "role_first");
     } else {
       const newVariant = Math.random() > 0.5 ? "resume_first" : "role_first";
-      if (!safeSetStorage("onboarding_ab_variant", newVariant)) {
-        if (import.meta.env.DEV) console.warn("[useOnboarding] Could not persist A/B variant (QuotaExceeded?)");
-      }
+      if (
+        !safeSetStorage("onboarding_ab_variant", newVariant) &&
+        import.meta.env.DEV
+      )
+        console.warn(
+          "[useOnboarding] Could not persist A/B variant (QuotaExceeded?)",
+        );
       setAbVariant(newVariant);
       // Log exposure
       telemetry.track("A/B Test Assignment", { onboarding_flow: newVariant });
@@ -228,57 +314,74 @@ export function useOnboarding(options: UseOnboardingOptions = {}) {
   const currentStepData = currentSteps[currentStep] ?? currentSteps[0];
   const isFirstStep = currentStep === 0;
   const isLastStep = currentStep === currentSteps.length - 1;
-  const progress = currentSteps.length > 0 ? ((currentStep + 1) / currentSteps.length) * 100 : 0;
+  const progress =
+    currentSteps.length > 0
+      ? ((currentStep + 1) / currentSteps.length) * 100
+      : 0;
 
   // C2: Debounce rapid back/forward to avoid state thrashing
-  const lastNavRef = React.useRef(0);
+  const lastNavReference = React.useRef(0);
   const NAV_DEBOUNCE_MS = 150;
 
   const nextStep = useCallback(() => {
-    if (Date.now() - lastNavRef.current < NAV_DEBOUNCE_MS) return;
-    lastNavRef.current = Date.now();
+    if (Date.now() - lastNavReference.current < NAV_DEBOUNCE_MS) return;
+    lastNavReference.current = Date.now();
     const totalSteps = currentSteps.length;
-    if (import.meta.env.DEV) console.log('[useOnboarding] nextStep called, totalSteps:', totalSteps);
+    if (import.meta.env.DEV)
+      console.log("[useOnboarding] nextStep called, totalSteps:", totalSteps);
 
-    setCurrentStep((prev) => {
-      if (prev < totalSteps - 1) {
-        if (import.meta.env.DEV) console.log('[useOnboarding] Advancing from step', prev, 'to', prev + 1);
+    setCurrentStep((previous) => {
+      if (previous < totalSteps - 1) {
+        if (import.meta.env.DEV)
+          console.log(
+            "[useOnboarding] Advancing from step",
+            previous,
+            "to",
+            previous + 1,
+          );
 
-        const completedStepId = currentSteps[prev]?.id;
+        const completedStepId = currentSteps[previous]?.id;
         if (completedStepId) {
           telemetry.track("onboarding_step_completed", {
             step_id: completedStepId,
-            step_number: prev + 1,
+            step_number: previous + 1,
             total_steps: totalSteps,
           });
-          setCompletedSteps((prevCompleted) => {
-            const newCompleted = new Set(prevCompleted);
+          setCompletedSteps((previousCompleted) => {
+            const newCompleted = new Set(previousCompleted);
             newCompleted.add(completedStepId);
-            return Array.from(newCompleted);
+            return [...newCompleted];
           });
         }
 
-        return prev + 1;
+        return previous + 1;
       }
-      if (import.meta.env.DEV) console.log('[useOnboarding] Already at last step, staying at', prev);
-      return prev;
+      if (import.meta.env.DEV)
+        console.log(
+          "[useOnboarding] Already at last step, staying at",
+          previous,
+        );
+      return previous;
     });
   }, [currentSteps]);
 
-  const prevStep = useCallback(() => {
-    if (Date.now() - lastNavRef.current < NAV_DEBOUNCE_MS) return;
-    lastNavRef.current = Date.now();
+  const previousStep = useCallback(() => {
+    if (Date.now() - lastNavReference.current < NAV_DEBOUNCE_MS) return;
+    lastNavReference.current = Date.now();
     if (!isFirstStep) {
-      setCurrentStep((prev) => prev - 1);
+      setCurrentStep((previous) => previous - 1);
     }
   }, [isFirstStep]);
 
-  const goToStep = useCallback((index: number) => {
-    if (index < 0 || index >= currentSteps.length) return;
-    // Can't skip more than one step ahead - must complete steps in order
-    if (index > currentStep + 1) return;
-    setCurrentStep(index);
-  }, [currentSteps.length, currentStep]);
+  const goToStep = useCallback(
+    (index: number) => {
+      if (index < 0 || index >= currentSteps.length) return;
+      // Can't skip more than one step ahead - must complete steps in order
+      if (index > currentStep + 1) return;
+      setCurrentStep(index);
+    },
+    [currentSteps.length, currentStep],
+  );
 
   // S1: Save immediately on step/completed; debounce on formData (rapid typing)
   useEffect(() => {
@@ -286,12 +389,12 @@ export function useOnboarding(options: UseOnboardingOptions = {}) {
   }, [currentStep, completedSteps, saveState, syncToServer]);
 
   // OB-010: When syncToServer becomes available (profile loads), sync current progress
-  const prevSyncRef = React.useRef(syncToServer);
+  const previousSyncReference = React.useRef(syncToServer);
   useEffect(() => {
-    if (syncToServer && !prevSyncRef.current) {
+    if (syncToServer && !previousSyncReference.current) {
       saveState();
     }
-    prevSyncRef.current = syncToServer;
+    previousSyncReference.current = syncToServer;
   }, [syncToServer, saveState]);
   useEffect(() => {
     const t = setTimeout(() => saveState(), 400);
@@ -299,15 +402,26 @@ export function useOnboarding(options: UseOnboardingOptions = {}) {
   }, [formData, saveState]);
 
   // A6: Register flush for 401 redirect - persist state before navigation
-  const stateRef = React.useRef({ currentStep, completedSteps, formData });
+  const stateReference = React.useRef({
+    currentStep,
+    completedSteps,
+    formData,
+  });
   useEffect(() => {
-    stateRef.current = { currentStep, completedSteps, formData };
+    stateReference.current = { currentStep, completedSteps, formData };
   }, [currentStep, completedSteps, formData]);
   useEffect(() => {
     registerOnboardingFlush(() => {
-      const { currentStep: s, completedSteps: c, formData: f } = stateRef.current;
+      const {
+        currentStep: s,
+        completedSteps: c,
+        formData: f,
+      } = stateReference.current;
       const { pii, nonPii } = separatePII(f);
-      safeSetStorage(STORAGE_KEY, JSON.stringify({ currentStep: s, completedSteps: c, formData: nonPii }));
+      safeSetStorage(
+        STORAGE_KEY,
+        JSON.stringify({ currentStep: s, completedSteps: c, formData: nonPii }),
+      );
       if (Object.keys(pii).length > 0) {
         securePIIStorage.set("contact_info", pii).catch(() => {});
       }
@@ -339,7 +453,10 @@ export function useOnboarding(options: UseOnboardingOptions = {}) {
         if (queue.length === 0) return;
 
         const MAX_AGE_MS = 24 * 60 * 60 * 1000; // 24h
-        const valid = queue.filter((a: { timestamp?: number }) => !a.timestamp || Date.now() - a.timestamp < MAX_AGE_MS);
+        const valid = queue.filter(
+          (a: { timestamp?: number }) =>
+            !a.timestamp || Date.now() - a.timestamp < MAX_AGE_MS,
+        );
         if (valid.length === 0) {
           try {
             localStorage.removeItem("offline_queue");
@@ -351,7 +468,9 @@ export function useOnboarding(options: UseOnboardingOptions = {}) {
         }
 
         // Retry: dispatch custom event so onboarding steps can re-submit; clear queue after attempt
-        window.dispatchEvent(new CustomEvent("offline_queue:retry", { detail: valid }));
+        window.dispatchEvent(
+          new CustomEvent("offline_queue:retry", { detail: valid }),
+        );
         try {
           localStorage.removeItem("offline_queue");
           sessionStorage.removeItem("offline_queue");
@@ -359,7 +478,11 @@ export function useOnboarding(options: UseOnboardingOptions = {}) {
           /* ignore */
         }
       } catch (error) {
-        if (import.meta.env.DEV) console.error("[useOnboarding] Failed to process offline queue:", error);
+        if (import.meta.env.DEV)
+          console.error(
+            "[useOnboarding] Failed to process offline queue:",
+            error,
+          );
       }
     };
 
@@ -372,11 +495,16 @@ export function useOnboarding(options: UseOnboardingOptions = {}) {
     try {
       const queue = JSON.parse(safeGetStorage("offline_queue") || "[]");
       queue.push({ ...action, timestamp: Date.now() });
-      if (!safeSetStorage("offline_queue", JSON.stringify(queue))) {
-        if (import.meta.env.DEV) console.warn("[useOnboarding] Failed to queue offline action (QuotaExceeded?)");
-      }
+      if (
+        !safeSetStorage("offline_queue", JSON.stringify(queue)) &&
+        import.meta.env.DEV
+      )
+        console.warn(
+          "[useOnboarding] Failed to queue offline action (QuotaExceeded?)",
+        );
     } catch (error) {
-      if (import.meta.env.DEV) console.error("[useOnboarding] Failed to queue offline action:", error);
+      if (import.meta.env.DEV)
+        console.error("[useOnboarding] Failed to queue offline action:", error);
     }
   }, []);
 
@@ -390,7 +518,7 @@ export function useOnboarding(options: UseOnboardingOptions = {}) {
     isFirstStep,
     isLastStep,
     nextStep,
-    prevStep,
+    prevStep: previousStep,
     goToStep,
     updateFormData,
     resetOnboarding,

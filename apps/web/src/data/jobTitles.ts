@@ -243,5 +243,5 @@ export const JOB_TITLES = [
   "Enterprise Software Engineer",
   "Startups Engineer",
   "Agency Developer",
-  "Consulting Engineer"
+  "Consulting Engineer",
 ];

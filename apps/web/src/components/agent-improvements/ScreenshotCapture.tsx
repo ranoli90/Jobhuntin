@@ -1,13 +1,21 @@
-import React, { useState, useRef } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { Badge } from '@/components/ui/Badge';
-import { Input } from '@/components/ui/Input';
-import { Label } from '@/components/ui/Label';
-import { Textarea } from '@/components/ui/Textarea';
-import { Switch } from '@/components/ui/Switch';
-import { Alert, AlertDescription } from '@/components/ui/Alert';
-import { Camera, Download, Eye, EyeOff, ZoomIn, ZoomOut, RotateCw } from 'lucide-react';
+import React, { useState, useRef } from "react";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
+import { Badge } from "@/components/ui/Badge";
+import { Input } from "@/components/ui/Input";
+import { Label } from "@/components/ui/Label";
+import { Textarea } from "@/components/ui/Textarea";
+import { Switch } from "@/components/ui/Switch";
+import { Alert, AlertDescription } from "@/components/ui/Alert";
+import {
+  Camera,
+  Download,
+  Eye,
+  EyeOff,
+  ZoomIn,
+  ZoomOut,
+  RotateCw,
+} from "lucide-react";
 
 interface ScreenshotCapture {
   capture_id: string;
@@ -24,29 +32,30 @@ interface ScreenshotCapture {
   error_message?: string;
 }
 
-interface ScreenshotCaptureProps {
+interface ScreenshotCaptureProperties {
   applicationId: string;
   onCapture?: (screenshot: ScreenshotCapture) => void;
 }
 
-export const ScreenshotCapture: React.FC<ScreenshotCaptureProps> = ({ 
-  applicationId, 
-  onCapture 
+export const ScreenshotCapture: React.FC<ScreenshotCaptureProperties> = ({
+  applicationId,
+  onCapture,
 }) => {
   const [screenshots, setScreenshots] = useState<ScreenshotCapture[]>([]);
   const [currentStep, setCurrentStep] = useState(1);
-  const [stepDescription, setStepDescription] = useState('');
+  const [stepDescription, setStepDescription] = useState("");
   const [fullPage, setFullPage] = useState(false);
   const [highlightElements, setHighlightElements] = useState<string[]>([]);
-  const [highlightInput, setHighlightInput] = useState('');
+  const [highlightInput, setHighlightInput] = useState("");
   const [isCapturing, setIsCapturing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [selectedScreenshot, setSelectedScreenshot] = useState<ScreenshotCapture | null>(null);
+  const [selectedScreenshot, setSelectedScreenshot] =
+    useState<ScreenshotCapture | null>(null);
   const [zoom, setZoom] = useState(1);
 
   const handleCapture = async () => {
     if (!stepDescription.trim()) {
-      setError('Please provide a step description');
+      setError("Please provide a step description");
       return;
     }
 
@@ -54,70 +63,88 @@ export const ScreenshotCapture: React.FC<ScreenshotCaptureProps> = ({
       setIsCapturing(true);
       setError(null);
 
-      const response = await fetch('/api/agent-improvements/capture-screenshot', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          application_id: applicationId,
-          step_number: currentStep,
-          step_description: stepDescription,
-          page_context: {
-            viewport: { width: 1920, height: 1080 },
+      const response = await fetch(
+        "/api/agent-improvements/capture-screenshot",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            "Content-Type": "application/json",
           },
-          full_page: fullPage,
-          highlight_elements: highlightElements,
-        }),
-      });
+          body: JSON.stringify({
+            application_id: applicationId,
+            step_number: currentStep,
+            step_description: stepDescription,
+            page_context: {
+              viewport: { width: 1920, height: 1080 },
+            },
+            full_page: fullPage,
+            highlight_elements: highlightElements,
+          }),
+        },
+      );
 
-      if (!response.ok) throw new Error('Failed to capture screenshot');
+      if (!response.ok) throw new Error("Failed to capture screenshot");
 
       const screenshot: ScreenshotCapture = await response.json();
       setScreenshots([...screenshots, screenshot]);
       setCurrentStep(currentStep + 1);
-      setStepDescription('');
+      setStepDescription("");
       setHighlightElements([]);
-      setHighlightInput('');
+      setHighlightInput("");
 
       if (onCapture) {
         onCapture(screenshot);
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to capture screenshot');
+    } catch (error_) {
+      setError(
+        error_ instanceof Error
+          ? error_.message
+          : "Failed to capture screenshot",
+      );
     } finally {
       setIsCapturing(false);
     }
   };
 
   const handleAddHighlight = () => {
-    if (highlightInput.trim() && !highlightElements.includes(highlightInput.trim())) {
+    if (
+      highlightInput.trim() &&
+      !highlightElements.includes(highlightInput.trim())
+    ) {
       setHighlightElements([...highlightElements, highlightInput.trim()]);
-      setHighlightInput('');
+      setHighlightInput("");
     }
   };
 
   const handleRemoveHighlight = (element: string) => {
-    setHighlightElements(highlightElements.filter(el => el !== element));
+    setHighlightElements(
+      highlightElements.filter((element_) => element_ !== element),
+    );
   };
 
   const handleDownload = async (screenshot: ScreenshotCapture) => {
     try {
-      const response = await fetch(`/api/agent-improvements/screenshots/${screenshot.screenshot_path}`);
-      if (!response.ok) throw new Error('Failed to download screenshot');
+      const response = await fetch(
+        `/api/agent-improvements/screenshots/${screenshot.screenshot_path}`,
+      );
+      if (!response.ok) throw new Error("Failed to download screenshot");
 
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
+      const a = document.createElement("a");
       a.href = url;
       a.download = `screenshot-${screenshot.step_number}-${screenshot.application_id}.png`;
-      document.body.appendChild(a);
+      document.body.append(a);
       a.click();
       window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to download screenshot');
+      a.remove();
+    } catch (error_) {
+      setError(
+        error_ instanceof Error
+          ? error_.message
+          : "Failed to download screenshot",
+      );
     }
   };
 
@@ -148,17 +175,21 @@ export const ScreenshotCapture: React.FC<ScreenshotCaptureProps> = ({
                 id="step-number"
                 type="number"
                 value={currentStep}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCurrentStep(parseInt(e.target.value) || 1)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setCurrentStep(Number.parseInt(e.target.value) || 1)
+                }
                 min="1"
               />
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="step-description">Step Description</Label>
               <Textarea
                 id="step-description"
                 value={stepDescription}
-                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setStepDescription(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+                  setStepDescription(e.target.value)
+                }
                 placeholder="Describe what this step accomplishes..."
                 rows={3}
               />
@@ -172,7 +203,9 @@ export const ScreenshotCapture: React.FC<ScreenshotCaptureProps> = ({
                 value={highlightInput}
                 onChange={(e) => setHighlightInput(e.target.value)}
                 placeholder="Enter CSS selector or element ID..."
-                onKeyPress={(e: React.KeyboardEvent<HTMLInputElement>) => { if (e.key === 'Enter') handleAddHighlight(); }}
+                onKeyPress={(e: React.KeyboardEvent<HTMLInputElement>) => {
+                  if (e.key === "Enter") handleAddHighlight();
+                }}
               />
               <Button onClick={handleAddHighlight} type="button">
                 Add
@@ -215,7 +248,7 @@ export const ScreenshotCapture: React.FC<ScreenshotCaptureProps> = ({
             className="w-full"
           >
             <Camera className="h-4 w-4 mr-2" />
-            {isCapturing ? 'Capturing...' : 'Capture Screenshot'}
+            {isCapturing ? "Capturing..." : "Capture Screenshot"}
           </Button>
         </CardContent>
       </Card>
@@ -236,7 +269,9 @@ export const ScreenshotCapture: React.FC<ScreenshotCaptureProps> = ({
                 >
                   <div className="relative">
                     <img
-                      src={screenshot.thumbnail_path || screenshot.screenshot_path}
+                      src={
+                        screenshot.thumbnail_path || screenshot.screenshot_path
+                      }
                       alt={screenshot.step_description}
                       className="w-full h-32 object-cover"
                     />
@@ -252,7 +287,9 @@ export const ScreenshotCapture: React.FC<ScreenshotCaptureProps> = ({
                     </div>
                   </div>
                   <div className="p-2">
-                    <p className="text-sm font-medium truncate">{screenshot.step_description}</p>
+                    <p className="text-sm font-medium truncate">
+                      {screenshot.step_description}
+                    </p>
                     <p className="text-xs text-gray-500">
                       {new Date(screenshot.timestamp).toLocaleString()}
                     </p>
@@ -270,28 +307,17 @@ export const ScreenshotCapture: React.FC<ScreenshotCaptureProps> = ({
           <CardHeader>
             <div className="flex justify-between items-center">
               <CardTitle>
-                Step {selectedScreenshot.step_number}: {selectedScreenshot.step_description}
+                Step {selectedScreenshot.step_number}:{" "}
+                {selectedScreenshot.step_description}
               </CardTitle>
               <div className="flex space-x-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleZoomOut}
-                >
+                <Button variant="outline" size="sm" onClick={handleZoomOut}>
                   <ZoomOut className="h-4 w-4" />
                 </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleResetZoom}
-                >
+                <Button variant="outline" size="sm" onClick={handleResetZoom}>
                   <RotateCw className="h-4 w-4" />
                 </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleZoomIn}
-                >
+                <Button variant="outline" size="sm" onClick={handleZoomIn}>
                   <ZoomIn className="h-4 w-4" />
                 </Button>
                 <Button
@@ -316,15 +342,21 @@ export const ScreenshotCapture: React.FC<ScreenshotCaptureProps> = ({
           <CardContent>
             <div className="space-y-4">
               <div className="flex justify-between text-sm text-gray-500">
-                <span>Viewport: {selectedScreenshot.viewport_size.width}×{selectedScreenshot.viewport_size.height}</span>
+                <span>
+                  Viewport: {selectedScreenshot.viewport_size.width}×
+                  {selectedScreenshot.viewport_size.height}
+                </span>
                 <span>Zoom: {Math.round(zoom * 100)}%</span>
-                <span>Full Page: {selectedScreenshot.full_page ? 'Yes' : 'No'}</span>
+                <span>
+                  Full Page: {selectedScreenshot.full_page ? "Yes" : "No"}
+                </span>
               </div>
-              
+
               {selectedScreenshot.error_detected && (
                 <Alert variant="destructive">
                   <AlertDescription>
-                    Error detected: {selectedScreenshot.error_message || 'Unknown error'}
+                    Error detected:{" "}
+                    {selectedScreenshot.error_message || "Unknown error"}
                   </AlertDescription>
                 </Alert>
               )}
@@ -335,8 +367,8 @@ export const ScreenshotCapture: React.FC<ScreenshotCaptureProps> = ({
                   alt={selectedScreenshot.step_description}
                   style={{
                     transform: `scale(${zoom})`,
-                    transformOrigin: 'top left',
-                    transition: 'transform 0.2s',
+                    transformOrigin: "top left",
+                    transition: "transform 0.2s",
                   }}
                   className="max-w-none"
                 />

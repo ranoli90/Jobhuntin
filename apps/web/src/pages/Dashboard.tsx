@@ -1,13 +1,53 @@
 import { FocusTrap } from "focus-trap-react";
-import { ArrowUpRight, BarChart3, Briefcase, DollarSign, Inbox, Rocket, MessageCircle, CheckCircle, Clock, Zap, Quote, Send, Users, Loader2, Sparkles, AlertTriangle, Radar, MoreVertical, Eye, Pause, Trash2, Filter, MapPin, BriefcaseIcon } from "lucide-react";
+import {
+  ArrowUpRight,
+  BarChart3,
+  Briefcase,
+  DollarSign,
+  Inbox,
+  Rocket,
+  MessageCircle,
+  CheckCircle,
+  Clock,
+  Zap,
+  Quote,
+  Send,
+  Users,
+  Loader2,
+  Sparkles,
+  AlertTriangle,
+  Radar,
+  MoreVertical,
+  Eye,
+  Pause,
+  Trash2,
+  Filter,
+  MapPin,
+  BriefcaseIcon,
+} from "lucide-react";
 import { Card } from "../components/ui/Card";
 import { Badge } from "../components/ui/Badge";
 import { Button } from "../components/ui/Button";
 import { useBilling } from "../hooks/useBilling";
-import { useApplications, type ApplicationRecord } from "../hooks/useApplications";
+import {
+  useApplications,
+  type ApplicationRecord,
+} from "../hooks/useApplications";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { motion, AnimatePresence, useMotionValue, useTransform, useReducedMotion } from "framer-motion";
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  motion,
+  AnimatePresence,
+  useMotionValue,
+  useTransform,
+  useReducedMotion,
+} from "framer-motion";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { apiPost, apiGet } from "../lib/api";
 import { pushToast } from "../lib/toast";
@@ -22,16 +62,29 @@ import { telemetry } from "../lib/telemetry";
 import { useProfile } from "../hooks/useProfile";
 import { sanitizeHtml } from "../lib/utils";
 import { ErrorBoundary } from "../components/ErrorBoundary";
-import { useKeyboardShortcuts, COMMON_SHORTCUTS } from "../hooks/useKeyboardShortcuts";
+import {
+  useKeyboardShortcuts,
+  COMMON_SHORTCUTS,
+} from "../hooks/useKeyboardShortcuts";
 
 // N-10: Centralised status → Badge variant mapping
-function statusVariant(status: string): 'success' | 'warning' | 'error' | 'default' {
+function statusVariant(
+  status: string,
+): "success" | "warning" | "error" | "default" {
   switch (status) {
-    case 'APPLIED': return 'success';
-    case 'HOLD': return 'warning';
-    case 'FAILED':
-    case 'REJECTED': return 'error';
-    default: return 'default';
+    case "APPLIED": {
+      return "success";
+    }
+    case "HOLD": {
+      return "warning";
+    }
+    case "FAILED":
+    case "REJECTED": {
+      return "error";
+    }
+    default: {
+      return "default";
+    }
   }
 }
 
@@ -58,80 +111,89 @@ function JobCard({
   isTop: boolean;
   idx: number;
   shouldReduceMotion: boolean;
-  swipeDirection: 'left' | 'right' | null;
-  onSwipe: (direction: 'ACCEPT' | 'REJECT') => void;
+  swipeDirection: "left" | "right" | null;
+  onSwipe: (direction: "ACCEPT" | "REJECT") => void;
   locale: string | undefined;
   children: React.ReactNode;
 }) {
   const x = useMotionValue(0);
   const acceptOpacity = useTransform(x, [0, 100, 200], [0, 0, 0.25]);
   const rejectOpacity = useTransform(x, [0, -100, -200], [0, 0, 0.25]);
-  const cardRef = React.useRef<HTMLDivElement>(null);
-  const touchHandlersRef = React.useRef<{ move: (e: TouchEvent) => void; end: () => void } | null>(null);
+  const cardReference = React.useRef<HTMLDivElement>(null);
+  const touchHandlersReference = React.useRef<{
+    move: (e: TouchEvent) => void;
+    end: () => void;
+  } | null>(null);
 
-  React.useEffect(() => () => {
-    const h = touchHandlersRef.current;
-    if (h) {
-      document.removeEventListener('touchmove', h.move);
-      document.removeEventListener('touchend', h.end);
-      touchHandlersRef.current = null;
-    }
-  }, []);
+  React.useEffect(
+    () => () => {
+      const h = touchHandlersReference.current;
+      if (h) {
+        document.removeEventListener("touchmove", h.move);
+        document.removeEventListener("touchend", h.end);
+        touchHandlersReference.current = null;
+      }
+    },
+    [],
+  );
 
   React.useEffect(() => {
     if (!isTop) return;
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
+      if (e.key === "ArrowRight" || e.key === "d" || e.key === "D") {
         e.preventDefault();
-        onSwipe('ACCEPT');
-      } else if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
+        onSwipe("ACCEPT");
+      } else if (e.key === "ArrowLeft" || e.key === "a" || e.key === "A") {
         e.preventDefault();
-        onSwipe('REJECT');
+        onSwipe("REJECT");
       }
     };
-    globalThis.window.addEventListener('keydown', handleKeyDown);
+    globalThis.window.addEventListener("keydown", handleKeyDown);
     // Auto-focus the card when it becomes top
-    if (cardRef.current) {
-      cardRef.current.focus();
+    if (cardReference.current) {
+      cardReference.current.focus();
     }
-    return () => globalThis.window.removeEventListener('keydown', handleKeyDown);
+    return () =>
+      globalThis.window.removeEventListener("keydown", handleKeyDown);
   }, [isTop, onSwipe]);
 
   return (
     <motion.div
-      ref={cardRef}
+      ref={cardReference}
       role="article"
-      aria-label={`${job.title || 'Job'} at ${job.company || 'Company'}. Swipe right or press Arrow Right/D to apply, Arrow Left/A to skip.`}
+      aria-label={`${job.title || "Job"} at ${job.company || "Company"}. Swipe right or press Arrow Right/D to apply, Arrow Left/A to skip.`}
       aria-roledescription="swipeable job card"
       style={{
         zIndex: idx,
-        position: 'absolute',
-        width: '100%',
+        position: "absolute",
+        width: "100%",
         x,
       }}
       tabIndex={isTop ? 0 : -1}
-      initial={shouldReduceMotion ? undefined : { scale: 0.95, opacity: 0, y: 20 }}
+      initial={
+        shouldReduceMotion ? undefined : { scale: 0.95, opacity: 0, y: 20 }
+      }
       animate={{
         scale: isTop ? 1 : 0.95,
         opacity: 1,
         y: isTop ? 0 : 20,
-        rotate: isTop ? 0 : idx % 2 === 0 ? 1 : -1,
+        rotate: isTop ? 0 : (idx % 2 === 0 ? 1 : -1),
       }}
       exit={
         shouldReduceMotion
           ? undefined
           : {
-            x: swipeDirection === 'left' ? -1000 : 1000,
-            opacity: 0,
-            rotate: swipeDirection === 'left' ? -20 : 20,
-            transition: { duration: 0.5 },
-          }
+              x: swipeDirection === "left" ? -1000 : 1000,
+              opacity: 0,
+              rotate: swipeDirection === "left" ? -20 : 20,
+              transition: { duration: 0.5 },
+            }
       }
-      drag={isTop && !shouldReduceMotion ? 'x' : false}
+      drag={isTop && !shouldReduceMotion ? "x" : false}
       dragConstraints={{ left: 0, right: 0 }}
       onDragEnd={(_, info) => {
-        if (info.offset.x > 100) onSwipe('ACCEPT');
-        else if (info.offset.x < -100) onSwipe('REJECT');
+        if (info.offset.x > 100) onSwipe("ACCEPT");
+        else if (info.offset.x < -100) onSwipe("REJECT");
       }}
       onTouchStart={(e) => {
         // Handle mobile touch events; M6: store handlers for cleanup on unmount
@@ -143,23 +205,28 @@ function JobCard({
             if (currentTouch) {
               const deltaX = currentTouch.clientX - startX;
               if (deltaX > 100) {
-                onSwipe('ACCEPT');
-                document.removeEventListener('touchmove', handleTouchMove);
-                document.removeEventListener('touchend', handleTouchEnd);
+                onSwipe("ACCEPT");
+                document.removeEventListener("touchmove", handleTouchMove);
+                document.removeEventListener("touchend", handleTouchEnd);
               } else if (deltaX < -100) {
-                onSwipe('REJECT');
-                document.removeEventListener('touchmove', handleTouchMove);
-                document.removeEventListener('touchend', handleTouchEnd);
+                onSwipe("REJECT");
+                document.removeEventListener("touchmove", handleTouchMove);
+                document.removeEventListener("touchend", handleTouchEnd);
               }
             }
           };
           const handleTouchEnd = () => {
-            document.removeEventListener('touchmove', handleTouchMove);
-            document.removeEventListener('touchend', handleTouchEnd);
+            document.removeEventListener("touchmove", handleTouchMove);
+            document.removeEventListener("touchend", handleTouchEnd);
           };
-          touchHandlersRef.current = { move: handleTouchMove, end: handleTouchEnd };
-          document.addEventListener('touchmove', handleTouchMove, { passive: false });
-          document.addEventListener('touchend', handleTouchEnd);
+          touchHandlersReference.current = {
+            move: handleTouchMove,
+            end: handleTouchEnd,
+          };
+          document.addEventListener("touchmove", handleTouchMove, {
+            passive: false,
+          });
+          document.addEventListener("touchend", handleTouchEnd);
         }
       }}
     >
@@ -184,20 +251,28 @@ function JobCard({
   );
 }
 
-const AnimatedNumber = ({ value, duration = 1000, shouldReduceMotion = false }: { value: number | string; duration?: number; shouldReduceMotion?: boolean }) => {
+const AnimatedNumber = ({
+  value,
+  duration = 1000,
+  shouldReduceMotion = false,
+}: {
+  value: number | string;
+  duration?: number;
+  shouldReduceMotion?: boolean;
+}) => {
   const [displayValue, setDisplayValue] = useState(0);
-  const prevValueRef = useRef(0);
+  const previousValueReference = useRef(0);
 
   useEffect(() => {
-    const numValue = Number(value);
-    if (isNaN(numValue) || numValue < 0) {
-      setDisplayValue(numValue || 0);
+    const numberValue = Number(value);
+    if (isNaN(numberValue) || numberValue < 0) {
+      setDisplayValue(numberValue || 0);
       return;
     }
 
-    const start = prevValueRef.current;
-    const end = numValue;
-    prevValueRef.current = end;
+    const start = previousValueReference.current;
+    const end = numberValue;
+    previousValueReference.current = end;
 
     if (start === end || shouldReduceMotion) {
       setDisplayValue(end);
@@ -221,20 +296,29 @@ const AnimatedNumber = ({ value, duration = 1000, shouldReduceMotion = false }: 
     return () => cancelAnimationFrame(rafId);
   }, [value, duration, shouldReduceMotion]);
 
-  return <span>{typeof value === 'string' ? value : displayValue}</span>;
+  return <span>{typeof value === "string" ? value : displayValue}</span>;
 };
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const { status } = useBilling();
-  const { applications, holdApplications, byStatus, stats, queueStats, isLoading, error, refetch } = useApplications();
+  const {
+    applications,
+    holdApplications,
+    byStatus,
+    stats,
+    queueStats,
+    isLoading,
+    error,
+    refetch,
+  } = useApplications();
   const { profile, refreshProfile } = useProfile();
 
   const shouldReduceMotion = useReducedMotion();
-  
+
   // M6: Accessibility - Ensure main content is focusable
-  const mainContentRef = React.useRef<HTMLDivElement>(null);
-  
+  const mainContentReference = React.useRef<HTMLDivElement>(null);
+
   // M8: Keyboard Navigation - Add keyboard shortcuts
   useKeyboardShortcuts(
     [
@@ -256,16 +340,17 @@ export default function Dashboard() {
         action: () => {
           pushToast({
             title: "Keyboard Shortcuts",
-            description: "Ctrl+K: Search, Ctrl+J: Jobs, Ctrl+A: Applications, Ctrl+,: Settings, Esc: Close",
+            description:
+              "Ctrl+K: Search, Ctrl+J: Jobs, Ctrl+A: Applications, Ctrl+,: Settings, Esc: Close",
             tone: "info",
           });
         },
         description: "Show keyboard shortcuts",
       },
     ],
-    true
+    true,
   );
-  
+
   // C4: Analytics Tracking - Track dashboard view
   React.useEffect(() => {
     if (!isLoading && profile) {
@@ -276,7 +361,13 @@ export default function Dashboard() {
         success_rate: stats.successRate,
       });
     }
-  }, [isLoading, profile?.id, applications.length, byStatus, stats.successRate]);
+  }, [
+    isLoading,
+    profile?.id,
+    applications.length,
+    byStatus,
+    stats.successRate,
+  ]);
 
   // Check for onboarding completion and refresh data
   useEffect(() => {
@@ -290,152 +381,191 @@ export default function Dashboard() {
   const locale = useMemo(() => getLocale(), []);
 
   // L-2: Compute data-driven progress values
-  const totalApps = stats.totalApps ?? stats.monthlyApps ?? applications.length ?? 0;
+  const totalApps =
+    stats.totalApps ?? stats.monthlyApps ?? applications.length ?? 0;
   const totalForProgress = totalApps || 1; // avoid /0
   const activeCount = byStatus.APPLYING + byStatus.APPLIED;
-  const activeProgress = Math.min(100, Math.round((activeCount / totalForProgress) * 100));
+  const activeProgress = Math.min(
+    100,
+    Math.round((activeCount / totalForProgress) * 100),
+  );
   const successProgress = Math.min(100, stats.successRate);
-  const holdProgress = Math.min(100, Math.round((byStatus.HOLD / totalForProgress) * 100));
-  const monthlyProgress = Math.min(100, Math.round((totalApps / Math.max(totalApps, 100)) * 100));
+  const holdProgress = Math.min(
+    100,
+    Math.round((byStatus.HOLD / totalForProgress) * 100),
+  );
+  const monthlyProgress = Math.min(
+    100,
+    Math.round((totalApps / Math.max(totalApps, 100)) * 100),
+  );
 
   const metrics = [
     {
       label: "Active Applications",
       value: activeCount,
       icon: Briefcase,
-      color: 'from-blue-500 to-blue-600',
-      bg: 'bg-blue-50',
-      text: 'text-blue-600',
-      iconColor: 'text-blue-500',
+      color: "from-blue-500 to-blue-600",
+      bg: "bg-blue-50",
+      text: "text-blue-600",
+      iconColor: "text-blue-500",
       progress: activeProgress,
     },
     {
       label: "Success Rate",
       value: `${stats.successRate}%`,
       icon: BarChart3,
-      color: 'from-emerald-500 to-emerald-600',
-      bg: 'bg-emerald-50',
-      text: 'text-emerald-600',
-      iconColor: 'text-emerald-500',
+      color: "from-emerald-500 to-emerald-600",
+      bg: "bg-emerald-50",
+      text: "text-emerald-600",
+      iconColor: "text-emerald-500",
       progress: successProgress,
     },
     {
       label: "Needs Your Input",
       value: byStatus.HOLD,
       icon: Inbox,
-      color: 'from-amber-500 to-amber-600',
-      bg: 'bg-amber-50',
-      text: 'text-amber-600',
-      iconColor: 'text-amber-500',
+      color: "from-amber-500 to-amber-600",
+      bg: "bg-amber-50",
+      text: "text-amber-600",
+      iconColor: "text-amber-500",
       progress: holdProgress,
     },
     {
       label: "Total Applications",
       value: stats.totalApps ?? stats.monthlyApps ?? 0,
       icon: Zap,
-      color: 'from-primary-500 to-primary-600',
-      bg: 'bg-primary-50',
-      text: 'text-primary-600',
-      iconColor: 'text-primary-500',
+      color: "from-primary-500 to-primary-600",
+      bg: "bg-primary-50",
+      text: "text-primary-600",
+      iconColor: "text-primary-500",
       progress: monthlyProgress,
     },
   ];
 
   // H8: Empty States - Show comprehensive empty state for new users
-  const isNewUser = !isLoading && applications.length === 0 && (stats?.monthlyApps ?? 0) === 0 && !error;
-  
+  const isNewUser =
+    !isLoading &&
+    applications.length === 0 &&
+    (stats?.monthlyApps ?? 0) === 0 &&
+    !error;
+
   if (isNewUser) {
     return (
       <ErrorBoundary reportError showToast>
-        <main id="main-content" ref={mainContentRef} tabIndex={-1} aria-label="Dashboard">
+        <main
+          id="main-content"
+          ref={mainContentReference}
+          tabIndex={-1}
+          aria-label="Dashboard"
+        >
           <motion.div
             initial={shouldReduceMotion ? undefined : { opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={shouldReduceMotion ? undefined : { duration: 0.5 }}
             className="space-y-6 max-w-4xl mx-auto px-4 lg:px-6 pb-8"
           >
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-black text-slate-900 mb-3">Welcome to JobHuntin! 🎉</h1>
-            <p className="text-slate-600 text-lg max-w-2xl mx-auto">
-              Let's get you started. Your dashboard will show your job applications and progress here.
-            </p>
-          </div>
-          
-          <Card className="p-8 border-2 border-dashed border-primary-200 bg-gradient-to-br from-primary-50/50 to-white">
-            <div className="text-center space-y-6">
-              <div className="w-24 h-24 rounded-full bg-primary-100 flex items-center justify-center mx-auto">
-                <Rocket className="w-12 h-12 text-primary-600" />
-              </div>
-              <div>
-                <h2 className="text-2xl font-black text-slate-900 mb-3">Get Started in 3 Steps</h2>
-                <p className="text-slate-600 mb-8">Follow these steps to start your automated job search</p>
-              </div>
-              
-              <div className="grid md:grid-cols-3 gap-6 text-left max-w-3xl mx-auto">
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-primary-600 text-white flex items-center justify-center font-black text-sm">1</div>
-                    <h3 className="font-bold text-slate-900">Complete Your Profile</h3>
-                  </div>
-                  <p className="text-sm text-slate-600 ml-11">
-                    Upload your resume and fill in your preferences to get better job matches.
-                  </p>
-                  <Button 
-                    variant="outline" 
-                    className="ml-11 w-auto"
-                    onClick={() => navigate("/app/onboarding")}
-                  >
-                    Go to Profile
-                  </Button>
+            <div className="text-center mb-8">
+              <h1 className="text-3xl font-black text-slate-900 mb-3">
+                Welcome to JobHuntin! 🎉
+              </h1>
+              <p className="text-slate-600 text-lg max-w-2xl mx-auto">
+                Let's get you started. Your dashboard will show your job
+                applications and progress here.
+              </p>
+            </div>
+
+            <Card className="p-8 border-2 border-dashed border-primary-200 bg-gradient-to-br from-primary-50/50 to-white">
+              <div className="text-center space-y-6">
+                <div className="w-24 h-24 rounded-full bg-primary-100 flex items-center justify-center mx-auto">
+                  <Rocket className="w-12 h-12 text-primary-600" />
                 </div>
-                
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-primary-600 text-white flex items-center justify-center font-black text-sm">2</div>
-                    <h3 className="font-bold text-slate-900">Browse Jobs</h3>
-                  </div>
-                  <p className="text-sm text-slate-600 ml-11">
-                    Swipe through AI-matched jobs and let us handle the applications.
+                <div>
+                  <h2 className="text-2xl font-black text-slate-900 mb-3">
+                    Get Started in 3 Steps
+                  </h2>
+                  <p className="text-slate-600 mb-8">
+                    Follow these steps to start your automated job search
                   </p>
-                  <Button 
-                    variant="outline" 
-                    className="ml-11 w-auto"
+                </div>
+
+                <div className="grid md:grid-cols-3 gap-6 text-left max-w-3xl mx-auto">
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-primary-600 text-white flex items-center justify-center font-black text-sm">
+                        1
+                      </div>
+                      <h3 className="font-bold text-slate-900">
+                        Complete Your Profile
+                      </h3>
+                    </div>
+                    <p className="text-sm text-slate-600 ml-11">
+                      Upload your resume and fill in your preferences to get
+                      better job matches.
+                    </p>
+                    <Button
+                      variant="outline"
+                      className="ml-11 w-auto"
+                      onClick={() => navigate("/app/onboarding")}
+                    >
+                      Go to Profile
+                    </Button>
+                  </div>
+
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-primary-600 text-white flex items-center justify-center font-black text-sm">
+                        2
+                      </div>
+                      <h3 className="font-bold text-slate-900">Browse Jobs</h3>
+                    </div>
+                    <p className="text-sm text-slate-600 ml-11">
+                      Swipe through AI-matched jobs and let us handle the
+                      applications.
+                    </p>
+                    <Button
+                      variant="outline"
+                      className="ml-11 w-auto"
+                      onClick={() => navigate("/app/jobs")}
+                    >
+                      Find Jobs
+                    </Button>
+                  </div>
+
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-primary-600 text-white flex items-center justify-center font-black text-sm">
+                        3
+                      </div>
+                      <h3 className="font-bold text-slate-900">
+                        Track Progress
+                      </h3>
+                    </div>
+                    <p className="text-sm text-slate-600 ml-11">
+                      Monitor your applications and answer any questions from
+                      employers.
+                    </p>
+                    <Button
+                      variant="outline"
+                      className="ml-11 w-auto"
+                      onClick={() => navigate("/app/applications")}
+                    >
+                      View Applications
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="pt-6 border-t border-slate-200">
+                  <Button
+                    className="bg-primary-600 hover:bg-primary-500 text-white px-8 py-3 text-lg font-bold"
                     onClick={() => navigate("/app/jobs")}
                   >
-                    Find Jobs
-                  </Button>
-                </div>
-                
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-primary-600 text-white flex items-center justify-center font-black text-sm">3</div>
-                    <h3 className="font-bold text-slate-900">Track Progress</h3>
-                  </div>
-                  <p className="text-sm text-slate-600 ml-11">
-                    Monitor your applications and answer any questions from employers.
-                  </p>
-                  <Button 
-                    variant="outline" 
-                    className="ml-11 w-auto"
-                    onClick={() => navigate("/app/applications")}
-                  >
-                    View Applications
+                    <Rocket className="w-5 h-5 mr-2" />
+                    Start Finding Jobs
                   </Button>
                 </div>
               </div>
-              
-              <div className="pt-6 border-t border-slate-200">
-                <Button 
-                  className="bg-primary-600 hover:bg-primary-500 text-white px-8 py-3 text-lg font-bold"
-                  onClick={() => navigate("/app/jobs")}
-                >
-                  <Rocket className="w-5 h-5 mr-2" />
-                  Start Finding Jobs
-                </Button>
-              </div>
-            </div>
-          </Card>
-        </motion.div>
+            </Card>
+          </motion.div>
         </main>
       </ErrorBoundary>
     );
@@ -443,300 +573,392 @@ export default function Dashboard() {
 
   return (
     <ErrorBoundary reportError showToast>
-      <main id="main-content" ref={mainContentRef} tabIndex={-1} aria-label="Dashboard">
-        <motion.div
-        initial={shouldReduceMotion ? undefined : { opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={shouldReduceMotion ? undefined : { duration: 0.5 }}
-        className="space-y-3 max-w-7xl mx-auto px-4 lg:px-6 pb-8"
+      <main
+        id="main-content"
+        ref={mainContentReference}
+        tabIndex={-1}
+        aria-label="Dashboard"
       >
-        {/* M-5: Error banner when data fetch fails */}
-        {error && (
-          <div className="flex items-center gap-3 p-4 rounded-2xl bg-red-50 border border-red-200 text-red-800" role="alert">
-            <AlertTriangle className="h-5 w-5 text-red-500 flex-shrink-0" aria-hidden />
-            <div className="flex-1">
-              <p className="font-bold text-sm">Unable to load dashboard data</p>
-              <p className="text-xs text-red-600 mt-0.5">{error}</p>
-            </div>
-            <Button variant="ghost" size="sm" className="text-red-600 font-bold text-xs" onClick={() => refetch()} aria-label="Retry loading dashboard">
-              Try again
-            </Button>
-          </div>
-        )}
-        {/* #36: Queue position/ETA when applications are being processed */}
-        {queueStats && (queueStats.queue_ahead > 0 || queueStats.eta_minutes > 0) && (
-          <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-50 border border-blue-200 text-blue-800 text-sm" role="status">
-            <Clock className="h-4 w-4 text-blue-600 flex-shrink-0" aria-hidden />
-            <span>
-              {queueStats.queue_ahead > 0 && <>{queueStats.queue_ahead} ahead in queue</>}
-              {queueStats.queue_ahead > 0 && queueStats.eta_minutes > 0 && " • "}
-              {queueStats.eta_minutes > 0 && <>~{queueStats.eta_minutes} min estimated</>}
-            </span>
-          </div>
-        )}
-      <div className="flex flex-wrap items-center justify-between gap-4">
         <motion.div
-          initial={shouldReduceMotion ? undefined : { opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={shouldReduceMotion ? undefined : { delay: 0.1 }}
+          initial={shouldReduceMotion ? undefined : { opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={shouldReduceMotion ? undefined : { duration: 0.5 }}
+          className="space-y-3 max-w-7xl mx-auto px-4 lg:px-6 pb-8"
         >
-          <p className="text-[10px] font-medium uppercase tracking-[0.4em] text-slate-500">Dashboard</p>
-          <h1 className="font-display text-xl md:text-2xl font-bold text-slate-900" id="dashboard-heading">
-            Your Dashboard
-          </h1>
-        </motion.div>
-        <motion.div
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-        >
-          <Button
-            className="group relative overflow-hidden gap-2 px-8 py-4 rounded-2xl bg-gradient-to-r from-primary-600 to-primary-500 hover:from-primary-500 hover:to-primary-400 text-white shadow-xl shadow-primary-600/20 transition-all duration-300"
-            onClick={() => navigate("/app/jobs")}
-            aria-label="Find jobs to apply to"
-          >
-            <span className="relative z-10 flex items-center gap-2">
-              <Rocket className="h-5 w-5 transition-transform group-hover:rotate-12" aria-hidden />
-              <span className="font-bold tracking-tight">Find Jobs</span>
-            </span>
-          </Button>
-        </motion.div>
-      </div>
-
-      <div className="-mx-1 overflow-x-auto pb-1 lg:mx-0">
-        <div className="flex gap-2 md:grid md:grid-cols-2 xl:grid-cols-4 min-w-full px-1">
-          {metrics.map((metric, index) => (
-            <motion.div
-              key={metric.label}
-              initial={shouldReduceMotion ? undefined : { opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={shouldReduceMotion ? undefined : { delay: 0.05 * index, duration: 0.4 }}
-              className="h-full min-w-[240px] md:min-w-0"
+          {/* M-5: Error banner when data fetch fails */}
+          {error && (
+            <div
+              className="flex items-center gap-3 p-4 rounded-2xl bg-red-50 border border-red-200 text-red-800"
+              role="alert"
             >
-              <Card
-                className="h-full border-slate-200 bg-white/60 hover:bg-white transition-all duration-300 group"
-                shadow="sm"
-                tone="glass"
+              <AlertTriangle
+                className="h-5 w-5 text-red-500 flex-shrink-0"
+                aria-hidden
+              />
+              <div className="flex-1">
+                <p className="font-bold text-sm">
+                  Unable to load dashboard data
+                </p>
+                <p className="text-xs text-red-600 mt-0.5">{error}</p>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-red-600 font-bold text-xs"
+                onClick={() => refetch()}
+                aria-label="Retry loading dashboard"
               >
-                <div className="flex items-start justify-between">
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2 text-sm font-medium text-slate-500">
-                      <metric.icon className={`h-4 w-4 ${metric.iconColor}`} />
-                      <span>{metric.label}</span>
-                    </div>
-                    <p className="text-2xl font-bold text-slate-900">
-                      {isLoading ? (
-                        <span className="inline-block h-8 w-16 bg-slate-100 rounded animate-pulse"></span>
-                      ) : typeof metric.value === 'string' ? (
-                        metric.value
-                      ) : (
-                        <AnimatedNumber value={metric.value} shouldReduceMotion={!!shouldReduceMotion} />
-                      )}
-                    </p>
-                  </div>
-                </div>
-                {/* L-2: Data-driven progress bar */}
-                <div className="mt-4 h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
-                  <motion.div
-                    className={`h-full rounded-full bg-gradient-to-r ${metric.color}`}
-                    initial={shouldReduceMotion ? { width: `${metric.progress}%` } : { width: 0 }}
-                    animate={{ width: `${metric.progress}%` }}
-                    transition={shouldReduceMotion ? undefined : { delay: 0.2 + index * 0.08, duration: 0.6, type: 'spring' }}
-                  />
-                </div>
-              </Card>
-            </motion.div>
-          ))}
-        </div>
-      </div>
-
-      <div className="grid gap-3 lg:grid-cols-3">
-        <div className="space-y-3 lg:col-span-2">
-          <ErrorBoundary reportError>
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-            >
-              <Card className="relative overflow-hidden border-amber-200/50 bg-gradient-to-br from-amber-50/50 to-white" tone="glass">
-              {/* Animated background elements */}
-              <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-amber-500/5 blur-3xl"></div>
-                <div className="absolute -left-10 -bottom-10 h-40 w-40 rounded-full bg-amber-500/5 blur-3xl"></div>
-              </div>
-
-              <div className="relative z-10 space-y-5">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-100 text-amber-600">
-                      <Inbox className="h-5 w-5" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-amber-900/60">Items needing your input</p>
-                      <p className="text-2xl font-bold text-slate-900">
-                        {isLoading ? (
-                          <span className="inline-block h-7 w-24 bg-slate-100 rounded animate-pulse"></span>
-                        ) : (
-                          `${holdApplications.length} Pending`
-                        )}
-                      </p>
-                    </div>
-                  </div>
-                  <Badge className="bg-amber-100 text-amber-700 border-amber-200 hover:bg-amber-200 transition-colors">
-                    Needs attention
-                  </Badge>
-                </div>
-                <div className="space-y-3">
-                  {isLoading ? (
-                    <div className="rounded-xl bg-white/50 p-4 border border-slate-100">
-                      <div className="h-4 w-[75%] rounded bg-slate-100 animate-pulse"></div>
-                      <div className="mt-2 h-3 w-[50%] rounded bg-slate-50 animate-pulse"></div>
-                    </div>
-                  ) : holdApplications.length === 0 ? (
-                    <div className="rounded-xl border border-dashed border-amber-200 bg-amber-50/30 p-6 text-center">
-                      <CheckCircle className="mx-auto h-8 w-8 text-amber-500/50 mb-2" />
-                      <p className="text-amber-900/80 font-medium">No pending questions</p>
-                      <p className="text-sm text-amber-900/50">You're all caught up!</p>
-                      {/* H8: Empty States - Add CTA for new users */}
-                      {applications.length === 0 && (
-                        <div className="mt-4">
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => navigate("/app/jobs")}
-                            className="border-amber-300 text-amber-700 hover:bg-amber-100"
-                          >
-                            <Rocket className="w-4 h-4 mr-2" />
-                            Start Applying
-                          </Button>
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <motion.div
-                      className="space-y-3"
-                      initial="hidden"
-                      animate="visible"
-                      variants={{
-                        hidden: { opacity: 0 },
-                        visible: {
-                          opacity: 1,
-                          transition: {
-                            staggerChildren: 0.1
-                          }
-                        }
-                      }}
-                    >
-                      {holdApplications.slice(0, 3).map((app, idx) => (
-                        <motion.div
-                          key={app.id}
-                          className="group flex items-center justify-between rounded-xl bg-white p-4 shadow-sm border border-slate-100 transition-all hover:shadow-md hover:border-amber-200"
-                          variants={{
-                            hidden: { opacity: 0, y: 10 },
-                            visible: {
-                              opacity: 1,
-                              y: 0,
-                              transition: { type: 'spring', stiffness: 300, damping: 20 }
-                            }
-                          }}
-                        >
-                          <div className="flex items-center gap-3">
-                            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-100 text-amber-600">
-                              <MessageCircle className="h-3.5 w-3.5" />
-                            </div>
-                            <div className="min-w-0">
-                              <p className="truncate font-medium text-slate-900">{app.company ?? "Unknown"}</p>
-                              <p className="text-xs text-slate-500 truncate">
-                                {app.hold_question?.slice(0, 50)}{app.hold_question && app.hold_question.length > 50 ? '...' : ''}
-                              </p>
-                            </div>
-                          </div>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-xs font-medium text-amber-600 hover:bg-amber-50 hover:text-amber-700 transition-colors"
-                            onClick={() => navigate("/app/applications")}
-                          >
-                            Review
-                          </Button>
-                        </motion.div>
-                      ))}
-                    </motion.div>
+                Try again
+              </Button>
+            </div>
+          )}
+          {/* #36: Queue position/ETA when applications are being processed */}
+          {queueStats &&
+            (queueStats.queue_ahead > 0 || queueStats.eta_minutes > 0) && (
+              <div
+                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-50 border border-blue-200 text-blue-800 text-sm"
+                role="status"
+              >
+                <Clock
+                  className="h-4 w-4 text-blue-600 flex-shrink-0"
+                  aria-hidden
+                />
+                <span>
+                  {queueStats.queue_ahead > 0 && (
+                    <>{queueStats.queue_ahead} ahead in queue</>
                   )}
-                </div>
-                {holdApplications.length > 3 && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full mt-3 border-amber-200 text-amber-700 hover:bg-amber-50 hover:text-amber-800 transition-colors"
-                    onClick={() => navigate("/app/applications")}
-                  >
-                    View all {holdApplications.length} items
-                  </Button>
-                )}
+                  {queueStats.queue_ahead > 0 &&
+                    queueStats.eta_minutes > 0 &&
+                    " • "}
+                  {queueStats.eta_minutes > 0 && (
+                    <>~{queueStats.eta_minutes} min estimated</>
+                  )}
+                </span>
               </div>
-            </Card>
-            </motion.div>
-          </ErrorBoundary>
-
-        </div>
-
-        <div className="space-y-3">
-          <ErrorBoundary reportError>
+            )}
+          <div className="flex flex-wrap items-center justify-between gap-4">
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
+              initial={shouldReduceMotion ? undefined : { opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={shouldReduceMotion ? undefined : { delay: 0.1 }}
             >
-              <Card className="relative overflow-hidden border-primary-200/50 bg-gradient-to-br from-primary-50/50 to-white" tone="glass">
-              {/* Animated background elements */}
-              <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-primary-500/5 blur-3xl"></div>
-                <div className="absolute -left-10 -bottom-10 h-40 w-40 rounded-full bg-primary-500/5 blur-3xl"></div>
-              </div>
-
-              <div className="relative z-10 space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-primary-900/60">Your plan</p>
-                    <p className="text-2xl font-bold text-slate-900">{status?.plan ?? "FREE"}</p>
-                  </div>
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary-100 text-primary-600">
-                    <Zap className="h-5 w-5" />
-                  </div>
-                </div>
-
-                <div className="space-y-2 text-sm">
-                  <div className="flex items-center justify-between">
-                    <span className="text-slate-500">Status</span>
-                    <span className="font-bold text-primary-600 capitalize">{status?.subscription_status ?? "active"}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-slate-500">Success Rate</span>
-                    <span className="font-bold text-emerald-600">{stats.successRate}%</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-slate-500">Next Billing</span>
-                    <div className="flex items-center text-slate-900">
-                      <Clock className="h-3.5 w-3.5 mr-1 text-slate-500" />
-                      <span>{status?.current_period_end ? formatDate(status.current_period_end, locale) : "No upcoming bill"}</span>
-                    </div>
-                  </div>
-                </div>
-
-                <Button
-                  className="w-full mt-2 bg-slate-900 hover:bg-slate-950 text-white hover:shadow-xl transition-all font-bold"
-                  onClick={() => navigate("/app/billing")}
-                >
-                  View plans
-                </Button>
-              </div>
-            </Card>
+              <p className="text-[10px] font-medium uppercase tracking-[0.4em] text-slate-500">
+                Dashboard
+              </p>
+              <h1
+                className="font-display text-xl md:text-2xl font-bold text-slate-900"
+                id="dashboard-heading"
+              >
+                Your Dashboard
+              </h1>
             </motion.div>
-          </ErrorBoundary>
+            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+              <Button
+                className="group relative overflow-hidden gap-2 px-8 py-4 rounded-2xl bg-gradient-to-r from-primary-600 to-primary-500 hover:from-primary-500 hover:to-primary-400 text-white shadow-xl shadow-primary-600/20 transition-all duration-300"
+                onClick={() => navigate("/app/jobs")}
+                aria-label="Find jobs to apply to"
+              >
+                <span className="relative z-10 flex items-center gap-2">
+                  <Rocket
+                    className="h-5 w-5 transition-transform group-hover:rotate-12"
+                    aria-hidden
+                  />
+                  <span className="font-bold tracking-tight">Find Jobs</span>
+                </span>
+              </Button>
+            </motion.div>
+          </div>
 
-        </div>
-      </div>
-      </motion.div>
+          <div className="-mx-1 overflow-x-auto pb-1 lg:mx-0">
+            <div className="flex gap-2 md:grid md:grid-cols-2 xl:grid-cols-4 min-w-full px-1">
+              {metrics.map((metric, index) => (
+                <motion.div
+                  key={metric.label}
+                  initial={
+                    shouldReduceMotion ? undefined : { opacity: 0, y: 20 }
+                  }
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={
+                    shouldReduceMotion
+                      ? undefined
+                      : { delay: 0.05 * index, duration: 0.4 }
+                  }
+                  className="h-full min-w-[240px] md:min-w-0"
+                >
+                  <Card
+                    className="h-full border-slate-200 bg-white/60 hover:bg-white transition-all duration-300 group"
+                    shadow="sm"
+                    tone="glass"
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 text-sm font-medium text-slate-500">
+                          <metric.icon
+                            className={`h-4 w-4 ${metric.iconColor}`}
+                          />
+                          <span>{metric.label}</span>
+                        </div>
+                        <p className="text-2xl font-bold text-slate-900">
+                          {isLoading ? (
+                            <span className="inline-block h-8 w-16 bg-slate-100 rounded animate-pulse"></span>
+                          ) : (typeof metric.value === "string" ? (
+                            metric.value
+                          ) : (
+                            <AnimatedNumber
+                              value={metric.value}
+                              shouldReduceMotion={!!shouldReduceMotion}
+                            />
+                          ))}
+                        </p>
+                      </div>
+                    </div>
+                    {/* L-2: Data-driven progress bar */}
+                    <div className="mt-4 h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                      <motion.div
+                        className={`h-full rounded-full bg-gradient-to-r ${metric.color}`}
+                        initial={
+                          shouldReduceMotion
+                            ? { width: `${metric.progress}%` }
+                            : { width: 0 }
+                        }
+                        animate={{ width: `${metric.progress}%` }}
+                        transition={
+                          shouldReduceMotion
+                            ? undefined
+                            : {
+                                delay: 0.2 + index * 0.08,
+                                duration: 0.6,
+                                type: "spring",
+                              }
+                        }
+                      />
+                    </div>
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+
+          <div className="grid gap-3 lg:grid-cols-3">
+            <div className="space-y-3 lg:col-span-2">
+              <ErrorBoundary reportError>
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 }}
+                >
+                  <Card
+                    className="relative overflow-hidden border-amber-200/50 bg-gradient-to-br from-amber-50/50 to-white"
+                    tone="glass"
+                  >
+                    {/* Animated background elements */}
+                    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                      <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-amber-500/5 blur-3xl"></div>
+                      <div className="absolute -left-10 -bottom-10 h-40 w-40 rounded-full bg-amber-500/5 blur-3xl"></div>
+                    </div>
+
+                    <div className="relative z-10 space-y-5">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-100 text-amber-600">
+                            <Inbox className="h-5 w-5" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-amber-900/60">
+                              Items needing your input
+                            </p>
+                            <p className="text-2xl font-bold text-slate-900">
+                              {isLoading ? (
+                                <span className="inline-block h-7 w-24 bg-slate-100 rounded animate-pulse"></span>
+                              ) : (
+                                `${holdApplications.length} Pending`
+                              )}
+                            </p>
+                          </div>
+                        </div>
+                        <Badge className="bg-amber-100 text-amber-700 border-amber-200 hover:bg-amber-200 transition-colors">
+                          Needs attention
+                        </Badge>
+                      </div>
+                      <div className="space-y-3">
+                        {isLoading ? (
+                          <div className="rounded-xl bg-white/50 p-4 border border-slate-100">
+                            <div className="h-4 w-[75%] rounded bg-slate-100 animate-pulse"></div>
+                            <div className="mt-2 h-3 w-[50%] rounded bg-slate-50 animate-pulse"></div>
+                          </div>
+                        ) : holdApplications.length === 0 ? (
+                          <div className="rounded-xl border border-dashed border-amber-200 bg-amber-50/30 p-6 text-center">
+                            <CheckCircle className="mx-auto h-8 w-8 text-amber-500/50 mb-2" />
+                            <p className="text-amber-900/80 font-medium">
+                              No pending questions
+                            </p>
+                            <p className="text-sm text-amber-900/50">
+                              You're all caught up!
+                            </p>
+                            {/* H8: Empty States - Add CTA for new users */}
+                            {applications.length === 0 && (
+                              <div className="mt-4">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => navigate("/app/jobs")}
+                                  className="border-amber-300 text-amber-700 hover:bg-amber-100"
+                                >
+                                  <Rocket className="w-4 h-4 mr-2" />
+                                  Start Applying
+                                </Button>
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <motion.div
+                            className="space-y-3"
+                            initial="hidden"
+                            animate="visible"
+                            variants={{
+                              hidden: { opacity: 0 },
+                              visible: {
+                                opacity: 1,
+                                transition: {
+                                  staggerChildren: 0.1,
+                                },
+                              },
+                            }}
+                          >
+                            {holdApplications.slice(0, 3).map((app, index) => (
+                              <motion.div
+                                key={app.id}
+                                className="group flex items-center justify-between rounded-xl bg-white p-4 shadow-sm border border-slate-100 transition-all hover:shadow-md hover:border-amber-200"
+                                variants={{
+                                  hidden: { opacity: 0, y: 10 },
+                                  visible: {
+                                    opacity: 1,
+                                    y: 0,
+                                    transition: {
+                                      type: "spring",
+                                      stiffness: 300,
+                                      damping: 20,
+                                    },
+                                  },
+                                }}
+                              >
+                                <div className="flex items-center gap-3">
+                                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-100 text-amber-600">
+                                    <MessageCircle className="h-3.5 w-3.5" />
+                                  </div>
+                                  <div className="min-w-0">
+                                    <p className="truncate font-medium text-slate-900">
+                                      {app.company ?? "Unknown"}
+                                    </p>
+                                    <p className="text-xs text-slate-500 truncate">
+                                      {app.hold_question?.slice(0, 50)}
+                                      {app.hold_question &&
+                                      app.hold_question.length > 50
+                                        ? "..."
+                                        : ""}
+                                    </p>
+                                  </div>
+                                </div>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="text-xs font-medium text-amber-600 hover:bg-amber-50 hover:text-amber-700 transition-colors"
+                                  onClick={() => navigate("/app/applications")}
+                                >
+                                  Review
+                                </Button>
+                              </motion.div>
+                            ))}
+                          </motion.div>
+                        )}
+                      </div>
+                      {holdApplications.length > 3 && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="w-full mt-3 border-amber-200 text-amber-700 hover:bg-amber-50 hover:text-amber-800 transition-colors"
+                          onClick={() => navigate("/app/applications")}
+                        >
+                          View all {holdApplications.length} items
+                        </Button>
+                      )}
+                    </div>
+                  </Card>
+                </motion.div>
+              </ErrorBoundary>
+            </div>
+
+            <div className="space-y-3">
+              <ErrorBoundary reportError>
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 }}
+                >
+                  <Card
+                    className="relative overflow-hidden border-primary-200/50 bg-gradient-to-br from-primary-50/50 to-white"
+                    tone="glass"
+                  >
+                    {/* Animated background elements */}
+                    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                      <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-primary-500/5 blur-3xl"></div>
+                      <div className="absolute -left-10 -bottom-10 h-40 w-40 rounded-full bg-primary-500/5 blur-3xl"></div>
+                    </div>
+
+                    <div className="relative z-10 space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-primary-900/60">
+                            Your plan
+                          </p>
+                          <p className="text-2xl font-bold text-slate-900">
+                            {status?.plan ?? "FREE"}
+                          </p>
+                        </div>
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary-100 text-primary-600">
+                          <Zap className="h-5 w-5" />
+                        </div>
+                      </div>
+
+                      <div className="space-y-2 text-sm">
+                        <div className="flex items-center justify-between">
+                          <span className="text-slate-500">Status</span>
+                          <span className="font-bold text-primary-600 capitalize">
+                            {status?.subscription_status ?? "active"}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-slate-500">Success Rate</span>
+                          <span className="font-bold text-emerald-600">
+                            {stats.successRate}%
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-slate-500">Next Billing</span>
+                          <div className="flex items-center text-slate-900">
+                            <Clock className="h-3.5 w-3.5 mr-1 text-slate-500" />
+                            <span>
+                              {status?.current_period_end
+                                ? formatDate(status.current_period_end, locale)
+                                : "No upcoming bill"}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <Button
+                        className="w-full mt-2 bg-slate-900 hover:bg-slate-950 text-white hover:shadow-xl transition-all font-bold"
+                        onClick={() => navigate("/app/billing")}
+                      >
+                        View plans
+                      </Button>
+                    </div>
+                  </Card>
+                </motion.div>
+              </ErrorBoundary>
+            </div>
+          </div>
+        </motion.div>
       </main>
     </ErrorBoundary>
   );
@@ -751,124 +973,188 @@ export function JobsView() {
 
   // M-3: Debounced filter — local input values update instantly, API filters update after 400ms
   const [localLocation, setLocalLocation] = useState(userPrefs?.location || "");
-  const [localKeywords, setLocalKeywords] = useState(userPrefs?.role_type || "");
-  const [localSalaryMin, setLocalSalaryMin] = useState(userPrefs?.salary_min ? String(userPrefs.salary_min) : "");
+  const [localKeywords, setLocalKeywords] = useState(
+    userPrefs?.role_type || "",
+  );
+  const [localSalaryMin, setLocalSalaryMin] = useState(
+    userPrefs?.salary_min ? String(userPrefs.salary_min) : "",
+  );
   const [filters, setFilters] = useState<JobFilters>({
     location: userPrefs?.location || "",
     keywords: userPrefs?.role_type || "",
     minSalary: userPrefs?.salary_min ?? undefined,
     isRemote: userPrefs?.remote_only ?? false,
-    jobType: undefined
+    jobType: undefined,
   });
 
   // Sync filters when profile loads (useState initial only runs once; profile may load async)
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParameters, setSearchParameters] = useSearchParams();
   const hasSyncedPrefs = useRef(false);
   const hasInitializedFromUrl = useRef(false);
 
   useEffect(() => {
     if (userPrefs && !hasSyncedPrefs.current) {
       hasSyncedPrefs.current = true;
-      const loc = searchParams.get("location") ?? userPrefs.location ?? "";
-      const kw = searchParams.get("keywords") ?? userPrefs.role_type ?? "";
-      const sal = searchParams.get("min_salary");
-      const salNum = sal ? Number.parseInt(sal) : (userPrefs.salary_min ?? undefined);
+      const loc = searchParameters.get("location") ?? userPrefs.location ?? "";
+      const kw = searchParameters.get("keywords") ?? userPrefs.role_type ?? "";
+      const sal = searchParameters.get("min_salary");
+      const salNumber = sal
+        ? Number.parseInt(sal)
+        : (userPrefs.salary_min ?? undefined);
       setLocalLocation(loc);
       setLocalKeywords(kw);
-      setLocalSalaryMin(sal ?? (userPrefs.salary_min ? String(userPrefs.salary_min) : ""));
-      setFilters((prev) => ({
-        ...prev,
+      setLocalSalaryMin(
+        sal ?? (userPrefs.salary_min ? String(userPrefs.salary_min) : ""),
+      );
+      setFilters((previous) => ({
+        ...previous,
         location: loc,
         keywords: kw,
-        minSalary: salNum,
-        isRemote: searchParams.get("remote") === "true" || (userPrefs.remote_only ?? false),
-        sortBy: (searchParams.get("sort") as "match_score" | "recently_matched" | "salary") || prev.sortBy || "match_score",
+        minSalary: salNumber,
+        isRemote:
+          searchParameters.get("remote") === "true" ||
+          (userPrefs.remote_only ?? false),
+        sortBy:
+          (searchParameters.get("sort") as
+            | "match_score"
+            | "recently_matched"
+            | "salary") ||
+          previous.sortBy ||
+          "match_score",
       }));
-      const sortVal = searchParams.get("sort");
-      if (sortVal === "match_score" || sortVal === "recently_matched" || sortVal === "salary") {
-        setSortBy(sortVal);
+      const sortValue = searchParameters.get("sort");
+      if (
+        sortValue === "match_score" ||
+        sortValue === "recently_matched" ||
+        sortValue === "salary"
+      ) {
+        setSortBy(sortValue);
       }
     }
-  }, [userPrefs, searchParams]);
+  }, [userPrefs, searchParameters]);
 
   useEffect(() => {
-    if (!hasInitializedFromUrl.current && !userPrefs && searchParams.toString()) {
+    if (
+      !hasInitializedFromUrl.current &&
+      !userPrefs &&
+      searchParameters.toString()
+    ) {
       hasInitializedFromUrl.current = true;
-      const loc = searchParams.get("location") ?? "";
-      const kw = searchParams.get("keywords") ?? "";
-      const sal = searchParams.get("min_salary");
+      const loc = searchParameters.get("location") ?? "";
+      const kw = searchParameters.get("keywords") ?? "";
+      const sal = searchParameters.get("min_salary");
       setLocalLocation(loc);
       setLocalKeywords(kw);
       setLocalSalaryMin(sal ?? "");
-      setFilters((prev) => ({
-        ...prev,
+      setFilters((previous) => ({
+        ...previous,
         location: loc,
         keywords: kw,
         minSalary: sal ? Number.parseInt(sal) : undefined,
-        isRemote: searchParams.get("remote") === "true",
-        sortBy: (searchParams.get("sort") as "match_score" | "recently_matched" | "salary") || "match_score",
+        isRemote: searchParameters.get("remote") === "true",
+        sortBy:
+          (searchParameters.get("sort") as
+            | "match_score"
+            | "recently_matched"
+            | "salary") || "match_score",
       }));
-      const sortVal = searchParams.get("sort");
-      if (sortVal === "match_score" || sortVal === "recently_matched" || sortVal === "salary") {
-        setSortBy(sortVal);
+      const sortValue = searchParameters.get("sort");
+      if (
+        sortValue === "match_score" ||
+        sortValue === "recently_matched" ||
+        sortValue === "salary"
+      ) {
+        setSortBy(sortValue);
       }
     }
-  }, [searchParams, userPrefs]);
+  }, [searchParameters, userPrefs]);
 
-  const [sortBy, setSortBy] = useState<"match_score" | "recently_matched" | "salary">("match_score");
+  const [sortBy, setSortBy] = useState<
+    "match_score" | "recently_matched" | "salary"
+  >("match_score");
   const [showFilters, setShowFilters] = useState(false);
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const debounceReference = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const updateFilters = useCallback((newFilters: Partial<JobFilters>) => {
-    setFilters(prev => ({ ...prev, ...newFilters }));
+    setFilters((previous) => ({ ...previous, ...newFilters }));
   }, []);
 
-  const debouncedUpdateFilters = useCallback((newFilters: Partial<JobFilters>) => {
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => {
-      updateFilters(newFilters);
-      setSearchParams((prev) => {
-        const next = new URLSearchParams(prev);
-        if (newFilters.location != null) newFilters.location ? next.set("location", newFilters.location) : next.delete("location");
-        if (newFilters.keywords != null) newFilters.keywords ? next.set("keywords", newFilters.keywords) : next.delete("keywords");
-        if (newFilters.minSalary != null) newFilters.minSalary ? next.set("min_salary", String(newFilters.minSalary)) : next.delete("min_salary");
-        if (newFilters.isRemote != null) newFilters.isRemote ? next.set("remote", "true") : next.delete("remote");
-        if (newFilters.sortBy) next.set("sort", newFilters.sortBy);
-        return next;
-      }, { replace: true });
-    }, 400);
-  }, [updateFilters, setSearchParams]);
+  const debouncedUpdateFilters = useCallback(
+    (newFilters: Partial<JobFilters>) => {
+      if (debounceReference.current) clearTimeout(debounceReference.current);
+      debounceReference.current = setTimeout(() => {
+        updateFilters(newFilters);
+        setSearchParameters(
+          (previous) => {
+            const next = new URLSearchParams(previous);
+            if (newFilters.location != undefined)
+              newFilters.location
+                ? next.set("location", newFilters.location)
+                : next.delete("location");
+            if (newFilters.keywords != undefined)
+              newFilters.keywords
+                ? next.set("keywords", newFilters.keywords)
+                : next.delete("keywords");
+            if (newFilters.minSalary != undefined)
+              newFilters.minSalary
+                ? next.set("min_salary", String(newFilters.minSalary))
+                : next.delete("min_salary");
+            if (newFilters.isRemote != undefined)
+              newFilters.isRemote
+                ? next.set("remote", "true")
+                : next.delete("remote");
+            if (newFilters.sortBy) next.set("sort", newFilters.sortBy);
+            return next;
+          },
+          { replace: true },
+        );
+      }, 400);
+    },
+    [updateFilters, setSearchParameters],
+  );
 
   // Cleanup debounce timer on unmount
   useEffect(() => {
     return () => {
-      if (debounceRef.current) {
-        clearTimeout(debounceRef.current);
+      if (debounceReference.current) {
+        clearTimeout(debounceReference.current);
       }
     };
   }, []);
 
-  const handleLocationChange = useCallback((value: string) => {
-    setLocalLocation(value);
-    debouncedUpdateFilters({ location: value });
-  }, [debouncedUpdateFilters]);
+  const handleLocationChange = useCallback(
+    (value: string) => {
+      setLocalLocation(value);
+      debouncedUpdateFilters({ location: value });
+    },
+    [debouncedUpdateFilters],
+  );
 
-  const handleKeywordsChange = useCallback((value: string) => {
-    setLocalKeywords(value);
-    debouncedUpdateFilters({ keywords: value });
-  }, [debouncedUpdateFilters]);
+  const handleKeywordsChange = useCallback(
+    (value: string) => {
+      setLocalKeywords(value);
+      debouncedUpdateFilters({ keywords: value });
+    },
+    [debouncedUpdateFilters],
+  );
 
-  const handleSalaryChange = useCallback((value: string) => {
-    setLocalSalaryMin(value);
-    const salaryNum = value ? Number.parseInt(value) : undefined;
-    debouncedUpdateFilters({ minSalary: salaryNum });
-  }, [debouncedUpdateFilters]);
+  const handleSalaryChange = useCallback(
+    (value: string) => {
+      setLocalSalaryMin(value);
+      const salaryNumber = value ? Number.parseInt(value) : undefined;
+      debouncedUpdateFilters({ minSalary: salaryNumber });
+    },
+    [debouncedUpdateFilters],
+  );
 
-  const handleSortChange = useCallback((value: "match_score" | "recently_matched" | "salary") => {
-    setSortBy(value);
-    // Update filters with sorting preference — no toast, the UI selection itself is the feedback
-    debouncedUpdateFilters({ sortBy: value });
-  }, [debouncedUpdateFilters]);
+  const handleSortChange = useCallback(
+    (value: "match_score" | "recently_matched" | "salary") => {
+      setSortBy(value);
+      // Update filters with sorting preference — no toast, the UI selection itself is the feedback
+      debouncedUpdateFilters({ sortBy: value });
+    },
+    [debouncedUpdateFilters],
+  );
 
   const resetFilters = useCallback(() => {
     setLocalLocation("");
@@ -879,19 +1165,30 @@ export function JobsView() {
       keywords: "",
       minSalary: undefined,
       isRemote: false,
-      jobType: undefined
+      jobType: undefined,
     });
     setSortBy("match_score");
-    setSearchParams({}, { replace: true });
-  }, [setSearchParams]);
+    setSearchParameters({}, { replace: true });
+  }, [setSearchParameters]);
 
-  const { jobs, isLoading, isFetching, hasNextPage, fetchNextPage, isFetchingNextPage } = useJobs(filters);
+  const {
+    jobs,
+    isLoading,
+    isFetching,
+    hasNextPage,
+    fetchNextPage,
+    isFetchingNextPage,
+  } = useJobs(filters);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [swipeCount, setSwipeCount] = useState(0);
   const streakToasted = useRef<Set<number>>(new Set());
   const alertedMatches = useRef<Set<string>>(new Set());
-  const [swipeDirection, setSwipeDirection] = useState<'left' | 'right' | null>(null);
-  const swipeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [swipeDirection, setSwipeDirection] = useState<"left" | "right" | null>(
+    null,
+  );
+  const swipeTimeoutReference = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
   const shouldReduceMotion = useReducedMotion();
   const [statusMessage, setStatusMessage] = useState("");
   const [showFirstStepsModal, setShowFirstStepsModal] = useState(false);
@@ -899,7 +1196,10 @@ export function JobsView() {
 
   // Post-onboarding: show "Your first 3 steps" modal once
   useEffect(() => {
-    if (sessionStorage.getItem("onboarding_just_completed") === "true" || sessionStorage.getItem("show_first_steps") === "true") {
+    if (
+      sessionStorage.getItem("onboarding_just_completed") === "true" ||
+      sessionStorage.getItem("show_first_steps") === "true"
+    ) {
       sessionStorage.removeItem("onboarding_just_completed");
       sessionStorage.removeItem("show_first_steps");
       setShowFirstStepsModal(true);
@@ -917,31 +1217,37 @@ export function JobsView() {
     timestamp: number;
   } | null>(null);
   const [isUndoing, setIsUndoing] = useState(false);
-  const undoTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const undoTimeoutReference = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
 
   // H-1: Cleanup timeouts on unmount to prevent state updates on unmounted component
   useEffect(() => {
     return () => {
-      if (swipeTimeoutRef.current) clearTimeout(swipeTimeoutRef.current);
-      if (undoTimeoutRef.current) clearTimeout(undoTimeoutRef.current);
-      if (debounceRef.current) clearTimeout(debounceRef.current);
+      if (swipeTimeoutReference.current)
+        clearTimeout(swipeTimeoutReference.current);
+      if (undoTimeoutReference.current)
+        clearTimeout(undoTimeoutReference.current);
+      if (debounceReference.current) clearTimeout(debounceReference.current);
     };
   }, []);
-
 
   // N-5: Swipe milestones use [1, 5, 10, 25] – session milestone hook handles [50, 100]
   useEffect(() => {
     const milestones = [1, 5, 10, 25];
-    milestones.forEach((m) => {
+    for (const m of milestones) {
       if (swipeCount >= m && !streakToasted.current.has(m)) {
         streakToasted.current.add(m);
         pushToast({
           title: m === 1 ? "First swipe! 🎯" : `🔥 ${m} swipes`,
-          description: m === 1 ? "Keep going for more tailored leads." : "Great momentum! Results will adapt to your preferences.",
+          description:
+            m === 1
+              ? "Keep going for more tailored leads."
+              : "Great momentum! Results will adapt to your preferences.",
           tone: "success",
         });
       }
-    });
+    }
   }, [swipeCount]);
 
   const currentJob = jobs[currentIndex];
@@ -952,7 +1258,12 @@ export function JobsView() {
   }, [jobs.length, celebrateSession]);
 
   useEffect(() => {
-    if (currentJob?.id && currentJob.match_score && currentJob.match_score >= 80 && !alertedMatches.current.has(currentJob.id)) {
+    if (
+      currentJob?.id &&
+      currentJob.match_score &&
+      currentJob.match_score >= 80 &&
+      !alertedMatches.current.has(currentJob.id)
+    ) {
       alertedMatches.current.add(currentJob.id);
       pushToast({
         title: t("dashboard.matchAlert", locale),
@@ -965,7 +1276,9 @@ export function JobsView() {
   // A20: Announce new card to screen readers when card changes
   useEffect(() => {
     if (currentJob?.id) {
-      setStatusMessage(`Showing ${currentJob.title} at ${currentJob.company}. Swipe right to accept, left to reject.`);
+      setStatusMessage(
+        `Showing ${currentJob.title} at ${currentJob.company}. Swipe right to accept, left to reject.`,
+      );
     }
   }, [currentJob?.id]);
 
@@ -974,7 +1287,13 @@ export function JobsView() {
     if (hasNextPage && currentIndex >= jobs.length - 3 && !isFetchingNextPage) {
       fetchNextPage();
     }
-  }, [currentIndex, fetchNextPage, hasNextPage, isFetchingNextPage, jobs.length]);
+  }, [
+    currentIndex,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    jobs.length,
+  ]);
 
   const handleSwipe = async (direction: "ACCEPT" | "REJECT") => {
     if (!currentJob) return;
@@ -983,14 +1302,20 @@ export function JobsView() {
     const swipedJob = currentJob;
 
     setSwipeDirection(direction === "ACCEPT" ? "right" : "left");
-    setStatusMessage(`${direction === "ACCEPT" ? "Accepting" : "Rejecting"} ${swipedJob.title} at ${swipedJob.company}`);
+    setStatusMessage(
+      `${direction === "ACCEPT" ? "Accepting" : "Rejecting"} ${swipedJob.title} at ${swipedJob.company}`,
+    );
 
     // Store previous state for undo
     const previousIndex = currentIndex;
 
     try {
       // Record swipe decision with API
-      await apiPost("me/applications", { job_id: swipedJob.id, decision: direction }, { headers: { "Idempotency-Key": crypto.randomUUID() } });
+      await apiPost(
+        "me/applications",
+        { job_id: swipedJob.id, decision: direction },
+        { headers: { "Idempotency-Key": crypto.randomUUID() } },
+      );
 
       if (direction === "ACCEPT") {
         queryClient.invalidateQueries({ queryKey: ["applications"] });
@@ -1012,48 +1337,57 @@ export function JobsView() {
       });
 
       // Clear undo state after 10 seconds (backend allows up to 10s for latency)
-      if (undoTimeoutRef.current) clearTimeout(undoTimeoutRef.current);
-      undoTimeoutRef.current = setTimeout(() => {
+      if (undoTimeoutReference.current)
+        clearTimeout(undoTimeoutReference.current);
+      undoTimeoutReference.current = setTimeout(() => {
         setLastSwipe(null);
       }, 10_000);
 
-      setCurrentIndex(prev => prev + 1);
-      setSwipeCount(prev => prev + 1);
+      setCurrentIndex((previous) => previous + 1);
+      setSwipeCount((previous) => previous + 1);
 
-      telemetry.track("job_swipe", { direction, job_id: swipedJob.id, company: swipedJob.company });
+      telemetry.track("job_swipe", {
+        direction,
+        job_id: swipedJob.id,
+        company: swipedJob.company,
+      });
 
       if (direction === "ACCEPT") {
         if (!shouldReduceMotion) fireSuccessConfetti();
         pushToast({
           title: "Match queued! 🚀",
           description: `AI is now tailoring your resume for ${swipedJob.company}. Undo available for 10s.`,
-          tone: "success"
+          tone: "success",
         });
         setStatusMessage(`Accepted ${swipedJob.title} at ${swipedJob.company}`);
       } else {
         pushToast({
           title: "Job passed",
           description: `Undo available for 10s.`,
-          tone: "neutral"
+          tone: "neutral",
         });
         setStatusMessage(`Rejected ${swipedJob.title} at ${swipedJob.company}`);
       }
-    } catch (error) {
+    } catch {
       // Revert UI state on API failure
       setSwipeDirection(null);
       pushToast({
         title: "Could not record your job decision",
         description: "Please try again.",
-        tone: "error"
+        tone: "error",
       });
       setStatusMessage("Could not record decision. Please try again.");
     } finally {
       // Clear swipe direction after animation
-      if (swipeTimeoutRef.current) clearTimeout(swipeTimeoutRef.current);
-      swipeTimeoutRef.current = setTimeout(() => {
-        setSwipeDirection(null);
-        swipeTimeoutRef.current = null;
-      }, shouldReduceMotion ? 0 : 500);
+      if (swipeTimeoutReference.current)
+        clearTimeout(swipeTimeoutReference.current);
+      swipeTimeoutReference.current = setTimeout(
+        () => {
+          setSwipeDirection(null);
+          swipeTimeoutReference.current = null;
+        },
+        shouldReduceMotion ? 0 : 500,
+      );
     }
   };
 
@@ -1069,25 +1403,25 @@ export function JobsView() {
 
       // Restore previous state
       setCurrentIndex(lastSwipe.previousIndex);
-      setSwipeCount(prev => Math.max(0, prev - 1));
+      setSwipeCount((previous) => Math.max(0, previous - 1));
       setLastSwipe(null);
 
-      if (undoTimeoutRef.current) {
-        clearTimeout(undoTimeoutRef.current);
-        undoTimeoutRef.current = null;
+      if (undoTimeoutReference.current) {
+        clearTimeout(undoTimeoutReference.current);
+        undoTimeoutReference.current = null;
       }
 
       pushToast({
         title: "Swipe undone",
         description: "You can now make a new decision on this job.",
-        tone: "success"
+        tone: "success",
       });
       setStatusMessage("Swipe undone - make a new decision");
-    } catch (error) {
+    } catch {
       pushToast({
         title: "Could not undo",
         description: "Your job decision could not be reverted.",
-        tone: "error"
+        tone: "error",
       });
     } finally {
       setIsUndoing(false);
@@ -1096,10 +1430,17 @@ export function JobsView() {
 
   if (isLoading) {
     return (
-      <div className="flex h-[60vh] items-center justify-center" aria-busy="true" aria-label="Loading jobs">
+      <div
+        className="flex h-[60vh] items-center justify-center"
+        aria-busy="true"
+        aria-label="Loading jobs"
+      >
         <div className="space-y-4 w-full max-w-md">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="animate-pulse rounded-3xl border border-slate-200 bg-white p-6 space-y-3 shadow-sm">
+          {[1, 2, 3].map((index) => (
+            <div
+              key={index}
+              className="animate-pulse rounded-3xl border border-slate-200 bg-white p-6 space-y-3 shadow-sm"
+            >
               <div className="h-4 w-24 bg-slate-200 rounded" />
               <div className="h-6 w-[75%] bg-slate-200 rounded" />
               <div className="h-4 w-[50%] bg-slate-200 rounded" />
@@ -1122,13 +1463,18 @@ export function JobsView() {
         <div className="h-20 w-20 rounded-full bg-slate-100 flex items-center justify-center mb-6">
           <Radar className="h-10 w-10 text-slate-400" />
         </div>
-        <h2 className="text-2xl font-black text-slate-900 mb-3">No matches found</h2>
+        <h2 className="text-2xl font-black text-slate-900 mb-3">
+          No matches found
+        </h2>
         <p className="text-slate-500 max-w-md mx-auto mb-8 font-medium">
-          We couldn't find any jobs matching your current filters. Try widening your search or adjusting your preferences.
+          We couldn't find any jobs matching your current filters. Try widening
+          your search or adjusting your preferences.
         </p>
         <div className="flex flex-col gap-3 w-full max-w-sm">
           <Button onClick={resetFilters}>Clear all filters</Button>
-          <Button variant="outline" onClick={() => navigate("/app/onboarding")}>Update preferences</Button>
+          <Button variant="outline" onClick={() => navigate("/app/onboarding")}>
+            Update preferences
+          </Button>
         </div>
       </Card>
     );
@@ -1136,11 +1482,16 @@ export function JobsView() {
 
   if (currentIndex >= jobs.length && jobs.length > 0) {
     return (
-      <Card tone="lagoon" className="flex flex-col items-center justify-center p-12 text-center border-dashed border-2">
+      <Card
+        tone="lagoon"
+        className="flex flex-col items-center justify-center p-12 text-center border-dashed border-2"
+      >
         <div className="h-20 w-20 rounded-full bg-brand-lagoon/20 flex items-center justify-center mb-6">
           <CheckCircle className="h-10 w-10 text-brand-lagoon" />
         </div>
-        <h2 className="text-3xl font-black text-slate-900 mb-4">{t("dashboard.sweepComplete", locale)}</h2>
+        <h2 className="text-3xl font-black text-slate-900 mb-4">
+          {t("dashboard.sweepComplete", locale)}
+        </h2>
         <p className="text-slate-500 max-w-md mx-auto mb-8 font-medium">
           {t("dashboard.noMatches", locale)}
         </p>
@@ -1149,8 +1500,13 @@ export function JobsView() {
             {t("dashboard.reviewSwipes", locale)}
           </Button>
           {hasNextPage && (
-            <Button onClick={() => fetchNextPage()} disabled={isFetchingNextPage}>
-              {isFetchingNextPage ? t("dashboard.loadingMore", locale) : t("dashboard.loadMore", locale)}
+            <Button
+              onClick={() => fetchNextPage()}
+              disabled={isFetchingNextPage}
+            >
+              {isFetchingNextPage
+                ? t("dashboard.loadingMore", locale)
+                : t("dashboard.loadMore", locale)}
             </Button>
           )}
           {!hasNextPage && (
@@ -1164,19 +1520,32 @@ export function JobsView() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6 pb-6" dir={rtl ? "rtl" : undefined}>
+    <div
+      className="max-w-4xl mx-auto space-y-6 pb-6"
+      dir={rtl ? "rtl" : undefined}
+    >
       {showFirstStepsModal && (
         <FocusTrap
           active={showFirstStepsModal}
-          focusTrapOptions={{ allowOutsideClick: true, escapeDeactivates: true }}
+          focusTrapOptions={{
+            allowOutsideClick: true,
+            escapeDeactivates: true,
+          }}
         >
-          <Card className="mb-6 border-primary-200 bg-primary-50/50" role="dialog" aria-label={t("dashboard.firstStepsTitle", locale)}>
+          <Card
+            className="mb-6 border-primary-200 bg-primary-50/50"
+            role="dialog"
+            aria-label={t("dashboard.firstStepsTitle", locale)}
+          >
             <div className="space-y-4">
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <h3 className="font-bold text-slate-900 dark:text-slate-100 mb-2">{t("dashboard.firstStepsTitle", locale)}</h3>
+                  <h3 className="font-bold text-slate-900 dark:text-slate-100 mb-2">
+                    {t("dashboard.firstStepsTitle", locale)}
+                  </h3>
                   <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
-                    {t("dashboard.firstStepsDescription", locale) || "Get started with these key actions to maximize your job search success"}
+                    {t("dashboard.firstStepsDescription", locale) ||
+                      "Get started with these key actions to maximize your job search success"}
                   </p>
                 </div>
                 <Button
@@ -1191,22 +1560,26 @@ export function JobsView() {
                   {t("dashboard.dismiss", locale)}
                 </Button>
               </div>
-              
+
               <div className="grid gap-4 md:grid-cols-3">
                 <Card className="p-4 border-l-4 border-l-blue-500 bg-white dark:bg-slate-800">
                   <div className="flex items-center gap-2 mb-2">
                     <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
-                      <span className="text-blue-600 dark:text-blue-300 font-bold text-sm">1</span>
+                      <span className="text-blue-600 dark:text-blue-300 font-bold text-sm">
+                        1
+                      </span>
                     </div>
                     <h4 className="font-semibold text-slate-900 dark:text-slate-100 text-sm">
-                      {t("dashboard.step1Title", locale) || "Complete Your Profile"}
+                      {t("dashboard.step1Title", locale) ||
+                        "Complete Your Profile"}
                     </h4>
                   </div>
                   <p className="text-xs text-slate-600 dark:text-slate-400 mb-3">
-                    {t("dashboard.step1Description", locale) || "Add your resume and work experience to get better job matches"}
+                    {t("dashboard.step1Description", locale) ||
+                      "Add your resume and work experience to get better job matches"}
                   </p>
-                  <Button 
-                    size="sm" 
+                  <Button
+                    size="sm"
                     className="w-full"
                     onClick={() => {
                       setShowFirstStepsModal(false);
@@ -1214,24 +1587,29 @@ export function JobsView() {
                       telemetry.track("first_steps_profile_clicked", {});
                     }}
                   >
-                    {t("dashboard.completeProfile", locale) || "Complete Profile"}
+                    {t("dashboard.completeProfile", locale) ||
+                      "Complete Profile"}
                   </Button>
                 </Card>
 
                 <Card className="p-4 border-l-4 border-l-green-500 bg-white dark:bg-slate-800">
                   <div className="flex items-center gap-2 mb-2">
                     <div className="w-8 h-8 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center">
-                      <span className="text-green-600 dark:text-green-300 font-bold text-sm">2</span>
+                      <span className="text-green-600 dark:text-green-300 font-bold text-sm">
+                        2
+                      </span>
                     </div>
                     <h4 className="font-semibold text-slate-900 dark:text-slate-100 text-sm">
-                      {t("dashboard.step2Title", locale) || "Start Swiping Jobs"}
+                      {t("dashboard.step2Title", locale) ||
+                        "Start Swiping Jobs"}
                     </h4>
                   </div>
                   <p className="text-xs text-slate-600 dark:text-slate-400 mb-3">
-                    {t("dashboard.step2Description", locale) || "Swipe right on jobs you like and left on those you don't"}
+                    {t("dashboard.step2Description", locale) ||
+                      "Swipe right on jobs you like and left on those you don't"}
                   </p>
-                  <Button 
-                    size="sm" 
+                  <Button
+                    size="sm"
                     className="w-full"
                     onClick={() => {
                       setShowFirstStepsModal(false);
@@ -1246,17 +1624,20 @@ export function JobsView() {
                 <Card className="p-4 border-l-4 border-l-purple-500 bg-white dark:bg-slate-800">
                   <div className="flex items-center gap-2 mb-2">
                     <div className="w-8 h-8 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center">
-                      <span className="text-purple-600 dark:text-purple-300 font-bold text-sm">3</span>
+                      <span className="text-purple-600 dark:text-purple-300 font-bold text-sm">
+                        3
+                      </span>
                     </div>
                     <h4 className="font-semibold text-slate-900 dark:text-slate-100 text-sm">
                       {t("dashboard.step3Title", locale) || "Set Up Job Alerts"}
                     </h4>
                   </div>
                   <p className="text-xs text-slate-600 dark:text-slate-400 mb-3">
-                    {t("dashboard.step3Description", locale) || "Get notified when new jobs match your criteria"}
+                    {t("dashboard.step3Description", locale) ||
+                      "Get notified when new jobs match your criteria"}
                   </p>
-                  <Button 
-                    size="sm" 
+                  <Button
+                    size="sm"
                     className="w-full"
                     onClick={() => {
                       setShowFirstStepsModal(false);
@@ -1271,8 +1652,12 @@ export function JobsView() {
 
               <div className="flex items-center justify-between pt-2 border-t border-slate-200 dark:border-slate-700">
                 <p className="text-xs text-slate-500 dark:text-slate-400">
-                  {t("dashboard.needHelp", locale) || "Need help? Check out our"}
-                  <a href="/help" className="text-primary-600 hover:text-primary-700 dark:text-primary-400 ml-1">
+                  {t("dashboard.needHelp", locale) ||
+                    "Need help? Check out our"}
+                  <a
+                    href="/help"
+                    className="text-primary-600 hover:text-primary-700 dark:text-primary-400 ml-1"
+                  >
                     {t("dashboard.helpCenter", locale) || "Help Center"}
                   </a>
                 </p>
@@ -1293,8 +1678,12 @@ export function JobsView() {
       )}
       <div className="flex flex-col md:flex-row items-start justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-black text-slate-900 tracking-tight">{t("dashboard.activeRadar", locale)}</h2>
-          <p className="text-slate-500 font-medium">{t("dashboard.swipeRight", locale)}</p>
+          <h2 className="text-2xl font-black text-slate-900 tracking-tight">
+            {t("dashboard.activeRadar", locale)}
+          </h2>
+          <p className="text-slate-500 font-medium">
+            {t("dashboard.swipeRight", locale)}
+          </p>
         </div>
         <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
           {/* Sort Dropdown */}
@@ -1315,7 +1704,11 @@ export function JobsView() {
             value={sortBy}
             onChange={(e) => {
               const value = e.target.value;
-              if (value === "match_score" || value === "recently_matched" || value === "salary") {
+              if (
+                value === "match_score" ||
+                value === "recently_matched" ||
+                value === "salary"
+              ) {
                 handleSortChange(value);
               }
             }}
@@ -1327,7 +1720,12 @@ export function JobsView() {
             <option value="salary">Salary</option>
           </select>
 
-          <Badge variant="primary" className="py-2 px-4 rounded-xl" aria-live="polite" aria-atomic="true">
+          <Badge
+            variant="primary"
+            className="py-2 px-4 rounded-xl"
+            aria-live="polite"
+            aria-atomic="true"
+          >
             {jobs.length - currentIndex} {t("dashboard.jobsRemaining", locale)}
           </Badge>
         </div>
@@ -1401,7 +1799,9 @@ export function JobsView() {
                       <input
                         type="checkbox"
                         checked={filters.isRemote}
-                        onChange={(e) => updateFilters({ isRemote: e.target.checked })}
+                        onChange={(e) =>
+                          updateFilters({ isRemote: e.target.checked })
+                        }
                         className="rounded border-slate-300"
                       />
                       Remote only
@@ -1409,8 +1809,12 @@ export function JobsView() {
                     <label className="flex items-center gap-2 text-sm">
                       <input
                         type="checkbox"
-                        checked={filters.jobType === 'full-time'}
-                        onChange={(e) => updateFilters({ jobType: e.target.checked ? 'full-time' : undefined })}
+                        checked={filters.jobType === "full-time"}
+                        onChange={(e) =>
+                          updateFilters({
+                            jobType: e.target.checked ? "full-time" : undefined,
+                          })
+                        }
                         className="rounded border-slate-300"
                       />
                       Full-time only
@@ -1424,7 +1828,11 @@ export function JobsView() {
                 <Button variant="outline" size="sm" onClick={resetFilters}>
                   Reset Filters
                 </Button>
-                <Button variant="ghost" size="sm" onClick={() => setShowFilters(false)}>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowFilters(false)}
+                >
                   Close
                 </Button>
               </div>
@@ -1440,136 +1848,183 @@ export function JobsView() {
         aria-roledescription="Swipeable job card"
         tabIndex={0}
         onKeyDown={(e) => {
-          if (e.key === 'ArrowLeft') handleSwipe('REJECT');
-          if (e.key === 'ArrowRight') handleSwipe('ACCEPT');
-          if (e.key === 'Escape') {
+          if (e.key === "ArrowLeft") handleSwipe("REJECT");
+          if (e.key === "ArrowRight") handleSwipe("ACCEPT");
+          if (e.key === "Escape") {
             // Cancel current swipe action and reset focus
             e.preventDefault();
             e.stopPropagation();
             // Announce cancellation to screen readers
-            const announcement = document.createElement('div');
-            announcement.setAttribute('aria-live', 'polite');
-            announcement.setAttribute('aria-atomic', 'true');
-            announcement.className = 'sr-only';
-            announcement.textContent = 'Action cancelled';
-            document.body.appendChild(announcement);
+            const announcement = document.createElement("div");
+            announcement.setAttribute("aria-live", "polite");
+            announcement.setAttribute("aria-atomic", "true");
+            announcement.className = "sr-only";
+            announcement.textContent = "Action cancelled";
+            document.body.append(announcement);
             setTimeout(() => announcement.remove(), 1000);
           }
         }}
       >
-        <div className="sr-only" aria-live="polite">{statusMessage}</div>
+        <div className="sr-only" aria-live="polite">
+          {statusMessage}
+        </div>
         <AnimatePresence>
-          {jobs.slice(currentIndex, currentIndex + 2).reverse().map((job, idx) => {
-            const isTop = idx === (jobs.slice(currentIndex, currentIndex + 2).length - 1);
-            return (
-              <JobCard
-                key={job.id}
-                job={job}
-                isTop={isTop}
-                idx={idx}
-                shouldReduceMotion={!!shouldReduceMotion}
-                swipeDirection={swipeDirection}
-                onSwipe={handleSwipe}
-                locale={locale}
-              >
-                <Card
-                  className="p-0 overflow-hidden shadow-2xl border-slate-100 h-full flex flex-col"
-                  shadow="lift"
+          {jobs
+            .slice(currentIndex, currentIndex + 2)
+            .reverse()
+            .map((job, index) => {
+              const isTop =
+                index === jobs.slice(currentIndex, currentIndex + 2).length - 1;
+              return (
+                <JobCard
+                  key={job.id}
+                  job={job}
+                  isTop={isTop}
+                  idx={index}
+                  shouldReduceMotion={!!shouldReduceMotion}
+                  swipeDirection={swipeDirection}
+                  onSwipe={handleSwipe}
+                  locale={locale}
                 >
-                  <div className="bg-slate-900 p-8 text-white relative">
-                    {job.match_score != null && (
-                      <div className="absolute top-4 right-4 bg-primary-500 text-white text-[10px] font-black px-2 py-1 rounded flex items-center gap-1">
-                        <Sparkles className="w-3 h-3" /> AI MATCH: {Math.round(job.match_score)}%
+                  <Card
+                    className="p-0 overflow-hidden shadow-2xl border-slate-100 h-full flex flex-col"
+                    shadow="lift"
+                  >
+                    <div className="bg-slate-900 p-8 text-white relative">
+                      {job.match_score != undefined && (
+                        <div className="absolute top-4 right-4 bg-primary-500 text-white text-[10px] font-black px-2 py-1 rounded flex items-center gap-1">
+                          <Sparkles className="w-3 h-3" /> AI MATCH:{" "}
+                          {Math.round(job.match_score)}%
+                        </div>
+                      )}
+                      <div className="flex items-center gap-4 mb-4">
+                        <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center">
+                          <Briefcase className="w-6 h-6 text-primary-400" />
+                        </div>
+                        <div>
+                          <p className="text-primary-400 text-[10px] font-black uppercase tracking-widest">
+                            {job.location || "Remote"}
+                          </p>
+                          <h3 className="text-xl font-bold truncate leading-tight">
+                            {job.company ?? "Company"}
+                          </h3>
+                        </div>
                       </div>
-                    )}
-                    <div className="flex items-center gap-4 mb-4">
-                      <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center">
-                        <Briefcase className="w-6 h-6 text-primary-400" />
-                      </div>
-                      <div>
-                        <p className="text-primary-400 text-[10px] font-black uppercase tracking-widest">{job.location || 'Remote'}</p>
-                        <h3 className="text-xl font-bold truncate leading-tight">{job.company ?? "Company"}</h3>
+                      <h2 className="text-2xl font-black leading-tight mb-2">
+                        {job.title ?? "Job"}
+                      </h2>
+                      <div className="flex gap-2">
+                        <Badge className="bg-white/10 text-white border-transparent">
+                          {job.job_type || "Full-time"}
+                        </Badge>
+                        <Badge className="bg-primary-500/20 text-primary-400 border-transparent">
+                          <DollarSign className="h-4 w-4" />{" "}
+                          {job.salary_min
+                            ? `${formatCurrency(job.salary_min, locale)}+`
+                            : "Salary shared on match"}
+                        </Badge>
                       </div>
                     </div>
-                    <h2 className="text-2xl font-black leading-tight mb-2">{job.title ?? "Job"}</h2>
-                    <div className="flex gap-2">
-                      <Badge className="bg-white/10 text-white border-transparent">{job.job_type || 'Full-time'}</Badge>
-                      <Badge className="bg-primary-500/20 text-primary-400 border-transparent">
-                        <DollarSign className="h-4 w-4" /> {job.salary_min ? `${formatCurrency(job.salary_min, locale)}+` : "Salary shared on match"}
-                      </Badge>
+
+                    <div className="p-8 flex-1 bg-white overflow-y-auto no-scrollbar">
+                      <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4">
+                        Role Analysis
+                      </h4>
+                      <p
+                        className="text-slate-600 font-medium leading-relaxed mb-6"
+                        dangerouslySetInnerHTML={{
+                          __html: job.description
+                            ? sanitizeHtml(job.description)
+                            : "No description provided.",
+                        }}
+                      />
+
+                      {job.requirements && job.requirements.length > 0 && (
+                        <div className="space-y-4">
+                          {job.requirements
+                            .slice(0, 3)
+                            .map((request: string, index_: number) => (
+                              <div
+                                key={index_}
+                                className="flex items-start gap-3"
+                              >
+                                <div className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                  <CheckCircle className="w-3 h-3 text-emerald-600" />
+                                </div>
+                                <p
+                                  className="text-sm text-slate-700 font-medium"
+                                  dangerouslySetInnerHTML={{
+                                    __html: sanitizeHtml(request || ""),
+                                  }}
+                                />
+                              </div>
+                            ))}
+                        </div>
+                      )}
                     </div>
-                  </div>
 
-                  <div className="p-8 flex-1 bg-white overflow-y-auto no-scrollbar">
-                    <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4">Role Analysis</h4>
-                    <p
-                      className="text-slate-600 font-medium leading-relaxed mb-6"
-                      dangerouslySetInnerHTML={{
-                        __html: job.description ? sanitizeHtml(job.description) : "No description provided."
-                      }}
-                    />
-
-                    {job.requirements && job.requirements.length > 0 && (
-                      <div className="space-y-4">
-                        {job.requirements.slice(0, 3).map((req: string, i: number) => (
-                          <div key={i} className="flex items-start gap-3">
-                            <div className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                              <CheckCircle className="w-3 h-3 text-emerald-600" />
-                            </div>
-                            <p
-                              className="text-sm text-slate-700 font-medium"
-                              dangerouslySetInnerHTML={{ __html: sanitizeHtml(req || "") }}
-                            />
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="p-6 border-t border-slate-100 bg-slate-50 flex items-center justify-center gap-8">
-                    {/* Undo button - only shown when there's a recent swipe */}
-                    {lastSwipe && (
+                    <div className="p-6 border-t border-slate-100 bg-slate-50 flex items-center justify-center gap-8">
+                      {/* Undo button - only shown when there's a recent swipe */}
+                      {lastSwipe && (
+                        <button
+                          type="button"
+                          onClick={handleUndoSwipe}
+                          disabled={isUndoing}
+                          aria-label="Undo last swipe"
+                          className="w-12 h-12 rounded-full bg-amber-100 border border-amber-200 flex items-center justify-center text-amber-600 hover:bg-amber-200 transition-all shadow-sm active:scale-90 focus:outline-none focus:ring-2 focus:ring-amber-200 disabled:opacity-50"
+                        >
+                          {isUndoing ? (
+                            <Loader2 className="w-5 h-5 animate-spin" />
+                          ) : (
+                            <ArrowUpRight className="w-5 h-5 rotate-[-135deg]" />
+                          )}
+                        </button>
+                      )}
                       <button
                         type="button"
-                        onClick={handleUndoSwipe}
-                        disabled={isUndoing}
-                        aria-label="Undo last swipe"
-                        className="w-12 h-12 rounded-full bg-amber-100 border border-amber-200 flex items-center justify-center text-amber-600 hover:bg-amber-200 transition-all shadow-sm active:scale-90 focus:outline-none focus:ring-2 focus:ring-amber-200 disabled:opacity-50"
+                        onClick={() => handleSwipe("REJECT")}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            handleSwipe("REJECT");
+                          }
+                        }}
+                        aria-label="Reject job"
+                        className="w-14 h-14 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-500 hover:text-red-500 hover:border-red-200 hover:bg-red-50 transition-all shadow-sm active:scale-90 focus:outline-none focus:ring-2 focus:ring-red-200"
                       >
-                        {isUndoing ? <Loader2 className="w-5 h-5 animate-spin" /> : <ArrowUpRight className="w-5 h-5 rotate-[-135deg]" />}
+                        <Zap className="w-6 h-6 transform rotate-180" />
                       </button>
-                    )}
-                    <button
-                      type="button"
-                      onClick={() => handleSwipe("REJECT")}
-                      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleSwipe("REJECT"); } }}
-                      aria-label="Reject job"
-                      className="w-14 h-14 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-500 hover:text-red-500 hover:border-red-200 hover:bg-red-50 transition-all shadow-sm active:scale-90 focus:outline-none focus:ring-2 focus:ring-red-200"
-                    >
-                      <Zap className="w-6 h-6 transform rotate-180" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleSwipe("ACCEPT")}
-                      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleSwipe("ACCEPT"); } }}
-                      aria-label="Accept job"
-                      className="w-16 h-16 rounded-full bg-primary-600 flex items-center justify-center text-white hover:bg-primary-500 transition-all shadow-xl shadow-primary-500/30 active:scale-90 ring-4 ring-primary-500/10 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-primary-600"
-                    >
-                      <Rocket className="w-8 h-8" />
-                    </button>
-                  </div>
-                </Card>
-              </JobCard>
-            );
-          })}
+                      <button
+                        type="button"
+                        onClick={() => handleSwipe("ACCEPT")}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            handleSwipe("ACCEPT");
+                          }
+                        }}
+                        aria-label="Accept job"
+                        className="w-16 h-16 rounded-full bg-primary-600 flex items-center justify-center text-white hover:bg-primary-500 transition-all shadow-xl shadow-primary-500/30 active:scale-90 ring-4 ring-primary-500/10 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-primary-600"
+                      >
+                        <Rocket className="w-8 h-8" />
+                      </button>
+                    </div>
+                  </Card>
+                </JobCard>
+              );
+            })}
         </AnimatePresence>
       </div>
 
       <div className="text-center">
-        <p className="text-xs text-slate-500 font-bold uppercase tracking-[0.2em] mb-2">Instructions</p>
+        <p className="text-xs text-slate-500 font-bold uppercase tracking-[0.2em] mb-2">
+          Instructions
+        </p>
         <p className="text-sm text-slate-500 font-medium italic">
-          Swipe RIGHT <Rocket className="inline w-3 h-3 mx-1" /> to apply with AI assistance. <br />
-          Swipe LEFT <Zap className="inline w-3 h-3 mx-1 rotate-180" /> to skip and move to the next job.
+          Swipe RIGHT <Rocket className="inline w-3 h-3 mx-1" /> to apply with
+          AI assistance. <br />
+          Swipe LEFT <Zap className="inline w-3 h-3 mx-1 rotate-180" /> to skip
+          and move to the next job.
         </p>
       </div>
 
@@ -1582,7 +2037,9 @@ export function JobsView() {
             className="flex items-center gap-2"
           >
             {isFetchingNextPage && <Loader2 className="w-4 h-4 animate-spin" />}
-            {isFetchingNextPage ? t("dashboard.loadingMore", locale) : t("dashboard.loadMore", locale)}
+            {isFetchingNextPage
+              ? t("dashboard.loadingMore", locale)
+              : t("dashboard.loadMore", locale)}
           </Button>
         </div>
       )}
@@ -1590,22 +2047,29 @@ export function JobsView() {
   );
 }
 
-
-
 // Actions menu component for application management
-function ActionsMenu({ app, onAction }: { app: ApplicationRecord; onAction: (action: string, appId: string) => void }) {
+function ActionsMenu({
+  app,
+  onAction,
+}: {
+  app: ApplicationRecord;
+  onAction: (action: string, appId: string) => void;
+}) {
   const [isOpen, setIsOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
+  const menuReference = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+      if (
+        menuReference.current &&
+        !menuReference.current.contains(event.target as Node)
+      ) {
         setIsOpen(false);
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const handleAction = (action: string) => {
@@ -1614,7 +2078,7 @@ function ActionsMenu({ app, onAction }: { app: ApplicationRecord; onAction: (act
   };
 
   return (
-    <div className="relative" ref={menuRef}>
+    <div className="relative" ref={menuReference}>
       <Button
         variant="ghost"
         size="sm"
@@ -1637,22 +2101,22 @@ function ActionsMenu({ app, onAction }: { app: ApplicationRecord; onAction: (act
           >
             <div className="py-1">
               <button
-                onClick={() => handleAction('view')}
+                onClick={() => handleAction("view")}
                 className="w-full px-3 py-2 text-left text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-2"
               >
                 <Eye className="w-4 h-4" />
                 View Details
               </button>
               <button
-                onClick={() => handleAction('reviewed')}
+                onClick={() => handleAction("reviewed")}
                 className="w-full px-3 py-2 text-left text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-2"
               >
                 <CheckCircle className="w-4 h-4" />
                 Mark as Reviewed
               </button>
-              {app.status === 'HOLD' && (
+              {app.status === "HOLD" && (
                 <button
-                  onClick={() => handleAction('snooze')}
+                  onClick={() => handleAction("snooze")}
                   className="w-full px-3 py-2 text-left text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-2"
                 >
                   <Pause className="w-4 h-4" />
@@ -1660,7 +2124,7 @@ function ActionsMenu({ app, onAction }: { app: ApplicationRecord; onAction: (act
                 </button>
               )}
               <button
-                onClick={() => handleAction('withdraw')}
+                onClick={() => handleAction("withdraw")}
                 className="w-full px-3 py-2 text-left text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2"
               >
                 <Trash2 className="w-4 h-4" />
@@ -1676,18 +2140,32 @@ function ActionsMenu({ app, onAction }: { app: ApplicationRecord; onAction: (act
 
 export function ApplicationsView() {
   const navigate = useNavigate();
-  const { applications, isLoading, answerHold, snoozeApplication, reviewApplication, withdrawApplication, isSubmitting } = useApplications();
+  const {
+    applications,
+    isLoading,
+    answerHold,
+    snoozeApplication,
+    reviewApplication,
+    withdrawApplication,
+    isSubmitting,
+  } = useApplications();
   const [searchTerm, setSearchTerm] = useState("");
   const locale = useMemo(() => getLocale(), []); // N-2: reactive locale
   // M-12: Client-side Load more (D16)
   const [displayedCount, setDisplayedCount] = useState(APPLICATIONS_PAGE_SIZE);
 
   const filteredApps = useMemo(
-    () => applications.filter(app =>
-      (app.company ?? "").toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (app.job_title ?? "").toLowerCase().includes(searchTerm.toLowerCase())
-    ),
-    [applications, searchTerm]
+    () =>
+      applications.filter(
+        (app) =>
+          (app.company ?? "")
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase()) ||
+          (app.job_title ?? "")
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase()),
+      ),
+    [applications, searchTerm],
   );
 
   // D16: Load more — show first N items, "Load more" appends next page
@@ -1695,40 +2173,54 @@ export function ApplicationsView() {
   const hasMoreToLoad = displayedCount < filteredApps.length;
 
   // Reset when search changes
-  useEffect(() => { setDisplayedCount(APPLICATIONS_PAGE_SIZE); }, [searchTerm]);
+  useEffect(() => {
+    setDisplayedCount(APPLICATIONS_PAGE_SIZE);
+  }, [searchTerm]);
 
   // Handle actions from the ActionsMenu (#62: shared hook)
-  const handleApplicationAction = useCallback(async (action: string, appId: string) => {
-    try {
-      switch (action) {
-        case 'view':
-          navigate(`/app/applications/${appId}`);
-          break;
-        case 'reviewed':
-          await reviewApplication(appId);
-          break;
-        case 'snooze':
-          await snoozeApplication(appId, 24);
-          break;
-        case 'withdraw':
-          await withdrawApplication(appId);
-          break;
-        default:
-          if (import.meta.env.DEV) console.warn('Unknown action:', action);
+  const handleApplicationAction = useCallback(
+    async (action: string, appId: string) => {
+      try {
+        switch (action) {
+          case "view": {
+            navigate(`/app/applications/${appId}`);
+            break;
+          }
+          case "reviewed": {
+            await reviewApplication(appId);
+            break;
+          }
+          case "snooze": {
+            await snoozeApplication(appId, 24);
+            break;
+          }
+          case "withdraw": {
+            await withdrawApplication(appId);
+            break;
+          }
+          default: {
+            if (import.meta.env.DEV) console.warn("Unknown action:", action);
+          }
+        }
+      } catch (error) {
+        if (import.meta.env.DEV) console.error("Action failed:", error);
+        pushToast({
+          title: "Could not complete action",
+          description: (error as Error)?.message ?? "Please try again.",
+          tone: "error",
+        });
       }
-    } catch (error) {
-      if (import.meta.env.DEV) console.error('Action failed:', error);
-      pushToast({
-        title: "Could not complete action",
-        description: (error as Error)?.message ?? "Please try again.",
-        tone: "error",
-      });
-    }
-  }, [navigate, snoozeApplication, reviewApplication, withdrawApplication]);
+    },
+    [navigate, snoozeApplication, reviewApplication, withdrawApplication],
+  );
 
   if (isLoading) {
     return (
-      <div className="space-y-6 max-w-6xl mx-auto pb-4" aria-busy="true" aria-label="Loading applications">
+      <div
+        className="space-y-6 max-w-6xl mx-auto pb-4"
+        aria-busy="true"
+        aria-label="Loading applications"
+      >
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 md:gap-6">
           <div className="space-y-2">
             <div className="h-8 w-48 bg-slate-200 rounded animate-pulse" />
@@ -1737,8 +2229,11 @@ export function ApplicationsView() {
           <div className="h-12 w-full md:w-72 bg-slate-100 rounded-2xl animate-pulse" />
         </div>
         <div className="grid gap-3 md:hidden">
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="p-4 rounded-2xl border border-slate-200 bg-white animate-pulse">
+          {[1, 2, 3, 4].map((index) => (
+            <div
+              key={index}
+              className="p-4 rounded-2xl border border-slate-200 bg-white animate-pulse"
+            >
               <div className="flex items-center gap-3">
                 <div className="h-10 w-10 rounded-lg bg-slate-200" />
                 <div className="flex-1 space-y-2">
@@ -1756,8 +2251,8 @@ export function ApplicationsView() {
             <div className="h-4 w-32 bg-slate-200 rounded" />
           </div>
           <div className="divide-y divide-slate-100">
-            {[1, 2, 3, 4, 5].map((i) => (
-              <div key={i} className="px-6 py-4 flex items-center gap-4">
+            {[1, 2, 3, 4, 5].map((index) => (
+              <div key={index} className="px-6 py-4 flex items-center gap-4">
                 <div className="h-10 w-10 rounded-lg bg-slate-200 animate-pulse" />
                 <div className="flex-1 space-y-2">
                   <div className="h-4 w-32 bg-slate-200 rounded" />
@@ -1777,8 +2272,15 @@ export function ApplicationsView() {
     <div className="space-y-6 max-w-6xl mx-auto pb-4">
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 md:gap-6">
         <div>
-          <h2 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">Active Applications</h2>
-          <p id="applications-search-hint" className="text-slate-500 font-medium">Tracking {applications.length} automated application threads.</p>
+          <h2 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">
+            Active Applications
+          </h2>
+          <p
+            id="applications-search-hint"
+            className="text-slate-500 font-medium"
+          >
+            Tracking {applications.length} automated application threads.
+          </p>
         </div>
         <div className="relative w-full md:w-72">
           <input
@@ -1797,17 +2299,28 @@ export function ApplicationsView() {
       {/* Mobile Card List */}
       <div className="grid gap-3 md:hidden">
         {loadMoreApps.length === 0 ? (
-          <Card className="flex flex-col items-center justify-center p-8 text-center" shadow="sm">
+          <Card
+            className="flex flex-col items-center justify-center p-8 text-center"
+            shadow="sm"
+          >
             <div className="w-16 h-16 rounded-full bg-slate-50 flex items-center justify-center mb-4">
               <Radar className="w-8 h-8 text-slate-500 animate-pulse" />
             </div>
-            <h3 className="text-lg font-black text-slate-900 mb-2">{t("applications.noResults", locale)}</h3>
+            <h3 className="text-lg font-black text-slate-900 mb-2">
+              {t("applications.noResults", locale)}
+            </h3>
             <p className="text-slate-500 font-medium mb-6 max-w-xs">
-              {searchTerm ? t("applications.searchNoResults", locale) : t("applications.emptyDescription", locale)}
+              {searchTerm
+                ? t("applications.searchNoResults", locale)
+                : t("applications.emptyDescription", locale)}
             </p>
             {!searchTerm && (
-              <Button onClick={() => navigate('/app/jobs')} className="font-bold text-xs uppercase rounded-xl">
-                {t("applications.startSearching", locale)} <Rocket className="ml-2 w-4 h-4" />
+              <Button
+                onClick={() => navigate("/app/jobs")}
+                className="font-bold text-xs uppercase rounded-xl"
+              >
+                {t("applications.startSearching", locale)}{" "}
+                <Rocket className="ml-2 w-4 h-4" />
               </Button>
             )}
           </Card>
@@ -1819,21 +2332,29 @@ export function ApplicationsView() {
                   {(app.company ?? "").charAt(0) || "?"}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-bold text-slate-900">{app.company ?? "Unknown"}</p>
-                  <p className="text-xs text-slate-500 font-medium truncate">{app.job_title}</p>
+                  <p className="font-bold text-slate-900">
+                    {app.company ?? "Unknown"}
+                  </p>
+                  <p className="text-xs text-slate-500 font-medium truncate">
+                    {app.job_title}
+                  </p>
                 </div>
                 <Badge
                   variant={statusVariant(app.status)}
                   className="rounded-lg px-3 py-1 font-bold text-[10px] tracking-wider uppercase border-none"
                 >
-                  {app.status === 'APPLYING' && <div className="w-2 h-2 rounded-full bg-blue-400 animate-pulse mr-2" />}
+                  {app.status === "APPLYING" && (
+                    <div className="w-2 h-2 rounded-full bg-blue-400 animate-pulse mr-2" />
+                  )}
                   {app.status}
                 </Badge>
               </div>
               <div className="mt-3 flex items-center justify-between text-sm text-slate-600">
                 <div className="flex items-center gap-2">
                   <Clock className="w-4 h-4 text-slate-500" />
-                  {app.last_activity ? formatDate(app.last_activity, locale) : 'Just now'}
+                  {app.last_activity
+                    ? formatDate(app.last_activity, locale)
+                    : "Just now"}
                 </div>
                 <ActionsMenu app={app} onAction={handleApplicationAction} />
               </div>
@@ -1843,15 +2364,38 @@ export function ApplicationsView() {
       </div>
 
       {/* Desktop Table */}
-      <Card className="p-0 overflow-hidden border-slate-200 hidden md:block" shadow="sm">
+      <Card
+        className="p-0 overflow-hidden border-slate-200 hidden md:block"
+        shadow="sm"
+      >
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-slate-50 border-b border-slate-200">
-                <th scope="col" className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Company & Role</th>
-                <th scope="col" className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Status</th>
-                <th scope="col" className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Last Activity</th>
-                <th scope="col" className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest text-right">Action</th>
+                <th
+                  scope="col"
+                  className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest"
+                >
+                  Company & Role
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest"
+                >
+                  Status
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest"
+                >
+                  Last Activity
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest text-right"
+                >
+                  Action
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 bg-white">
@@ -1863,13 +2407,22 @@ export function ApplicationsView() {
                         <Radar className="w-10 h-10 text-slate-300" />
                         <div className="absolute inset-0 rounded-full border border-slate-100 animate-ping opacity-20" />
                       </div>
-                      <h3 className="text-xl font-black text-slate-900 mb-2">{t("applications.noActiveApplications", locale)}</h3>
+                      <h3 className="text-xl font-black text-slate-900 mb-2">
+                        {t("applications.noActiveApplications", locale)}
+                      </h3>
                       <p className="text-slate-500 font-medium mb-8 max-w-sm">
-                        {searchTerm ? t("applications.searchNoResultsDesktop", locale) : t("applications.emptyDesktopDescription", locale)}
+                        {searchTerm
+                          ? t("applications.searchNoResultsDesktop", locale)
+                          : t("applications.emptyDesktopDescription", locale)}
                       </p>
                       {!searchTerm && (
-                        <Button onClick={() => navigate('/app/jobs')} variant="primary" className="font-bold uppercase rounded-xl shadow-lg shadow-primary-500/20">
-                          {t("applications.startSearching", locale)} <Rocket className="ml-2 w-4 h-4" />
+                        <Button
+                          onClick={() => navigate("/app/jobs")}
+                          variant="primary"
+                          className="font-bold uppercase rounded-xl shadow-lg shadow-primary-500/20"
+                        >
+                          {t("applications.startSearching", locale)}{" "}
+                          <Rocket className="ml-2 w-4 h-4" />
                         </Button>
                       )}
                     </div>
@@ -1885,7 +2438,7 @@ export function ApplicationsView() {
                     aria-label={`View details for ${app.company ?? "Unknown"} - ${app.job_title}`}
                     onClick={() => navigate(`/app/applications/${app.id}`)}
                     onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
+                      if (e.key === "Enter" || e.key === " ") {
                         e.preventDefault();
                         navigate(`/app/applications/${app.id}`);
                       }
@@ -1897,8 +2450,12 @@ export function ApplicationsView() {
                           {(app.company ?? "").charAt(0) || "?"}
                         </div>
                         <div>
-                          <p className="font-bold text-slate-900 group-hover:text-primary-600 transition-colors">{app.company ?? "Unknown"}</p>
-                          <p className="text-xs text-slate-500 font-medium">{app.job_title}</p>
+                          <p className="font-bold text-slate-900 group-hover:text-primary-600 transition-colors">
+                            {app.company ?? "Unknown"}
+                          </p>
+                          <p className="text-xs text-slate-500 font-medium">
+                            {app.job_title}
+                          </p>
                         </div>
                       </div>
                     </td>
@@ -1907,18 +2464,25 @@ export function ApplicationsView() {
                         variant={statusVariant(app.status)}
                         className="rounded-lg px-3 py-1 font-bold text-[10px] tracking-wider uppercase border-none"
                       >
-                        {app.status === 'APPLYING' && <div className="w-2 h-2 rounded-full bg-blue-400 animate-pulse mr-2" />}
+                        {app.status === "APPLYING" && (
+                          <div className="w-2 h-2 rounded-full bg-blue-400 animate-pulse mr-2" />
+                        )}
                         {app.status}
                       </Badge>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2 text-sm text-slate-600 font-medium">
                         <Clock className="w-4 h-4 text-slate-500" />
-                        {app.last_activity ? formatDate(app.last_activity, locale) : 'Just now'}
+                        {app.last_activity
+                          ? formatDate(app.last_activity, locale)
+                          : "Just now"}
                       </div>
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <ActionsMenu app={app} onAction={handleApplicationAction} />
+                      <ActionsMenu
+                        app={app}
+                        onAction={handleApplicationAction}
+                      />
                     </td>
                   </tr>
                 ))
@@ -1932,13 +2496,21 @@ export function ApplicationsView() {
       {filteredApps.length > 0 && (
         <div className="flex items-center justify-between flex-wrap gap-3">
           <p className="text-xs text-slate-500 font-medium" aria-live="polite">
-            {formatT("dashboard.showingApplications", { count: loadMoreApps.length, total: filteredApps.length }, locale)}
+            {formatT(
+              "dashboard.showingApplications",
+              { count: loadMoreApps.length, total: filteredApps.length },
+              locale,
+            )}
           </p>
           {hasMoreToLoad ? (
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setDisplayedCount(c => Math.min(c + APPLICATIONS_PAGE_SIZE, filteredApps.length))}
+              onClick={() =>
+                setDisplayedCount((c) =>
+                  Math.min(c + APPLICATIONS_PAGE_SIZE, filteredApps.length),
+                )
+              }
               className="text-xs font-bold"
             >
               {t("applications.loadMore", locale)}
@@ -1952,10 +2524,13 @@ export function ApplicationsView() {
           <Zap className="h-5 w-5" />
         </div>
         <p className="text-sm text-primary-900 font-medium font-display leading-tight">
-          {t("dashboard.aiAgentMonitoring", locale)} <span className="font-black">{t("dashboard.aiAgentMonitoringNewListings", locale)}</span> {t("dashboard.aiAgentMonitoringSource", locale)}
+          {t("dashboard.aiAgentMonitoring", locale)}{" "}
+          <span className="font-black">
+            {t("dashboard.aiAgentMonitoringNewListings", locale)}
+          </span>{" "}
+          {t("dashboard.aiAgentMonitoringSource", locale)}
         </p>
       </div>
     </div>
   );
 }
-

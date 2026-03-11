@@ -24,7 +24,7 @@ export function useSessionMilestone() {
   const toasted = useRef<Set<number>>(new Set());
 
   const celebrate = (count: number) => {
-    milestones.forEach((m) => {
+    for (const m of milestones) {
       if (count >= m && !toasted.current.has(m)) {
         toasted.current.add(m);
         pushToast({
@@ -33,7 +33,7 @@ export function useSessionMilestone() {
           tone: "success",
         });
       }
-    });
+    }
   };
 
   return { celebrate };

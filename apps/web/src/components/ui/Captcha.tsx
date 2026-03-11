@@ -1,12 +1,12 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { botProtection } from '../../lib/botProtection';
+import React, { useState, useEffect, useRef } from "react";
+import { botProtection } from "../../lib/botProtection";
 
-interface CaptchaProps {
+interface CaptchaProperties {
   onSuccess: (token: string) => void;
   onError?: (error: string) => void;
   className?: string;
-  size?: 'normal' | 'compact';
-  theme?: 'light' | 'dark';
+  size?: "normal" | "compact";
+  theme?: "light" | "dark";
   disabled?: boolean;
 }
 
@@ -14,17 +14,23 @@ interface CaptchaProps {
  * Captcha component that supports hCaptcha, reCAPTCHA, and Cloudflare Turnstile
  * Automatically detects which provider is configured and renders the appropriate captcha
  */
-export function Captcha({ onSuccess, onError, className = '', size = 'normal', theme = 'light' }: CaptchaProps) {
+export function Captcha({
+  onSuccess,
+  onError,
+  className = "",
+  size = "normal",
+  theme = "light",
+}: CaptchaProperties) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const containerReference = useRef<HTMLDivElement>(null);
   const widgetId = useRef<string | null>(null);
 
   useEffect(() => {
     let mounted = true;
 
     const initializeCaptcha = async () => {
-      if (!containerRef.current) return;
+      if (!containerReference.current) return;
 
       try {
         setIsLoading(true);
@@ -36,16 +42,19 @@ export function Captcha({ onSuccess, onError, className = '', size = 'normal', t
         if (!mounted) return;
 
         // Execute captcha challenge
-        const token = await botProtection.executeCaptcha(containerRef.current);
-        
+        const token = await botProtection.executeCaptcha(
+          containerReference.current,
+        );
+
         if (mounted) {
           setIsLoading(false);
           onSuccess(token);
         }
-      } catch (err) {
+      } catch (error_) {
         if (mounted) {
           setIsLoading(false);
-          const errorMessage = err instanceof Error ? err.message : 'Captcha failed to load';
+          const errorMessage =
+            error_ instanceof Error ? error_.message : "Captcha failed to load";
           setError(errorMessage);
           onError?.(errorMessage);
         }
@@ -66,8 +75,8 @@ export function Captcha({ onSuccess, onError, className = '', size = 'normal', t
 
   // Reset captcha
   const resetCaptcha = () => {
-    if (containerRef.current) {
-      containerRef.current.innerHTML = '';
+    if (containerReference.current) {
+      containerReference.current.innerHTML = "";
     }
     setError(null);
     setIsLoading(true);
@@ -87,14 +96,18 @@ export function Captcha({ onSuccess, onError, className = '', size = 'normal', t
           </div>
         </div>
       )}
-      
+
       {error && (
         <div className="p-4 border border-red-200 rounded-lg bg-red-50">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <div className="w-4 h-4 text-red-500">
                 <svg fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                  <path
+                    fillRule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                    clipRule="evenodd"
+                  />
                 </svg>
               </div>
               <span className="text-sm text-red-700">{error}</span>
@@ -108,18 +121,16 @@ export function Captcha({ onSuccess, onError, className = '', size = 'normal', t
           </div>
         </div>
       )}
-      
-      <div 
-        ref={containerRef}
+
+      <div
+        ref={containerReference}
         className={`captcha-widget ${
-          size === 'compact' ? 'scale-90 origin-top-left' : ''
-        } ${
-          theme === 'dark' ? 'dark-theme' : 'light-theme'
-        }`}
-      style={{ minHeight: isLoading ? '0' : '70px' }}
+          size === "compact" ? "scale-90 origin-top-left" : ""
+        } ${theme === "dark" ? "dark-theme" : "light-theme"}`}
+        style={{ minHeight: isLoading ? "0" : "70px" }}
       />
-      
-      {!isLoading && theme === 'dark' && (
+
+      {!isLoading && theme === "dark" && (
         <style>{`
           .captcha-widget iframe {
             filter: invert(1) hue-rotate(180deg);
@@ -133,7 +144,7 @@ export function Captcha({ onSuccess, onError, className = '', size = 'normal', t
 /**
  * Captcha form field component that can be used in forms
  */
-export interface CaptchaFieldProps {
+export interface CaptchaFieldProperties {
   value?: string;
   onChange?: (token: string) => void;
   onValidate?: (isValid: boolean) => void;
@@ -142,14 +153,14 @@ export interface CaptchaFieldProps {
   className?: string;
 }
 
-export function CaptchaField({ 
-  value, 
-  onChange, 
-  onValidate, 
-  error, 
-  disabled, 
-  className = '' 
-}: CaptchaFieldProps) {
+export function CaptchaField({
+  value,
+  onChange,
+  onValidate,
+  error,
+  disabled,
+  className = "",
+}: CaptchaFieldProperties) {
   const [token, setToken] = useState<string | null>(value || null);
   const [isValid, setIsValid] = useState(false);
   const [fieldError, setFieldError] = useState<string | null>(error || null);
@@ -191,17 +202,19 @@ export function CaptchaField({
         onError={handleCaptchaError}
         disabled={disabled}
       />
-      
+
       {fieldError && (
-        <div className="mt-2 text-sm text-red-600">
-          {fieldError}
-        </div>
+        <div className="mt-2 text-sm text-red-600">{fieldError}</div>
       )}
-      
+
       {isValid && (
         <div className="mt-2 text-sm text-green-600 flex items-center space-x-1">
           <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+            <path
+              fillRule="evenodd"
+              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+              clipRule="evenodd"
+            />
           </svg>
           <span>Verification successful</span>
         </div>

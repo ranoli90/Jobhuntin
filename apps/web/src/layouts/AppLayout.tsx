@@ -5,7 +5,12 @@ import { useBilling } from "../hooks/useBilling";
 import { Button } from "../components/ui/Button";
 import { Badge } from "../components/ui/Badge";
 import { PageTransition } from "../components/navigation/PageTransition";
-import { MobileDrawer, MobileDrawerHeader, MobileDrawerBody, MobileDrawerFooter } from "../components/navigation/MobileDrawer";
+import {
+  MobileDrawer,
+  MobileDrawerHeader,
+  MobileDrawerBody,
+  MobileDrawerFooter,
+} from "../components/navigation/MobileDrawer";
 import { AnimatePresence } from "framer-motion";
 import { Logo } from "../components/brand/Logo";
 import { cn } from "../lib/utils";
@@ -32,10 +37,19 @@ import {
 } from "lucide-react";
 import { ThemeToggle } from "../components/ThemeToggle";
 import { LanguageSelector } from "../components/LanguageSelector";
-import { useKeyboardShortcuts, COMMON_SHORTCUTS } from "../hooks/useKeyboardShortcuts";
+import {
+  useKeyboardShortcuts,
+  COMMON_SHORTCUTS,
+} from "../hooks/useKeyboardShortcuts";
 import { KeyboardShortcutsHelp } from "../components/KeyboardShortcutsHelp";
 
-type NavItem = { label: string; to: string; icon: typeof LayoutDashboard; adminOnly?: boolean; badge?: string };
+type NavItem = {
+  label: string;
+  to: string;
+  icon: typeof LayoutDashboard;
+  adminOnly?: boolean;
+  badge?: string;
+};
 
 const NAV_ITEMS: NavItem[] = [
   { label: "Dashboard", to: "/app/dashboard", icon: LayoutDashboard },
@@ -67,33 +81,38 @@ export default function AppLayout() {
   const [showKeyboardHelp, setShowKeyboardHelp] = useState(false);
   const [, forceLocaleUpdate] = useState(0);
   const location = useLocation();
-  
+
   // M8: Keyboard Navigation - Global keyboard shortcuts
   const navigate = useNavigate();
   useKeyboardShortcuts(
     [
       {
         ...COMMON_SHORTCUTS.GO_TO_DASHBOARD,
-        action: () => location.pathname !== "/app/dashboard" && navigate("/app/dashboard"),
+        action: () =>
+          location.pathname !== "/app/dashboard" && navigate("/app/dashboard"),
       },
       {
         ...COMMON_SHORTCUTS.GO_TO_JOBS,
-        action: () => location.pathname !== "/app/jobs" && navigate("/app/jobs"),
+        action: () =>
+          location.pathname !== "/app/jobs" && navigate("/app/jobs"),
       },
       {
         ...COMMON_SHORTCUTS.GO_TO_APPLICATIONS,
-        action: () => location.pathname !== "/app/applications" && navigate("/app/applications"),
+        action: () =>
+          location.pathname !== "/app/applications" &&
+          navigate("/app/applications"),
       },
       {
         ...COMMON_SHORTCUTS.GO_TO_SETTINGS,
-        action: () => location.pathname !== "/app/settings" && navigate("/app/settings"),
+        action: () =>
+          location.pathname !== "/app/settings" && navigate("/app/settings"),
       },
       {
         ...COMMON_SHORTCUTS.HELP,
         action: () => setShowKeyboardHelp(true),
       },
     ],
-    true
+    true,
   );
 
   useEffect(() => {
@@ -102,7 +121,7 @@ export default function AppLayout() {
     return () => window.removeEventListener("localechange", handler);
   }, []);
 
-  const isAdmin = user?.role === 'admin' || user?.role === 'superadmin';
+  const isAdmin = user?.role === "admin" || user?.role === "superadmin";
 
   const closeMobile = () => setMobileMenuOpen(false);
   const navLinkClass = ({ isActive }: { isActive: boolean }) =>
@@ -113,7 +132,7 @@ export default function AppLayout() {
         : "text-brand-text/70 hover:bg-brand-gray hover:text-brand-text",
     );
 
-  const visibleNavItems = NAV_ITEMS.filter(item => {
+  const visibleNavItems = NAV_ITEMS.filter((item) => {
     if (item.adminOnly) return isAdmin;
     return true;
   });
@@ -132,23 +151,34 @@ export default function AppLayout() {
       <aside className="hidden w-64 flex-col border-r border-brand-border bg-white dark:border-slate-800 dark:bg-slate-900 lg:flex">
         <div className="border-b border-brand-border px-8 py-6">
           <Logo to="/app/dashboard" size="md" />
-          <p className="text-[10px] text-brand-muted mt-2 font-black uppercase tracking-[0.2em] ml-1">Dashboard</p>
+          <p className="text-[10px] text-brand-muted mt-2 font-black uppercase tracking-[0.2em] ml-1">
+            Dashboard
+          </p>
         </div>
         <nav className="flex-1 space-y-1 px-4 py-8">
           {visibleNavItems.map((item) => {
             const Icon = item.icon;
             return (
-              <NavLink key={item.to} to={item.to} className={({ isActive: active }) =>
-                cn(
-                  "flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-bold transition-all active:scale-[0.98]",
-                  active
-                    ? "bg-brand-primary/10 text-brand-primary shadow-sm ring-1 ring-brand-primary/20"
-                    : "text-brand-text/70 hover:bg-brand-gray hover:text-brand-text",
-                )}>
+              <NavLink
+                key={item.to}
+                to={item.to}
+                className={({ isActive: active }) =>
+                  cn(
+                    "flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-bold transition-all active:scale-[0.98]",
+                    active
+                      ? "bg-brand-primary/10 text-brand-primary shadow-sm ring-1 ring-brand-primary/20"
+                      : "text-brand-text/70 hover:bg-brand-gray hover:text-brand-text",
+                  )
+                }
+              >
                 <Icon className="h-4 w-4 shrink-0" aria-hidden />
                 <span className="flex-1 truncate">{item.label}</span>
                 {item.badge && (
-                  <Badge variant="outline" size="sm" className="text-[9px] px-1.5 py-0 shrink-0 opacity-70">
+                  <Badge
+                    variant="outline"
+                    size="sm"
+                    className="text-[9px] px-1.5 py-0 shrink-0 opacity-70"
+                  >
                     {item.badge}
                   </Badge>
                 )}
@@ -167,7 +197,11 @@ export default function AppLayout() {
             >
               <MoreHorizontal className="h-4 w-4 shrink-0" aria-hidden />
               <span className="flex-1 text-left">More</span>
-              {moreExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+              {moreExpanded ? (
+                <ChevronDown className="h-4 w-4" />
+              ) : (
+                <ChevronRight className="h-4 w-4" />
+              )}
             </button>
             {moreExpanded && (
               <div className="mt-1 ml-4 space-y-0.5 border-l-2 border-brand-border pl-4">
@@ -201,8 +235,14 @@ export default function AppLayout() {
               {user?.email?.slice(0, 1).toUpperCase() ?? "J"}
             </div>
             <div className="flex-1 overflow-hidden">
-              <p className="text-sm font-bold truncate text-brand-text">{user?.email ?? "hello@user.com"}</p>
-              <Badge variant="outline" size="sm" className="mt-0.5 text-[10px] uppercase font-black tracking-widest bg-white border-brand-border">
+              <p className="text-sm font-bold truncate text-brand-text">
+                {user?.email ?? "hello@user.com"}
+              </p>
+              <Badge
+                variant="outline"
+                size="sm"
+                className="mt-0.5 text-[10px] uppercase font-black tracking-widest bg-white border-brand-border"
+              >
                 {plan ?? "Free"}
               </Badge>
             </div>
@@ -219,7 +259,11 @@ export default function AppLayout() {
       </aside>
 
       {/* Universal Mobile Drawer */}
-      <MobileDrawer isOpen={mobileMenuOpen} onClose={closeMobile} drawerId="app-mobile-drawer">
+      <MobileDrawer
+        isOpen={mobileMenuOpen}
+        onClose={closeMobile}
+        drawerId="app-mobile-drawer"
+      >
         <MobileDrawerHeader onClose={closeMobile}>
           <Logo to="/app/dashboard" size="sm" onClick={closeMobile} />
         </MobileDrawerHeader>
@@ -238,7 +282,11 @@ export default function AppLayout() {
                   <Icon className="h-4 w-4 shrink-0" />
                   <span className="flex-1">{item.label}</span>
                   {item.badge && (
-                    <Badge variant="outline" size="sm" className="text-[9px] px-1.5 py-0 shrink-0 opacity-70">
+                    <Badge
+                      variant="outline"
+                      size="sm"
+                      className="text-[9px] px-1.5 py-0 shrink-0 opacity-70"
+                    >
                       {item.badge}
                     </Badge>
                   )}
@@ -246,7 +294,9 @@ export default function AppLayout() {
               );
             })}
             <div className="pt-2 mt-2 border-t border-brand-border">
-              <p className="px-4 py-2 text-[10px] font-black uppercase tracking-widest text-brand-muted">More</p>
+              <p className="px-4 py-2 text-[10px] font-black uppercase tracking-widest text-brand-muted">
+                More
+              </p>
               {MORE_NAV_ITEMS.map((item) => {
                 const Icon = item.icon;
                 return (
@@ -293,10 +343,20 @@ export default function AppLayout() {
             </button>
             <div className="flex items-center gap-2">
               <div className="hidden lg:block">
-                <p className="text-[9px] uppercase tracking-[0.3em] text-brand-muted font-bold mb-0.5">Application</p>
+                <p className="text-[9px] uppercase tracking-[0.3em] text-brand-muted font-bold mb-0.5">
+                  Application
+                </p>
                 <div className="flex items-center gap-2">
-                  <p className="text-sm font-black text-brand-text dark:text-slate-100">JobHuntin Agent</p>
-                  <Badge variant="outline" size="sm" className="bg-brand-gray text-[10px] h-5 border-brand-border px-1.5">v2.4.0</Badge>
+                  <p className="text-sm font-black text-brand-text dark:text-slate-100">
+                    JobHuntin Agent
+                  </p>
+                  <Badge
+                    variant="outline"
+                    size="sm"
+                    className="bg-brand-gray text-[10px] h-5 border-brand-border px-1.5"
+                  >
+                    v2.4.0
+                  </Badge>
                 </div>
               </div>
               <div className="lg:hidden">
@@ -309,8 +369,12 @@ export default function AppLayout() {
             <ThemeToggle className="text-brand-muted hover:text-brand-text transition-colors" />
             <div className="hidden sm:flex items-center gap-3">
               <div className="text-right">
-                <p className="text-sm font-black text-brand-text leading-tight">{user?.email?.split('@')[0] ?? "User"}</p>
-                <p className="text-[9px] text-brand-muted uppercase font-black tracking-widest">Account Live</p>
+                <p className="text-sm font-black text-brand-text leading-tight">
+                  {user?.email?.split("@")[0] ?? "User"}
+                </p>
+                <p className="text-[9px] text-brand-muted uppercase font-black tracking-widest">
+                  Account Live
+                </p>
               </div>
               <div className="grid h-10 w-10 place-items-center rounded-xl bg-brand-primary text-white font-black shadow-sm shadow-brand-primary/20 group-hover:shadow-md transition-shadow">
                 {user?.email?.slice(0, 1).toUpperCase() ?? "U"}
@@ -321,7 +385,10 @@ export default function AppLayout() {
             </div>
           </div>
         </header>
-        <main id="main-content" className="flex-1 overflow-y-auto bg-brand-gray/50 dark:bg-slate-950/30 pb-24 sm:pb-8 relative">
+        <main
+          id="main-content"
+          className="flex-1 overflow-y-auto bg-brand-gray/50 dark:bg-slate-950/30 pb-24 sm:pb-8 relative"
+        >
           <AnimatePresence mode="wait">
             <PageTransition key={location.pathname} className="h-full">
               <Outlet />
@@ -330,7 +397,10 @@ export default function AppLayout() {
         </main>
 
         {/* Mobile bottom navigation: 4 main + More (opens full menu) */}
-        <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-brand-border dark:border-slate-800 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl px-2 pb-safe-area shadow-[0_-8px_24px_rgba(15,23,42,0.06)]" aria-label="Mobile navigation">
+        <nav
+          className="lg:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-brand-border dark:border-slate-800 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl px-2 pb-safe-area shadow-[0_-8px_24px_rgba(15,23,42,0.06)]"
+          aria-label="Mobile navigation"
+        >
           <div className="grid grid-cols-5 gap-1 pt-2 pb-5">
             {visibleNavItems.slice(0, 4).map((item) => {
               const Icon = item.icon;
@@ -343,14 +413,26 @@ export default function AppLayout() {
                   className={({ isActive }) =>
                     cn(
                       "flex flex-col items-center justify-center rounded-xl px-2 py-2 transition-all min-h-[56px] active:scale-95 relative",
-                      isActive ? "text-brand-primary font-bold" : "text-brand-muted hover:text-brand-text"
+                      isActive
+                        ? "text-brand-primary font-bold"
+                        : "text-brand-muted hover:text-brand-text",
                     )
                   }
                   aria-label={item.label}
                 >
-                  <Icon className={cn("h-6 w-6 mb-1.5 transition-transform", isActive && "scale-110")} aria-hidden />
-                  <span className="text-[11px] tracking-tight font-medium">{item.label}</span>
-                  {isActive && <span className="absolute bottom-1.5 w-1 h-1 rounded-full bg-brand-primary" />}
+                  <Icon
+                    className={cn(
+                      "h-6 w-6 mb-1.5 transition-transform",
+                      isActive && "scale-110",
+                    )}
+                    aria-hidden
+                  />
+                  <span className="text-[11px] tracking-tight font-medium">
+                    {item.label}
+                  </span>
+                  {isActive && (
+                    <span className="absolute bottom-1.5 w-1 h-1 rounded-full bg-brand-primary" />
+                  )}
                 </NavLink>
               );
             })}
@@ -359,23 +441,30 @@ export default function AppLayout() {
               onClick={() => setMobileMenuOpen(true)}
               className={cn(
                 "relative flex flex-col items-center justify-center rounded-xl px-2 py-2 transition-all min-h-[56px] active:scale-95",
-                visibleNavItems.slice(4).some((i) => location.pathname.startsWith(i.to))
+                visibleNavItems
+                  .slice(4)
+                  .some((index) => location.pathname.startsWith(index.to))
                   ? "text-brand-primary font-bold"
-                  : "text-brand-muted hover:text-brand-text"
+                  : "text-brand-muted hover:text-brand-text",
               )}
               aria-label="More menu"
               aria-expanded={mobileMenuOpen}
             >
               <MoreHorizontal className="h-6 w-6 mb-1.5" aria-hidden />
-              <span className="text-[11px] tracking-tight font-medium">More</span>
-              <span className="absolute top-1 right-2 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-brand-primary text-[10px] font-black text-white px-1.5 border-2 border-white" aria-hidden>
+              <span className="text-[11px] tracking-tight font-medium">
+                More
+              </span>
+              <span
+                className="absolute top-1 right-2 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-brand-primary text-[10px] font-black text-white px-1.5 border-2 border-white"
+                aria-hidden
+              >
                 {visibleNavItems.slice(4).length}
               </span>
             </button>
           </div>
         </nav>
       </div>
-      
+
       {/* M8: Keyboard shortcuts help modal */}
       <KeyboardShortcutsHelp
         isOpen={showKeyboardHelp}

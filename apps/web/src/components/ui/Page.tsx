@@ -1,14 +1,19 @@
 import * as React from "react";
 import { Helmet } from "react-helmet-async";
 
-interface PageProps {
+interface PageProperties {
   title?: string;
   description?: string;
   children: React.ReactNode;
   className?: string;
 }
 
-export function Page({ title, description, children, className }: PageProps) {
+export function Page({
+  title,
+  description,
+  children,
+  className,
+}: PageProperties) {
   return (
     <>
       {title && (
@@ -17,9 +22,7 @@ export function Page({ title, description, children, className }: PageProps) {
           {description && <meta name="description" content={description} />}
         </Helmet>
       )}
-      <div className={className}>
-        {children}
-      </div>
+      <div className={className}>{children}</div>
     </>
   );
 }

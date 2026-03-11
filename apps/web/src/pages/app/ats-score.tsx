@@ -39,32 +39,132 @@ const ATS_PLATFORMS = [
 ];
 
 const ATS_METRICS: { key: string; label: string; description: string }[] = [
-  { key: "keyword_match", label: "Keyword Match", description: "How well your resume matches job keywords" },
-  { key: "skills_relevance", label: "Skills Relevance", description: "Relevance of skills to the job" },
-  { key: "experience_alignment", label: "Experience Alignment", description: "Alignment of experience with job requirements" },
-  { key: "quantifiable_achievements", label: "Quantifiable Achievements", description: "Presence of metrics and achievements" },
-  { key: "action_verbs", label: "Action Verbs", description: "Use of strong action verbs" },
-  { key: "format_score", label: "Format Score", description: "Resume formatting compatibility" },
-  { key: "section_completeness", label: "Section Completeness", description: "All required sections present" },
-  { key: "contact_info", label: "Contact Info", description: "Complete contact information" },
-  { key: "summary_quality", label: "Summary Quality", description: "Professional summary effectiveness" },
-  { key: "education_relevance", label: "Education Relevance", description: "Education section relevance" },
-  { key: "certification_match", label: "Certifications", description: "Relevant certifications included" },
-  { key: "readability_score", label: "Readability", description: "Overall readability and clarity" },
-  { key: "length_score", label: "Length Score", description: "Appropriate resume length" },
-  { key: "ats_compatibility", label: "ATS Compatibility", description: "General ATS system compatibility" },
-  { key: "spelling_grammar", label: "Spelling & Grammar", description: "Error-free writing" },
-  { key: "consistency", label: "Consistency", description: "Consistent formatting throughout" },
-  { key: "dates_format", label: "Date Format", description: "Proper date formatting" },
-  { key: "bullet_points", label: "Bullet Points", description: "Effective bullet point usage" },
-  { key: "file_format", label: "File Format", description: "Compatible file format" },
-  { key: "personalization", label: "Personalization", description: "Tailored to the job" },
-  { key: "industry_keywords", label: "Industry Keywords", description: "Industry-specific terminology" },
-  { key: "soft_skills", label: "Soft Skills", description: "Relevant soft skills mentioned" },
-  { key: "technical_skills", label: "Technical Skills", description: "Technical skills visibility" },
+  {
+    key: "keyword_match",
+    label: "Keyword Match",
+    description: "How well your resume matches job keywords",
+  },
+  {
+    key: "skills_relevance",
+    label: "Skills Relevance",
+    description: "Relevance of skills to the job",
+  },
+  {
+    key: "experience_alignment",
+    label: "Experience Alignment",
+    description: "Alignment of experience with job requirements",
+  },
+  {
+    key: "quantifiable_achievements",
+    label: "Quantifiable Achievements",
+    description: "Presence of metrics and achievements",
+  },
+  {
+    key: "action_verbs",
+    label: "Action Verbs",
+    description: "Use of strong action verbs",
+  },
+  {
+    key: "format_score",
+    label: "Format Score",
+    description: "Resume formatting compatibility",
+  },
+  {
+    key: "section_completeness",
+    label: "Section Completeness",
+    description: "All required sections present",
+  },
+  {
+    key: "contact_info",
+    label: "Contact Info",
+    description: "Complete contact information",
+  },
+  {
+    key: "summary_quality",
+    label: "Summary Quality",
+    description: "Professional summary effectiveness",
+  },
+  {
+    key: "education_relevance",
+    label: "Education Relevance",
+    description: "Education section relevance",
+  },
+  {
+    key: "certification_match",
+    label: "Certifications",
+    description: "Relevant certifications included",
+  },
+  {
+    key: "readability_score",
+    label: "Readability",
+    description: "Overall readability and clarity",
+  },
+  {
+    key: "length_score",
+    label: "Length Score",
+    description: "Appropriate resume length",
+  },
+  {
+    key: "ats_compatibility",
+    label: "ATS Compatibility",
+    description: "General ATS system compatibility",
+  },
+  {
+    key: "spelling_grammar",
+    label: "Spelling & Grammar",
+    description: "Error-free writing",
+  },
+  {
+    key: "consistency",
+    label: "Consistency",
+    description: "Consistent formatting throughout",
+  },
+  {
+    key: "dates_format",
+    label: "Date Format",
+    description: "Proper date formatting",
+  },
+  {
+    key: "bullet_points",
+    label: "Bullet Points",
+    description: "Effective bullet point usage",
+  },
+  {
+    key: "file_format",
+    label: "File Format",
+    description: "Compatible file format",
+  },
+  {
+    key: "personalization",
+    label: "Personalization",
+    description: "Tailored to the job",
+  },
+  {
+    key: "industry_keywords",
+    label: "Industry Keywords",
+    description: "Industry-specific terminology",
+  },
+  {
+    key: "soft_skills",
+    label: "Soft Skills",
+    description: "Relevant soft skills mentioned",
+  },
+  {
+    key: "technical_skills",
+    label: "Technical Skills",
+    description: "Technical skills visibility",
+  },
 ];
 
-function MetricBar({ label, value, description }: { label: string; value: number; description: string }) {
+function MetricBar({
+  label,
+  value,
+  description,
+}: {
+  label: string;
+  value: number;
+  description: string;
+}) {
   const getColor = (v: number) => {
     if (v >= 0.7) return "bg-emerald-500";
     if (v >= 0.5) return "bg-amber-500";
@@ -87,7 +187,10 @@ function MetricBar({ label, value, description }: { label: string; value: number
       </div>
       <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
         <div
-          className={cn("h-full rounded-full transition-all duration-500", getColor(value))}
+          className={cn(
+            "h-full rounded-full transition-all duration-500",
+            getColor(value),
+          )}
           style={{ width: `${Math.min(100, value * 100)}%` }}
         />
       </div>
@@ -188,11 +291,18 @@ export default function ATSScorePage() {
               <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">
                 AI Tools
               </p>
-              <h1 className="text-2xl font-bold text-slate-900">ATS Score Dashboard</h1>
+              <h1 className="text-2xl font-bold text-slate-900">
+                ATS Score Dashboard
+              </h1>
             </div>
           </div>
           {atsScore.data && (
-            <Button variant="outline" size="sm" onClick={handleExport} className="gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleExport}
+              className="gap-2"
+            >
               <Download className="w-4 h-4" />
               Export Report
             </Button>
@@ -284,7 +394,7 @@ export default function ATSScorePage() {
                         ? "bg-emerald-100"
                         : atsScore.data.overall_score >= 0.5
                           ? "bg-amber-100"
-                          : "bg-red-100"
+                          : "bg-red-100",
                     )}
                   >
                     <TrendingUp
@@ -294,7 +404,7 @@ export default function ATSScorePage() {
                           ? "text-emerald-600"
                           : atsScore.data.overall_score >= 0.5
                             ? "text-amber-600"
-                            : "text-red-600"
+                            : "text-red-600",
                       )}
                     />
                   </div>
@@ -321,15 +431,19 @@ export default function ATSScorePage() {
                       ? "bg-emerald-500"
                       : atsScore.data.overall_score >= 0.5
                         ? "bg-amber-500"
-                        : "bg-red-500"
+                        : "bg-red-500",
                   )}
-                  style={{ width: `${Math.min(100, atsScore.data.overall_score * 100)}%` }}
+                  style={{
+                    width: `${Math.min(100, atsScore.data.overall_score * 100)}%`,
+                  }}
                 />
               </div>
             </Card>
 
             <Card className="p-6">
-              <h3 className="font-semibold text-slate-900 mb-4">23 Metrics Analysis</h3>
+              <h3 className="font-semibold text-slate-900 mb-4">
+                23 Metrics Analysis
+              </h3>
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {ATS_METRICS.map((metric) => (
                   <MetricBar
@@ -349,10 +463,12 @@ export default function ATSScorePage() {
                   Optimization Recommendations
                 </h3>
                 <ul className="space-y-3">
-                  {(atsScore.data?.recommendations ?? []).map((rec, i) => (
-                    <li key={i} className="flex items-start gap-3">
+                  {(atsScore.data?.recommendations ?? []).map((rec, index) => (
+                    <li key={index} className="flex items-start gap-3">
                       <div className="w-6 h-6 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <span className="text-xs font-bold text-amber-600">{i + 1}</span>
+                        <span className="text-xs font-bold text-amber-600">
+                          {index + 1}
+                        </span>
                       </div>
                       <p className="text-sm text-slate-700">{rec}</p>
                     </li>

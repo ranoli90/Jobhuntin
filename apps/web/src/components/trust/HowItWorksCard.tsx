@@ -6,22 +6,26 @@ const STEPS = [
   {
     icon: Sparkles,
     title: "We scan job boards",
-    description: "Our AI finds matches based on your skills, experience, and preferences—24/7.",
+    description:
+      "Our AI finds matches based on your skills, experience, and preferences—24/7.",
   },
   {
     icon: FileText,
     title: "We craft tailored apps",
-    description: "Every resume and cover letter is customized for that specific role. No templates.",
+    description:
+      "Every resume and cover letter is customized for that specific role. No templates.",
   },
   {
     icon: Send,
     title: "We submit for you",
-    description: "We fill out forms, upload documents, and hit submit—correctly, every time.",
+    description:
+      "We fill out forms, upload documents, and hit submit—correctly, every time.",
   },
   {
     icon: MessageCircle,
     title: "We handle Holds",
-    description: "When employers ask questions, we draft responses for you to approve and send.",
+    description:
+      "When employers ask questions, we draft responses for you to approve and send.",
   },
 ];
 
@@ -41,10 +45,14 @@ export function HowItWorksCard() {
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold text-brand-sunrise">{index + 1}</span>
+                  <span className="text-xs font-bold text-brand-sunrise">
+                    {index + 1}
+                  </span>
                   <h4 className="font-semibold text-brand-ink">{step.title}</h4>
                 </div>
-                <p className="mt-1 text-sm text-brand-ink/70">{step.description}</p>
+                <p className="mt-1 text-sm text-brand-ink/70">
+                  {step.description}
+                </p>
               </div>
             </div>
           );

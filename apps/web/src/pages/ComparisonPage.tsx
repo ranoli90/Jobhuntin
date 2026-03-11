@@ -1,25 +1,34 @@
-import React from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { Bot, ArrowLeft, BarChart3, Shield, Zap, Target, TrendingUp, ArrowRight } from 'lucide-react';
-import { SEO } from '../components/marketing/SEO';
-import { ComparisonTable } from '../components/seo/ComparisonTable';
-import { FAQAccordion, type FAQItem } from '../components/seo/FAQAccordion';
-import { InternalLinkMesh } from '../components/seo/InternalLinkMesh';
-import { ConversionCTA } from '../components/seo/ConversionCTA';
-import { motion, useReducedMotion } from 'framer-motion';
-import { Button } from '../components/ui/Button';
-import competitorsData from '../data/competitors.json';
+import React from "react";
+import { useParams, Link } from "react-router-dom";
+import {
+  Bot,
+  ArrowLeft,
+  BarChart3,
+  Shield,
+  Zap,
+  Target,
+  TrendingUp,
+  ArrowRight,
+} from "lucide-react";
+import { SEO } from "../components/marketing/SEO";
+import { ComparisonTable } from "../components/seo/ComparisonTable";
+import { FAQAccordion, type FAQItem } from "../components/seo/FAQAccordion";
+import { InternalLinkMesh } from "../components/seo/InternalLinkMesh";
+import { ConversionCTA } from "../components/seo/ConversionCTA";
+import { motion, useReducedMotion } from "framer-motion";
+import { Button } from "../components/ui/Button";
+import competitorsData from "../data/competitors.json";
 
 // Build lookup map from JSON data
 const COMPETITORS_MAP = Object.fromEntries(
-  competitorsData.map(c => [c.slug, c])
+  competitorsData.map((c) => [c.slug, c]),
 );
 
-function generateFAQ(competitor: typeof competitorsData[0]): FAQItem[] {
+function generateFAQ(competitor: (typeof competitorsData)[0]): FAQItem[] {
   return [
     {
       question: `Is JobHuntin better than ${competitor.name}?`,
-      answer: `JobHuntin tailors every resume and cover letter per application — ${competitor.name} ${competitor.features.auto_apply ? 'auto-applies but can\'t match that personalization' : 'doesn\'t even auto-apply'}. ${competitor.verdict}`,
+      answer: `JobHuntin tailors every resume and cover letter per application — ${competitor.name} ${competitor.features.auto_apply ? "auto-applies but can't match that personalization" : "doesn't even auto-apply"}. ${competitor.verdict}`,
     },
     {
       question: `How much does ${competitor.name} cost compared to JobHuntin?`,
@@ -35,25 +44,46 @@ function generateFAQ(competitor: typeof competitorsData[0]): FAQItem[] {
     },
     {
       question: `What makes JobHuntin different from ${competitor.name}?`,
-      answer: `Fully autonomous operation, per-application resume tailoring, and stealth mode that makes every submission look hand-crafted. ${competitor.name} ${competitor.strengths[0]?.toLowerCase() || 'has its merits'}, but can't match that level of automation.`,
+      answer: `Fully autonomous operation, per-application resume tailoring, and stealth mode that makes every submission look hand-crafted. ${competitor.name} ${competitor.strengths[0]?.toLowerCase() || "has its merits"}, but can't match that level of automation.`,
     },
   ];
 }
 
-function RatingBar({ label, them, us, competitorName }: { label: string; them: number; us: number; competitorName: string }) {
+function RatingBar({
+  label,
+  them,
+  us,
+  competitorName,
+}: {
+  label: string;
+  them: number;
+  us: number;
+  competitorName: string;
+}) {
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between text-sm font-medium">
         <span className="text-slate-600 capitalize">{label}</span>
         <span className="text-slate-400">
           <span className="sr-only">{competitorName} rating</span>
-          <span aria-label={`${competitorName} score ${them} out of 10`}>{them}/10</span>
-          {' vs '}
+          <span aria-label={`${competitorName} score ${them} out of 10`}>
+            {them}/10
+          </span>
+          {" vs "}
           <span className="sr-only">JobHuntin rating</span>
-          <span className="text-primary-600 font-bold" aria-label={`JobHuntin score ${us} out of 10`}>{us}/10</span>
+          <span
+            className="text-primary-600 font-bold"
+            aria-label={`JobHuntin score ${us} out of 10`}
+          >
+            {us}/10
+          </span>
         </span>
       </div>
-      <div className="flex gap-2" role="img" aria-label={`Comparison chart: ${competitorName} ${them}/10 vs JobHuntin ${us}/10 for ${label}`}>
+      <div
+        className="flex gap-2"
+        role="img"
+        aria-label={`Comparison chart: ${competitorName} ${them}/10 vs JobHuntin ${us}/10 for ${label}`}
+      >
         <div className="flex-1 bg-slate-100 rounded-full h-2.5 overflow-hidden">
           <div
             className="bg-slate-400 h-full rounded-full transition-all duration-700"
@@ -81,11 +111,22 @@ export default function ComparisonPage() {
   if (!competitor) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center bg-slate-50">
-        <SEO title="Comparison Not Found | JobHuntin" description="We don't have a comparison for this tool yet." noindex />
+        <SEO
+          title="Comparison Not Found | JobHuntin"
+          description="We don't have a comparison for this tool yet."
+          noindex
+        />
         <Bot className="w-16 h-16 text-primary-500 mb-4 animate-bounce" />
-        <h2 className="text-2xl font-bold mb-4 text-slate-900">Competitor Not Found</h2>
-        <p className="text-slate-500 mb-6">We don't have a comparison for this tool yet.</p>
-        <Link to="/best/ai-auto-apply-tools" className="text-primary-600 hover:underline flex items-center gap-2 font-medium">
+        <h2 className="text-2xl font-bold mb-4 text-slate-900">
+          Competitor Not Found
+        </h2>
+        <p className="text-slate-500 mb-6">
+          We don't have a comparison for this tool yet.
+        </p>
+        <Link
+          to="/best/ai-auto-apply-tools"
+          className="text-primary-600 hover:underline flex items-center gap-2 font-medium"
+        >
           <ArrowLeft className="w-4 h-4" /> Browse All Comparisons
         </Link>
       </div>
@@ -106,7 +147,10 @@ export default function ComparisonPage() {
         canonicalUrl={canonicalUrl}
         breadcrumbs={[
           { name: "Home", url: "https://jobhuntin.com" },
-          { name: "Compare Tools", url: "https://jobhuntin.com/best/ai-auto-apply-tools" },
+          {
+            name: "Compare Tools",
+            url: "https://jobhuntin.com/best/ai-auto-apply-tools",
+          },
           { name: "vs " + competitor.name, url: canonicalUrl },
         ]}
         keywords={competitor.seo_keywords?.join(", ")}
@@ -114,82 +158,91 @@ export default function ComparisonPage() {
           {
             "@context": "https://schema.org",
             "@type": "WebPage",
-            "name": title,
-            "description": description,
-            "url": canonicalUrl,
-            "about": [
-              { "@type": "SoftwareApplication", "name": "JobHuntin", "applicationCategory": "Job Search Automation" },
-              { "@type": "SoftwareApplication", "name": competitor.name, "applicationCategory": "Job Search" },
+            name: title,
+            description: description,
+            url: canonicalUrl,
+            about: [
+              {
+                "@type": "SoftwareApplication",
+                name: "JobHuntin",
+                applicationCategory: "Job Search Automation",
+              },
+              {
+                "@type": "SoftwareApplication",
+                name: competitor.name,
+                applicationCategory: "Job Search",
+              },
             ],
           },
           {
             "@context": "https://schema.org",
             "@type": "ItemList",
-            "name": `JobHuntin vs ${competitor.name} Feature Comparison`,
-            "itemListOrder": "ItemListUnordered",
-            "numberOfItems": 2,
-            "itemListElement": [
+            name: `JobHuntin vs ${competitor.name} Feature Comparison`,
+            itemListOrder: "ItemListUnordered",
+            numberOfItems: 2,
+            itemListElement: [
               {
                 "@type": "ListItem",
-                "position": 1,
-                "url": canonicalUrl,
-                "name": "JobHuntin",
-                "item": {
+                position: 1,
+                url: canonicalUrl,
+                name: "JobHuntin",
+                item: {
                   "@type": "SoftwareApplication",
-                  "name": "JobHuntin",
-                  "applicationCategory": "Job Search Automation",
-                  "operatingSystem": "Web"
-                }
+                  name: "JobHuntin",
+                  applicationCategory: "Job Search Automation",
+                  operatingSystem: "Web",
+                },
               },
               {
                 "@type": "ListItem",
-                "position": 2,
-                "url": canonicalUrl,
-                "name": competitor.name,
-                "item": {
+                position: 2,
+                url: canonicalUrl,
+                name: competitor.name,
+                item: {
                   "@type": "SoftwareApplication",
-                  "name": competitor.name,
-                  "applicationCategory": "Job Search",
-                  "operatingSystem": "Web"
-                }
-              }
-            ]
+                  name: competitor.name,
+                  applicationCategory: "Job Search",
+                  operatingSystem: "Web",
+                },
+              },
+            ],
           },
           // FAQPage Schema for rich snippets
           {
             "@context": "https://schema.org",
             "@type": "FAQPage",
-            "mainEntity": faq.map(f => ({
+            mainEntity: faq.map((f) => ({
               "@type": "Question",
-              "name": f.question,
-              "acceptedAnswer": {
+              name: f.question,
+              acceptedAnswer: {
                 "@type": "Answer",
-                "text": f.answer
-              }
-            }))
+                text: f.answer,
+              },
+            })),
           },
           // Product Comparison Schema
           {
             "@context": "https://schema.org",
             "@type": "Product",
-            "name": "JobHuntin",
-            "description": "AI-powered job search automation with auto-apply, resume tailoring, and stealth mode",
-            "brand": {
+            name: "JobHuntin",
+            description:
+              "AI-powered job search automation with auto-apply, resume tailoring, and stealth mode",
+            brand: {
               "@type": "Brand",
-              "name": "JobHuntin"
+              name: "JobHuntin",
             },
-            "offers": {
+            offers: {
               "@type": "Offer",
-              "price": "19",
-              "priceCurrency": "USD",
-              "availability": "https://schema.org/InStock"
+              price: "19",
+              priceCurrency: "USD",
+              availability: "https://schema.org/InStock",
             },
-            "aggregateRating": {
+            aggregateRating: {
               "@type": "AggregateRating",
-              "ratingValue": "4.9",
-              "reviewCount": "847"
-            }
-          }
+              ratingValue: "4.9",
+              reviewCount: "847",
+            },
+          },
         ]}
       />
 
@@ -205,7 +258,7 @@ export default function ComparisonPage() {
             Head-to-Head Comparison
           </div>
           <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-sans font-black mb-6 leading-tight text-slate-900 text-balance">
-            JobHuntin vs{' '}
+            JobHuntin vs{" "}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-blue-400">
               {competitor.name}
             </span>
@@ -213,10 +266,13 @@ export default function ComparisonPage() {
           <p className="text-lg sm:text-xl text-slate-500 max-w-2xl mx-auto font-medium text-balance">
             {competitor.verdict}
           </p>
-          <p className="text-sm text-slate-400 mt-3">Last updated: March 2026</p>
-          {competitor.status === 'discontinued' && (
+          <p className="text-sm text-slate-400 mt-3">
+            Last updated: March 2026
+          </p>
+          {competitor.status === "discontinued" && (
             <div className="mt-4 inline-flex items-center gap-2 bg-red-50 text-red-600 px-4 py-2 rounded-full text-sm font-bold border border-red-100">
-              <span aria-hidden="true">⚠️</span> {competitor.name} has been discontinued
+              <span aria-hidden="true">⚠️</span> {competitor.name} has been
+              discontinued
             </div>
           )}
         </motion.div>
@@ -230,10 +286,12 @@ export default function ComparisonPage() {
           <div className="bg-white rounded-3xl border border-slate-100 p-6 sm:p-8 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
             <div>
               <p className="text-slate-700 font-medium leading-relaxed">
-                JobHuntin beats {competitor.name} on automation, stealth mode, and per-application resume tailoring.
+                JobHuntin beats {competitor.name} on automation, stealth mode,
+                and per-application resume tailoring.
               </p>
               <p className="text-slate-600 text-sm mt-1 font-medium">
-                One AI agent handles discovery, tailoring, and submission — {competitor.name} can&apos;t match that.
+                One AI agent handles discovery, tailoring, and submission —{" "}
+                {competitor.name} can&apos;t match that.
               </p>
             </div>
             <Link
@@ -252,14 +310,21 @@ export default function ComparisonPage() {
           viewport={{ once: true }}
           className="mb-16 sm:mb-20"
         >
-          <h2 className="text-xl sm:text-2xl font-bold text-slate-900 mb-6">Feature Comparison</h2>
+          <h2 className="text-xl sm:text-2xl font-bold text-slate-900 mb-6">
+            Feature Comparison
+          </h2>
           <div className="overflow-x-auto">
             <div className="min-w-[600px]">
               <ComparisonTable competitor={competitor} />
             </div>
           </div>
           <p className="text-sm text-slate-500 mt-4 text-center">
-            <span className="inline-block" aria-label="Scroll for full comparison table">→ Scroll for full table →</span>
+            <span
+              className="inline-block"
+              aria-label="Scroll for full comparison table"
+            >
+              → Scroll for full table →
+            </span>
           </p>
         </motion.div>
 
@@ -273,14 +338,25 @@ export default function ComparisonPage() {
           <h2 className="text-xl sm:text-2xl font-bold text-slate-900 mb-6 sm:mb-8">
             Performance Ratings
             <span className="block text-sm font-normal text-slate-400 mt-1">
-              <span className="text-slate-500">{competitor.name}</span> vs <span className="text-primary-600">JobHuntin</span>
+              <span className="text-slate-500">{competitor.name}</span> vs{" "}
+              <span className="text-primary-600">JobHuntin</span>
             </span>
           </h2>
           <div className="space-y-6">
-            {Object.entries(competitor.rating_vs_jobhuntin || {}).map(([key, ratings]) => {
-              const [them, us] = Array.isArray(ratings) ? ratings : [0, 0];
-              return <RatingBar key={key} label={key.replace('_', ' ')} them={them} us={us} competitorName={competitor.name} />;
-            })}
+            {Object.entries(competitor.rating_vs_jobhuntin || {}).map(
+              ([key, ratings]) => {
+                const [them, us] = Array.isArray(ratings) ? ratings : [0, 0];
+                return (
+                  <RatingBar
+                    key={key}
+                    label={key.replace("_", " ")}
+                    them={them}
+                    us={us}
+                    competitorName={competitor.name}
+                  />
+                );
+              },
+            )}
           </div>
         </motion.div>
 
@@ -297,9 +373,17 @@ export default function ComparisonPage() {
               Where {competitor.name} Falls Short
             </h2>
             <ul className="space-y-3">
-              {competitor.weaknesses.map((w, i) => (
-                <li key={i} className="flex items-start gap-3 text-slate-600">
-                  <span className="text-red-400 mt-1 text-lg leading-none" aria-hidden="true">—</span>
+              {competitor.weaknesses.map((w, index) => (
+                <li
+                  key={index}
+                  className="flex items-start gap-3 text-slate-600"
+                >
+                  <span
+                    className="text-red-400 mt-1 text-lg leading-none"
+                    aria-hidden="true"
+                  >
+                    —
+                  </span>
                   <span className="text-sm font-medium">{w}</span>
                 </li>
               ))}
@@ -312,9 +396,17 @@ export default function ComparisonPage() {
               Why JobHuntin Wins
             </h2>
             <ul className="space-y-3">
-              {competitor.differentiators.map((d, i) => (
-                <li key={i} className="flex items-start gap-3 text-slate-600">
-                  <span className="text-emerald-500 mt-1 text-lg leading-none" aria-hidden="true">✓</span>
+              {competitor.differentiators.map((d, index) => (
+                <li
+                  key={index}
+                  className="flex items-start gap-3 text-slate-600"
+                >
+                  <span
+                    className="text-emerald-500 mt-1 text-lg leading-none"
+                    aria-hidden="true"
+                  >
+                    ✓
+                  </span>
                   <span className="text-sm font-medium">{d}</span>
                 </li>
               ))}
@@ -329,16 +421,20 @@ export default function ComparisonPage() {
           viewport={{ once: true }}
           className="mb-16 sm:mb-20"
         >
-          <h2 className="text-xl sm:text-2xl font-bold text-slate-900 mb-6">Pricing at a Glance</h2>
+          <h2 className="text-xl sm:text-2xl font-bold text-slate-900 mb-6">
+            Pricing at a Glance
+          </h2>
           <div className="grid md:grid-cols-2 gap-4 sm:gap-6">
             <div className="bg-slate-100 rounded-3xl p-6 sm:p-8">
-              <h3 className="text-lg font-bold text-slate-500 mb-3">{competitor.name}</h3>
+              <h3 className="text-lg font-bold text-slate-500 mb-3">
+                {competitor.name}
+              </h3>
               <p className="text-2xl sm:text-3xl font-black text-slate-700 mb-2">
                 {competitor.pricing.starts_at}
               </p>
               <ul className="text-sm text-slate-500 space-y-1 mt-4">
-                {competitor.pricing.tiers?.map((t, i) => (
-                  <li key={i}>• {t}</li>
+                {competitor.pricing.tiers?.map((t, index) => (
+                  <li key={index}>• {t}</li>
                 ))}
               </ul>
             </div>
@@ -346,8 +442,12 @@ export default function ComparisonPage() {
               <div className="absolute -top-3 right-4 sm:right-6 bg-primary-600 text-white text-xs font-bold px-3 py-1 rounded-full">
                 BETTER VALUE
               </div>
-              <h3 className="text-lg font-bold text-primary-600 mb-3">JobHuntin</h3>
-              <p className="text-2xl sm:text-3xl font-black text-slate-900 mb-2">Free to Start</p>
+              <h3 className="text-lg font-bold text-primary-600 mb-3">
+                JobHuntin
+              </h3>
+              <p className="text-2xl sm:text-3xl font-black text-slate-900 mb-2">
+                Free to Start
+              </p>
               <ul className="text-sm text-slate-600 space-y-1 mt-4">
                 <li>• Free tier — get started instantly</li>
                 <li>• Pro — unlimited AI applications</li>
@@ -366,23 +466,42 @@ export default function ComparisonPage() {
         {/* Key Features Grid */}
         <div className="mb-12 sm:mb-16 grid md:grid-cols-3 gap-6 sm:gap-8">
           {[
-            { icon: Shield, title: "Undetectable", desc: "Stealth Mode simulates human browsing patterns to bypass bot detection on every job board." },
-            { icon: Zap, title: "Fully Autonomous", desc: "Set your preferences once. Our AI agent discovers jobs, tailors resumes, and submits applications 24/7." },
-            { icon: Target, title: "Personalized Quality", desc: "Every application gets a custom resume and cover letter optimized for the specific role's requirements." },
-          ].map((item, i) => (
+            {
+              icon: Shield,
+              title: "Undetectable",
+              desc: "Stealth Mode simulates human browsing patterns to bypass bot detection on every job board.",
+            },
+            {
+              icon: Zap,
+              title: "Fully Autonomous",
+              desc: "Set your preferences once. Our AI agent discovers jobs, tailors resumes, and submits applications 24/7.",
+            },
+            {
+              icon: Target,
+              title: "Personalized Quality",
+              desc: "Every application gets a custom resume and cover letter optimized for the specific role's requirements.",
+            },
+          ].map((item, index) => (
             <motion.div
-              key={i}
+              key={index}
               className="text-center bg-white p-6 sm:p-8 rounded-3xl border border-slate-100 shadow-sm hover:shadow-lg transition-all"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
-              transition={{ delay: shouldReduceMotion ? 0 : i * 0.1 }}
+              transition={{ delay: shouldReduceMotion ? 0 : index * 0.1 }}
               viewport={{ once: true }}
             >
               <div className="w-12 sm:w-14 h-12 sm:h-14 bg-slate-50 rounded-2xl flex items-center justify-center mx-auto mb-4 sm:mb-5 text-primary-500 border border-slate-100">
-                <item.icon className="w-6 sm:w-7 h-6 sm:h-7" aria-hidden="true" />
+                <item.icon
+                  className="w-6 sm:w-7 h-6 sm:h-7"
+                  aria-hidden="true"
+                />
               </div>
-              <h3 className="font-bold text-lg mb-2 text-slate-900">{item.title}</h3>
-              <p className="text-slate-500 text-sm leading-relaxed font-medium">{item.desc}</p>
+              <h3 className="font-bold text-lg mb-2 text-slate-900">
+                {item.title}
+              </h3>
+              <p className="text-slate-500 text-sm leading-relaxed font-medium">
+                {item.desc}
+              </p>
             </motion.div>
           ))}
         </div>
@@ -400,8 +519,6 @@ export default function ComparisonPage() {
         {/* Conversion CTA */}
         <ConversionCTA competitorName={competitor.name} variant="compare" />
       </main>
-
-
     </div>
   );
 }

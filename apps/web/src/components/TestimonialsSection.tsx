@@ -17,47 +17,53 @@ interface Testimonial {
 const testimonials: Testimonial[] = [
   {
     id: "1",
-    quote: "I was skeptical at first, but JobHuntin landed me 3 interviews in my first week. The AI tailoring is incredible - each application felt personalized.",
+    quote:
+      "I was skeptical at first, but JobHuntin landed me 3 interviews in my first week. The AI tailoring is incredible - each application felt personalized.",
     author: "Maria Garcia",
     role: "Cashier",
     company: "Now at Walmart",
     rating: 5,
-    avatarGradient: "from-rose-400 to-orange-500"
+    avatarGradient: "from-rose-400 to-orange-500",
   },
   {
     id: "2",
-    quote: "Applied to tons of jobs while I worked my shift. Woke up to multiple responses. This is exactly what I needed.",
+    quote:
+      "Applied to tons of jobs while I worked my shift. Woke up to multiple responses. This is exactly what I needed.",
     author: "James Wilson",
     role: "Sales Associate",
     company: "Now at Target",
     rating: 5,
-    avatarGradient: "from-blue-400 to-indigo-600"
+    avatarGradient: "from-blue-400 to-indigo-600",
   },
   {
     id: "3",
-    quote: "The resume tailoring alone is worth it. My callback rate went from 2% to 15% after switching to JobHuntin.",
+    quote:
+      "The resume tailoring alone is worth it. My callback rate went from 2% to 15% after switching to JobHuntin.",
     author: "Lisa Thompson",
     role: "Retail Manager",
     company: "Now at Home Depot",
     rating: 5,
-    avatarGradient: "from-purple-400 to-pink-500"
+    avatarGradient: "from-purple-400 to-pink-500",
   },
   {
     id: "4",
-    quote: "As a first-time job seeker, I needed help positioning myself. JobHuntin's AI helped me apply to more jobs in a week than I could in a month.",
+    quote:
+      "As a first-time job seeker, I needed help positioning myself. JobHuntin's AI helped me apply to more jobs in a week than I could in a month.",
     author: "David Lee",
     role: "Customer Service Rep",
     company: "Now at Amazon",
     rating: 5,
-    avatarGradient: "from-emerald-400 to-teal-600"
-  }
+    avatarGradient: "from-emerald-400 to-teal-600",
+  },
 ];
 
-interface TestimonialsSectionProps {
+interface TestimonialsSectionProperties {
   className?: string;
 }
 
-export function TestimonialsSection({ className }: TestimonialsSectionProps) {
+export function TestimonialsSection({
+  className,
+}: TestimonialsSectionProperties) {
   const [currentIndex, setCurrentIndex] = React.useState(0);
   const [direction, setDirection] = React.useState(0);
   const [isPaused, setIsPaused] = React.useState(false);
@@ -66,22 +72,22 @@ export function TestimonialsSection({ className }: TestimonialsSectionProps) {
   const slideVariants = {
     enter: (direction: number) => ({
       x: direction > 0 ? "100%" : "-100%",
-      opacity: 0
+      opacity: 0,
     }),
     center: {
       x: 0,
-      opacity: 1
+      opacity: 1,
     },
     exit: (direction: number) => ({
       x: direction < 0 ? "100%" : "-100%",
-      opacity: 0
-    })
+      opacity: 0,
+    }),
   };
 
   const paginate = (newDirection: number) => {
     setDirection(newDirection);
-    setCurrentIndex((prev) => {
-      const next = prev + newDirection;
+    setCurrentIndex((previous) => {
+      const next = previous + newDirection;
       if (next < 0) return testimonials.length - 1;
       if (next >= testimonials.length) return 0;
       return next;
@@ -136,7 +142,11 @@ export function TestimonialsSection({ className }: TestimonialsSectionProps) {
           </div>
 
           {/* Testimonial content — overflow-hidden so swipe exits through edge, not on top */}
-          <div className="pt-8 min-h-[280px] flex flex-col overflow-hidden" onMouseEnter={() => setIsPaused(true)} onMouseLeave={() => setIsPaused(false)}>
+          <div
+            className="pt-8 min-h-[280px] flex flex-col overflow-hidden"
+            onMouseEnter={() => setIsPaused(true)}
+            onMouseLeave={() => setIsPaused(false)}
+          >
             <AnimatePresence mode="wait" custom={direction}>
               <motion.div
                 key={current.id}
@@ -150,14 +160,14 @@ export function TestimonialsSection({ className }: TestimonialsSectionProps) {
               >
                 {/* Rating */}
                 <div className="flex gap-1 mb-6">
-                  {Array.from({ length: 5 }).map((_, i) => (
+                  {Array.from({ length: 5 }).map((_, index) => (
                     <Star
-                      key={i}
+                      key={index}
                       className={cn(
                         "w-5 h-5",
-                        i < current.rating
+                        index < current.rating
                           ? "text-amber-400 fill-amber-400"
-                          : "text-slate-300"
+                          : "text-slate-300",
                       )}
                     />
                   ))}
@@ -170,8 +180,16 @@ export function TestimonialsSection({ className }: TestimonialsSectionProps) {
 
                 {/* Author */}
                 <div className="flex items-center gap-4">
-                  <div className={cn("w-14 h-14 rounded-full bg-gradient-to-br flex items-center justify-center text-white text-xl font-bold shadow-lg", current.avatarGradient)}>
-                    {current.author.split(" ").map(n => n[0]).join("")}
+                  <div
+                    className={cn(
+                      "w-14 h-14 rounded-full bg-gradient-to-br flex items-center justify-center text-white text-xl font-bold shadow-lg",
+                      current.avatarGradient,
+                    )}
+                  >
+                    {current.author
+                      .split(" ")
+                      .map((n) => n[0])
+                      .join("")}
                   </div>
                   <div>
                     <p className="font-bold text-slate-900 dark:text-slate-100">
@@ -199,7 +217,7 @@ export function TestimonialsSection({ className }: TestimonialsSectionProps) {
                   "rounded-full transition-all focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 flex items-center justify-center p-2",
                   index === currentIndex
                     ? "w-5 h-5 bg-primary-600"
-                    : "w-2 h-2 bg-slate-300 hover:bg-slate-400"
+                    : "w-2 h-2 bg-slate-300 hover:bg-slate-400",
                 )}
                 aria-label={`Go to testimonial ${index + 1}`}
                 aria-current={index === currentIndex ? "true" : undefined}

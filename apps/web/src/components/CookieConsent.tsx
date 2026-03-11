@@ -1,17 +1,17 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { FocusTrap } from 'focus-trap-react';
-import { Button } from './ui/Button';
-import { t, getLocale } from '../lib/i18n';
+import { useState, useEffect, useRef, useCallback } from "react";
+import { FocusTrap } from "focus-trap-react";
+import { Button } from "./ui/Button";
+import { t, getLocale } from "../lib/i18n";
 
 declare global {
   interface Window {
-    gtag?: (command: string, ...args: unknown[]) => void;
+    gtag?: (command: string, ...arguments_: unknown[]) => void;
   }
 }
 
-const CONSENT_KEY = 'jobhuntin-cookie-consent-v2';
+const CONSENT_KEY = "jobhuntin-cookie-consent-v2";
 const CONSENT_EXPIRY_MONTHS = 12;
-const CONSENT_VERSION = '2.0';
+const CONSENT_VERSION = "2.0";
 
 interface ConsentPreferences {
   essential: boolean; // Always true for functionality
@@ -27,7 +27,7 @@ export function CookieConsent() {
     analytics: false,
     marketing: false,
   });
-  const containerRef = useRef<HTMLDivElement>(null);
+  const containerReference = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const raw = localStorage.getItem(CONSENT_KEY);
@@ -41,12 +41,12 @@ export function CookieConsent() {
       const isVersionOutdated = consent?.version !== CONSENT_VERSION;
       const ts = consent?.ts;
       let isExpired = false;
-      
-      if (ts && typeof ts === 'number') {
+
+      if (ts && typeof ts === "number") {
         const expiry = ts + CONSENT_EXPIRY_MONTHS * 30 * 24 * 60 * 60 * 1000;
         isExpired = Date.now() > expiry;
       }
-      
+
       if (isVersionOutdated || isExpired) {
         localStorage.removeItem(CONSENT_KEY);
         setVisible(true);
@@ -67,42 +67,47 @@ export function CookieConsent() {
 
   useEffect(() => {
     if (visible) {
-      document.body.classList.add('cookie-consent-visible');
+      document.body.classList.add("cookie-consent-visible");
     } else {
-      document.body.classList.remove('cookie-consent-visible');
+      document.body.classList.remove("cookie-consent-visible");
     }
-    return () => document.body.classList.remove('cookie-consent-visible');
+    return () => document.body.classList.remove("cookie-consent-visible");
   }, [visible]);
 
   // Allow reopening preferences from footer/settings
   useEffect(() => {
     const handler = () => setShowPreferences(true);
-    window.addEventListener('showCookiePreferences', handler);
-    return () => window.removeEventListener('showCookiePreferences', handler);
+    window.addEventListener("showCookiePreferences", handler);
+    return () => window.removeEventListener("showCookiePreferences", handler);
   }, []);
 
   const saveConsent = useCallback((prefs: ConsentPreferences) => {
-    localStorage.setItem(CONSENT_KEY, JSON.stringify({
-      analytics: prefs.analytics,
-      marketing: prefs.marketing,
-      ts: Date.now(),
-      version: CONSENT_VERSION
-    }));
+    localStorage.setItem(
+      CONSENT_KEY,
+      JSON.stringify({
+        analytics: prefs.analytics,
+        marketing: prefs.marketing,
+        ts: Date.now(),
+        version: CONSENT_VERSION,
+      }),
+    );
 
     // Update Google Analytics consent
-    if (typeof window !== 'undefined' && window.gtag) {
-      window.gtag('consent', 'update', {
-        analytics_storage: prefs.analytics ? 'granted' : 'denied',
-        ad_storage: prefs.marketing ? 'granted' : 'denied',
-        ad_user_data: prefs.marketing ? 'granted' : 'denied',
-        ad_personalization: prefs.marketing ? 'granted' : 'denied',
+    if (typeof window !== "undefined" && window.gtag) {
+      window.gtag("consent", "update", {
+        analytics_storage: prefs.analytics ? "granted" : "denied",
+        ad_storage: prefs.marketing ? "granted" : "denied",
+        ad_user_data: prefs.marketing ? "granted" : "denied",
+        ad_personalization: prefs.marketing ? "granted" : "denied",
       });
     }
 
     // Dispatch custom event for other components
-    window.dispatchEvent(new CustomEvent('cookieConsentChanged', { 
-      detail: prefs 
-    }));
+    window.dispatchEvent(
+      new CustomEvent("cookieConsentChanged", {
+        detail: prefs,
+      }),
+    );
 
     setPreferences(prefs);
     setVisible(false);
@@ -129,16 +134,19 @@ export function CookieConsent() {
     saveConsent(preferences);
   }, [preferences, saveConsent]);
 
-  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-    if (e.key === 'Escape') {
-      e.preventDefault();
-      if (showPreferences) {
-        setShowPreferences(false);
-      } else {
-        acceptEssentialOnly();
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        if (showPreferences) {
+          setShowPreferences(false);
+        } else {
+          acceptEssentialOnly();
+        }
       }
-    }
-  }, [showPreferences, acceptEssentialOnly]);
+    },
+    [showPreferences, acceptEssentialOnly],
+  );
 
   if (!visible && !showPreferences) return null;
 
@@ -155,14 +163,17 @@ export function CookieConsent() {
       >
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
           <div
-            ref={containerRef}
+            ref={containerReference}
             role="dialog"
             aria-modal="true"
             aria-labelledby="cookie-preferences-title"
             className="bg-white dark:bg-slate-900 rounded-xl shadow-xl max-w-md w-full p-6 border border-slate-200 dark:border-slate-700"
             onKeyDown={handleKeyDown}
           >
-            <h2 id="cookie-preferences-title" className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-4">
+            <h2
+              id="cookie-preferences-title"
+              className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-4"
+            >
               {t("cookies.managePreferences", locale) || "Manage preferences"}
             </h2>
 
@@ -176,11 +187,15 @@ export function CookieConsent() {
                   className="mt-1.5 h-4 w-4 rounded border-slate-300 text-[#455DD3] focus:ring-[#455DD3]"
                 />
                 <div className="flex-1">
-                  <label htmlFor="essential" className="font-medium text-slate-900 dark:text-slate-100">
+                  <label
+                    htmlFor="essential"
+                    className="font-medium text-slate-900 dark:text-slate-100"
+                  >
                     {t("cookies.essential", locale) || "Essential"}
                   </label>
                   <p className="text-sm text-slate-500 dark:text-slate-400">
-                    {t("cookies.essentialDescription", locale) || "Required for the site to function."}
+                    {t("cookies.essentialDescription", locale) ||
+                      "Required for the site to function."}
                   </p>
                 </div>
               </div>
@@ -190,15 +205,24 @@ export function CookieConsent() {
                   type="checkbox"
                   id="analytics"
                   checked={preferences.analytics}
-                  onChange={(e) => setPreferences(prev => ({ ...prev, analytics: e.target.checked }))}
+                  onChange={(e) =>
+                    setPreferences((previous) => ({
+                      ...previous,
+                      analytics: e.target.checked,
+                    }))
+                  }
                   className="mt-1.5 h-4 w-4 rounded border-slate-300 text-[#455DD3] focus:ring-[#455DD3]"
                 />
                 <div className="flex-1">
-                  <label htmlFor="analytics" className="font-medium text-slate-900 dark:text-slate-100">
+                  <label
+                    htmlFor="analytics"
+                    className="font-medium text-slate-900 dark:text-slate-100"
+                  >
                     {t("cookies.analytics", locale) || "Analytics"}
                   </label>
                   <p className="text-sm text-slate-500 dark:text-slate-400">
-                    {t("cookies.analyticsDescription", locale) || "Helps us understand site usage."}
+                    {t("cookies.analyticsDescription", locale) ||
+                      "Helps us understand site usage."}
                   </p>
                 </div>
               </div>
@@ -208,25 +232,41 @@ export function CookieConsent() {
                   type="checkbox"
                   id="marketing"
                   checked={preferences.marketing}
-                  onChange={(e) => setPreferences(prev => ({ ...prev, marketing: e.target.checked }))}
+                  onChange={(e) =>
+                    setPreferences((previous) => ({
+                      ...previous,
+                      marketing: e.target.checked,
+                    }))
+                  }
                   className="mt-1.5 h-4 w-4 rounded border-slate-300 text-[#455DD3] focus:ring-[#455DD3]"
                 />
                 <div className="flex-1">
-                  <label htmlFor="marketing" className="font-medium text-slate-900 dark:text-slate-100">
+                  <label
+                    htmlFor="marketing"
+                    className="font-medium text-slate-900 dark:text-slate-100"
+                  >
                     {t("cookies.marketing", locale) || "Marketing"}
                   </label>
                   <p className="text-sm text-slate-500 dark:text-slate-400">
-                    {t("cookies.marketingDescription", locale) || "Used for advertising and remarketing."}
+                    {t("cookies.marketingDescription", locale) ||
+                      "Used for advertising and remarketing."}
                   </p>
                 </div>
               </div>
             </div>
 
             <div className="flex gap-3">
-              <Button variant="outline" onClick={() => setShowPreferences(false)} className="flex-1 min-h-[44px]">
+              <Button
+                variant="outline"
+                onClick={() => setShowPreferences(false)}
+                className="flex-1 min-h-[44px]"
+              >
                 {t("cookies.cancel", locale) || "Cancel"}
               </Button>
-              <Button onClick={saveCustomPreferences} className="flex-1 min-h-[44px] bg-[#455DD3] hover:bg-[#3A4FB8]">
+              <Button
+                onClick={saveCustomPreferences}
+                className="flex-1 min-h-[44px] bg-[#455DD3] hover:bg-[#3A4FB8]"
+              >
                 {t("cookies.savePreferences", locale) || "Save preferences"}
               </Button>
             </div>
@@ -240,15 +280,20 @@ export function CookieConsent() {
     <FocusTrap
       active={visible}
       focusTrapOptions={{
-        initialFocus: () => containerRef.current?.querySelector<HTMLElement>('[data-consent-accept]') ?? containerRef.current?.querySelector<HTMLElement>('button') ?? false,
-        fallbackFocus: () => containerRef.current || document.body,
+        initialFocus: () =>
+          containerReference.current?.querySelector<HTMLElement>(
+            "[data-consent-accept]",
+          ) ??
+          containerReference.current?.querySelector<HTMLElement>("button") ??
+          false,
+        fallbackFocus: () => containerReference.current || document.body,
         allowOutsideClick: false,
         escapeDeactivates: false,
         clickOutsideDeactivates: false,
       }}
     >
       <div
-        ref={containerRef}
+        ref={containerReference}
         role="dialog"
         aria-modal="true"
         aria-labelledby="cookie-consent-title"
@@ -256,22 +301,50 @@ export function CookieConsent() {
         className="fixed bottom-0 left-0 right-0 z-50 p-4 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-700 shadow-lg md:flex md:items-center md:justify-between md:px-8"
         onKeyDown={handleKeyDown}
       >
-        <p id="cookie-consent-title" className="sr-only">{t("cookies.title", locale) || "Cookie consent"}</p>
-        <p id="cookie-consent-description" className="text-sm text-slate-600 dark:text-slate-400 mb-4 md:mb-0 md:mr-6 flex-1 max-w-2xl">
-          {t("cookies.description", locale)}{' '}
-          <a href="/privacy#cookies" className="underline text-[#455DD3] hover:text-[#3A4FB8] font-medium">
+        <p id="cookie-consent-title" className="sr-only">
+          {t("cookies.title", locale) || "Cookie consent"}
+        </p>
+        <p
+          id="cookie-consent-description"
+          className="text-sm text-slate-600 dark:text-slate-400 mb-4 md:mb-0 md:mr-6 flex-1 max-w-2xl"
+        >
+          {t("cookies.description", locale)}{" "}
+          <a
+            href="/privacy#cookies"
+            className="underline text-[#455DD3] hover:text-[#3A4FB8] font-medium"
+          >
             {t("cookies.privacyPolicy", locale)}
-          </a>{' '}
+          </a>{" "}
           {t("cookies.forDetails", locale)}
         </p>
         <div className="flex flex-wrap gap-2 shrink-0 items-center">
-          <Button variant="outline" size="sm" onClick={acceptEssentialOnly} data-consent-reject aria-label={t("cookies.rejectAll", locale)} className="min-h-[44px]">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={acceptEssentialOnly}
+            data-consent-reject
+            aria-label={t("cookies.rejectAll", locale)}
+            className="min-h-[44px]"
+          >
             {t("cookies.rejectAll", locale)}
           </Button>
-          <Button variant="outline" size="sm" onClick={() => setShowPreferences(true)} aria-label={t("cookies.managePreferences", locale)} className="min-h-[44px]">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowPreferences(true)}
+            aria-label={t("cookies.managePreferences", locale)}
+            className="min-h-[44px]"
+          >
             {t("cookies.managePreferences", locale)}
           </Button>
-          <Button variant="primary" size="sm" onClick={acceptAll} data-consent-accept aria-label={t("cookies.acceptAll", locale)} className="min-h-[44px] bg-[#455DD3] hover:bg-[#3A4FB8]">
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={acceptAll}
+            data-consent-accept
+            aria-label={t("cookies.acceptAll", locale)}
+            className="min-h-[44px] bg-[#455DD3] hover:bg-[#3A4FB8]"
+          >
             {t("cookies.acceptAll", locale)}
           </Button>
         </div>

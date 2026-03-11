@@ -1,18 +1,29 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { SEO } from '../components/marketing/SEO';
-import { motion } from 'framer-motion';
-import { 
-  CheckCircle2, XCircle, ArrowRight, Star, Zap, Shield, Bot,
-  Users, Clock, TrendingUp, Target, MessageSquare, FileText
-} from 'lucide-react';
+import React from "react";
+import { Link } from "react-router-dom";
+import { SEO } from "../components/marketing/SEO";
+import { motion } from "framer-motion";
+import {
+  CheckCircle2,
+  XCircle,
+  ArrowRight,
+  Star,
+  Zap,
+  Shield,
+  Bot,
+  Users,
+  Clock,
+  TrendingUp,
+  Target,
+  MessageSquare,
+  FileText,
+} from "lucide-react";
 
 const jobrightData = {
-  name: 'Jobright AI',
-  tagline: 'AI job search copilot',
+  name: "Jobright AI",
+  tagline: "AI job search copilot",
   founded: 2022,
-  users: '1.25M',
-  pricing: 'Free / $29.99/mo',
+  users: "1.25M",
+  pricing: "Free / $29.99/mo",
   features: {
     autoApply: true,
     resumeTailoring: true,
@@ -21,15 +32,15 @@ const jobrightData = {
     fullAutonomy: false,
     aiAgent: true,
     insiderReferrals: true,
-  }
+  },
 };
 
 const jobhuntinData = {
-  name: 'JobHuntin',
-  tagline: 'Fully autonomous AI job agent',
+  name: "JobHuntin",
+  tagline: "Fully autonomous AI job agent",
   founded: 2024,
-  users: '50K+',
-  pricing: 'Free / $19/mo',
+  users: "50K+",
+  pricing: "Free / $19/mo",
   features: {
     autoApply: true,
     resumeTailoring: true,
@@ -38,54 +49,65 @@ const jobhuntinData = {
     fullAutonomy: true,
     aiAgent: true,
     insiderReferrals: false,
-  }
+  },
 };
 
 const comparisonTable = [
-  { feature: 'AI-Powered Job Matching', jobright: true, jobhuntin: true },
-  { feature: 'Auto-Apply to Jobs', jobright: true, jobhuntin: true },
-  { feature: 'Resume Tailoring per Job', jobright: true, jobhuntin: true },
-  { feature: 'Cover Letter Generation', jobright: true, jobhuntin: true },
-  { feature: 'Fully Autonomous Operation', jobright: false, jobhuntin: true },
-  { feature: 'Stealth Mode (Undetectable Apps)', jobright: false, jobhuntin: true },
-  { feature: 'Background 24/7 Operation', jobright: false, jobhuntin: true },
-  { feature: 'Insider Referral Network', jobright: true, jobhuntin: false },
-  { feature: 'Browser Extension', jobright: true, jobhuntin: true },
-  { feature: 'Mobile App', jobright: false, jobhuntin: false },
-  { feature: 'Job Tracking Dashboard', jobright: true, jobhuntin: true },
-  { feature: 'Interview Preparation', jobright: true, jobhuntin: true },
+  { feature: "AI-Powered Job Matching", jobright: true, jobhuntin: true },
+  { feature: "Auto-Apply to Jobs", jobright: true, jobhuntin: true },
+  { feature: "Resume Tailoring per Job", jobright: true, jobhuntin: true },
+  { feature: "Cover Letter Generation", jobright: true, jobhuntin: true },
+  { feature: "Fully Autonomous Operation", jobright: false, jobhuntin: true },
+  {
+    feature: "Stealth Mode (Undetectable Apps)",
+    jobright: false,
+    jobhuntin: true,
+  },
+  { feature: "Background 24/7 Operation", jobright: false, jobhuntin: true },
+  { feature: "Insider Referral Network", jobright: true, jobhuntin: false },
+  { feature: "Browser Extension", jobright: true, jobhuntin: true },
+  { feature: "Mobile App", jobright: false, jobhuntin: false },
+  { feature: "Job Tracking Dashboard", jobright: true, jobhuntin: true },
+  { feature: "Interview Preparation", jobright: true, jobhuntin: true },
 ];
 
 const faqItems = [
   {
-    question: 'Is JobHuntin better than Jobright?',
-    answer: 'It depends on your needs. Jobright is a "copilot" that helps you find and apply to jobs with AI assistance — but you\'re still actively involved. JobHuntin is an "autopilot" that runs completely in the background, tailoring resumes and applying to jobs while you sleep. If you want to set it and forget it, JobHuntin wins.',
+    question: "Is JobHuntin better than Jobright?",
+    answer:
+      'It depends on your needs. Jobright is a "copilot" that helps you find and apply to jobs with AI assistance — but you\'re still actively involved. JobHuntin is an "autopilot" that runs completely in the background, tailoring resumes and applying to jobs while you sleep. If you want to set it and forget it, JobHuntin wins.',
   },
   {
-    question: 'What\'s the main difference between Jobright and JobHuntin?',
-    answer: 'Jobright requires your active participation — you review matches, click apply, and customize applications. JobHuntin operates autonomously: upload your resume once, set preferences, and the AI agent handles everything from job discovery to submission without further input.',
+    question: "What's the main difference between Jobright and JobHuntin?",
+    answer:
+      "Jobright requires your active participation — you review matches, click apply, and customize applications. JobHuntin operates autonomously: upload your resume once, set preferences, and the AI agent handles everything from job discovery to submission without further input.",
   },
   {
-    question: 'Is Jobright free to use?',
-    answer: 'Jobright offers a free tier with limited features. Their Pro plan costs $29.99/month. JobHuntin also offers a free tier (10 applications) and Pro at $19/month — significantly cheaper for unlimited autonomous applications.',
+    question: "Is Jobright free to use?",
+    answer:
+      "Jobright offers a free tier with limited features. Their Pro plan costs $29.99/month. JobHuntin also offers a free tier (10 applications) and Pro at $19/month — significantly cheaper for unlimited autonomous applications.",
   },
   {
-    question: 'Does Jobright have stealth mode?',
-    answer: 'No, Jobright does not have stealth mode. Applications sent through Jobright may be detectable as automated by ATS systems. JobHuntin\'s Stealth Mode makes every application appear human-crafted, reducing the risk of automatic rejection.',
+    question: "Does Jobright have stealth mode?",
+    answer:
+      "No, Jobright does not have stealth mode. Applications sent through Jobright may be detectable as automated by ATS systems. JobHuntin's Stealth Mode makes every application appear human-crafted, reducing the risk of automatic rejection.",
   },
   {
-    question: 'Can I use both Jobright and JobHuntin together?',
-    answer: 'You can, but most users find it redundant. JobHuntin handles the entire pipeline from job discovery to tailored submission. Using both would mean managing two separate systems for the same goal.',
+    question: "Can I use both Jobright and JobHuntin together?",
+    answer:
+      "You can, but most users find it redundant. JobHuntin handles the entire pipeline from job discovery to tailored submission. Using both would mean managing two separate systems for the same goal.",
   },
   {
-    question: 'Which is better for job seekers with limited time?',
-    answer: 'JobHuntin is better for busy professionals. Once configured, it requires zero daily effort. Jobright, while helpful, still needs your time to review matches and initiate applications.',
+    question: "Which is better for job seekers with limited time?",
+    answer:
+      "JobHuntin is better for busy professionals. Once configured, it requires zero daily effort. Jobright, while helpful, still needs your time to review matches and initiate applications.",
   },
 ];
 
 export default function JobrightVsJobhuntin() {
-  const title = 'Jobright vs JobHuntin | Honest 2026 Comparison';
-  const description = 'Detailed comparison of Jobright AI vs JobHuntin. Compare features, pricing, automation level, and see which AI job search tool is right for you in 2026.';
+  const title = "Jobright vs JobHuntin | Honest 2026 Comparison";
+  const description =
+    "Detailed comparison of Jobright AI vs JobHuntin. Compare features, pricing, automation level, and see which AI job search tool is right for you in 2026.";
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900">
@@ -99,31 +121,31 @@ export default function JobrightVsJobhuntin() {
           {
             "@context": "https://schema.org",
             "@type": "WebPage",
-            "name": title,
-            "description": description,
-            "url": "https://jobhuntin.com/vs/jobright",
+            name: title,
+            description: description,
+            url: "https://jobhuntin.com/vs/jobright",
           },
           {
             "@context": "https://schema.org",
             "@type": "FAQPage",
-            "mainEntity": faqItems.map(item => ({
+            mainEntity: faqItems.map((item) => ({
               "@type": "Question",
-              "name": item.question,
-              "acceptedAnswer": {
+              name: item.question,
+              acceptedAnswer: {
                 "@type": "Answer",
-                "text": item.answer
-              }
-            }))
+                text: item.answer,
+              },
+            })),
           },
           {
             "@context": "https://schema.org",
             "@type": "Article",
-            "headline": title,
-            "description": description,
-            "author": { "@type": "Organization", "name": "JobHuntin" },
-            "datePublished": "2026-02-15",
-            "dateModified": "2026-02-15",
-          }
+            headline: title,
+            description: description,
+            author: { "@type": "Organization", name: "JobHuntin" },
+            datePublished: "2026-02-15",
+            dateModified: "2026-02-15",
+          },
         ]}
       />
 
@@ -142,7 +164,9 @@ export default function JobrightVsJobhuntin() {
             Jobright vs JobHuntin: Which AI Job Tool Wins?
           </h1>
           <p className="text-xl text-slate-600 max-w-3xl mx-auto">
-            An honest, detailed comparison of two leading AI job search platforms. We break down features, pricing, and real-world performance.
+            An honest, detailed comparison of two leading AI job search
+            platforms. We break down features, pricing, and real-world
+            performance.
           </p>
         </motion.div>
 
@@ -156,7 +180,9 @@ export default function JobrightVsJobhuntin() {
           <h2 className="text-2xl font-bold mb-6">Quick Verdict</h2>
           <div className="grid md:grid-cols-2 gap-8">
             <div>
-              <h3 className="font-semibold text-primary-100 mb-3">Choose Jobright if:</h3>
+              <h3 className="font-semibold text-primary-100 mb-3">
+                Choose Jobright if:
+              </h3>
               <ul className="space-y-2 text-primary-50">
                 <li className="flex items-start gap-2">
                   <CheckCircle2 className="w-5 h-5 mt-0.5 flex-shrink-0" />
@@ -173,7 +199,9 @@ export default function JobrightVsJobhuntin() {
               </ul>
             </div>
             <div>
-              <h3 className="font-semibold text-primary-100 mb-3">Choose JobHuntin if:</h3>
+              <h3 className="font-semibold text-primary-100 mb-3">
+                Choose JobHuntin if:
+              </h3>
               <ul className="space-y-2 text-primary-50">
                 <li className="flex items-start gap-2">
                   <CheckCircle2 className="w-5 h-5 mt-0.5 flex-shrink-0" />
@@ -206,20 +234,26 @@ export default function JobrightVsJobhuntin() {
             <table className="w-full">
               <thead className="bg-slate-50">
                 <tr>
-                  <th className="text-left px-6 py-4 font-semibold text-slate-600">Feature</th>
+                  <th className="text-left px-6 py-4 font-semibold text-slate-600">
+                    Feature
+                  </th>
                   <th className="text-center px-6 py-4 font-semibold text-slate-600">
                     <div>Jobright</div>
-                    <div className="text-sm font-normal text-slate-400">AI Copilot</div>
+                    <div className="text-sm font-normal text-slate-400">
+                      AI Copilot
+                    </div>
                   </th>
                   <th className="text-center px-6 py-4 font-semibold text-primary-600">
                     <div>JobHuntin</div>
-                    <div className="text-sm font-normal text-primary-400">AI Autopilot</div>
+                    <div className="text-sm font-normal text-primary-400">
+                      AI Autopilot
+                    </div>
                   </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {comparisonTable.map((row, i) => (
-                  <tr key={i} className="hover:bg-slate-50">
+                {comparisonTable.map((row, index) => (
+                  <tr key={index} className="hover:bg-slate-50">
                     <td className="px-6 py-4 text-slate-700">{row.feature}</td>
                     <td className="px-6 py-4 text-center">
                       {row.jobright ? (
@@ -267,19 +301,27 @@ export default function JobrightVsJobhuntin() {
             </div>
           </div>
           <div className="bg-gradient-to-br from-primary-50 to-primary-100 rounded-2xl p-8 border border-primary-200">
-            <h3 className="text-xl font-bold mb-4 text-primary-900">JobHuntin Pricing</h3>
+            <h3 className="text-xl font-bold mb-4 text-primary-900">
+              JobHuntin Pricing
+            </h3>
             <div className="space-y-4">
               <div className="flex justify-between py-3 border-b border-primary-200">
                 <span className="text-primary-700">Free Tier</span>
-                <span className="font-semibold text-primary-900">10 applications</span>
+                <span className="font-semibold text-primary-900">
+                  10 applications
+                </span>
               </div>
               <div className="flex justify-between py-3 border-b border-primary-200">
                 <span className="text-primary-700">Pro Plan</span>
-                <span className="font-bold text-xl text-primary-900">$19/mo</span>
+                <span className="font-bold text-xl text-primary-900">
+                  $19/mo
+                </span>
               </div>
               <div className="flex justify-between py-3">
                 <span className="text-primary-700">Pro Annual</span>
-                <span className="font-semibold text-primary-900">$15.80/mo</span>
+                <span className="font-semibold text-primary-900">
+                  $15.80/mo
+                </span>
               </div>
             </div>
             <div className="mt-6 p-4 bg-white/50 rounded-xl">
@@ -305,9 +347,17 @@ export default function JobrightVsJobhuntin() {
                   <Bot className="w-6 h-6 text-blue-600" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold mb-2">Copilot vs Autopilot</h3>
+                  <h3 className="text-lg font-bold mb-2">
+                    Copilot vs Autopilot
+                  </h3>
                   <p className="text-slate-600">
-                    Jobright describes itself as an "AI copilot" — it assists you in your job search but requires your active participation. You review job matches, initiate applications, and stay involved. JobHuntin is an "autopilot" — once configured, it runs entirely in the background, discovering jobs, tailoring your materials, and submitting applications while you sleep.
+                    Jobright describes itself as an "AI copilot" — it assists
+                    you in your job search but requires your active
+                    participation. You review job matches, initiate
+                    applications, and stay involved. JobHuntin is an "autopilot"
+                    — once configured, it runs entirely in the background,
+                    discovering jobs, tailoring your materials, and submitting
+                    applications while you sleep.
                   </p>
                 </div>
               </div>
@@ -319,9 +369,15 @@ export default function JobrightVsJobhuntin() {
                   <Shield className="w-6 h-6 text-green-600" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold mb-2">Stealth Mode Matters</h3>
+                  <h3 className="text-lg font-bold mb-2">
+                    Stealth Mode Matters
+                  </h3>
                   <p className="text-slate-600">
-                    Jobright doesn\'t offer stealth mode. This means ATS systems may detect automated applications, potentially flagging them. JobHuntin\'s Stealth Mode makes every application appear hand-crafted — random timing, varied mouse movements, and natural submission patterns that bypass detection.
+                    Jobright doesn\'t offer stealth mode. This means ATS systems
+                    may detect automated applications, potentially flagging
+                    them. JobHuntin\'s Stealth Mode makes every application
+                    appear hand-crafted — random timing, varied mouse movements,
+                    and natural submission patterns that bypass detection.
                   </p>
                 </div>
               </div>
@@ -333,9 +389,16 @@ export default function JobrightVsJobhuntin() {
                   <Users className="w-6 h-6 text-purple-600" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold mb-2">Insider Referrals Network</h3>
+                  <h3 className="text-lg font-bold mb-2">
+                    Insider Referrals Network
+                  </h3>
                   <p className="text-slate-600">
-                    Jobright offers a unique feature: their Insider Referrals network connects you with alumni and hiring managers at target companies. This is Jobright\'s standout feature and can significantly boost interview chances. JobHuntin doesn\'t currently offer this feature, focusing instead on application volume and quality.
+                    Jobright offers a unique feature: their Insider Referrals
+                    network connects you with alumni and hiring managers at
+                    target companies. This is Jobright\'s standout feature and
+                    can significantly boost interview chances. JobHuntin
+                    doesn\'t currently offer this feature, focusing instead on
+                    application volume and quality.
                   </p>
                 </div>
               </div>
@@ -350,17 +413,22 @@ export default function JobrightVsJobhuntin() {
           transition={{ delay: 0.5 }}
           className="mb-16"
         >
-          <h2 className="text-2xl font-bold mb-8">Frequently Asked Questions</h2>
+          <h2 className="text-2xl font-bold mb-8">
+            Frequently Asked Questions
+          </h2>
           <div className="space-y-4">
-            {faqItems.map((item, i) => (
-              <details key={i} className="bg-white rounded-2xl shadow-sm border border-slate-200 group">
+            {faqItems.map((item, index) => (
+              <details
+                key={index}
+                className="bg-white rounded-2xl shadow-sm border border-slate-200 group"
+              >
                 <summary className="p-6 cursor-pointer list-none flex items-center justify-between font-semibold text-slate-900 hover:text-primary-600">
                   {item.question}
-                  <span className="text-slate-400 group-open:rotate-180 transition-transform">▼</span>
+                  <span className="text-slate-400 group-open:rotate-180 transition-transform">
+                    ▼
+                  </span>
                 </summary>
-                <div className="px-6 pb-6 text-slate-600">
-                  {item.answer}
-                </div>
+                <div className="px-6 pb-6 text-slate-600">{item.answer}</div>
               </details>
             ))}
           </div>
@@ -375,7 +443,8 @@ export default function JobrightVsJobhuntin() {
         >
           <h2 className="text-3xl font-bold mb-4">Ready to Try JobHuntin?</h2>
           <p className="text-slate-600 mb-8 max-w-xl mx-auto">
-            Start with our free tier — 10 AI-tailored applications to see the difference autonomous job hunting makes.
+            Start with our free tier — 10 AI-tailored applications to see the
+            difference autonomous job hunting makes.
           </p>
           <Link
             to="/"

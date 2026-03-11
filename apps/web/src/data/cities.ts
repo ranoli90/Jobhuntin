@@ -1,7 +1,7 @@
 export const CITIES = [
   // Major US Cities
   "New York, NY",
-  "Los Angeles, CA", 
+  "Los Angeles, CA",
   "Chicago, IL",
   "Houston, TX",
   "Phoenix, AZ",
@@ -269,7 +269,7 @@ export const CITIES = [
   "Corte Madera, CA",
   "Mill Valley, CA",
   "Sausalito, CA",
-  
+
   // Major International Cities
   "London, UK",
   "Paris, France",
@@ -315,7 +315,7 @@ export const CITIES = [
   "Lima, Peru",
   "Bogotá, Colombia",
   "Caracas, Venezuela",
-  
+
   // Remote options
   "Remote",
   "Remote - US Only",
@@ -323,5 +323,5 @@ export const CITIES = [
   "Work From Home",
   "WFH",
   "Hybrid",
-  "Flexible"
+  "Flexible",
 ];

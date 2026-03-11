@@ -15,10 +15,15 @@ export default function AdminGuard() {
   }
 
   if (!user) {
-    return <Navigate to={`/login?returnTo=${encodeURIComponent(location.pathname + location.search)}`} replace />;
+    return (
+      <Navigate
+        to={`/login?returnTo=${encodeURIComponent(location.pathname + location.search)}`}
+        replace
+      />
+    );
   }
 
-  const isAdmin = user.role === 'admin' || user.role === 'superadmin';
+  const isAdmin = user.role === "admin" || user.role === "superadmin";
 
   if (!isAdmin) {
     return <Navigate to="/app/dashboard" replace />;

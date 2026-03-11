@@ -1,15 +1,22 @@
 import * as React from "react";
 import { cn } from "../../lib/utils";
 
-interface UsageBarsProps {
+interface UsageBarsProperties {
   used: number;
   limit?: number;
   label?: string;
   className?: string;
 }
 
-export function UsageBars({ used, limit, label, className }: UsageBarsProps) {
-  const percentage = limit ? Math.min(100, Math.round((used / limit) * 100)) : 0;
+export function UsageBars({
+  used,
+  limit,
+  label,
+  className,
+}: UsageBarsProperties) {
+  const percentage = limit
+    ? Math.min(100, Math.round((used / limit) * 100))
+    : 0;
   const isUnlimited = !limit || limit === 0;
 
   return (
@@ -28,7 +35,7 @@ export function UsageBars({ used, limit, label, className }: UsageBarsProps) {
               ? "w-full bg-gradient-to-r from-brand-lagoon to-brand-sunrise"
               : percentage > 80
                 ? "bg-brand-sunrise"
-                : "bg-brand-lagoon"
+                : "bg-brand-lagoon",
           )}
           style={{ width: isUnlimited ? "100%" : `${percentage}%` }}
         />
