@@ -118,6 +118,8 @@ class Settings(BaseSettings):
     csrf_secret: str = "dev-csrf-secret-change-in-production"  # Required in prod - generate with: secrets.token_hex(32)
     jwt_secret: str = "dev-secret-key-change-in-production"  # Default for local dev only - change in production
     request_id_header: str = "X-Request-ID"
+    # Comma-separated CORS origins (overrides/augments built-in list). No wildcards.
+    cors_allowed_origins: str = ""
     db_ssl_ca_cert_path: str = (
         ""  # Path to CA cert for DB SSL verification (overrides CERT_NONE)
     )

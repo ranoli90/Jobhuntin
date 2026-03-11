@@ -134,7 +134,7 @@ def setup_csrf_middleware(app, secret: str) -> None:
             )
             origin = request.headers.get("origin", "")
             cors_origins = getattr(app.state, "cors_origins", [])
-            if origin and (origin in cors_origins or not cors_origins):
+            if origin and cors_origins and origin in cors_origins:
                 response.headers["Access-Control-Allow-Origin"] = origin
                 response.headers["Access-Control-Allow-Credentials"] = "true"
             return response
@@ -205,6 +205,9 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response.headers["X-Frame-Options"] = "DENY"
         response.headers["X-XSS-Protection"] = "1; mode=block"
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        response.headers["Permissions-Policy"] = (
+            "camera=(), microphone=(), geolocation=(), payment=()"
+        )
         # S3 (Audit): Enhanced CSP with nonce support for dynamic scripts
         # Uses nonce-based approach instead of 'unsafe-inline' for better security
         csp_script_src = (
@@ -216,19 +219,21 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
             # Fallback to 'unsafe-inline' only when nonce not available (rare)
             csp_script_src += " 'unsafe-inline'"
 
-        # CSP connect-src: must include API URL if it's cross-origin, and analytics
+        # CSP connect-src: must include API URL if cross-origin, and analytics
         connect_src = "'self' https://www.google-analytics.com https://www.googletagmanager.com https://api.resend.com"
-        if s.api_public_url:
-            connect_src += f" {s.api_public_url}"
-        if s.app_base_url:
-            connect_src += f" {s.app_base_url}"
+        for url in (s.api_public_url, s.app_base_url):
+            if url and url.startswith(("http://", "https://")) and "[REDACTED]" not in url:
+                connect_src += f" {url.rstrip('/')}"
+
+        # img-src: avoid 'https:' (allows any HTTPS); use specific domains
+        img_src = "'self' data: blob: https://www.google-analytics.com https://www.googletagmanager.com"
 
         response.headers["Content-Security-Policy"] = (
             f"default-src 'self'; "
             f"script-src {csp_script_src}; "
             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
             "font-src 'self' https://fonts.gstatic.com data:; "
-            "img-src 'self' data: https: blob:; "
+            f"img-src {img_src}; "
             f"connect-src {connect_src}; "
             "frame-ancestors 'none'; "
             "base-uri 'self'; "

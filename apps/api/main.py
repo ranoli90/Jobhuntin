@@ -196,23 +196,37 @@ All endpoints require Bearer token authentication via the Authorization header.
 # OpenTelemetry instrumentation
 setup_telemetry("sorce-api", app)
 
-CORS_ORIGINS = [
-    o
-    for o in {
+def _build_cors_origins() -> list[str]:
+    """Build CORS allow list. Restrict localhost in prod; filter invalid entries."""
+    base = {
+        _settings.app_base_url.rstrip("/"),
         "https://sorce-web.onrender.com",
         "https://sorce-admin.onrender.com",
         "https://sorce-api.onrender.com",
-        _settings.app_base_url.rstrip("/"),
         "https://jobhuntin.com",
         "https://app.jobhuntin.com",
-        # Local dev - always include so CORS works regardless of ENV detection
-        "http://localhost:5173",
-        "http://localhost:3000",
-        "http://127.0.0.1:5173",
-        "http://127.0.0.1:3000",
     }
-    if o
-]
+    if _settings.env == Environment.LOCAL:
+        base.update(
+            (
+                "http://localhost:5173",
+                "http://localhost:3000",
+                "http://127.0.0.1:5173",
+                "http://127.0.0.1:3000",
+            )
+        )
+    if _settings.cors_allowed_origins:
+        for o in _settings.cors_allowed_origins.split(","):
+            o = o.strip()
+            if o:
+                base.add(o)
+    def _valid(o: str) -> bool:
+        return bool(o) and "REDACTED" not in o and o.startswith(("http://", "https://"))
+
+    return [o for o in base if _valid(o)]
+
+
+CORS_ORIGINS = _build_cors_origins()
 
 app.state.cors_origins = CORS_ORIGINS
 
@@ -405,7 +419,20 @@ async def idempotency_middleware(request: Request, call_next):
             from shared.redis_client import get_redis
 
             r = await get_redis()
-            cache_key = f"idempotency:{idempotency_key}"
+            # Scope by method+path+user to prevent cross-user/cross-endpoint collisions
+            user_scope = "anon"
+            auth_header = request.headers.get("Authorization")
+            if auth_header and auth_header.startswith("Bearer ") and _settings.jwt_secret:
+                try:
+                    token = auth_header.replace("Bearer ", "").strip()
+                    payload = pyjwt.decode(
+                        token, _settings.jwt_secret, algorithms=["HS256"], audience="authenticated"
+                    )
+                    user_scope = payload.get("sub") or "anon"
+                except Exception:
+                    pass
+            scope = f"{request.method}:{request.url.path}:{user_scope}"
+            cache_key = f"idempotency:{scope}:{idempotency_key}"
 
             # CRITICAL: Use atomic SET NX to prevent race condition
             # Two requests with same key will both check, but only one can set the lock
@@ -685,6 +712,7 @@ app.add_middleware(
         "X-Request-ID",
         "X-CSRF-Token",
         "x-csrftoken",
+        "Idempotency-Key",
     ],
     expose_headers=["X-Request-ID"],
     max_age=3600,
