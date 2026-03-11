@@ -27,6 +27,7 @@ from shared.ai_validation import sanitize_for_ai
 from shared.config import get_settings
 from shared.logging_config import get_logger
 from shared.metrics import incr, observe
+from shared.telemetry import traced
 
 logger = get_logger("sorce.resume")
 
@@ -424,6 +425,7 @@ async def parse_resume_to_profile(resume_text: str) -> dict:
     return result.model_dump()
 
 
+@traced("process_resume_upload", attributes={"operation.type": "resume_parse"})
 async def process_resume_upload(
     user_id: str,
     tenant_id: str,

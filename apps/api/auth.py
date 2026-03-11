@@ -20,6 +20,7 @@ from pydantic import BaseModel, EmailStr
 from backend.domain.session_manager import SessionManager
 from shared.config import Settings, settings_dependency
 from shared.logging_config import get_logger
+from packages.backend.domain.masking import mask_ip
 from shared.metrics import RateLimiter, get_rate_limiter, incr
 from shared.middleware import get_client_ip
 from shared.repo_root import find_repo_root
@@ -999,10 +1000,9 @@ async def verify_magic_link(
             extra={
                 "user_id": user_id,
                 "reasons": suspicious_check["reasons"],
-                "ip_address": client_ip,
-                "user_agent": user_agent,
+                "ip_hash": mask_ip(client_ip),
                 "active_sessions": suspicious_check["active_sessions"],
-                "known_ips": suspicious_check["known_ips"],
+                "known_ip_count": len(suspicious_check.get("known_ips", [])),
             },
         )
         incr(
@@ -1206,7 +1206,7 @@ async def request_magic_link(
     if _is_disposable_email(body.email):
         logger.warning(
             "Disposable email blocked",
-            extra={"email": _mask_email(body.email), "ip": client_ip},
+            extra={"email": _mask_email(body.email), "ip_hash": mask_ip(client_ip)},
         )
         incr("auth.magic_link.disposable_email_blocked", tags={})
         # Return generic error to avoid revealing our detection
@@ -1238,7 +1238,7 @@ async def request_magic_link(
             "CAPTCHA required but not provided",
             extra={
                 "email": _mask_email(body.email),
-                "ip": client_ip,
+                "ip_hash": mask_ip(client_ip),
                 "ip_count": ip_request_count,
                 "email_count": email_request_count,
             },
@@ -1257,9 +1257,9 @@ async def request_magic_link(
         retry_after = ip_limiter.next_available_in()
         logger.warning(
             "Magic link IP rate limit hit",
-            extra={"retry_after": retry_after, "ip": client_ip},
+            extra={"retry_after": retry_after, "ip_hash": mask_ip(client_ip)},
         )
-        incr("auth.magic_link.ip_rate_limited", tags={"ip": client_ip})
+        incr("auth.magic_link.ip_rate_limited", tags={"ip_hash": mask_ip(client_ip)})
         raise HTTPException(
             status_code=429,
             detail="Too many requests. Please wait before requesting another magic link.",
@@ -1271,7 +1271,7 @@ async def request_magic_link(
         retry_after = limiter.next_available_in()
         logger.warning(
             "Magic link rate limit hit",
-            extra={"email": body.email, "retry_after": retry_after},
+            extra={"email": _mask_email(body.email), "retry_after": retry_after},
         )
         incr(
             "auth.magic_link.rate_limited",

@@ -618,11 +618,14 @@ class AuthMiddleware:
     ) -> None:
         """Handle blocked request."""
         client_ip = self._get_client_ip(request)
-        user_agent = request.headers.get("user-agent", "")
+        from packages.backend.domain.masking import mask_ip
 
-        # Log the blocked request
+        # Log the blocked request (mask IP to avoid PII)
         logger.warning(
-            f"Blocked request: {reason} - {details} - IP: {client_ip} - UA: {user_agent}"
+            "Blocked request: %s - %s",
+            reason,
+            details,
+            extra={"ip_hash": mask_ip(client_ip), "reason": reason},
         )
 
         # Update statistics

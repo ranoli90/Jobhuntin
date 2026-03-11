@@ -6,8 +6,16 @@ can identify records without seeing full PII.
 
 from __future__ import annotations
 
+import hashlib
 import re
 from typing import Any
+
+
+def mask_ip(ip: str) -> str:
+    """Hash IP for logs/metrics to avoid PII. Returns first 16 chars of SHA256 hex."""
+    if not ip or ip == "unknown":
+        return "unknown"
+    return hashlib.sha256(ip.encode()).hexdigest()[:16]
 
 
 def mask_email(email: str) -> str:

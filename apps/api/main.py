@@ -57,6 +57,7 @@ from packages.backend.domain.repositories import (
     JobRepo,
     db_transaction,
 )
+from packages.backend.domain.masking import mask_ip
 from packages.backend.domain.resume import process_resume_upload
 from packages.backend.domain.tenant import TenantContext, resolve_tenant_context
 from shared.config import Environment, get_settings
@@ -567,8 +568,6 @@ async def latency_middleware(request: Request, call_next):
         span.set_attribute("http.method", request.method)
         span.set_attribute("http.url", str(request.url))
         span.set_attribute("http.route", request.url.path)
-        if request.client:
-            span.set_attribute("http.client_ip", request.client.host)
 
     start_time = time.time()
     path = request.url.path
@@ -689,7 +688,7 @@ async def rate_limiting_middleware(request: Request, call_next):
             f"api:{client_ip}", max_calls=100, window_seconds=60
         )
         if not await ip_limiter.acquire():
-            incr("api.rate_limit_exceeded", tags={"client_ip": client_ip})
+            incr("api.rate_limit_exceeded", tags={"ip_hash": mask_ip(client_ip)})
             raise HTTPException(
                 status_code=429, detail="Rate limit exceeded. Please try again later."
             )
@@ -1598,7 +1597,7 @@ async def save_work_style(
     """Save user's work style profile."""
     logger.info(
         "[WORK_STYLE] Saving work style for user",
-        extra={"user_id": user_id, "data": body.model_dump()},
+        extra={"user_id": user_id},
     )
 
     # HIGH: Wrap multi-table updates in transaction to ensure atomicity
@@ -1775,6 +1774,11 @@ async def resume_parse(
         raise HTTPException(status_code=400, detail="File type not allowed")
     scan_result = await scan_uploaded_file(pdf_bytes, filename)
     if not scan_result.clean:
+        logger.warning(
+            "[RESUME] Virus scan failed",
+            extra={"tenant_id": ctx.tenant_id, "filename": filename[:50]},
+        )
+        incr("api.resume_parse.virus_scan_failed", tags={"tenant_id": ctx.tenant_id})
         raise HTTPException(
             status_code=400,
             detail="File security scan failed. Please upload a different file.",
@@ -1790,6 +1794,7 @@ async def resume_parse(
         storage=get_storage_service(),
     )
 
+    incr("api.resume_parse.success", tags={"tenant_id": ctx.tenant_id})
     return ResumeParseResponse(
         user_id=user_id,
         profile=CanonicalProfile.model_validate(canonical_dict),
@@ -1815,11 +1820,28 @@ async def resume_task(
             conn, body.application_id, ctx.user_id, tenant_id=ctx.tenant_id
         )
     if app_row is None:
+        logger.info(
+            "[RESUME_TASK] Application not found",
+            extra={"application_id": body.application_id, "tenant_id": ctx.tenant_id},
+        )
+        incr("api.resume_task.not_found", tags={"tenant_id": ctx.tenant_id})
         raise HTTPException(
             status_code=404, detail="Application not found or not owned by user"
         )
 
     if app_row["status"] not in ("REQUIRES_INPUT",):
+        logger.info(
+            "[RESUME_TASK] Status conflict",
+            extra={
+                "application_id": body.application_id,
+                "status": app_row["status"],
+                "tenant_id": ctx.tenant_id,
+            },
+        )
+        incr(
+            "api.resume_task.status_conflict",
+            tags={"status": app_row["status"], "tenant_id": ctx.tenant_id},
+        )
         raise HTTPException(
             status_code=409,
             detail=f"Application status is '{app_row['status']}', expected REQUIRES_INPUT",
@@ -1883,6 +1905,7 @@ async def resume_task(
     # Optional: nudge (no-op with polling; placeholder for pg_notify)
     background_tasks.add_task(_nudge_worker, body.application_id)
 
+    incr("api.resume_task.success", tags={"tenant_id": ctx.tenant_id})
     return ResumeTaskResponse(
         application_id=body.application_id,
         status=str(updated["status"]),

@@ -5,6 +5,7 @@ import httpx
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
 from PIL import Image, ImageDraw, ImageFont
 
+from packages.backend.domain.masking import mask_ip
 from shared.logging_config import get_logger
 from shared.metrics import get_rate_limiter
 from shared.middleware import get_client_ip
@@ -104,7 +105,8 @@ async def generate_og_image(
     # Require authentication - only authenticated users can generate OG images
     if not ctx.user_id:
         logger.warning(
-            f"[OG] Unauthorized OG image generation attempt from IP: {get_client_ip(request)}"
+            "[OG] Unauthorized OG image generation attempt",
+            extra={"ip_hash": mask_ip(get_client_ip(request))},
         )
         raise HTTPException(status_code=401, detail="Authentication required")
 
