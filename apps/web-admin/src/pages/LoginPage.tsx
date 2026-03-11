@@ -20,12 +20,24 @@ export default function LoginPage() {
       });
       if (!resp.ok) {
         const data = await resp.json().catch(() => ({}));
-        setError(data.detail || "Login failed");
+        const detail = data?.detail;
+        const msg =
+          typeof detail === "string"
+            ? detail
+            : Array.isArray(detail)
+              ? detail[0]?.msg ?? detail.join(", ")
+              : "Login failed";
+        setError(msg || "Login failed");
         return;
       }
       const data = await resp.json();
+      const token = data?.token;
+      if (!token || typeof token !== "string") {
+        setError("Invalid login response");
+        return;
+      }
       try {
-        sessionStorage.setItem("auth_token", data.token);
+        sessionStorage.setItem("auth_token", token);
       } catch {
         setError("Could not save session. Try disabling private browsing.");
         return;

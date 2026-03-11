@@ -65,7 +65,7 @@ const OAuthHandler: React.FC = () => {
 
       if (!response.ok) throw new Error('Failed to fetch providers');
       const data = await response.json();
-      setProviders(data.providers);
+      setProviders(Array.isArray(data?.providers) ? data.providers : []);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch providers');
     } finally {
@@ -134,9 +134,11 @@ const OAuthHandler: React.FC = () => {
 
       if (!response.ok) throw new Error('Failed to initiate OAuth flow');
       const data = await response.json();
-      
-      // In a real implementation, this would redirect to the auth URL
-      window.open(data.authorization_url, '_blank');
+      const authUrl = data?.authorization_url;
+      if (!authUrl || typeof authUrl !== 'string') {
+        throw new Error('Invalid OAuth response: missing authorization URL');
+      }
+      window.open(authUrl, '_blank');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to initiate OAuth flow');
     }

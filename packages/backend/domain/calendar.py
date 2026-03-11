@@ -166,13 +166,15 @@ class GoogleCalendarClient:
                 if resp.status_code in (200, 201):
                     data = resp.json()
                     incr("calendar.google.event_created")
+                    entry_points = (
+                        data.get("conferenceData", {}).get("entryPoints") or [{}]
+                    )
+                    conf_uri = entry_points[0].get("uri") if entry_points else None
                     return {
                         "success": True,
                         "event_id": data["id"],
                         "html_link": data.get("htmlLink"),
-                        "conference_url": data.get("conferenceData", {})
-                        .get("entryPoints", [{}])[0]
-                        .get("uri"),
+                        "conference_url": conf_uri,
                     }
                 return {"success": False, "error": resp.text[:200]}
         except Exception as e:

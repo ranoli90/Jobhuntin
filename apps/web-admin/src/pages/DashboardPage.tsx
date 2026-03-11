@@ -46,6 +46,8 @@ export default function DashboardPage() {
   if (!team) return <p className="text-red-400">Could not load team data.</p>;
 
   const t = team.tenant;
+  const members = team.members ?? [];
+  if (!t) return <p className="text-red-400">Invalid team data.</p>;
 
   return (
     <div className="space-y-6">
@@ -90,7 +92,7 @@ export default function DashboardPage() {
             </tr>
           </thead>
           <tbody>
-            {team.members.map((m) => (
+            {members.map((m) => (
               <tr key={m.user_id} className="border-b border-border/50">
                 <td className="py-2">
                   <div className="font-medium">{m.name || m.email}</div>

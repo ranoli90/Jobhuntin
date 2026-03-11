@@ -68,7 +68,7 @@ export const DLQDashboard: React.FC<DLQDashboardProps> = ({ tenantId, isAdmin = 
       });
       if (!dlqResponse.ok) throw new Error('Failed to fetch DLQ items');
       const dlqData = await dlqResponse.json();
-      setDLQItems(dlqData);
+      setDLQItems(Array.isArray(dlqData) ? dlqData : (dlqData?.items ?? []));
 
       // Fetch concurrent usage
       const concurrentResponse = await fetch('/api/admin/dlq/concurrent-usage', {
@@ -78,6 +78,10 @@ export const DLQDashboard: React.FC<DLQDashboardProps> = ({ tenantId, isAdmin = 
       });
       if (!concurrentResponse.ok) throw new Error('Failed to fetch concurrent usage');
       const concurrentData = await concurrentResponse.json();
+      const sessions = Array.isArray(concurrentData)
+        ? concurrentData
+        : (concurrentData?.sessions ?? concurrentData?.active_tasks ?? []);
+      setConcurrentSessions(sessions);
 
       // Fetch stats
       const statsResponse = await fetch('/api/admin/dlq/stats', {
@@ -89,13 +93,13 @@ export const DLQDashboard: React.FC<DLQDashboardProps> = ({ tenantId, isAdmin = 
       const statsData = await statsResponse.json();
 
       setStats({
-        totalDLQItems: statsData.total_items || 0,
-        pendingItems: statsData.pending_count || 0,
-        retryingItems: statsData.retrying_count || 0,
-        failedItems: statsData.failed_count || 0,
-        activeSessions: concurrentData.total_active || 0,
-        maxConcurrent: concurrentData.max_concurrent || 10,
-        currentConcurrent: concurrentData.total_active || 0,
+        totalDLQItems: statsData?.total_items ?? 0,
+        pendingItems: statsData?.pending_count ?? 0,
+        retryingItems: statsData?.retrying_count ?? 0,
+        failedItems: statsData?.failed_count ?? 0,
+        activeSessions: concurrentData?.total_active ?? sessions?.length ?? 0,
+        maxConcurrent: concurrentData?.max_concurrent ?? 10,
+        currentConcurrent: concurrentData?.total_active ?? sessions?.length ?? 0,
       });
       consecutiveErrorsRef.current = 0;
       return true;

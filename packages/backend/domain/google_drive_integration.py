@@ -87,7 +87,9 @@ class GoogleDriveClient:
             files = data.get("files", [])
 
             if files:
-                return files[0]["id"]
+                fid = files[0].get("id") if isinstance(files[0], dict) else None
+                if fid:
+                    return fid
 
             folder_metadata = {
                 "name": folder_name,
