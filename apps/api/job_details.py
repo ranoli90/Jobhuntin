@@ -8,6 +8,7 @@ from pydantic import BaseModel, Field
 from backend.domain.repositories import JobRepo
 from backend.domain.tenant import TenantContext
 from shared.logging_config import get_logger
+from shared.sql_utils import escape_ilike
 
 logger = get_logger("sorce.job_details")
 
@@ -263,7 +264,15 @@ async def list_jobs(
             if filters:
                 if "location" in filters and filters.get("location"):
                     count_query += f" AND j.location ILIKE ${count_param_index}"
-                    count_params.append(f"%{filters['location']}%")
+                    count_params.append(f"%{escape_ilike(filters['location'])}%")
+                    count_param_index += 1
+                if "keywords" in filters and filters.get("keywords"):
+                    count_query += f" AND (j.title ILIKE ${count_param_index} OR j.description ILIKE ${count_param_index} OR j.company ILIKE ${count_param_index})"
+                    count_params.append(f"%{escape_ilike(filters['keywords'])}%")
+                    count_param_index += 1
+                if "company_name" in filters and filters.get("company_name"):
+                    count_query += f" AND j.company ILIKE ${count_param_index}"
+                    count_params.append(f"%{escape_ilike(filters['company_name'])}%")
                     count_param_index += 1
                 if "remote" in filters and filters.get("remote") is not None:
                     count_query += f" AND j.remote = ${count_param_index}"
@@ -349,7 +358,7 @@ async def search_jobs(
                 WHERE is_active = true
                     AND (title ILIKE $1 OR description ILIKE $1 OR company ILIKE $1)
             """
-            total_result = await conn.fetchrow(count_query, f"%{q}%")
+            total_result = await conn.fetchrow(count_query, f"%{escape_ilike(q)}%")
             total_count = total_result["total"]
 
             logger.info(
@@ -409,7 +418,7 @@ async def get_company_jobs(
                 FROM public.jobs
                 WHERE is_active = true AND company ILIKE $1
             """
-            total_result = await conn.fetchrow(count_query, f"%{company_name}%")
+            total_result = await conn.fetchrow(count_query, f"%{escape_ilike(company_name)}%")
             total_count = total_result["total"]
 
             logger.info(

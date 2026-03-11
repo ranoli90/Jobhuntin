@@ -394,9 +394,9 @@ async def get_tenant_audit_log(
                 )
             require_role(ctx, "OWNER", "ADMIN", "COMPLIANCE_OFFICER")
 
-        escaped_action = (
-            action.replace("%", "\\%").replace("_", "\\_") if action else None
-        )
+        from shared.sql_utils import escape_ilike
+
+        escaped_action = escape_ilike(action) if action else None
         rows = await conn.fetch(
             """
             SELECT id, user_id, action, resource, resource_id, details,

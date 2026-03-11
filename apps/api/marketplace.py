@@ -16,6 +16,7 @@ from backend.domain.audit import record_audit_event
 from backend.domain.tenant import TenantContext, TenantScopeError, require_system_admin
 from shared.logging_config import get_logger
 from shared.metrics import incr
+from shared.sql_utils import escape_ilike
 
 logger = get_logger("sorce.api.marketplace")
 
@@ -107,7 +108,7 @@ async def list_blueprints(
     if search:
         idx += 1
         base += f" AND (name ILIKE ${idx} OR description ILIKE ${idx})"
-        params.append(f"%{search}%")
+        params.append(f"%{escape_ilike(search)}%")
     if featured:
         base += " AND is_featured = true"
 

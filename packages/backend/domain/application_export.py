@@ -22,6 +22,7 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
 from shared.logging_config import get_logger
+from shared.sql_utils import escape_ilike
 
 logger = get_logger("sorce.application_export")
 
@@ -172,7 +173,7 @@ class ApplicationExportManager:
 
                 if "company" in config.filters:
                     query += f" AND a.company ILIKE ${param_idx}"
-                    params.append(f"%{config.filters['company']}%")
+                    params.append(f"%{escape_ilike(config.filters['company'])}%")
                     param_idx += 1
 
                 if "date_from" in config.filters:

@@ -19,6 +19,7 @@ from packages.backend.domain.models import (
     ApplicationEvent,
     ApplicationInput,
 )
+from shared.sql_utils import escape_ilike
 
 # ---------------------------------------------------------------------------
 # Transaction helper
@@ -582,8 +583,23 @@ class JobRepo:
             if "location" in filters:
                 location_value = filters["location"]
                 if location_value:
-                    params.append(f"%{location_value}%")
+                    params.append(f"%{escape_ilike(location_value)}%")
                     conditions.append("j.location ILIKE ${" + str(len(params)) + "}")
+
+            if "keywords" in filters:
+                keywords_value = filters["keywords"]
+                if keywords_value:
+                    params.append(f"%{escape_ilike(keywords_value)}%")
+                    n = len(params)
+                    conditions.append(
+                        "(j.title ILIKE ${" + str(n) + "} OR j.description ILIKE ${" + str(n) + "} OR j.company ILIKE ${" + str(n) + "})"
+                    )
+
+            if "company_name" in filters:
+                company_value = filters["company_name"]
+                if company_value:
+                    params.append(f"%{escape_ilike(company_value)}%")
+                    conditions.append("j.company ILIKE ${" + str(len(params)) + "}")
 
             if "remote" in filters:
                 remote_value = filters["remote"]

@@ -16,13 +16,9 @@ from typing import Any, Dict, List, Optional
 from pydantic import BaseModel
 
 from shared.logging_config import get_logger
+from shared.sql_utils import escape_ilike
 
 logger = get_logger("sorce.pipeline")
-
-
-def _escape_ilike(s: str) -> str:
-    """Escape %, _, and \\ for safe use in ILIKE patterns."""
-    return s.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
 
 # Pipeline stages configuration
 PIPELINE_STAGES = [
@@ -194,7 +190,7 @@ class ApplicationPipelineManager:
                     params.append(filters["status"])
                 if "company" in filters:
                     query += " AND a.company ILIKE $%d" % (len(params) + 1)
-                    params.append(f"%{_escape_ilike(filters['company'])}%")
+                    params.append(f"%{escape_ilike(filters['company'])}%")
                 if "priority" in filters:
                     query += " AND a.priority = $%d" % (len(params) + 1)
                     params.append(filters["priority"])

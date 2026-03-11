@@ -16,6 +16,7 @@ from backend.domain.audit import record_audit_event
 from backend.domain.repositories import db_transaction
 from backend.domain.tenant import TenantContext, TenantScopeError, require_role
 from shared.logging_config import get_logger
+from shared.sql_utils import escape_ilike
 from shared.metrics import incr
 
 logger = get_logger("sorce.api.bulk")
@@ -167,10 +168,10 @@ async def start_campaign(
         """
         params: list[Any] = [ctx.tenant_id]
         if title_filter:
-            params.append(f"%{title_filter}%")
+            params.append(f"%{escape_ilike(title_filter)}%")
             query += f" AND title ILIKE ${len(params)}"
         if location_filter:
-            params.append(f"%{location_filter}%")
+            params.append(f"%{escape_ilike(location_filter)}%")
             query += f" AND location ILIKE ${len(params)}"
         query += " LIMIT 500"
 
@@ -199,8 +200,8 @@ async def start_campaign(
                     $1, id, $3, $4, 'QUEUED', $5
                 FROM public.jobs
                 WHERE (tenant_id = $3 OR tenant_id IS NULL)
-                  AND ($6::text IS NULL OR title ILIKE '%' || $6 || '%')
-                  AND ($7::text IS NULL OR location ILIKE '%' || $7 || '%')
+                  AND ($6::text IS NULL OR title ILIKE $6)
+                  AND ($7::text IS NULL OR location ILIKE $7)
                 LIMIT 500
                 ON CONFLICT DO NOTHING
                 """,
@@ -209,8 +210,8 @@ async def start_campaign(
                 ctx.tenant_id,  # $3
                 blueprint_key,  # $4
                 priority,  # $5
-                title_filter or None,  # $6
-                location_filter or None,  # $7
+                f"%{escape_ilike(title_filter)}%" if title_filter else None,  # $6
+                f"%{escape_ilike(location_filter)}%" if location_filter else None,  # $7
             )
 
             # Update campaign
