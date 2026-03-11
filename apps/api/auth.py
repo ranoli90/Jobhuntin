@@ -1131,10 +1131,11 @@ async def logout(
     is_prod = settings.env.value in ("prod", "staging")
     redirect_url = f"{_get_login_base_url(settings)}/login"
     response = RedirectResponse(url=redirect_url, status_code=302)
-    # SECURITY: Use same partitioned attribute as set_cookie for proper deletion
+    # SECURITY: Use same attributes as set_cookie for proper deletion (path, httponly, domain)
     cookie_kwargs: Dict[str, Any] = dict(
         key=AUTH_COOKIE_NAME,
         path="/",
+        httponly=True,
         samesite="none" if is_prod else "lax",
         secure=is_prod,
     )

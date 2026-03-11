@@ -143,12 +143,15 @@ def setup_csrf_middleware(app, secret: str) -> None:
     # Secure=True is ONLY allowed over HTTPS. In local dev, it must be False.
     cookie_secure = is_prod or (s.app_base_url and s.app_base_url.startswith("https"))
 
+    # cookie_httponly=False: double-submit pattern requires JS to read token for header
     app.add_middleware(
         CSRFForCORSMiddleware,
         secret=secret,
         cookie_name="csrftoken",
         cookie_secure=cookie_secure,
+        cookie_httponly=False,
         cookie_samesite="none" if is_cross_origin else "lax",
+        cookie_path="/",
         exempt_urls=exempt_patterns,
     )
     logger.info(

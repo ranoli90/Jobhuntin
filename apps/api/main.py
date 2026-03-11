@@ -349,7 +349,7 @@ from shared.tenant_rate_limit import TenantTier, get_tenant_rate_limiter
 
 def _is_exempt_path(path: str) -> bool:
     """Check if the request path is exempt from rate limiting."""
-    exempt_paths = ["/health", "/healthz"]
+    exempt_paths = {"/health", "/healthz", "/csrf/prepare"}
     return path in exempt_paths or path.startswith("/static")
 
 
