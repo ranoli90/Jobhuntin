@@ -26,6 +26,16 @@ export function useKeyboardShortcuts(
     (event: KeyboardEvent) => {
       if (!enabled) return;
 
+      const el = document.activeElement;
+      if (
+        el &&
+        (el.tagName === "INPUT" ||
+          el.tagName === "TEXTAREA" ||
+          el.getAttribute("contenteditable") === "true")
+      ) {
+        return;
+      }
+
       for (const shortcut of shortcuts) {
         const keyMatch =
           event.key === shortcut.key ||

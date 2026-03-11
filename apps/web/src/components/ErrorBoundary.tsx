@@ -17,6 +17,7 @@ interface ErrorBoundaryState {
   hasError: boolean;
   error: Error | null;
   errorInfo: React.ErrorInfo | null;
+  errorId: string | null;
 }
 
 export class ErrorBoundary extends React.Component<
@@ -25,15 +26,20 @@ export class ErrorBoundary extends React.Component<
 > {
   constructor(properties: ErrorBoundaryProperties) {
     super(properties);
-    this.state = { hasError: false, error: null, errorInfo: null };
+    this.state = { hasError: false, error: null, errorInfo: null, errorId: null };
   }
 
   static getDerivedStateFromError(error: Error): Partial<ErrorBoundaryState> {
-    return { hasError: true, error };
+    const errorId =
+      Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+    return { hasError: true, error, errorId };
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    this.setState({ error, errorInfo });
+    const errorId =
+      this.state.errorId ??
+      Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+    this.setState({ error, errorInfo, errorId });
 
     // Log error to console for debugging - ALWAYS log, not just in DEV
     console.error("[ErrorBoundary] Caught error:", error);
@@ -124,6 +130,7 @@ export class ErrorBoundary extends React.Component<
                     hasError: false,
                     error: null,
                     errorInfo: null,
+                    errorId: null,
                   })
                 }
                 className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-medium"
@@ -131,7 +138,11 @@ export class ErrorBoundary extends React.Component<
                 Try again
               </button>
               <a
-                href="mailto:support@jobhuntin.com?subject=Error%20Report"
+                href={`mailto:support@jobhuntin.com?subject=${encodeURIComponent(
+                  `Error Report [${this.state.errorId ?? "unknown"}]`,
+                )}&body=${encodeURIComponent(
+                  `Error ID: ${this.state.errorId ?? "unknown"}\n\nPlease describe what you were doing when this error occurred.`,
+                )}`}
                 className="px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors font-medium text-center"
               >
                 Report issue

@@ -24,6 +24,8 @@ export default function BulkCampaignsPage() {
   const [title, setTitle] = useState("");
   const [location, setLocation] = useState("");
   const [creating, setCreating] = useState(false);
+  const [startingId, setStartingId] = useState<string | null>(null);
+  const [startError, setStartError] = useState<string | null>(null);
 
   const load = async () => {
     try {
@@ -50,8 +52,17 @@ export default function BulkCampaignsPage() {
   };
 
   const handleStart = async (id: string) => {
-    await apiRequest("POST", `/bulk/campaigns/${id}/start`);
-    load();
+    setStartingId(id);
+    setStartError(null);
+    try {
+      await apiRequest("POST", `/bulk/campaigns/${id}/start`);
+      load();
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      setStartError(msg);
+    } finally {
+      setStartingId(null);
+    }
   };
 
   const statusColor = (s: string) => {
@@ -109,6 +120,12 @@ export default function BulkCampaignsPage() {
         </div>
       )}
 
+      {startError && (
+        <div className="bg-destructive/10 border border-destructive/30 text-destructive px-4 py-3 rounded-lg text-sm">
+          {startError}
+        </div>
+      )}
+
       <div className="bg-card border border-border rounded-lg overflow-hidden">
         <table className="w-full text-sm">
           <thead>
@@ -146,8 +163,13 @@ export default function BulkCampaignsPage() {
                 <td className="px-4 py-3 text-right text-red-400">{c.failed}</td>
                 <td className="px-4 py-3 text-right">
                   {c.status === "draft" && (
-                    <button onClick={() => handleStart(c.id)}
-                      className="text-xs text-primary hover:underline">Start</button>
+                    <button
+                      onClick={() => handleStart(c.id)}
+                      disabled={startingId !== null}
+                      className="text-xs text-primary hover:underline disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {startingId === c.id ? "Starting..." : "Start"}
+                    </button>
                   )}
                   {c.status === "running" && (
                     <span className="text-xs text-blue-400">In progress...</span>
