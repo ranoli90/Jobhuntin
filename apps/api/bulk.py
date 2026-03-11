@@ -16,8 +16,8 @@ from backend.domain.audit import record_audit_event
 from backend.domain.repositories import db_transaction
 from backend.domain.tenant import TenantContext, TenantScopeError, require_role
 from shared.logging_config import get_logger
-from shared.sql_utils import escape_ilike
 from shared.metrics import incr
+from shared.sql_utils import escape_ilike
 
 logger = get_logger("sorce.api.bulk")
 

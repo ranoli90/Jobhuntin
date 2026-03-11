@@ -11,9 +11,9 @@ from fastapi import APIRouter, Depends, Header, HTTPException
 from pydantic import BaseModel, Field
 
 from packages.backend.domain.oauth_handler import OAuthHandler, create_oauth_handler
-from shared.redirect_validation import validate_oauth_redirect_uri
 from packages.backend.domain.tenant import TenantContext
 from shared.logging_config import get_logger
+from shared.redirect_validation import validate_oauth_redirect_uri
 
 logger = get_logger("sorce.oauth")
 router = APIRouter(prefix="/oauth", tags=["oauth"])

@@ -18,9 +18,9 @@ from fastapi.responses import JSONResponse, RedirectResponse
 from pydantic import BaseModel, EmailStr, Field
 
 from backend.domain.session_manager import SessionManager
+from packages.backend.domain.masking import mask_ip
 from shared.config import Settings, settings_dependency
 from shared.logging_config import get_logger
-from packages.backend.domain.masking import mask_ip
 from shared.metrics import RateLimiter, get_rate_limiter, incr
 from shared.middleware import get_client_ip
 from shared.repo_root import find_repo_root

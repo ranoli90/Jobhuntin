@@ -20,10 +20,10 @@ Key endpoints:
 
 from typing import Any, Dict, List, Optional
 
+import asyncpg
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
-import asyncpg
 from backend.domain.resume_agent_integration import get_resume_agent_integration
 from backend.domain.tenant import TenantContext
 from shared.logging_config import get_logger

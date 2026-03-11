@@ -49,6 +49,7 @@ from packages.backend.domain.analytics_events import (
     APPLICATION_STATUS_CHANGED,
     emit_analytics_event,
 )
+from packages.backend.domain.masking import mask_ip
 from packages.backend.domain.models import CanonicalProfile
 from packages.backend.domain.repositories import (
     ApplicationRepo,
@@ -57,7 +58,6 @@ from packages.backend.domain.repositories import (
     JobRepo,
     db_transaction,
 )
-from packages.backend.domain.masking import mask_ip
 from packages.backend.domain.resume import process_resume_upload
 from packages.backend.domain.tenant import TenantContext, resolve_tenant_context
 from shared.config import Environment, get_settings
@@ -1298,7 +1298,6 @@ class AnswerItem(BaseModel):
     def sanitize_answer(cls, v: str) -> str:
         """MEDIUM: Sanitize HTML and prompt injection in user input."""
         from packages.backend.domain.sanitization import sanitize_text_input
-
         from shared.ai_validation import sanitize_for_ai
 
         v = sanitize_text_input(v, max_length=5000)
@@ -2147,7 +2146,7 @@ async def serve_storage_file(
         raise HTTPException(status_code=400, detail="Invalid path")
     except FileNotFoundError:
         raise HTTPException(status_code=404, detail="File not found")
-    except Exception as e:
+    except Exception:
         logger.exception("Storage download failed for %s", storage_path)
         raise HTTPException(status_code=500, detail="Failed to retrieve file")
 

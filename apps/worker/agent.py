@@ -24,10 +24,12 @@ from playwright.async_api import BrowserContext, Page, async_playwright
 
 from packages.backend.blueprints.registry import get_blueprint, load_default_blueprints
 from packages.backend.domain.ats_handlers import (
-    detect_ats_platform,
-    detect_captcha as detect_captcha_ats,
-    get_handler,
     ATSPlatform,
+    detect_ats_platform,
+    get_handler,
+)
+from packages.backend.domain.ats_handlers import (
+    detect_captcha as detect_captcha_ats,
 )
 
 # CAPTCHA types we cannot solve; escalate to user immediately

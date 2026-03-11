@@ -13,15 +13,14 @@ from datetime import datetime
 from functools import partial
 from typing import Any
 
-from shared.config import get_settings
-from shared.logging_config import get_logger
-from shared.metrics import incr, observe, RateLimiter
-
 from backend.domain.proxy_fetcher import (
     fetch_free_proxy,
     get_random_user_agent,
     normalize_proxy_url,
 )
+from shared.config import get_settings
+from shared.logging_config import get_logger
+from shared.metrics import RateLimiter, incr, observe
 
 logger = get_logger("sorce.jobspy")
 

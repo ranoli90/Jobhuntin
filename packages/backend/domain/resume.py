@@ -314,7 +314,7 @@ async def upload_to_supabase_storage(
                 resp = await client.post(url, content=data, headers=headers)
                 resp.raise_for_status()
                 return f"{bucket}/{path}"
-        except (httpx.TimeoutException, httpx.ConnectError) as e:
+        except (httpx.TimeoutException, httpx.ConnectError):
             if attempt < max_retries:
                 await asyncio.sleep(1.0 * (2**attempt))
             else:

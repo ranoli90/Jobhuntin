@@ -1766,10 +1766,8 @@ async def upload_avatar(
         b"\x89PNG\r\n\x1a\n": "PNG",
         b"RIFF": "WEBP",  # WEBP: RIFF....WEBP at offset 8
     }
-    valid = (
-        data.startswith(b"\xff\xd8\xff")
-        or data.startswith(b"\x89PNG\r\n\x1a\n")
-        or (len(data) >= 12 and data[:4] == b"RIFF" and data[8:12] == b"WEBP")
+    valid = any(data.startswith(m) for m in avatar_magic if m != b"RIFF") or (
+        len(data) >= 12 and data[:4] == b"RIFF" and data[8:12] == b"WEBP"
     )
     if not valid:
         raise HTTPException(

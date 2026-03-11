@@ -261,7 +261,7 @@ class OAuthHandler:
                         logger.error("OAuth user info failed after retries: %s", e)
                         raise HTTPException(
                             status_code=504,
-                            detail=f"OAuth provider temporarily unavailable",
+                            detail="OAuth provider temporarily unavailable",
                         ) from e
 
             user_info = OAuthUserInfo(

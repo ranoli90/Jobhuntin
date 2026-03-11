@@ -8,7 +8,6 @@ Supports kill-after-1-use: each fetch returns a fresh proxy.
 
 from __future__ import annotations
 
-import asyncio
 import random
 from typing import Any
 

@@ -623,6 +623,7 @@ class AuthMiddleware:
     ) -> None:
         """Handle blocked request."""
         client_ip = self._get_client_ip(request)
+        user_agent = request.headers.get("user-agent", "")
         from packages.backend.domain.masking import mask_ip
 
         # Log the blocked request (mask IP to avoid PII)
