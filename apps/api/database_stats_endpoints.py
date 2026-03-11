@@ -2,6 +2,7 @@
 Database Statistics Endpoints for Phase 15.1 Database & Performance
 """
 
+import re
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
@@ -575,6 +576,9 @@ async def get_lock_status(
         )
 
 
+_TABLE_NAME_RE = re.compile(r"^[a-zA-Z_][a-zA-Z0-9_]*$")
+
+
 @router.post("/vacuum-analyze")
 async def analyze_vacuum_requirements(
     table_name: Optional[str] = None,
@@ -586,6 +590,11 @@ async def analyze_vacuum_requirements(
 ) -> Dict[str, Any]:
     """Analyze VACUUM requirements and generate recommendations."""
     try:
+        if table_name is not None and not _TABLE_NAME_RE.match(table_name):
+            raise HTTPException(
+                status_code=400,
+                detail="Invalid table_name: must match ^[a-zA-Z_][a-zA-Z0-9_]*$",
+            )
         # Get VACUUM statistics
         vacuum_stats = await _get_vacuum_statistics(db_pool, table_name, analyze_all)
 
