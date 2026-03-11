@@ -1084,8 +1084,8 @@ async def get_profile(
                 )
                 if is_system_admin:
                     role = "superadmin"
-            except Exception:
-                pass
+            except Exception as e:
+                logger.debug("is_system_admin check failed (column may not exist): %s", e)
     except Exception as exc:
         logger.error(
             "[PROFILE] Database error fetching profile: %s", exc, exc_info=True

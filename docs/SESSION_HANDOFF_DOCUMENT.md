@@ -143,7 +143,17 @@ PYTHONPATH=apps:packages:. mypy apps/api/ apps/worker/ packages/backend/ shared/
 | 43 | No rate limiting on public endpoints | done (rate_limiting_middleware) |
 | 44 | No input sanitization libraries (XSS) | done (sanitize_text_input; added headline/bio) |
 
-### 3.6 Other
+### 3.6 Audit Findings (from subagent)
+| Area | File | Issue | Priority |
+|------|------|-------|----------|
+| Admin | dashboard.py | get_overview, get_metrics, get_config lacked auth | fixed |
+| API | application_pipeline.py | sort_order SQL injection; company ILIKE escape | fixed |
+| Auth | user.py | is_system_admin except pass → log | fixed |
+| Auth | test_ionos_api.py | Hardcoded IONOS_SECRET | TODO (remove or env) |
+| Worker | job_sync_service.py | Swallowed exceptions in cleanup | Medium |
+| Frontend | localStorage | QuotaExceededError handling | Low |
+
+### 3.7 Other
 | Area | Description |
 |------|-------------|
 | Mypy | ~351 errors remaining (pre-existing) |

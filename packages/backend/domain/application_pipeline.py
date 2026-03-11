@@ -19,6 +19,11 @@ from shared.logging_config import get_logger
 
 logger = get_logger("sorce.pipeline")
 
+
+def _escape_ilike(s: str) -> str:
+    """Escape %, _, and \\ for safe use in ILIKE patterns."""
+    return s.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+
 # Pipeline stages configuration
 PIPELINE_STAGES = [
     {
@@ -189,15 +194,16 @@ class ApplicationPipelineManager:
                     params.append(filters["status"])
                 if "company" in filters:
                     query += " AND a.company ILIKE $%d" % (len(params) + 1)
-                    params.append(f"%{filters['company']}%")
+                    params.append(f"%{_escape_ilike(filters['company'])}%")
                 if "priority" in filters:
                     query += " AND a.priority = $%d" % (len(params) + 1)
                     params.append(filters["priority"])
 
-            # Apply sorting
+            # Apply sorting (whitelist sort_order to prevent SQL injection)
             valid_sort_fields = ["last_activity", "created_at", "company", "priority"]
+            safe_order = sort_order.upper() if sort_order.upper() in ("ASC", "DESC") else "DESC"
             if sort_by in valid_sort_fields:
-                query += f" ORDER BY a.{sort_by} {sort_order.upper()}"
+                query += f" ORDER BY a.{sort_by} {safe_order}"
             else:
                 query += " ORDER BY a.last_activity DESC"
 

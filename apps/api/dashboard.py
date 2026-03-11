@@ -102,6 +102,7 @@ async def _get_admin_user_id():
 
 @router.get("/overview", response_model=HealthSummary)
 async def get_overview(
+    _admin: str = Depends(_get_admin_user_id),
     db: asyncpg.Pool = Depends(_get_pool),
 ) -> HealthSummary:
     """Get system health summary for dashboard."""
@@ -165,6 +166,7 @@ async def get_overview(
 
 @router.get("/metrics")
 async def get_metrics(
+    _admin: str = Depends(_get_admin_user_id),
     metric_type: str = Query("all", description="Type: all, endpoints, operations"),
     time_range: str = Query("1h", description="Time range: 1h, 6h, 24h, 7d"),
 ) -> dict[str, Any]:
@@ -200,6 +202,7 @@ async def get_metrics(
 
 @router.get("/alerts", response_model=list[AlertResponse])
 async def get_alerts(
+    _admin: str = Depends(_get_admin_user_id),
     status: str | None = Query(
         None, description="Filter by status: active, acknowledged, resolved"
     ),
@@ -402,7 +405,9 @@ async def get_performance_trends(
 
 
 @router.get("/config")
-async def get_dashboard_config() -> dict[str, Any]:
+async def get_dashboard_config(
+    _admin: str = Depends(_get_admin_user_id),
+) -> dict[str, Any]:
     """Get monitoring configuration for dashboard."""
     config = get_monitoring_config()
     return config.to_dict()
