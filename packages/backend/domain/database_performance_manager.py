@@ -1034,8 +1034,7 @@ class DatabasePerformanceManager:
                     "sql": f"CREATE INDEX CONCURRENTLY ON {optimization.target_table} (...)",
                 }
 
-            # For now, return placeholder - actual implementation would analyze table
-            # and create appropriate indexes
+            # Stub: Would analyze table and create appropriate indexes
             return {
                 "success": True,
                 "message": "Index optimization completed",
@@ -1060,8 +1059,7 @@ class DatabasePerformanceManager:
                     "query": optimization.target_query,
                 }
 
-            # For now, return placeholder - actual implementation would analyze
-            # and rewrite the query
+            # Stub: Would analyze and rewrite the query (EXPLAIN, hints)
             return {
                 "success": True,
                 "message": "Query optimization completed",
@@ -1117,8 +1115,7 @@ class DatabasePerformanceManager:
                     },
                 }
 
-            # For now, return placeholder - actual implementation would
-            # update PostgreSQL configuration
+            # Stub: Would update PostgreSQL configuration (ALTER SYSTEM, etc.)
             return {
                 "success": True,
                 "message": "Configuration optimization completed",

@@ -50,7 +50,7 @@ async def get_ltv_cac_estimate(conn: asyncpg.Connection) -> dict[str, Any]:
     """Estimate LTV:CAC ratio from available data.
 
     LTV = ARPU × gross margin / monthly churn rate
-    CAC approximated from marketing spend (hardcoded placeholder).
+    CAC approximated from marketing spend (stub: hardcoded placeholder).
     """
     # Current ARPU
     arpu_row = await conn.fetchrow(
@@ -88,7 +88,7 @@ async def get_ltv_cac_estimate(conn: asyncpg.Connection) -> dict[str, Any]:
 
     gross_margin = 0.85  # 85% assumed
     ltv = round(arpu * gross_margin / max(monthly_churn_rate, 0.01), 2)
-    cac = 150  # placeholder — would come from marketing spend tracking
+    cac = 150  # Stub: would come from marketing spend tracking
     ltv_cac_ratio = round(ltv / max(cac, 1), 2)
 
     return {

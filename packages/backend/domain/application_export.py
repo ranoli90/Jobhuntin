@@ -476,9 +476,14 @@ class ApplicationExportManager:
         config: ExportConfig,
         schedule: Dict[str, Any],
     ) -> str:
-        """Schedule recurring export."""
+        """Schedule recurring export.
 
-        # Placeholder for scheduled export functionality
+        Stub: Returns a synthetic export_id. Full implementation would:
+        - Persist schedule to DB (cron expression, timezone)
+        - Register with a scheduler (e.g. APScheduler, Celery Beat)
+        - Trigger export_run on schedule.
+        """
+        # Placeholder for scheduled export — not yet wired to a scheduler
         export_id = str(uuid.uuid4())
 
         logger.info(

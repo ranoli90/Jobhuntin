@@ -64,6 +64,15 @@ export default function JobsView() {
     [jobs, swipedJobs],
   );
 
+  // Limit visible jobs to prevent memory issues with large lists (>50)
+  const JOBS_RENDER_LIMIT = 50;
+  const [visibleCount, setVisibleCount] = useState(JOBS_RENDER_LIMIT);
+  const jobsToRender = useMemo(
+    () => visibleJobs.slice(0, visibleCount),
+    [visibleJobs, visibleCount],
+  );
+  const hasMoreJobs = visibleJobs.length > visibleCount;
+
   const handleSwipe = useCallback(
     async (jobId: string, action: "accept" | "reject") => {
       // CRITICAL: Use Set to prevent race conditions - multiple swipes can't pass check
@@ -222,7 +231,7 @@ export default function JobsView() {
     );
   }
 
-  const topJob = visibleJobs[0];
+  const topJob = jobsToRender[0];
 
   // HIGH: Add keyboard navigation for swiping (accessibility)
   React.useEffect(() => {
@@ -347,9 +356,9 @@ export default function JobsView() {
             <p className="text-sm font-medium text-brand-muted">Remaining</p>
             <p
               className="text-3xl font-bold"
-              aria-label={`${visibleJobs.length} jobs remaining`}
+              aria-label={`${jobsToRender.length} jobs remaining`}
             >
-              <AnimatedNumber value={visibleJobs.length} />
+              <AnimatedNumber value={jobsToRender.length} />
             </p>
           </Card>
         </div>
@@ -364,10 +373,10 @@ export default function JobsView() {
           role="region"
           aria-label="Job card stack"
         >
-          {/* MEDIUM: Limit visible jobs to prevent memory issues with large lists */}
-          {/* Note: Only render top 3 for card stack UI, but limit underlying array */}
-          {visibleJobs
-            .slice(0, Math.min(3, visibleJobs.length))
+          {/* MEDIUM: Limit visible jobs to prevent memory issues with large lists (>50) */}
+          {/* Only render top 3 for card stack UI; jobsToRender is sliced to visibleCount (default 50) */}
+          {jobsToRender
+            .slice(0, Math.min(3, jobsToRender.length))
             .map((job, index) => (
               <motion.div
                 key={job.id}
@@ -444,6 +453,20 @@ export default function JobsView() {
               </motion.div>
             ))}
         </div>
+        {hasMoreJobs && (
+          <div className="flex justify-center mt-4">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() =>
+                setVisibleCount((c) => c + JOBS_RENDER_LIMIT)
+              }
+              aria-label={`Load more jobs (${visibleJobs.length - visibleCount} remaining)`}
+            >
+              Load more ({visibleJobs.length - visibleCount} remaining)
+            </Button>
+          </div>
+        )}
       </section>
 
       <div

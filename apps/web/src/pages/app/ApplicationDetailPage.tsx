@@ -324,6 +324,7 @@ export default function ApplicationDetailPage() {
       )}
 
       {/* LOW: Display Application Events Timeline with visual timeline */}
+      {/* TODO: No separate me/applications/{id}/events API exists. Events come from GET applications/{id} (included in response). */}
       {data.events && data.events.length > 0 && (
         <Card className="p-6" shadow="sm">
           <div className="flex items-center gap-2 mb-4">

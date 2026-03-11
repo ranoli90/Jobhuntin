@@ -1521,8 +1521,7 @@ class IndexAnalyzer:
     async def _monitor_index_usage(self) -> None:
         """Monitor index usage and update statistics."""
         try:
-            # This would collect index usage statistics
-            # For now, it's a placeholder
+            # Stub: Would collect index usage statistics from pg_stat_user_indexes
             pass
 
         except Exception as e:
@@ -1531,8 +1530,7 @@ class IndexAnalyzer:
     async def _update_recommendations(self) -> None:
         """Update index recommendations based on current data."""
         try:
-            # This would update existing recommendations
-            # For now, it's a placeholder
+            # Stub: Would update existing recommendations based on usage data
             pass
 
         except Exception as e:
@@ -1541,8 +1539,7 @@ class IndexAnalyzer:
     async def _check_index_issues(self) -> None:
         """Check for index-related issues."""
         try:
-            # This would check for index fragmentation, bloat, etc.
-            # For now, it's a placeholder
+            # Stub: Would check for index fragmentation, bloat via pg_stat_user_tables
             pass
 
         except Exception as e:

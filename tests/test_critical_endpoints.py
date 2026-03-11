@@ -275,8 +275,14 @@ class TestErrorHandling:
         # Should have error code and message (C7 fix)
         assert "error" in data or "detail" in data
 
+    @pytest.mark.skip(
+        reason="Requires mocking endpoint to raise 500; API masks stack traces in prod"
+    )
     def test_500_error_format(self, client):
-        """Test that 500 errors don't leak stack traces."""
-        # This would require triggering an actual 500 error
-        # which is difficult in tests without mocking
-        pass  # TODO: Implement with proper error triggering
+        """Test that 500 errors don't leak stack traces.
+
+        Skipped: Triggering a real 500 would require injecting a failing dependency
+        or mocking an endpoint. The API uses standard exception handlers that
+        return generic error bodies in production.
+        """
+        pass

@@ -447,8 +447,7 @@ class ConnectionPoolManager:
 
     def _initialize_default_configs(self) -> None:
         """Initialize default pool configurations."""
-        # Note: These would be loaded from environment variables or config files
-        # For now, we'll create placeholder configs
+        # Stub: Would load from env vars or config files; placeholder configs for now
         pass
 
     def _build_connection_string(self, config: ConnectionPoolConfig) -> str:

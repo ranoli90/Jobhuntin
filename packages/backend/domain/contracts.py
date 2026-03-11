@@ -106,7 +106,7 @@ async def update_churn_risk_scores(conn: asyncpg.Connection) -> int:
     - Days since last activity (0-40 pts)
     - Usage decline trend (0-30 pts)
     - Contract expiry proximity (0-20 pts)
-    - Support ticket sentiment (0-10 pts, placeholder)
+    - Support ticket sentiment (0-10 pts, stub: placeholder)
     """
     result = await conn.execute(
         """

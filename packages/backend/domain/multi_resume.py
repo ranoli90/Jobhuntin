@@ -381,7 +381,7 @@ class MultiResumeManager:
             interview_rate = interviews / total_apps if total_apps > 0 else 0.0
 
             # Calculate offer rate (simplified - would need offer tracking)
-            offer_rate = interview_rate * 0.3  # Placeholder
+            offer_rate = interview_rate * 0.3  # Stub: placeholder until offer tracking exists
 
             # Calculate average response time
             response_times = []

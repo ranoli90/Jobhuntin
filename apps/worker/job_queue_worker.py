@@ -66,7 +66,7 @@ async def run_queue_loop() -> None:
     except Exception as e:
         logger.warning("Failed to register match score pre-computation handler: %s", e)
 
-    # Register placeholder handlers — extend as job types are added
+    # Placeholder handlers: noop until real implementations are added for each job type
     async def noop_handler(payload: dict) -> JobResult:
         logger.warning("No handler for job payload: %s", list(payload.keys()))
         return JobResult(success=True, result={"skipped": "no_handler"})

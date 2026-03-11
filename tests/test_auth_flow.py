@@ -189,11 +189,16 @@ class TestMagicLinkRequest:
 
         assert response.status_code == 422  # Validation error
 
+    @pytest.mark.skip(
+        reason="Requires mocking rate limiter state to simulate high request count"
+    )
     def test_magic_link_captcha_required(self, client, mock_redis):
-        """Test CAPTCHA requirement for high-risk scenarios."""
-        # This test would require mocking the rate limiter state
-        # to simulate high request count
-        pass  # TODO: Implement with proper mocking
+        """Test CAPTCHA requirement for high-risk scenarios.
+
+        Skipped: Would need to mock shared.rate_limit or Redis keys to simulate
+        exceeded rate limit, which triggers CAPTCHA requirement.
+        """
+        pass
 
 
 class TestMagicLinkVerification:
