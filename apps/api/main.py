@@ -307,6 +307,11 @@ async def api_versioning_middleware(request: Request, call_next):
 
     # Process request
     response = await call_next(request)
+    if response is None:
+        return JSONResponse(
+            status_code=500,
+            content={"error": {"code": "INTERNAL_SERVER_ERROR", "message": "No response"}},
+        )
 
     # Add API version headers to response (reflect actual version used)
     response.headers["X-API-Version"] = effective_version
@@ -349,7 +354,18 @@ from shared.tenant_rate_limit import TenantTier, get_tenant_rate_limiter
 
 def _is_exempt_path(path: str) -> bool:
     """Check if the request path is exempt from rate limiting."""
-    exempt_paths = {"/health", "/healthz", "/csrf/prepare"}
+    exempt_paths = {
+        "/health",
+        "/healthz",
+        "/csrf/prepare",
+        "/billing/tiers",
+        "/agent-improvements/health",
+        "/ai/llm/health",
+        "/auth/logout",  # Critical auth flow - must not be rate limited
+        "/openapi.json",  # Used by API discovery/tooling
+        "/docs",
+        "/redoc",
+    }
     return path in exempt_paths or path.startswith("/static")
 
 
@@ -414,13 +430,25 @@ async def idempotency_middleware(request: Request, call_next):
 
     # Only apply to write operations
     if request.method not in ["POST", "PUT", "PATCH"]:
-        return await call_next(request)
+        response = await call_next(request)
+        if response is None:
+            return JSONResponse(
+                status_code=500,
+                content={"error": {"code": "INTERNAL_SERVER_ERROR", "message": "No response"}},
+            )
+        return response
 
     idempotency_key = request.headers.get("Idempotency-Key")
     if not idempotency_key:
         # No idempotency key provided - proceed normally
         # (Optional: could require it for certain endpoints)
-        return await call_next(request)
+        response = await call_next(request)
+        if response is None:
+            return JSONResponse(
+                status_code=500,
+                content={"error": {"code": "INTERNAL_SERVER_ERROR", "message": "No response"}},
+            )
+        return response
 
     # Validate key format (UUID or alphanumeric, max 128 chars)
     if (
@@ -484,7 +512,13 @@ async def idempotency_middleware(request: Request, call_next):
                         logger.warning("Failed to parse cached idempotency response")
                         # Release lock and fall through
                         await r.delete(lock_key)
-                        return await call_next(request)
+                        response = await call_next(request)
+                        if response is None:
+                            return JSONResponse(
+                                status_code=500,
+                                content={"error": {"code": "INTERNAL_SERVER_ERROR", "message": "No response"}},
+                            )
+                        return response
                 # No cache yet, release lock and proceed (shouldn't happen but handle gracefully)
                 await r.delete(lock_key)
                 # Continue to process request normally - fall through to line 425
@@ -522,6 +556,12 @@ async def idempotency_middleware(request: Request, call_next):
             finally:
                 # Always release lock
                 await r.delete(lock_key)
+
+            if response is None:
+                return JSONResponse(
+                    status_code=500,
+                    content={"error": {"code": "INTERNAL_SERVER_ERROR", "message": "No response"}},
+                )
 
             # Cache successful responses (2xx status codes)
             if 200 <= response.status_code < 300:
@@ -562,14 +602,26 @@ async def idempotency_middleware(request: Request, call_next):
         except Exception as e:
             logger.warning("Idempotency check failed (Redis unavailable): %s", e)
             # Fail open - process request normally if Redis is down
-            return await call_next(request)
+            response = await call_next(request)
+            if response is None:
+                return JSONResponse(
+                    status_code=500,
+                    content={"error": {"code": "INTERNAL_SERVER_ERROR", "message": "No response"}},
+                )
+            return response
     else:
         # No Redis - can't provide idempotency (log warning in production)
         if _settings.env.value == "prod":
             logger.warning(
                 "Idempotency-Key provided but Redis not available - idempotency disabled"
             )
-        return await call_next(request)
+        response = await call_next(request)
+        if response is None:
+            return JSONResponse(
+                status_code=500,
+                content={"error": {"code": "INTERNAL_SERVER_ERROR", "message": "No response"}},
+            )
+        return response
 
 
 @app.middleware("http")
@@ -594,6 +646,12 @@ async def latency_middleware(request: Request, call_next):
 
     try:
         response = await call_next(request)
+        if response is None:
+            logger.warning("call_next returned None for path=%s", request.url.path)
+            return JSONResponse(
+                status_code=500,
+                content={"error": {"code": "INTERNAL_SERVER_ERROR", "message": "No response"}},
+            )
         duration = time.time() - start_time
 
         # M4: Add response attributes to span
@@ -680,7 +738,13 @@ async def latency_middleware(request: Request, call_next):
 async def rate_limiting_middleware(request: Request, call_next):
     """Tenant-aware rate limiting middleware for API endpoints."""
     if _is_exempt_path(request.url.path):
-        return await call_next(request)
+        response = await call_next(request)
+        if response is None:
+            return JSONResponse(
+                status_code=500,
+                content={"error": {"code": "INTERNAL_SERVER_ERROR", "message": "No response"}},
+            )
+        return response
 
     client_ip = get_client_ip(request)
     auth_header = request.headers.get("Authorization", "")
@@ -698,9 +762,14 @@ async def rate_limiting_middleware(request: Request, call_next):
                 "api.rate_limit_exceeded",
                 tags={"tenant_id": str(tenant_id), "endpoint": request.url.path},
             )
-            raise HTTPException(
+            return JSONResponse(
                 status_code=429,
-                detail=f"Rate limit exceeded. Limit: {metadata.get('limit', 'unknown')} requests/minute. Try again in {metadata.get('reset_in', 60)} seconds.",
+                content={
+                    "error": {
+                        "code": "RATE_LIMIT_EXCEEDED",
+                        "message": f"Rate limit exceeded. Limit: {metadata.get('limit', 'unknown')} requests/minute. Try again in {metadata.get('reset_in', 60)} seconds.",
+                    }
+                },
             )
     else:
         ip_limiter = get_rate_limiter(
@@ -708,11 +777,25 @@ async def rate_limiting_middleware(request: Request, call_next):
         )
         if not await ip_limiter.acquire():
             incr("api.rate_limit_exceeded", tags={"ip_hash": mask_ip(client_ip)})
-            raise HTTPException(
-                status_code=429, detail="Rate limit exceeded. Please try again later."
+            return JSONResponse(
+                status_code=429,
+                content={
+                    "error": {
+                        "code": "RATE_LIMIT_EXCEEDED",
+                        "message": "Rate limit exceeded. Please try again later.",
+                    }
+                },
             )
 
-    return await call_next(request)
+    response = await call_next(request)
+    # Guard: BaseHTTPMiddleware can receive None in edge cases; prevent crash
+    if response is None:
+        logger.warning("call_next returned None for path=%s", request.url.path)
+        return JSONResponse(
+            status_code=500,
+            content={"error": {"code": "INTERNAL_SERVER_ERROR", "message": "No response"}},
+        )
+    return response
 
 
 # ---------------------------------------------------------------------------
@@ -757,6 +840,10 @@ def _mount_sub_routers() -> None:
     Uses app.dependency_overrides so that Depends() references captured at
     route-definition time are correctly replaced at request time.
     """
+
+    async def _get_tenant_id_from_context(ctx=Depends(get_tenant_context)) -> str:
+        return str(ctx.tenant_id)
+
     import api.admin as admin_mod
 
     app.dependency_overrides[admin_mod._get_pool] = get_pool
@@ -932,6 +1019,7 @@ def _mount_sub_routers() -> None:
 
     app.dependency_overrides[ai_mod._get_pool] = get_pool
     app.dependency_overrides[ai_mod._get_user_id] = get_current_user_id
+    app.dependency_overrides[ai_mod._get_tenant_id] = _get_tenant_id_from_context
     app.include_router(ai_mod.router)
 
     import api.dashboard as dashboard_mod
@@ -994,9 +1082,6 @@ def _mount_sub_routers() -> None:
     app.include_router(saved_jobs_mod.router)
 
     import api.calendar_api as calendar_mod
-
-    async def _get_tenant_id_from_context(ctx=Depends(get_tenant_context)) -> str:
-        return str(ctx.tenant_id)
 
     app.dependency_overrides[calendar_mod._get_pool] = get_pool
     app.dependency_overrides[calendar_mod._get_user_id] = get_current_user_id
@@ -1674,7 +1759,7 @@ async def save_work_style(
         # MEDIUM: Add null check for user_id
         if not user_id:
             logger.warning("Cannot update completeness: user_id is None")
-            return
+            return {"status": "saved"}
 
         from packages.backend.domain.deep_profile import calculate_completeness
         from packages.backend.domain.profile_assembly import assemble_profile
@@ -2050,6 +2135,25 @@ async def get_application_detail(
 @app.get("/health")
 async def health() -> dict[str, str]:
     return {"status": "ok"}
+
+
+@app.get("/agent-improvements/health")
+async def agent_improvements_health() -> dict[str, Any]:
+    """Health check for agent improvements system. Defined in main to avoid middleware edge cases."""
+    return {
+        "status": "healthy",
+        "service": "agent_improvements",
+        "features": [
+            "button_detection",
+            "form_field_detection",
+            "oauth_handling",
+            "screenshot_capture",
+            "concurrent_usage_tracking",
+            "dlq_management",
+            "document_type_tracking",
+            "performance_metrics",
+        ],
+    }
 
 
 @app.get("/csrf/prepare")

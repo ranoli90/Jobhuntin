@@ -604,21 +604,5 @@ async def get_performance_metrics(
         )
 
 
-# Health check endpoint
-@router.get("/health")
-async def health_check() -> Dict[str, str]:
-    """Health check for agent improvements system."""
-    return {
-        "status": "healthy",
-        "service": "agent_improvements",
-        "features": [
-            "button_detection",
-            "form_field_detection",
-            "oauth_handling",
-            "screenshot_capture",
-            "concurrent_usage_tracking",
-            "dlq_management",
-            "document_type_tracking",
-            "performance_metrics",
-        ],
-    }
+# Health check: defined in api.main to avoid BaseHTTPMiddleware edge cases
+# (see agent_improvements_health in main.py)

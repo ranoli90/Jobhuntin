@@ -61,10 +61,8 @@ class PortalRequest(BaseModel):
 
 
 @router.get("/tiers")
-async def billing_tiers(
-    tenant_ctx: Any = Depends(get_tenant_context),
-) -> list[dict[str, Any]]:
-    """#24: Get billing tiers. Single source of truth for plan display."""
+async def billing_tiers() -> list[dict[str, Any]]:
+    """#24: Get billing tiers. Single source of truth for plan display. Public endpoint."""
     return BILLING_TIERS
 
 
@@ -82,9 +80,9 @@ async def billing_status(
             SELECT bc.provider_customer_id, bc.current_subscription_status,
                    bc.current_subscription_id, bc.current_period_end,
                    t.plan
-            FROM public.billing_customers bc
-            JOIN public.tenants t ON t.id = bc.tenant_id
-            WHERE bc.tenant_id = $1
+            FROM public.tenants t
+            LEFT JOIN public.billing_customers bc ON bc.tenant_id = t.id
+            WHERE t.id = $1
             """,
             tenant_ctx.tenant_id,
         )
