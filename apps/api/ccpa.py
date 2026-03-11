@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends
 
 from backend.domain.ccpa import CCPAComplianceManager
 
-router = APIRouter()
+router = APIRouter(prefix="/ccpa", tags=["CCPA Compliance"])
 
 
 @router.post("/data-access-request")

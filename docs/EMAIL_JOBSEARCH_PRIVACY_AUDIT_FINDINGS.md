@@ -29,17 +29,14 @@
 
 | ID | Audit | File:Line | Description | Status |
 |----|-------|-----------|-------------|--------|
-| COM-002 | Email | auth.py:1335-1370 | No Svix timestamp replay check | pending |
-| F005 | Job | semantic_matching.py:261-262 | IndexError when tech_skills empty | pending |
-| F006 | Job | vectordb.py:310-348 | PgVector fallback OOM on large tables | pending |
-| F007 | Job | job_search.py:196-197, 206-208 | ILIKE wildcard injection | pending |
-| F008 | Job | vectordb.py:420-424 | Pinecone sync API in async methods | pending |
-| F009 | Job | job_search.py:146-155 | recently_matched sort same as match_score | pending |
+| F006 | Job | vectordb.py:310-348 | PgVector fallback OOM on large tables | deferred |
+| F008 | Job | vectordb.py:420-424 | Pinecone sync API in async methods | deferred |
+| F009 | Job | job_search.py:146-155 | recently_matched sort same as match_score | deferred |
 | PRIV-004 | Privacy | ccpa.py | CCPA data access returns limited fields | pending |
 | PRIV-005 | Privacy | gdpr.py | GDPR export vs deletion table mismatch | pending |
-| PRIV-006 | Privacy | ccpa.py, main.py | CCPA router has no prefix | pending |
-| PRIV-007 | Privacy | data_retention.py:96-106 | Applications hard-deleted, not archived | pending |
-| PRIV-008 | Privacy | gdpr.py:181-212 | GDPR export returns raw data in response | pending |
+| PRIV-006 | Privacy | ccpa.py, main.py | CCPA router has no prefix | fixed |
+| PRIV-007 | Privacy | data_retention.py:96-106 | Applications hard-deleted, not archived | deferred |
+| PRIV-008 | Privacy | gdpr.py:181-212 | GDPR export returns raw data in response | deferred |
 
 ---
 
