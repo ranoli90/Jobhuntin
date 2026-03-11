@@ -4,8 +4,10 @@
  */
 
 import * as React from "react";
+import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
+import { apiGet } from "../../lib/api";
 import { Button } from "../../components/ui/Button";
 import { Card } from "../../components/ui/Card";
 import { Badge } from "../../components/ui/Badge";
@@ -31,8 +33,8 @@ import {
 
 export default function CareerPathPage() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const locale = localStorage.getItem("language") || "en";
-  const queryClient = useQueryClient();
 
   // State
   const [selectedView, setSelectedView] = React.useState<
@@ -42,145 +44,61 @@ export default function CareerPathPage() {
     "1year" | "3years" | "5years"
   >("3years");
 
-  // Mock data for demonstration (would come from API)
-  const mockCareerData = {
-    current_level: "Senior Software Engineer",
-    current_track: "Technical Leadership",
-    total_experience_years: 8,
-    career_progression_score: 75,
-    possible_next_roles: ["Principal Engineer", "Engineering Manager", "CTO"],
-    current_skills: [
-      "JavaScript",
-      "TypeScript",
-      "React",
-      "Node.js",
-      "Python",
-      "AWS",
-      "Docker",
-      "Kubernetes",
-      "Team Leadership",
-    ],
-    trajectory: [
-      {
-        year: 2016,
-        level: "Junior Developer",
-        company: "TechCorp",
-        description: "Started as frontend developer",
-      },
-      {
-        year: 2018,
-        level: "Mid-level Developer",
-        company: "StartupXYZ",
-        description: "Promoted to mid-level, led key frontend projects",
-      },
-      {
-        year: 2020,
-        level: "Senior Developer",
-        company: "Enterprise Corp",
-        description: "Joined enterprise, worked on large-scale applications",
-      },
-      {
-        year: 2022,
-        level: "Lead Developer",
-        company: "Current Company",
-        description: "Leading development team, architecting microservices",
-      },
-    ],
+  // Empty-state defaults when API returns no data
+  const emptyCareerData = {
+    current_level: "",
+    current_track: "",
+    total_experience_years: 0,
+    career_progression_score: 0,
+    possible_next_roles: [] as string[],
+    current_skills: [] as string[],
+    trajectory: [] as Array<{ year: number; level: string; company: string; description: string }>,
     recommendations: {
-      current_role: "Senior Software Engineer",
-      target_role: "Engineering Manager",
-      path_type: "advancement",
-      steps: [
-        "Develop leadership skills through team projects",
-        "Take on technical mentorship roles",
-        "Complete management training programs",
-        "Gain experience in cross-functional collaboration",
-      ],
-      estimated_timeline_months: 18,
-      potential_salary_increase_pct: 25,
-      confidence: 0.85,
-      skill_gaps: [
-        {
-          skill: "Project Management",
-          importance: "high",
-          acquisition_method: "certification",
-        },
-        {
-          skill: "People Management",
-          importance: "medium",
-          acquisition_method: "on-the-job training",
-        },
-        {
-          skill: "Cloud Architecture",
-          importance: "high",
-          acquisition_method: "certification",
-        },
-      ],
+      current_role: "",
+      target_role: "",
+      path_type: "",
+      steps: [] as string[],
+      estimated_timeline_months: 0,
+      potential_salary_increase_pct: 0,
+      confidence: 0,
+      skill_gaps: [] as Array<{
+        skill: string;
+        importance: string;
+        acquisition_method: string;
+        resources?: string[];
+      }>,
     },
     learning_path: {
-      recommended_pace: "aggressive",
-      total_weeks: 52,
-      milestones: [
-        {
-          title: "Advanced React Patterns",
-          description:
-            "Master advanced React design patterns and state management",
-          estimated_weeks: 8,
-          resources: ["Advanced React Patterns Course", "React Documentation"],
-        },
-        {
-          title: "Cloud Architecture Certification",
-          description: "Get AWS Solutions Architect certification",
-          estimated_weeks: 12,
-          resources: ["AWS Training", "Practice Exams", "Study Materials"],
-        },
-        {
-          title: "Leadership Development",
-          description:
-            "Complete management training and take on leadership roles",
-          estimated_weeks: 16,
-          resources: [
-            "Management Courses",
-            "Leadership Books",
-            "Mentorship Program",
-          ],
-        },
-        {
-          title: "Technical Blogging",
-          description:
-            "Build technical presence through writing and presentations",
-          estimated_weeks: 24,
-          resources: ["Personal Blog", "Tech Meetups", "Conference Speaking"],
-        },
-      ],
+      recommended_pace: "",
+      total_weeks: 0,
+      milestones: [] as Array<{
+        title: string;
+        description: string;
+        estimated_weeks: number;
+        resources: string[];
+      }>,
     },
   };
 
-  // Fetch career data (would be from API)
   const {
-    data: careerData = mockCareerData,
+    data: careerData = emptyCareerData,
     isLoading,
     error,
     refetch: refetchCareerData,
   } = useQuery({
     queryKey: ["career-path"],
-    queryFn: async () => {
-      // return await apiGet("career/analyze");
-      return mockCareerData; // Mock for demo
-    },
+    queryFn: () => apiGet("career/analysis"),
     staleTime: 5 * 60 * 1000, // 5 minutes
+    retry: (failureCount, err) => {
+      // Don't retry 404 (no profile/work history)
+      const status = (err as { status?: number })?.status;
+      if (status === 404) return false;
+      return failureCount < 2;
+    },
   });
 
-  // Analyze mutation
-  const analyzeMutation = useMutation({
-    mutationFn: async (data: any) => {
-      // return await apiPost("career/analyze", data);
-      console.log("Career analysis requested:", data);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["career-path"] });
-    },
-  });
+  const isNoProfile = error && (error as { status?: number })?.status === 404;
+
 
   const getScoreColor = (score: number) => {
     if (score >= 80) return "text-green-600";
@@ -237,15 +155,27 @@ export default function CareerPathPage() {
         <Card className="p-6 text-center">
           <BarChart3 className="w-12 h-12 mx-auto text-red-500 mb-4" />
           <h2 className="text-xl font-semibold text-red-600 mb-2">
-            {t("careerPath.errorLoading", locale) ||
-              "Error Loading Career Data"}
+            {isNoProfile
+              ? t("careerPath.noProfile", locale) || "Add Your Resume to Unlock Career Insights"
+              : t("careerPath.errorLoading", locale) || "Error Loading Career Data"}
           </h2>
-          <p className="text-slate-600">
-            {error instanceof Error ? error.message : String(error)}
+          <p className="text-slate-600 mb-4">
+            {isNoProfile
+              ? t("careerPath.noProfileHint", locale) ||
+                "Upload your resume to see personalized career progression, recommendations, and learning paths."
+              : error instanceof Error
+                ? error.message
+                : String(error)}
           </p>
-          <Button onClick={() => refetchCareerData()}>
-            {t("common.retry", locale) || "Retry"}
-          </Button>
+          {isNoProfile ? (
+            <Button onClick={() => navigate("/app/settings")}>
+              {t("careerPath.uploadResume", locale) || "Go to Settings"}
+            </Button>
+          ) : (
+            <Button onClick={() => refetchCareerData()}>
+              {t("common.retry", locale) || "Retry"}
+            </Button>
+          )}
         </Card>
       </div>
     );
@@ -407,8 +337,7 @@ export default function CareerPathPage() {
                   </div>
                   <p className="text-sm text-slate-600">
                     {t("careerPath.readyIn", locale) || "Ready in"}{" "}
-                    {(careerData as { estimated_timeline_months?: number })
-                      .estimated_timeline_months ?? 6}{" "}
+                    {careerData.recommendations?.estimated_timeline_months ?? 6}{" "}
                     {t("careerPath.months", locale) || "months"}
                   </p>
                 </div>
@@ -522,7 +451,12 @@ export default function CareerPathPage() {
                     "Potential Salary Increase"}
                 </h4>
                 <p className="text-sm text-slate-600 mb-2">
-                  +{careerData.recommendations.potential_salary_increase_pct}%
+                  +
+                  {Math.round(
+                    (careerData.recommendations.potential_salary_increase_pct ?? 0) *
+                      100,
+                  )}
+                  %
                 </p>
               </div>
             </div>
@@ -631,7 +565,11 @@ export default function CareerPathPage() {
               {t("careerPath.nextSteps", locale) || "Next Steps"}
             </h3>
             <div className="space-y-2">
-              <Button className="w-full justify-start" variant="outline">
+              <Button
+                className="w-full justify-start"
+                variant="outline"
+                onClick={() => refetchCareerData()}
+              >
                 <RefreshCw className="w-4 h-4 mr-2" />
                 {t("careerPath.refreshAnalysis", locale) || "Refresh Analysis"}
               </Button>

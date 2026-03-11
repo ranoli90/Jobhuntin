@@ -10,6 +10,8 @@ from pydantic import BaseModel, Field
 
 from fastapi.responses import StreamingResponse
 
+from api.dependencies import get_pool
+from api.main import get_tenant_context
 from backend.domain.audit import export_audit_log_csv
 from backend.domain.billing import ensure_stripe_customer, update_subscription_state
 from backend.domain.stripe_client import get_stripe, protected_stripe_call
@@ -48,15 +50,6 @@ BILLING_TIERS = [
 ]
 
 
-# Dependencies (to be overridden at app startup)
-async def _get_pool():
-    raise NotImplementedError("Pool dependency not injected")
-
-
-async def _get_tenant_ctx() -> TenantContext:
-    raise NotImplementedError("Tenant context dependency not injected")
-
-
 class CheckoutRequest(BaseModel):
     success_url: str = Field(..., max_length=2048)
     cancel_url: str = Field(..., max_length=2048)
@@ -69,7 +62,7 @@ class PortalRequest(BaseModel):
 
 @router.get("/tiers")
 async def billing_tiers(
-    tenant_ctx: Any = Depends(_get_tenant_ctx),
+    tenant_ctx: Any = Depends(get_tenant_context),
 ) -> list[dict[str, Any]]:
     """#24: Get billing tiers. Single source of truth for plan display."""
     return BILLING_TIERS
@@ -79,8 +72,8 @@ async def billing_tiers(
 async def billing_status(
     request: Request,
     settings: Settings = Depends(settings_dependency),
-    db: Any = Depends(_get_pool),
-    tenant_ctx: Any = Depends(_get_tenant_ctx),
+    db: Any = Depends(get_pool),
+    tenant_ctx: Any = Depends(get_tenant_context),
 ):
     """Get current billing status for the tenant."""
     async with db.acquire() as conn:
@@ -125,8 +118,8 @@ async def billing_status(
 async def billing_usage(
     request: Request,
     settings: Settings = Depends(settings_dependency),
-    db: Any = Depends(_get_pool),
-    tenant_ctx: Any = Depends(_get_tenant_ctx),
+    db: Any = Depends(get_pool),
+    tenant_ctx: Any = Depends(get_tenant_context),
 ):
     """Get current billing usage for the tenant."""
     async with db.acquire() as conn:
@@ -162,6 +155,25 @@ async def billing_usage(
         monthly_remaining = monthly_limit - monthly_used if monthly_limit else None
         percentage_used = (monthly_used / monthly_limit * 100) if monthly_limit else 0
 
+        # Count active concurrent sessions from concurrent_usage_sessions if table exists.
+        # Requires session tracking: INSERT when user starts agent task, UPDATE ended_at when done.
+        concurrent_used = 0
+        try:
+            concurrent_row = await conn.fetchrow(
+                """
+                SELECT COUNT(*)::int AS count
+                FROM public.concurrent_usage_sessions
+                WHERE tenant_id = $1
+                  AND UPPER(COALESCE(status, '')) IN ('ACTIVE', 'IN_PROGRESS')
+                  AND ended_at IS NULL
+                """,
+                tenant_ctx.tenant_id,
+            )
+            concurrent_used = concurrent_row["count"] if concurrent_row else 0
+        except Exception:
+            # Table may not exist or schema may differ; concurrent_used stays 0.
+            pass
+
         return {
             "tenant_id": tenant_ctx.tenant_id,
             "plan": plan,
@@ -172,7 +184,7 @@ async def billing_usage(
             "concurrent_limit": 2
             if plan == "FREE"
             else None,  # Match plans.py FREE tier concurrent limit
-            "concurrent_used": 0,  # TODO: Track concurrent usage
+            "concurrent_used": concurrent_used,
         }
 
 
@@ -215,8 +227,8 @@ async def create_checkout(
     request: Request,
     body: CheckoutRequest,
     settings: Settings = Depends(settings_dependency),
-    db: Any = Depends(_get_pool),
-    tenant_ctx: Any = Depends(_get_tenant_ctx),
+    db: Any = Depends(get_pool),
+    tenant_ctx: Any = Depends(get_tenant_context),
 ):
     """Create a Stripe checkout session for PRO subscription."""
     _validate_redirect_url(body.success_url, "success_url", settings)
@@ -323,8 +335,8 @@ async def create_portal(
     request: Request,
     body: PortalRequest,
     settings: Settings = Depends(settings_dependency),
-    db: Any = Depends(_get_pool),
-    tenant_ctx: Any = Depends(_get_tenant_ctx),
+    db: Any = Depends(get_pool),
+    tenant_ctx: Any = Depends(get_tenant_context),
 ):
     """Create a Stripe customer portal session."""
     _validate_redirect_url(body.return_url, "return_url", settings)
@@ -363,8 +375,8 @@ async def create_portal(
 
 @router.get("/audit-log")
 async def billing_audit_log(
-    ctx: TenantContext = Depends(_get_tenant_ctx),
-    db: Any = Depends(_get_pool),
+    ctx: TenantContext = Depends(get_tenant_context),
+    db: Any = Depends(get_pool),
     action: str | None = Query(None),
     limit: int = Query(50, ge=1, le=500),
     offset: int = Query(0, ge=0),
@@ -417,8 +429,8 @@ async def billing_audit_log(
 
 @router.get("/audit-log/export")
 async def billing_audit_log_export(
-    ctx: TenantContext = Depends(_get_tenant_ctx),
-    db: Any = Depends(_get_pool),
+    ctx: TenantContext = Depends(get_tenant_context),
+    db: Any = Depends(get_pool),
     days: int = Query(90, ge=1, le=365),
 ) -> StreamingResponse:
     """Export audit log as CSV for the current tenant. Requires OWNER, ADMIN, or COMPLIANCE_OFFICER."""
@@ -439,8 +451,8 @@ async def billing_audit_log_export(
 
 @router.get("/invoices")
 async def list_invoices(
-    ctx: TenantContext = Depends(_get_tenant_ctx),
-    db: Any = Depends(_get_pool),
+    ctx: TenantContext = Depends(get_tenant_context),
+    db: Any = Depends(get_pool),
     settings: Settings = Depends(settings_dependency),
 ) -> list[dict[str, Any]]:
     """List billing invoices for the current tenant."""
@@ -498,8 +510,8 @@ class TeamCheckoutRequest(BaseModel):
 @router.post("/team-checkout")
 async def team_checkout(
     body: TeamCheckoutRequest,
-    ctx: TenantContext = Depends(_get_tenant_ctx),
-    db: Any = Depends(_get_pool),
+    ctx: TenantContext = Depends(get_tenant_context),
+    db: Any = Depends(get_pool),
     settings: Settings = Depends(settings_dependency),
 ) -> dict[str, Any]:
     """Create a Stripe checkout session for team plan with additional seats."""
@@ -576,7 +588,7 @@ async def team_checkout(
 async def stripe_webhook(
     request: Request,
     settings: Settings = Depends(settings_dependency),
-    db: Any = Depends(_get_pool),
+    db: Any = Depends(get_pool),
 ):
     """Handle Stripe webhooks for subscription events."""
     stripe = get_stripe()

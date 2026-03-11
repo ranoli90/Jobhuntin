@@ -36,6 +36,8 @@ interface UsageData {
   tenants: TenantUsage[];
 }
 
+// TODO: Replace with real API when admin/usage or tenant-aggregated usage exists.
+// billing/usage is tenant-scoped; admin needs cross-tenant aggregation.
 const mockUsageData: UsageData = {
   total_matches: 15_420,
   total_api_calls: 89_340,
@@ -139,6 +141,7 @@ export default function AdminUsagePage() {
   const [loading, setLoading] = useState(true);
   const [usageData, setUsageData] = useState<UsageData | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [isDemoData, setIsDemoData] = useState(false);
   const [dateRange, setDateRange] = useState({
     start: new Date(new Date().setDate(1)).toISOString().split("T")[0],
     end: new Date().toISOString().split("T")[0],
@@ -152,11 +155,10 @@ export default function AdminUsagePage() {
         `admin/usage?start=${dateRange.start}&end=${dateRange.end}`,
       );
       setUsageData(data);
-    } catch (error_) {
-      setError(
-        error_ instanceof Error ? error_.message : "Failed to load usage",
-      );
-      setUsageData(null);
+      setIsDemoData(false);
+    } catch {
+      setUsageData(mockUsageData);
+      setIsDemoData(true);
     } finally {
       setLoading(false);
     }
@@ -241,13 +243,20 @@ export default function AdminUsagePage() {
             <ArrowLeft className="w-4 h-4" />
             Back
           </Button>
-          <div>
-            <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">
-              Admin
-            </p>
-            <h1 className="text-2xl font-bold text-slate-900">
-              Tenant Usage Analytics
-            </h1>
+          <div className="flex items-center gap-2">
+            <div>
+              <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">
+                Admin
+              </p>
+              <h1 className="text-2xl font-bold text-slate-900">
+                Tenant Usage Analytics
+              </h1>
+            </div>
+            {isDemoData && (
+              <Badge variant="outline" size="sm" className="self-center">
+                Demo data
+              </Badge>
+            )}
           </div>
         </div>
         <div className="flex items-center gap-3">

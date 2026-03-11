@@ -571,9 +571,17 @@ class AlertProcessor:
     async def _update_dashboard(
         self, alert_data: Dict[str, Any], user_id: str, tenant_id: Optional[str]
     ) -> None:
-        """Update user dashboard with alert information."""
-        # TODO: Implement dashboard update
-        logger.info("Dashboard updated for user %s: %s", user_id, alert_data)
+        """Update user dashboard with alert information.
+
+        Stub: No dashboard table/API exists yet for storing alert summaries.
+        When implemented, persist alert_data to a user_dashboard_alerts or similar
+        table so the /me/dashboard (or equivalent) endpoint can surface it.
+        """
+        logger.info(
+            "Dashboard update stub for user %s (no dashboard table yet): %s",
+            user_id,
+            alert_data,
+        )
 
 
 class EnhancedNotificationManager:

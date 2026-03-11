@@ -6,6 +6,7 @@
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiGet, apiPut, apiDelete } from "@/lib/api";
 import { Button } from "../../components/ui/Button";
 import { Card } from "../../components/ui/Card";
 import { Badge } from "../../components/ui/Badge";
@@ -32,6 +33,50 @@ import {
   RefreshCw,
 } from "lucide-react";
 
+/** API notification shape from GET communications/notifications */
+interface ApiNotification {
+  id: string;
+  title: string;
+  message: string;
+  category: string;
+  priority: string;
+  channels: string[];
+  is_read: boolean;
+  data: Record<string, unknown> | null;
+  expires_at: string | null;
+  created_at: string;
+}
+
+/** Component notification shape (mapped from API) */
+interface NotificationItem {
+  id: string;
+  type: string;
+  title: string;
+  message: string;
+  timestamp: Date;
+  read: boolean;
+  archived: boolean;
+  priority: string;
+  action_url?: string;
+  metadata?: Record<string, unknown>;
+}
+
+function mapApiToNotification(api: ApiNotification): NotificationItem {
+  const data = api.data ?? {};
+  return {
+    id: api.id,
+    type: api.category,
+    title: api.title,
+    message: api.message,
+    timestamp: new Date(api.created_at),
+    read: api.is_read,
+    archived: false,
+    priority: api.priority,
+    action_url: typeof data.action_url === "string" ? data.action_url : undefined,
+    metadata: data,
+  };
+}
+
 export default function NotificationCenterPage() {
   const { t } = useTranslation();
   const locale = localStorage.getItem("language") || "en";
@@ -47,101 +92,36 @@ export default function NotificationCenterPage() {
     Set<string>
   >(new Set());
 
-  // Mock notification data (would come from API)
-  const mockNotifications = [
-    {
-      id: "1",
-      type: "application_status",
-      title: "Application Status Update",
-      message:
-        "Your application for Senior Software Engineer at TechCorp has been viewed",
-      timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
-      read: false,
-      archived: false,
-      priority: "medium",
-      action_url: "/applications/123",
-      metadata: {
-        company: "TechCorp",
-        job_title: "Senior Software Engineer",
-        application_id: "123",
-      },
-    },
-    {
-      id: "2",
-      type: "interview_scheduled",
-      title: "Interview Scheduled",
-      message:
-        "You have an interview scheduled for tomorrow at 2:00 PM with StartupXYZ",
-      timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000), // 4 hours ago
-      read: false,
-      archived: false,
-      priority: "high",
-      action_url: "/interviews/456",
-      metadata: {
-        company: "StartupXYZ",
-        time: "2:00 PM",
-        date: "Tomorrow",
-      },
-    },
-    {
-      id: "3",
-      type: "job_alert",
-      title: "New Job Match",
-      message:
-        "5 new jobs match your saved search criteria for React Developer",
-      timestamp: new Date(Date.now() - 6 * 60 * 60 * 1000), // 6 hours ago
-      read: true,
-      archived: false,
-      priority: "low",
-      action_url: "/jobs?search=react",
-      metadata: {
-        job_count: 5,
-        search_term: "React Developer",
-      },
-    },
-    {
-      id: "4",
-      type: "career_insight",
-      title: "Career Insight Available",
-      message:
-        "Your career path analysis is ready with personalized recommendations",
-      timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000), // 1 day ago
-      read: true,
-      archived: false,
-      priority: "medium",
-      action_url: "/career-path",
-      metadata: {
-        analysis_type: "career_path",
-      },
-    },
-    {
-      id: "5",
-      type: "system_update",
-      title: "System Update",
-      message:
-        "New features have been added to improve your job search experience",
-      timestamp: new Date(Date.now() - 48 * 60 * 60 * 1000), // 2 days ago
-      read: true,
-      archived: true,
-      priority: "low",
-      action_url: "/whats-new",
-      metadata: {
-        update_version: "2.1.0",
-      },
-    },
-  ];
-
-  // Fetch notifications (would be from API)
+  // Fetch notifications from communications API
   const {
-    data: notifications = mockNotifications,
+    data: notifications = [],
     isLoading,
     error,
     refetch: refetchNotifications,
   } = useQuery({
-    queryKey: ["notifications", selectedFilter, selectedType, searchTerm],
+    queryKey: [
+      "communications-notifications",
+      selectedFilter,
+      selectedType,
+      searchTerm,
+    ],
     queryFn: async () => {
-      // return await apiGet(`notifications?filter=${selectedFilter}&type=${selectedType}&search=${searchTerm}`);
-      return mockNotifications; // Mock for demo
+      const params = new URLSearchParams({
+        limit: "50",
+        offset: "0",
+      });
+      if (selectedFilter === "unread") {
+        params.set("unread_only", "true");
+      }
+      if (selectedType !== "all") {
+        params.set("category", selectedType);
+      }
+      const res = await apiGet<{
+        notifications?: ApiNotification[];
+        total?: number;
+      }>(`communications/notifications?${params}`);
+      const items = res.notifications ?? [];
+      return items.map(mapApiToNotification);
     },
     staleTime: 2 * 60 * 1000, // 2 minutes
   });
@@ -149,23 +129,25 @@ export default function NotificationCenterPage() {
   // Mark as read mutation
   const markAsReadMutation = useMutation({
     mutationFn: async (notificationIds: string[]) => {
-      // return await apiPatch("notifications/mark-read", { notification_ids: notificationIds });
-      console.log("Marking notifications as read:", notificationIds);
+      await Promise.all(
+        notificationIds.map((id) =>
+          apiPut(`communications/notifications/${id}/read`, {}),
+        ),
+      );
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["notifications"] });
+      queryClient.invalidateQueries({ queryKey: ["communications-notifications"] });
       setSelectedNotifications(new Set());
     },
   });
 
-  // Archive mutation
+  // Archive mutation (API does not support archive; no-op for now)
   const archiveMutation = useMutation({
-    mutationFn: async (notificationIds: string[]) => {
-      // return await apiPatch("notifications/archive", { notification_ids: notificationIds });
-      console.log("Archiving notifications:", notificationIds);
+    mutationFn: async (_notificationIds: string[]) => {
+      // API has no archive endpoint; keep for future compatibility
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["notifications"] });
+      queryClient.invalidateQueries({ queryKey: ["communications-notifications"] });
       setSelectedNotifications(new Set());
     },
   });
@@ -173,11 +155,14 @@ export default function NotificationCenterPage() {
   // Delete mutation
   const deleteMutation = useMutation({
     mutationFn: async (notificationIds: string[]) => {
-      // return await apiDelete("notifications", { notification_ids: notificationIds });
-      console.log("Deleting notifications:", notificationIds);
+      await Promise.all(
+        notificationIds.map((id) =>
+          apiDelete(`communications/notifications/${id}`),
+        ),
+      );
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["notifications"] });
+      queryClient.invalidateQueries({ queryKey: ["communications-notifications"] });
       setSelectedNotifications(new Set());
     },
   });
@@ -185,11 +170,10 @@ export default function NotificationCenterPage() {
   // Mark all as read mutation
   const markAllAsReadMutation = useMutation({
     mutationFn: async () => {
-      // return await apiPatch("notifications/mark-all-read");
-      console.log("Marking all notifications as read");
+      await apiPut("communications/notifications/read-all", {});
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["notifications"] });
+      queryClient.invalidateQueries({ queryKey: ["communications-notifications"] });
     },
   });
 

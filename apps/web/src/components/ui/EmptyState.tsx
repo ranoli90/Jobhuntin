@@ -269,13 +269,24 @@ export function NoTeamMembersEmptyState({
   );
 }
 
-export function ComingSoonEmptyState({ featureName }: { featureName: string }) {
+export function ComingSoonEmptyState({
+  featureName,
+  description,
+  className,
+}: {
+  featureName: string;
+  description?: string;
+  className?: string;
+}) {
   return (
     <EmptyState
       iconName="sparkles"
       title={`${featureName} coming soon`}
-      description="We're working on something exciting. Stay tuned for updates!"
+      description={
+        description ?? "We're working on something exciting. Stay tuned for updates!"
+      }
       compact
+      className={className}
     />
   );
 }

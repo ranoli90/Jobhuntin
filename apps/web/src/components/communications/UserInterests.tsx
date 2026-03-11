@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiGet, apiPost } from "@/lib/api";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -37,18 +38,20 @@ import {
   AlertTriangle,
 } from "lucide-react";
 
+interface ApiInteractionHistoryItem {
+  type: string;
+  category: string;
+  content: string;
+  timestamp: string;
+  keywords?: string[];
+}
+
 interface UserInterestProfile {
   user_id: string;
   tenant_id: string;
   interests: Record<string, number>;
   keywords: Record<string, string[]>;
-  interaction_history: Array<{
-    type: string;
-    category: string;
-    content: string;
-    timestamp: string;
-    keywords: string[];
-  }>;
+  interaction_history?: ApiInteractionHistoryItem[];
   last_updated: string;
   created_at: string;
   updated_at: string;
@@ -74,14 +77,27 @@ interface UserInteraction {
   keywords?: string[];
 }
 
+function mapApiInteractionToUserInteraction(
+  item: ApiInteractionHistoryItem,
+  index: number,
+  user_id: string,
+  tenant_id: string,
+): UserInteraction {
+  return {
+    id: `ih-${index}`,
+    user_id,
+    tenant_id,
+    interaction_type: item.type,
+    content: item.content,
+    category: item.category,
+    timestamp: item.timestamp,
+    metadata: {},
+    keywords: item.keywords,
+  };
+}
+
 const UserInterests: React.FC = () => {
-  const [profile, setProfile] = useState<UserInterestProfile | null>(null);
-  const [topInterests, setTopInterests] = useState<InterestCategory[]>([]);
-  const [interactionHistory, setInteractionHistory] = useState<
-    UserInteraction[]
-  >([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [showAddInterest, setShowAddInterest] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
@@ -93,123 +109,72 @@ const UserInterests: React.FC = () => {
     score_adjustment: 0.1,
   });
 
-  useEffect(() => {
-    fetchProfile();
-    fetchTopInterests();
-    fetchInteractionHistory();
+  const {
+    data: profile,
+    isLoading: profileLoading,
+    error: profileError,
+    refetch: refetchProfile,
+  } = useQuery<UserInterestProfile>({
+    queryKey: ["communications", "interests"],
+    queryFn: () => apiGet<UserInterestProfile>("communications/interests"),
+    refetchInterval: autoRefresh ? 30_000 : false,
+  });
 
-    if (autoRefresh) {
-      const interval = setInterval(() => {
-        fetchProfile();
-        fetchTopInterests();
-        fetchInteractionHistory();
-      }, 30_000);
+  const {
+    data: topInterestsData,
+    isLoading: topInterestsLoading,
+    error: topInterestsError,
+  } = useQuery<{
+    top_interests: Array<{ category: string; score: number }>;
+  }>({
+    queryKey: ["communications", "interests", "top"],
+    queryFn: () =>
+      apiGet<{ top_interests: Array<{ category: string; score: number }> }>(
+        "communications/interests/top?limit=10&min_score=0.1",
+      ),
+    refetchInterval: autoRefresh ? 30_000 : false,
+  });
 
-      return () => clearInterval(interval);
-    }
-  }, [autoRefresh]);
+  const topInterests: InterestCategory[] =
+    topInterestsData?.top_interests?.map((item) => ({
+      name: item.category,
+      score: item.score,
+      keywords: [],
+      trend: "stable" as const,
+      last_updated: new Date().toISOString(),
+    })) ?? [];
 
-  const fetchProfile = async () => {
-    try {
-      const data = await apiGet<UserInterestProfile>(
-        "communications/interests",
-      );
-      setProfile(data);
-    } catch (error_) {
-      setError(
-        error_ instanceof Error ? error_.message : "Failed to fetch profile",
-      );
-    } finally {
-      setLoading(false);
-    }
+  const interactionHistory: UserInteraction[] =
+    profile?.interaction_history?.map((item, index) =>
+      mapApiInteractionToUserInteraction(
+        item,
+        index,
+        profile.user_id,
+        profile.tenant_id,
+      ),
+    ) ?? [];
+
+  const loading = profileLoading;
+  const error =
+    profileError instanceof Error
+      ? profileError.message
+      : topInterestsError instanceof Error
+        ? topInterestsError.message
+        : null;
+
+  const invalidateInterests = () => {
+    void queryClient.invalidateQueries({ queryKey: ["communications", "interests"] });
   };
 
-  const fetchTopInterests = async () => {
-    try {
-      const data = await apiGet<{
-        top_interests: [string, number][];
-      }>("communications/interests/top?limit=10&min_score=0.1");
-
-      const interests = data.top_interests.map(
-        ([category, score]: [string, number]) => ({
-          name: category,
-          score: score,
-          keywords: [],
-          trend: "stable" as const,
-          last_updated: new Date().toISOString(),
-        }),
-      );
-
-      setTopInterests(interests);
-    } catch (error_) {
-      setError(
-        error_ instanceof Error
-          ? error_.message
-          : "Failed to fetch top interests",
-      );
-    }
-  };
-
-  const fetchInteractionHistory = async () => {
-    try {
-      // This would normally fetch from the API
-      // For now, we'll simulate some interaction history
-      const mockHistory: UserInteraction[] = [
-        {
-          id: "1",
-          user_id: profile?.user_id || "",
-          tenant_id: profile?.tenant_id || "",
-          interaction_type: "view",
-          content: "Viewed React documentation",
-          category: "technology",
-          timestamp: new Date(Date.now() - 86_400_000).toISOString(),
-          metadata: {},
-          keywords: ["react", "documentation", "frontend"],
-        },
-        {
-          id: "2",
-          user_id: profile?.user_id || "",
-          tenant_id: profile?.tenant_id || "",
-          interaction_type: "like",
-          content: "Liked Python tutorial",
-          category: "technology",
-          timestamp: new Date(Date.now() - 172_800_000).toISOString(),
-          metadata: {},
-          keywords: ["python", "tutorial", "programming"],
-        },
-        {
-          id: "3",
-          user_id: profile?.user_id || "",
-          tenant_id: profile?.tenant_id || "",
-          interaction_type: "share",
-          content: "Shared marketing campaign article",
-          category: "marketing",
-          timestamp: new Date(Date.now() - 259_200_000).toISOString(),
-          metadata: {},
-          keywords: ["marketing", "campaign", "social"],
-        },
-      ];
-
-      setInteractionHistory(mockHistory);
-    } catch (error_) {
-      setError(
-        error_ instanceof Error
-          ? error_.message
-          : "Failed to fetch interaction history",
-      );
-    }
-  };
-
-  const handleAddInterest = async () => {
-    try {
+  const addInterestMutation = useMutation({
+    mutationFn: async () => {
       const keywords = interestForm.keywords
         .split(",")
         .map((k) => k.trim())
         .filter((k) => k.length > 0);
 
       if (!interestForm.category || keywords.length === 0) {
-        setError("Please provide a category and at least one keyword");
-        return;
+        throw new Error("Please provide a category and at least one keyword");
       }
 
       await apiPost("communications/interests/update", {
@@ -226,21 +191,16 @@ const UserInterests: React.FC = () => {
           },
         ],
       });
-
-      await fetchProfile();
-      await fetchTopInterests();
+    },
+    onSuccess: () => {
+      invalidateInterests();
       setShowAddInterest(false);
-      setInterestForm({
-        category: "",
-        keywords: "",
-        score_adjustment: 0.1,
-      });
-      setError(null);
-    } catch (error_) {
-      setError(
-        error_ instanceof Error ? error_.message : "Failed to add interest",
-      );
-    }
+      setInterestForm({ category: "", keywords: "", score_adjustment: 0.1 });
+    },
+  });
+
+  const handleAddInterest = () => {
+    addInterestMutation.mutate();
   };
 
   const handleUpdateInterestScore = async (
@@ -252,16 +212,10 @@ const UserInterests: React.FC = () => {
         category: category,
         score_adjustment: scoreAdjustment,
       });
-
-      await fetchProfile();
-      await fetchTopInterests();
-      setError(null);
+      invalidateInterests();
     } catch (error_) {
-      setError(
-        error_ instanceof Error
-          ? error_.message
-          : "Failed to update interest score",
-      );
+      // Error surfaced via profileError/topInterestsError on refetch
+      throw error_;
     }
   };
 
@@ -332,6 +286,17 @@ const UserInterests: React.FC = () => {
     return colors[type as keyof typeof colors] || "bg-gray-100 text-gray-800";
   };
 
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex justify-center items-center py-24">
+          <RefreshCw className="h-8 w-8 animate-spin text-gray-400" />
+          <span className="ml-2 text-gray-500">Loading interests...</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -363,10 +328,23 @@ const UserInterests: React.FC = () => {
         </div>
       </div>
 
-      {error && (
+      {(error || addInterestMutation.error) && (
         <Alert variant="destructive">
           <AlertTriangle className="h-4 w-4" />
-          <AlertDescription>{error}</AlertDescription>
+          <AlertDescription>
+            {error ?? (addInterestMutation.error as Error)?.message}
+          </AlertDescription>
+          <Button
+            variant="outline"
+            size="sm"
+            className="mt-2"
+            onClick={() => {
+              invalidateInterests();
+              addInterestMutation.reset();
+            }}
+          >
+            Retry
+          </Button>
         </Alert>
       )}
 
@@ -410,7 +388,7 @@ const UserInterests: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium">Interactions</span>
                   <span className="text-2xl font-bold">
-                    {profile.interaction_history.length}
+                    {interactionHistory.length}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">

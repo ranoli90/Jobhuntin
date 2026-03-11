@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
+import re
 from typing import Any
 
-from fastapi import APIRouter, HTTPException
+import asyncpg
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
 from backend.domain.career_path import CareerPathAnalyzer, SkillGap
+from backend.domain.repositories import ProfileRepo
 from shared.logging_config import get_logger
 
 logger = get_logger("sorce.api.career")
@@ -23,6 +26,102 @@ def _get_pool():
 
 async def _get_user_id() -> str:
     raise NotImplementedError("User ID dependency not injected")
+
+
+def _parse_years_from_duration(
+    duration: str | None, start_date: str = "", end_date: str = ""
+) -> int:
+    """Parse years from duration string or date range. Returns 1 if unparseable."""
+    if duration:
+        m = re.search(r"(\d+)\s*(?:year|yr)", str(duration), re.I)
+        if m:
+            return max(1, int(m.group(1)))
+        m = re.search(r"(\d+)\s*month", str(duration), re.I)
+        if m:
+            return max(1, int(m.group(1)) // 12) if int(m.group(1)) >= 12 else 1
+    if start_date and end_date:
+        try:
+            from datetime import datetime
+
+            start = datetime.strptime(str(start_date)[:4], "%Y") if len(str(start_date)) >= 4 else None
+            end = datetime.strptime(str(end_date)[:4], "%Y") if len(str(end_date)) >= 4 else None
+            if start and end:
+                return max(1, end.year - start.year)
+        except (ValueError, TypeError):
+            pass
+    return 1
+
+
+def _extract_skills(profile_data: dict) -> list[str]:
+    """Extract flat list of skills from profile_data."""
+    skills_raw = profile_data.get("skills")
+    if not skills_raw:
+        return []
+    if isinstance(skills_raw, list):
+        return [
+            s.get("skill", s) if isinstance(s, dict) else str(s)
+            for s in skills_raw
+            if s
+        ]
+    if isinstance(skills_raw, dict):
+        technical = skills_raw.get("technical", [])
+        soft = skills_raw.get("soft", [])
+        out = []
+        for s in technical + soft:
+            if isinstance(s, dict):
+                name = s.get("skill", "")
+                if name:
+                    out.append(name)
+            elif isinstance(s, str) and s:
+                out.append(s)
+        return out
+    return []
+
+
+def _extract_work_history(profile_data: dict) -> list[dict[str, Any]]:
+    """Extract work_history for career API from profile experience."""
+    exp = profile_data.get("experience", [])
+    if not exp:
+        return []
+    out = []
+    for x in exp:
+        if not isinstance(x, dict):
+            continue
+        title = x.get("title", "")
+        company = x.get("company", "")
+        duration = x.get("duration", "")
+        start_date = x.get("start_date", "")
+        end_date = x.get("end_date", "")
+        years = _parse_years_from_duration(duration, start_date, end_date)
+        out.append({"title": title or "Unknown", "years": years, "company": company})
+    return out
+
+
+def _build_trajectory_from_experience(profile_data: dict) -> list[dict[str, Any]]:
+    """Build trajectory (year, level, company, description) from experience."""
+    exp = profile_data.get("experience", [])
+    if not exp:
+        return []
+    out = []
+    for x in exp:
+        if not isinstance(x, dict):
+            continue
+        title = x.get("title", "Unknown")
+        company = x.get("company", "")
+        start_date = x.get("start_date", "")
+        year = int(str(start_date)[:4]) if start_date and len(str(start_date)) >= 4 else 0
+        if not year and x.get("end_date"):
+            year = (
+                int(str(x["end_date"])[:4])
+                if len(str(x.get("end_date", ""))) >= 4
+                else 0
+            )
+        highlights = x.get("highlights", x.get("responsibilities", []))
+        desc = highlights[0] if highlights else ""
+        out.append(
+            {"year": year or 2000, "level": title, "company": company, "description": desc}
+        )
+    return sorted(out, key=lambda e: e["year"])
 
 
 class AnalyzeTrajectoryRequest(BaseModel):
@@ -227,3 +326,117 @@ async def list_career_transitions() -> list[dict[str, Any]]:
         }
         for t in _analyzer.transitions
     ]
+
+
+@router.get("/analysis")
+async def get_career_analysis(
+    user_id: str = Depends(_get_user_id),
+    db: asyncpg.Pool = Depends(_get_pool),
+) -> dict[str, Any]:
+    """Fetch user profile and return combined career analysis for the Career Path page.
+
+    Requires profile with experience (e.g. from resume upload). Returns 404 when
+    no work history is available.
+    """
+    async with db.acquire() as conn:
+        profile_data = await ProfileRepo.get_profile_data(conn, user_id)
+
+    if not profile_data:
+        raise HTTPException(
+            status_code=404,
+            detail="No profile found. Add your resume to see personalized career insights.",
+        )
+
+    work_history = _extract_work_history(profile_data)
+    current_skills = _extract_skills(profile_data)
+
+    if not work_history:
+        raise HTTPException(
+            status_code=404,
+            detail="No work history found. Add your resume to unlock career path analysis.",
+        )
+
+    # Analyze trajectory
+    trajectory_result = _analyzer.analyze_career_trajectory(
+        work_history=work_history,
+        current_skills=current_skills,
+    )
+    if "error" in trajectory_result:
+        raise HTTPException(status_code=400, detail=trajectory_result["error"])
+
+    current_level = trajectory_result.get("current_level", "unknown")
+    possible_next_roles = trajectory_result.get("possible_next_roles", [])
+    target_role = possible_next_roles[0] if possible_next_roles else current_level
+    current_role = work_history[0].get("title", current_level) if work_history else current_level
+
+    # Get recommendation
+    recommendation = None
+    if possible_next_roles:
+        recommendation = _analyzer.get_career_path_recommendation(
+            current_role=current_role,
+            target_role=target_role,
+            current_skills=current_skills,
+            years_experience=trajectory_result.get("total_experience_years", 0),
+        )
+
+    # Build learning path from recommendation skill gaps
+    learning_path = {"total_weeks": 0, "milestones": [], "recommended_pace": "part_time"}
+    if recommendation and recommendation.skill_gaps:
+        lp_result = _analyzer.get_learning_path(recommendation.skill_gaps)
+        learning_path = {
+            "total_weeks": lp_result.get("weeks", 0),
+            "milestones": [
+                {
+                    "title": m.get("skill", "Skill"),
+                    "description": f"Develop {m.get('skill', '')}",
+                    "estimated_weeks": m.get("end_week", 0) - m.get("start_week", 0),
+                    "resources": m.get("resources", []),
+                }
+                for m in lp_result.get("milestones", [])
+            ],
+            "recommended_pace": lp_result.get("recommended_pace", "part_time"),
+        }
+
+    trajectory = _build_trajectory_from_experience(profile_data)
+
+    return {
+        "current_level": trajectory_result.get("current_level", "unknown"),
+        "current_track": trajectory_result.get("current_track", "unknown"),
+        "total_experience_years": trajectory_result.get("total_experience_years", 0),
+        "career_progression_score": trajectory_result.get("career_progression_score", 0.0),
+        "possible_next_roles": possible_next_roles,
+        "current_skills": current_skills,
+        "trajectory": trajectory,
+        "recommendations": (
+            {
+                "current_role": recommendation.current_role,
+                "target_role": recommendation.target_role,
+                "path_type": recommendation.path_type,
+                "steps": recommendation.steps,
+                "estimated_timeline_months": recommendation.estimated_timeline_months,
+                "potential_salary_increase_pct": recommendation.potential_salary_increase_pct,
+                "confidence": recommendation.confidence,
+                "skill_gaps": [
+                    {
+                        "skill": g.skill,
+                        "importance": g.importance,
+                        "acquisition_method": g.acquisition_method,
+                        "resources": g.resources,
+                    }
+                    for g in recommendation.skill_gaps
+                ],
+            }
+            if recommendation
+            else {
+                "current_role": current_role,
+                "target_role": target_role,
+                "path_type": "exploration",
+                "steps": [],
+                "estimated_timeline_months": 18,
+                "potential_salary_increase_pct": 0,
+                "confidence": 0.5,
+                "skill_gaps": [],
+            }
+        ),
+        "learning_path": learning_path,
+    }

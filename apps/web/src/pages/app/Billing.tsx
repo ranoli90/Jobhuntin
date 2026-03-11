@@ -10,6 +10,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { Card } from "../../components/ui/Card";
+import { ComingSoonEmptyState } from "../../components/ui/EmptyState";
 import { Badge } from "../../components/ui/Badge";
 import { Button } from "../../components/ui/Button";
 import { Page } from "../../components/ui/Page";
@@ -353,48 +354,34 @@ export default function Billing() {
           </div>
 
           <div className="space-y-6">
-            {/* LOW: Payment Methods Section */}
-            <Card className="p-6" shadow="sm">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">
-                  Payment Methods
-                </h3>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    pushToast({
-                      title: "Payment methods feature coming soon",
-                      tone: "info",
-                    });
-                  }}
-                >
-                  Add Payment Method
-                </Button>
-              </div>
-              <div className="text-center py-8 text-slate-500">
-                <FileText className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                <p>
-                  No payment methods on file. Add a payment method to enable
-                  automatic billing.
-                </p>
-              </div>
+            {/* LOW: Payment Methods Section - Coming soon (no backend API) */}
+            <Card
+              className="p-6"
+              shadow="sm"
+              aria-label="Payment methods section"
+            >
+              <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-4">
+                Payment Methods
+              </h3>
+              <ComingSoonEmptyState
+                featureName="Payment methods"
+                description="Add and manage payment methods for automatic billing"
+              />
             </Card>
 
-            {/* LOW: Usage Charts Section */}
-            <Card className="p-6" shadow="sm">
+            {/* LOW: Usage Charts Section - Coming soon (no time-series API) */}
+            <Card
+              className="p-6"
+              shadow="sm"
+              aria-label="Usage over time section"
+            >
               <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-4">
                 Usage Over Time
               </h3>
-              <div className="h-48 flex items-center justify-center border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-lg">
-                <div className="text-center text-slate-500">
-                  <FileText className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                  <p>Usage charts coming soon</p>
-                  <p className="text-xs mt-1">
-                    Track your application usage trends over time
-                  </p>
-                </div>
-              </div>
+              <ComingSoonEmptyState
+                featureName="Usage charts"
+                description="Track your application usage trends over time"
+              />
             </Card>
 
             <Card

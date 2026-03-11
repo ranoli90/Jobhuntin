@@ -469,71 +469,106 @@ async def update_application_agent_resume(
 @router.get("/template-usage")
 async def get_template_usage_stats(
     ctx: TenantContext = Depends(_get_tenant_ctx),
+    db: asyncpg.Pool = Depends(_get_pool),
 ) -> Dict[str, Any]:
     """Get template usage statistics.
 
     Args:
         ctx: Tenant context for identification
+        db: Database pool
 
     Returns:
         Template usage statistics
     """
     try:
-        # TODO: Implement actual template usage query
-        # This would aggregate template usage from the database
+        # Aggregate template usage from resume_pdfs (scoped by tenant via users).
+        # Returns empty/0 if resume_pdfs table or template_style column does not exist.
+        templates = ["professional", "modern", "executive", "technical", "creative"]
+        template_breakdown = {t: 0 for t in templates}
+        last_7 = {t: 0 for t in templates}
+        last_30 = {t: 0 for t in templates}
+        performance = {
+            t: {"usage_count": 0, "average_ats_score": 0.0, "success_rate": 0.0}
+            for t in templates
+        }
+        total_usage = 0
+
+        try:
+            async with db.acquire() as conn:
+                # Count by template_style for tenant's users
+                rows = await conn.fetch(
+                    """
+                    SELECT rp.template_style, COUNT(*)::int AS cnt,
+                           AVG(rp.ats_optimization_score)::float AS avg_ats
+                    FROM public.resume_pdfs rp
+                    JOIN public.users u ON u.id = rp.user_id
+                    WHERE u.tenant_id = $1
+                      AND rp.template_style = ANY($2::text[])
+                    GROUP BY rp.template_style
+                    """,
+                    ctx.tenant_id,
+                    templates,
+                )
+                for r in rows:
+                    style = (r["template_style"] or "professional").lower()
+                    if style in template_breakdown:
+                        template_breakdown[style] = r["cnt"]
+                        total_usage += r["cnt"]
+                        performance[style]["usage_count"] = r["cnt"]
+                        performance[style]["average_ats_score"] = float(
+                            r["avg_ats"] or 0
+                        )
+
+                # Last 7 and 30 days
+                for days, target in [(7, last_7), (30, last_30)]:
+                    trend_rows = await conn.fetch(
+                        """
+                        SELECT rp.template_style, COUNT(*)::int AS cnt
+                        FROM public.resume_pdfs rp
+                        JOIN public.users u ON u.id = rp.user_id
+                        WHERE u.tenant_id = $1
+                          AND rp.created_at >= now() - ($2::int || ' days')::interval
+                          AND rp.template_style = ANY($3::text[])
+                        GROUP BY rp.template_style
+                        """,
+                        ctx.tenant_id,
+                        days,
+                        templates,
+                    )
+                    for r in trend_rows:
+                        style = (r["template_style"] or "professional").lower()
+                        if style in target:
+                            target[style] = r["cnt"]
+
+                # Success rate: count with ats_score >= 0.6 as success
+                for t in templates:
+                    if performance[t]["usage_count"] > 0:
+                        succ = await conn.fetchval(
+                            """
+                            SELECT COUNT(*)::int
+                            FROM public.resume_pdfs rp
+                            JOIN public.users u ON u.id = rp.user_id
+                            WHERE u.tenant_id = $1 AND rp.template_style = $2
+                              AND rp.ats_optimization_score >= 0.6
+                            """,
+                            ctx.tenant_id,
+                            t,
+                        )
+                        performance[t]["success_rate"] = (
+                            (succ or 0) / performance[t]["usage_count"] * 100
+                        )
+        except Exception:
+            # resume_pdfs may not exist; return stub with zeros
+            pass
 
         return {
-            "total_usage": 0,
-            "template_breakdown": {
-                "professional": 0,
-                "modern": 0,
-                "executive": 0,
-                "technical": 0,
-                "creative": 0,
-            },
+            "total_usage": total_usage,
+            "template_breakdown": template_breakdown,
             "recent_trends": {
-                "last_7_days": {
-                    "professional": 0,
-                    "modern": 0,
-                    "executive": 0,
-                    "technical": 0,
-                    "creative": 0,
-                },
-                "last_30_days": {
-                    "professional": 0,
-                    "modern": 0,
-                    "executive": 0,
-                    "technical": 0,
-                    "creative": 0,
-                },
+                "last_7_days": last_7,
+                "last_30_days": last_30,
             },
-            "performance_by_template": {
-                "professional": {
-                    "usage_count": 0,
-                    "average_ats_score": 0.0,
-                    "success_rate": 0.0,
-                },
-                "modern": {
-                    "usage_count": 0,
-                    "average_ats_score": 0.0,
-                    "success_rate": 0.0,
-                },
-                "executive": {
-                    "usage_count": 0,
-                    "average_ats_score": 0.0,
-                    "success_rate": 0.0,
-                },
-                "technical": {
-                    "usage_count": 0,
-                    "average_ats_score": 0.0,
-                    "success_rate": 0.0,
-                },
-                "creative": {
-                    "usage_count": 0,
-                    "average_ats_score": 0.0,
-                    "success_rate": 0.0,
-                },
-            },
+            "performance_by_template": performance,
         }
 
     except Exception as e:

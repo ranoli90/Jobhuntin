@@ -62,6 +62,7 @@ export const cardPadding = {
   lg: "p-8",
   xl: "p-10",
   xxl: "p-12",
+  // xxxl: unused; kept for potential future use or remove if not needed
   xxxl: "p-16",
 };
 

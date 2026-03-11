@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   ArrowLeft,
@@ -42,6 +42,9 @@ interface MatchesData {
   success_rate: number;
 }
 
+// TODO: Replace with real API when admin/matches or match-scoring list endpoint exists.
+// Search apps/api for matches/scoring APIs - match_weights/analytics and match_calibration
+// return aggregate metrics, not per-match records.
 const mockMatchesData: MatchesData = {
   matches: [
     {
@@ -123,6 +126,7 @@ export default function AdminMatchesPage() {
   const [loading, setLoading] = useState(true);
   const [matchesData, setMatchesData] = useState<MatchesData | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [isDemoData, setIsDemoData] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [tenantFilter, setTenantFilter] = useState("");
   const [scoreMin, setScoreMin] = useState("");
@@ -132,31 +136,30 @@ export default function AdminMatchesPage() {
 
   const page = Number.parseInt(searchParameters.get("page") || "1", 10);
 
-  const fetchMatches = async () => {
+  const fetchMatches = useCallback(() => {
     setLoading(true);
     setError(null);
-    try {
-      const parameters = new URLSearchParams({
-        page: page.toString(),
-        ...(tenantFilter && { tenant: tenantFilter }),
-        ...(scoreMin && { score_min: scoreMin }),
-        ...(scoreMax && { score_max: scoreMax }),
-      });
-      const data = await apiGet<MatchesData>(`admin/matches?${parameters}`);
-      setMatchesData(data);
-    } catch (error_) {
-      setError(
-        error_ instanceof Error ? error_.message : "Failed to load matches",
-      );
-      setMatchesData(null);
-    } finally {
-      setLoading(false);
-    }
-  };
+    const parameters = new URLSearchParams({
+      page: page.toString(),
+      ...(tenantFilter && { tenant: tenantFilter }),
+      ...(scoreMin && { score_min: scoreMin }),
+      ...(scoreMax && { score_max: scoreMax }),
+    });
+    apiGet<MatchesData>(`admin/matches?${parameters}`)
+      .then((data) => {
+        setMatchesData(data);
+        setIsDemoData(false);
+      })
+      .catch(() => {
+        setMatchesData(mockMatchesData);
+        setIsDemoData(true);
+      })
+      .finally(() => setLoading(false));
+  }, [page, tenantFilter, scoreMin, scoreMax]);
 
   useEffect(() => {
     fetchMatches();
-  }, [page, tenantFilter, scoreMin, scoreMax]);
+  }, [fetchMatches]);
 
   const handleOverride = async (matchId: string) => {
     try {
@@ -224,13 +227,20 @@ export default function AdminMatchesPage() {
             <ArrowLeft className="w-4 h-4" />
             Back
           </Button>
-          <div>
-            <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">
-              Admin
-            </p>
-            <h1 className="text-2xl font-bold text-slate-900">
-              Match Monitoring
-            </h1>
+          <div className="flex items-center gap-2">
+            <div>
+              <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">
+                Admin
+              </p>
+              <h1 className="text-2xl font-bold text-slate-900">
+                Match Monitoring
+              </h1>
+            </div>
+            {isDemoData && (
+              <Badge variant="outline" size="sm" className="self-center">
+                Demo data
+              </Badge>
+            )}
           </div>
         </div>
       </div>

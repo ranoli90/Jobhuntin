@@ -198,9 +198,10 @@ const SemanticMatcher: React.FC = () => {
 
   const handleGetRecommendations = async () => {
     try {
-      // This would normally fetch content from your content pool
-      // For now, we'll simulate some recommendations
-      const mockRecommendations: ContentRecommendation[] = [
+      // TODO: Wire to real API when GET /communications/recommendations or similar exists.
+      // The user_interest_profiler.recommend_content() requires a content_pool; no public
+      // endpoint exposes content recommendations yet.
+      const demoRecommendations: ContentRecommendation[] = [
         {
           id: "1",
           title: "Software Engineer Position",
@@ -230,7 +231,7 @@ const SemanticMatcher: React.FC = () => {
         },
       ];
 
-      setRecommendations(mockRecommendations);
+      setRecommendations(demoRecommendations);
       setShowRecommendations(true);
     } catch (error_) {
       setError(
@@ -530,7 +531,12 @@ const SemanticMatcher: React.FC = () => {
       {showRecommendations && (
         <Card className="p-6">
           <CardHeader>
-            <CardTitle>Content Recommendations</CardTitle>
+            <div className="flex items-center gap-2">
+              <CardTitle>Content Recommendations</CardTitle>
+              <Badge variant="secondary" className="text-xs">
+                Demo data
+              </Badge>
+            </div>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">

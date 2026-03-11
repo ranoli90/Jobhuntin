@@ -59,7 +59,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Saved Jobs", to: "/app/saved-jobs", icon: Bookmark },
   { label: "Applications", to: "/app/applications", icon: FileText },
   { label: "Holds", to: "/app/holds", icon: HelpCircle },
-  { label: "Team", to: "/app/team", icon: Users, badge: "Coming soon" },
+  { label: "Team", to: "/app/team", icon: Users },
   { label: "Billing", to: "/app/billing", icon: CreditCard },
   { label: "Settings", to: "/app/settings", icon: Settings },
   // Admin only

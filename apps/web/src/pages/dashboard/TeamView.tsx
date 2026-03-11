@@ -1,16 +1,38 @@
+import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../hooks/useAuth";
 import { useBilling } from "../../hooks/useBilling";
+import { apiGet } from "../../lib/api";
 import { Button } from "../../components/ui/Button";
 import { Badge } from "../../components/ui/Badge";
 import { Card } from "../../components/ui/Card";
 import { Users, CheckCircle } from "lucide-react";
 
+interface TeamMember {
+  user_id: string;
+  email: string | null;
+  full_name: string | null;
+  avatar_url: string | null;
+  role: string;
+  created_at: string | null;
+}
+
 export default function TeamView() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { status, plan, loading: isLoading } = useBilling();
   const isSolo = plan !== "TEAM";
 
-  if (isLoading) {
+  const { data: members = [], isLoading: membersLoading } = useQuery({
+    queryKey: ["team", "members"],
+    queryFn: () => apiGet<TeamMember[]>("me/team/members"),
+    staleTime: 60 * 1000,
+    enabled: !!user,
+  });
+
+  const showUpgradeCta = isSolo && members.length <= 1;
+
+  if (isLoading || membersLoading) {
     return (
       <div
         className="max-w-6xl mx-auto space-y-6 pb-6 px-4 lg:px-0"
@@ -85,28 +107,61 @@ export default function TeamView() {
                 Active Members
               </p>
             </div>
-            <div className="divide-y divide-slate-100 italic">
-              <div className="px-8 py-6 flex items-center justify-between bg-white">
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-full bg-primary-500 flex items-center justify-center text-white font-bold">
-                    {(status?.tenant_id ?? "").slice(0, 2).toUpperCase() ||
-                      "ME"}
+            <div className="divide-y divide-slate-100">
+              {members.map((member) => {
+                const isCurrentUser = member.user_id === user?.id;
+                const displayName = isCurrentUser
+                  ? `You (${member.role === "OWNER" ? "Owner" : member.role === "ADMIN" ? "Admin" : "Member"})`
+                  : member.full_name || member.email || "Teammate";
+                const roleLabel =
+                  member.role === "OWNER"
+                    ? "Workspace Owner"
+                    : member.role === "ADMIN"
+                      ? "Admin"
+                      : "Member";
+                const initials =
+                  member.full_name
+                    ?.split(/\s+/)
+                    .map((n) => n[0])
+                    .join("")
+                    .toUpperCase()
+                    .slice(0, 2) ||
+                  member.email?.slice(0, 2).toUpperCase() ||
+                  "?";
+                return (
+                  <div
+                    key={member.user_id}
+                    className="px-8 py-6 flex items-center justify-between bg-white"
+                  >
+                    <div className="flex items-center gap-4">
+                      {member.avatar_url ? (
+                        <img
+                          src={member.avatar_url}
+                          alt=""
+                          className="w-10 h-10 rounded-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-10 h-10 rounded-full bg-primary-500 flex items-center justify-center text-white font-bold text-sm">
+                          {initials}
+                        </div>
+                      )}
+                      <div>
+                        <p className="font-bold text-slate-900">{displayName}</p>
+                        <p className="text-xs text-slate-500 font-medium">
+                          {roleLabel}
+                        </p>
+                      </div>
+                    </div>
+                    <Badge
+                      variant="default"
+                      className="font-bold text-[10px] uppercase"
+                    >
+                      Active
+                    </Badge>
                   </div>
-                  <div>
-                    <p className="font-bold text-slate-900">You (Owner)</p>
-                    <p className="text-xs text-slate-500 font-medium">
-                      Workspace Owner
-                    </p>
-                  </div>
-                </div>
-                <Badge
-                  variant="default"
-                  className="font-bold text-[10px] uppercase"
-                >
-                  Active
-                </Badge>
-              </div>
-              {isSolo && (
+                );
+              })}
+              {showUpgradeCta && (
                 <div className="px-8 py-12 flex flex-col items-center justify-center text-center bg-slate-50/50">
                   <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-300 mb-4 border border-dashed border-slate-300">
                     <Users className="w-6 h-6" />

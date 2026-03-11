@@ -18,6 +18,7 @@ import { SEO } from "../components/marketing/SEO";
 import { motion } from "framer-motion";
 import { useDynamicData } from "../hooks/useDynamicData";
 import { LoadingSpinner } from "../components/ui/LoadingSpinner";
+import { ComingSoonEmptyState } from "../components/ui/EmptyState";
 
 interface RoleSchema {
   "@context": string;
@@ -614,31 +615,34 @@ export default function JobNiche() {
         )}
 
         {/* Employers Grid - Mobile optimized */}
-        <section className="mb-10 sm:mb-20">
-          <h2 className="text-xl sm:text-2xl font-black mb-6 sm:mb-8">
+        <section className="mb-10 sm:mb-20" aria-labelledby="employers-heading">
+          <h2 id="employers-heading" className="text-xl sm:text-2xl font-black mb-6 sm:mb-8">
             {seoData.h2s[2]}
           </h2>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-6">
-            {cityInfo?.majorEmployers?.slice(0, 6).map((employer, index) => (
-              <div
-                key={index}
-                className="bg-white p-4 sm:p-6 rounded-xl sm:rounded-2xl border border-slate-100 shadow-sm"
-              >
-                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-primary-100 rounded-lg sm:rounded-xl flex items-center justify-center mb-3 sm:mb-4">
-                  <Briefcase className="w-5 h-5 sm:w-6 sm:h-6 text-primary-600" />
+            {(cityInfo?.majorEmployers?.length ?? 0) > 0 ? (
+              (cityInfo?.majorEmployers ?? []).slice(0, 6).map((employer, index) => (
+                <div
+                  key={index}
+                  className="bg-white p-4 sm:p-6 rounded-xl sm:rounded-2xl border border-slate-100 shadow-sm"
+                >
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-primary-100 rounded-lg sm:rounded-xl flex items-center justify-center mb-3 sm:mb-4">
+                    <Briefcase className="w-5 h-5 sm:w-6 sm:h-6 text-primary-600" />
+                  </div>
+                  <h3 className="font-bold text-slate-900 text-sm sm:text-base mb-1 sm:mb-2">
+                    {employer}
+                  </h3>
+                  <p className="text-xs sm:text-sm text-slate-500">
+                    {cityInfo?.industries?.[0] || "Tech"}
+                  </p>
                 </div>
-                <h3 className="font-bold text-slate-900 text-sm sm:text-base mb-1 sm:mb-2">
-                  {employer}
-                </h3>
-                <p className="text-xs sm:text-sm text-slate-500">
-                  {cityInfo?.industries?.[0] || "Tech"}
-                </p>
-              </div>
-            )) || (
-              <div className="col-span-full text-center py-8">
-                <p className="text-slate-500 text-sm">
-                  Employer data coming soon for {formattedCity}
-                </p>
+              ))
+            ) : (
+              <div className="col-span-full" role="status" aria-label={`Employer data for ${formattedCity} coming soon`}>
+                <ComingSoonEmptyState
+                  featureName={`Employer data for ${formattedCity}`}
+                  description={`We're building out employer insights for ${formattedCity}. Check back soon.`}
+                />
               </div>
             )}
           </div>

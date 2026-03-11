@@ -766,7 +766,7 @@ def _mount_sub_routers() -> None:
 
     import api.auth as auth_mod
 
-    app.dependency_overrides[auth_mod._get_pool] = get_pool
+    # auth uses get_pool directly from api.dependencies
     app.include_router(auth_mod.router)
 
     import api.export as export_mod
@@ -918,11 +918,9 @@ def _mount_sub_routers() -> None:
     app.dependency_overrides[ab_testing_mod._get_tenant_ctx] = get_tenant_context
     app.include_router(ab_testing_mod.router)
 
-    # Billing routes
+    # Billing routes (uses get_pool, get_tenant_context directly from api.dependencies/main)
     import api.billing as billing_mod
 
-    app.dependency_overrides[billing_mod._get_pool] = get_pool
-    app.dependency_overrides[billing_mod._get_tenant_ctx] = get_tenant_context
     app.include_router(billing_mod.router)
 
     import api.og as og_mod
@@ -1762,6 +1760,39 @@ async def user_dashboard(
         ),
         "recent": [dict(r) for r in recent],
     }
+
+
+@app.get("/me/team/members")
+async def get_team_members(
+    ctx: TenantContext = Depends(get_tenant_context),
+    db: asyncpg.Pool = Depends(get_pool),
+) -> list[dict[str, Any]]:
+    """Get tenant members for the current user's workspace (team page)."""
+    async with db.acquire() as conn:
+        rows = await conn.fetch(
+            """
+            SELECT tm.user_id, tm.role, tm.created_at,
+                   u.email, u.full_name, u.avatar_url
+            FROM public.tenant_members tm
+            LEFT JOIN public.users u ON u.id = tm.user_id
+            WHERE tm.tenant_id = $1
+            ORDER BY
+                CASE tm.role WHEN 'OWNER' THEN 0 WHEN 'ADMIN' THEN 1 ELSE 2 END,
+                tm.created_at ASC
+            """,
+            ctx.tenant_id,
+        )
+    return [
+        {
+            "user_id": str(r["user_id"]),
+            "email": r["email"],
+            "full_name": r["full_name"],
+            "avatar_url": r["avatar_url"],
+            "role": r["role"],
+            "created_at": r["created_at"].isoformat() if r["created_at"] else None,
+        }
+        for r in rows
+    ]
 
 
 # ---------------------------------------------------------------------------

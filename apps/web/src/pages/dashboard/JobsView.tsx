@@ -7,7 +7,7 @@ import { Card } from "../../components/ui/Card";
 import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
 import { AnimatedNumber } from "./shared";
 import { Check, X, Undo2, Radar } from "lucide-react";
-import React, { useState, useCallback, useMemo } from "react";
+import React, { useState, useCallback, useMemo, useRef } from "react";
 import { Link } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { apiPost } from "../../lib/api";
@@ -45,6 +45,8 @@ export default function JobsView() {
     until: number;
   } | null>(null);
 
+  const skipLinkRef = useRef<HTMLAnchorElement | null>(null);
+
   const appliedCount = useMemo(
     () =>
       [...swipedJobs.values()].filter((r) => r.direction === "accept").length,
@@ -81,8 +83,8 @@ export default function JobsView() {
         return next;
       });
       if (action === "reject") {
-        // MEDIUM: Limit undoStack size more aggressively to prevent memory growth
-        setUndoStack((previous) => [...previous.slice(-2), jobId].slice(-3));
+        const MAX_UNDO_STACK = 20;
+        setUndoStack((previous) => [...previous, jobId].slice(-MAX_UNDO_STACK));
       }
 
       try {
@@ -104,24 +106,26 @@ export default function JobsView() {
           });
           pushToast({ title: "Applied!", tone: "success" });
           setSwipeAnnouncement(
-            `Applied to ${job?.title || "job"} at ${job?.company || "company"}`,
+            `Swiped right. Applied to ${job?.title || "job"} at ${job?.company || "company"}`,
           );
           queryClient.invalidateQueries({ queryKey: ["applications"] });
           queryClient.invalidateQueries({ queryKey: ["jobs"] });
           setLastAppliedForUndo({ jobId, until: Date.now() + 10_000 });
         } else {
           setSwipeAnnouncement(
-            `Skipped ${job?.title || "job"} at ${job?.company || "company"}`,
+            `Swiped left. Skipped ${job?.title || "job"} at ${job?.company || "company"}`,
           );
         }
 
-        // MEDIUM: Focus management after swipe - focus next card (with cleanup)
+        // MEDIUM: Focus management after swipe - focus next card or skip link
         const focusTimeoutId = setTimeout(() => {
           const nextCard = document.querySelector(
             '[role="article"][tabindex="0"]',
-          ) as HTMLElement;
+          ) as HTMLElement | null;
           if (nextCard) {
             nextCard.focus();
+          } else {
+            skipLinkRef.current?.focus();
           }
         }, 100);
         // Store timeout ID for cleanup (handled by component cleanup)
@@ -304,8 +308,9 @@ export default function JobsView() {
         </kbd>{" "}
         to apply
       </div>
-      {/* MEDIUM: Skip link for accessibility */}
+      {/* MEDIUM: Skip link for accessibility (also used as focus target when no cards left) */}
       <a
+        ref={skipLinkRef}
         href="#job-actions"
         className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:px-4 focus:py-2 focus:bg-blue-600 focus:text-white focus:rounded"
       >

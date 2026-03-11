@@ -50,6 +50,7 @@ logger = get_logger("sorce.user_experience_api")
 router = APIRouter(prefix="/ux", tags=["user_experience"])
 
 
+# Placeholder dependencies - overridden by main.py with get_pool and get_tenant_context
 async def _get_pool():
     raise NotImplementedError("Pool dependency not injected")
 
@@ -58,55 +59,43 @@ async def _get_tenant_ctx():
     raise NotImplementedError("Tenant context dependency not injected")
 
 
-# Dependency injection functions
-def get_tenant_context():
-    from apps.api.dependencies import get_tenant_context as _get_tenant_context
-
-    return _get_tenant_context
-
-
-def get_pipeline_manager():
-    from apps.api.dependencies import get_pool
+# Manager factories - receive pool via Depends(_get_pool) so main.py override applies
+def get_pipeline_manager(db=Depends(_get_pool)):
     from packages.backend.domain.application_pipeline import create_pipeline_manager
 
-    return create_pipeline_manager(get_pool())
+    return create_pipeline_manager(db)
 
 
-def get_export_manager():
-    from apps.api.dependencies import get_pool
+def get_export_manager(db=Depends(_get_pool)):
     from packages.backend.domain.application_export import create_export_manager
 
-    return create_export_manager(get_pool())
+    return create_export_manager(db)
 
 
-def get_follow_up_manager():
-    from apps.api.dependencies import get_pool
+def get_follow_up_manager(db=Depends(_get_pool)):
     from packages.backend.domain.follow_up_reminders import create_follow_up_manager
 
-    return create_follow_up_manager(get_pool())
+    return create_follow_up_manager(db)
 
 
-def get_answer_memory_manager():
-    from apps.api.dependencies import get_pool
+def get_answer_memory_manager(db=Depends(_get_pool)):
     from packages.backend.domain.answer_memory import create_answer_memory_manager
 
-    return create_answer_memory_manager(get_pool())
+    return create_answer_memory_manager(db)
 
 
-def get_multi_resume_manager():
-    from apps.api.dependencies import get_pool
+def get_multi_resume_manager(db=Depends(_get_pool)):
     from packages.backend.domain.multi_resume import create_multi_resume_manager
 
-    return create_multi_resume_manager(get_pool())
+    return create_multi_resume_manager(db)
 
 
-def get_application_notes_manager():
-    from apps.api.dependencies import get_pool
+def get_application_notes_manager(db=Depends(_get_pool)):
     from packages.backend.domain.application_notes import (
         create_application_notes_manager,
     )
 
-    return create_application_notes_manager(get_pool())
+    return create_application_notes_manager(db)
 
 
 # Pydantic models for API requests/responses
@@ -231,7 +220,7 @@ class NoteUpdateRequest(BaseModel):
 @router.get("/pipeline")
 async def get_pipeline_view(
     request: PipelineViewRequest,
-    ctx: TenantContext = Depends(get_tenant_context),
+    ctx: TenantContext = Depends(_get_tenant_ctx),
     pipeline_manager: ApplicationPipelineManager = Depends(get_pipeline_manager),
 ) -> PipelineView:
     """Get complete pipeline view for user applications."""
@@ -248,7 +237,7 @@ async def get_pipeline_view(
 async def update_application_stage(
     application_id: str,
     new_stage: str,
-    ctx: TenantContext = Depends(get_tenant_context),
+    ctx: TenantContext = Depends(_get_tenant_ctx),
     pipeline_manager: ApplicationPipelineManager = Depends(get_pipeline_manager),
 ) -> Dict[str, bool]:
     """Update application pipeline stage."""
@@ -265,7 +254,7 @@ async def update_application_stage(
 async def bulk_update_stages(
     application_ids: List[str],
     new_stage: str,
-    ctx: TenantContext = Depends(get_tenant_context),
+    ctx: TenantContext = Depends(_get_tenant_ctx),
     pipeline_manager: ApplicationPipelineManager = Depends(get_pipeline_manager),
 ) -> Dict[str, bool]:
     """Bulk update application stages."""
@@ -283,7 +272,7 @@ async def bulk_update_stages(
 @router.post("/export/applications")
 async def export_applications(
     request: ExportRequest,
-    ctx: TenantContext = Depends(get_tenant_context),
+    ctx: TenantContext = Depends(_get_tenant_ctx),
     export_manager: ApplicationExportManager = Depends(get_export_manager),
 ):
     """Export applications in specified format."""
@@ -306,7 +295,7 @@ async def export_applications(
 
 @router.get("/export/templates")
 async def get_export_templates(
-    ctx: TenantContext = Depends(get_tenant_context),
+    ctx: TenantContext = Depends(_get_tenant_ctx),
     export_manager: ApplicationExportManager = Depends(get_export_manager),
 ) -> List[Dict[str, Any]]:
     """Get available export templates."""
@@ -319,7 +308,7 @@ async def get_export_templates(
 @router.post("/reminders")
 async def create_reminder(
     request: ReminderCreateRequest,
-    ctx: TenantContext = Depends(get_tenant_context),
+    ctx: TenantContext = Depends(_get_tenant_ctx),
     follow_up_manager: FollowUpManager = Depends(get_follow_up_manager),
 ) -> FollowUpReminder:
     """Create a new follow-up reminder."""
@@ -339,7 +328,7 @@ async def schedule_application_reminders(
     application_id: str,
     application_status: str,
     schedules: Optional[List[ReminderScheduleRequest]] = None,
-    ctx: TenantContext = Depends(get_tenant_context),
+    ctx: TenantContext = Depends(_get_tenant_ctx),
     follow_up_manager: FollowUpManager = Depends(get_follow_up_manager),
 ) -> List[FollowUpReminder]:
     """Schedule reminders for a new application."""
@@ -369,7 +358,7 @@ async def schedule_application_reminders(
 async def get_user_reminders(
     status: Optional[str] = None,
     limit: int = 50,
-    ctx: TenantContext = Depends(get_tenant_context),
+    ctx: TenantContext = Depends(_get_tenant_ctx),
     follow_up_manager: FollowUpManager = Depends(get_follow_up_manager),
 ) -> List[FollowUpReminder]:
     """Get user's reminders."""
@@ -384,7 +373,7 @@ async def get_user_reminders(
 @router.get("/reminders/pending")
 async def get_pending_reminders(
     limit: int = 100,
-    ctx: TenantContext = Depends(get_tenant_context),
+    ctx: TenantContext = Depends(_get_tenant_ctx),
     follow_up_manager: FollowUpManager = Depends(get_follow_up_manager),
 ) -> List[FollowUpReminder]:
     """Get pending reminders that are due."""
@@ -398,7 +387,7 @@ async def get_pending_reminders(
 @router.put("/reminders/{reminder_id}/send")
 async def send_reminder(
     reminder_id: str,
-    ctx: TenantContext = Depends(get_tenant_context),
+    ctx: TenantContext = Depends(_get_tenant_ctx),
     follow_up_manager: FollowUpManager = Depends(get_follow_up_manager),
 ) -> Dict[str, bool]:
     """Send a reminder."""
@@ -409,7 +398,7 @@ async def send_reminder(
 @router.put("/reminders/{reminder_id}/complete")
 async def complete_reminder(
     reminder_id: str,
-    ctx: TenantContext = Depends(get_tenant_context),
+    ctx: TenantContext = Depends(_get_tenant_ctx),
     follow_up_manager: FollowUpManager = Depends(get_follow_up_manager),
 ) -> Dict[str, bool]:
     """Mark a reminder as completed."""
@@ -421,7 +410,7 @@ async def complete_reminder(
 async def snooze_reminder(
     reminder_id: str,
     days: int = 1,
-    ctx: TenantContext = Depends(get_tenant_context),
+    ctx: TenantContext = Depends(_get_tenant_ctx),
     follow_up_manager: FollowUpManager = Depends(get_follow_up_manager),
 ) -> Dict[str, bool]:
     """Snooze a reminder by specified days."""
@@ -437,7 +426,7 @@ async def get_recommended_questions(
     job_title: str,
     company_name: Optional[str] = None,
     limit: int = 10,
-    ctx: TenantContext = Depends(get_tenant_context),
+    ctx: TenantContext = Depends(_get_tenant_ctx),
     answer_memory_manager: AnswerMemoryManager = Depends(get_answer_memory_manager),
 ) -> List[InterviewQuestion]:
     """Get recommended interview questions for a job."""
@@ -453,7 +442,7 @@ async def get_recommended_questions(
 @router.post("/interview/attempts")
 async def save_answer_attempt(
     request: AnswerAttemptRequest,
-    ctx: TenantContext = Depends(get_tenant_context),
+    ctx: TenantContext = Depends(_get_tenant_ctx),
     answer_memory_manager: AnswerMemoryManager = Depends(get_answer_memory_manager),
 ) -> AnswerAttempt:
     """Save an answer attempt with AI scoring."""
@@ -469,7 +458,7 @@ async def save_answer_attempt(
 @router.post("/interview/memory")
 async def create_answer_memory(
     request: AnswerMemoryRequest,
-    ctx: TenantContext = Depends(get_tenant_context),
+    ctx: TenantContext = Depends(_get_tenant_ctx),
     answer_memory_manager: AnswerMemoryManager = Depends(get_answer_memory_manager),
 ) -> AnswerMemory:
     """Create or update answer memory entry."""
@@ -488,7 +477,7 @@ async def get_user_memories(
     category: Optional[str] = None,
     mastery_threshold: float = 0.0,
     limit: int = 50,
-    ctx: TenantContext = Depends(get_tenant_context),
+    ctx: TenantContext = Depends(_get_tenant_ctx),
     answer_memory_manager: AnswerMemoryManager = Depends(get_answer_memory_manager),
 ) -> List[AnswerMemory]:
     """Get user's answer memories."""
@@ -504,7 +493,7 @@ async def get_user_memories(
 @router.get("/interview/analytics/{question_id}")
 async def get_question_analytics(
     question_id: str,
-    ctx: TenantContext = Depends(get_tenant_context),
+    ctx: TenantContext = Depends(_get_tenant_ctx),
     answer_memory_manager: AnswerMemoryManager = Depends(get_answer_memory_manager),
 ) -> Optional[Dict[str, Any]]:
     """Get analytics for a specific question."""
@@ -519,7 +508,7 @@ async def get_question_analytics(
 @router.put("/interview/mastery/{question_id}")
 async def update_mastery_level(
     question_id: str,
-    ctx: TenantContext = Depends(get_tenant_context),
+    ctx: TenantContext = Depends(_get_tenant_ctx),
     answer_memory_manager: AnswerMemoryManager = Depends(get_answer_memory_manager),
 ) -> Dict[str, float]:
     """Update and return mastery level for a question."""
@@ -537,7 +526,7 @@ async def update_mastery_level(
 @router.post("/resumes")
 async def create_resume_version(
     request: ResumeVersionRequest,
-    ctx: TenantContext = Depends(get_tenant_context),
+    ctx: TenantContext = Depends(_get_tenant_ctx),
     multi_resume_manager: MultiResumeManager = Depends(get_multi_resume_manager),
 ) -> ResumeVersion:
     """Create a new resume version."""
@@ -561,7 +550,7 @@ async def create_resume_version(
 async def get_user_resumes(
     resume_type: Optional[str] = None,
     is_active: bool = True,
-    ctx: TenantContext = Depends(get_tenant_context),
+    ctx: TenantContext = Depends(_get_tenant_ctx),
     multi_resume_manager: MultiResumeManager = Depends(get_multi_resume_manager),
 ) -> List[ResumeVersion]:
     """Get user's resume versions."""
@@ -579,7 +568,7 @@ async def recommend_resume_for_job(
     company_industry: str,
     job_description: str = "",
     required_skills: List[str] = [],
-    ctx: TenantContext = Depends(get_tenant_context),
+    ctx: TenantContext = Depends(_get_tenant_ctx),
     multi_resume_manager: MultiResumeManager = Depends(get_multi_resume_manager),
 ) -> Optional[ResumeVersion]:
     """Recommend the best resume for a specific job."""
@@ -597,7 +586,7 @@ async def recommend_resume_for_job(
 async def compare_resumes(
     resume1_id: str,
     resume2_id: str,
-    ctx: TenantContext = Depends(get_tenant_context),
+    ctx: TenantContext = Depends(_get_tenant_ctx),
     multi_resume_manager: MultiResumeManager = Depends(get_multi_resume_manager),
 ) -> ResumeComparison:
     """Compare two resume versions."""
@@ -615,7 +604,7 @@ async def compare_resumes(
 @router.get("/resumes/{resume_id}/analytics")
 async def get_resume_analytics(
     resume_id: str,
-    ctx: TenantContext = Depends(get_tenant_context),
+    ctx: TenantContext = Depends(_get_tenant_ctx),
     multi_resume_manager: MultiResumeManager = Depends(get_multi_resume_manager),
 ) -> ResumeAnalytics:
     """Get analytics for a specific resume."""
@@ -629,7 +618,7 @@ async def get_resume_analytics(
 @router.put("/resumes/{resume_id}/primary")
 async def set_primary_resume(
     resume_id: str,
-    ctx: TenantContext = Depends(get_tenant_context),
+    ctx: TenantContext = Depends(_get_tenant_ctx),
     multi_resume_manager: MultiResumeManager = Depends(get_multi_resume_manager),
 ) -> Dict[str, bool]:
     """Set a resume as the primary resume."""
@@ -644,7 +633,7 @@ async def set_primary_resume(
 @router.delete("/resumes/{resume_id}")
 async def delete_resume_version(
     resume_id: str,
-    ctx: TenantContext = Depends(get_tenant_context),
+    ctx: TenantContext = Depends(_get_tenant_ctx),
     multi_resume_manager: MultiResumeManager = Depends(get_multi_resume_manager),
 ) -> Dict[str, bool]:
     """Delete a resume version."""
@@ -662,7 +651,7 @@ async def delete_resume_version(
 @router.post("/notes")
 async def create_note(
     request: NoteCreateRequest,
-    ctx: TenantContext = Depends(get_tenant_context),
+    ctx: TenantContext = Depends(_get_tenant_ctx),
     notes_manager: ApplicationNotesManager = Depends(get_application_notes_manager),
 ) -> ApplicationNote:
     """Create a new application note."""
@@ -687,7 +676,7 @@ async def search_notes(
     category: Optional[str] = None,
     tags: Optional[List[str]] = None,
     limit: int = 20,
-    ctx: TenantContext = Depends(get_tenant_context),
+    ctx: TenantContext = Depends(_get_tenant_ctx),
     notes_manager: ApplicationNotesManager = Depends(get_application_notes_manager),
 ) -> List[Dict[str, Any]]:
     """Search notes with relevance scoring. Empty query returns recent notes."""
@@ -716,7 +705,7 @@ async def search_notes(
 @router.get("/notes/reminders")
 async def get_notes_with_reminders(
     days_ahead: int = 7,
-    ctx: TenantContext = Depends(get_tenant_context),
+    ctx: TenantContext = Depends(_get_tenant_ctx),
     notes_manager: ApplicationNotesManager = Depends(get_application_notes_manager),
 ) -> List[ApplicationNote]:
     """Get notes with upcoming reminders."""
@@ -730,7 +719,7 @@ async def get_notes_with_reminders(
 @router.get("/notes/templates")
 async def get_note_templates(
     category: Optional[str] = None,
-    ctx: TenantContext = Depends(get_tenant_context),
+    ctx: TenantContext = Depends(_get_tenant_ctx),
     notes_manager: ApplicationNotesManager = Depends(get_application_notes_manager),
 ) -> List[NoteTemplate]:
     """Get available note templates."""
@@ -742,7 +731,7 @@ async def create_note_from_template(
     application_id: str,
     template_id: str,
     variables: Dict[str, str],
-    ctx: TenantContext = Depends(get_tenant_context),
+    ctx: TenantContext = Depends(_get_tenant_ctx),
     notes_manager: ApplicationNotesManager = Depends(get_application_notes_manager),
 ) -> ApplicationNote:
     """Create a note from a template."""
@@ -758,7 +747,7 @@ async def create_note_from_template(
 @router.get("/notes/statistics")
 async def get_note_statistics(
     days_back: int = 30,
-    ctx: TenantContext = Depends(get_tenant_context),
+    ctx: TenantContext = Depends(_get_tenant_ctx),
     notes_manager: ApplicationNotesManager = Depends(get_application_notes_manager),
 ) -> Dict[str, Any]:
     """Get statistics about user's notes."""
@@ -775,7 +764,7 @@ async def get_application_notes(
     category: Optional[str] = None,
     include_private: bool = True,
     limit: int = 50,
-    ctx: TenantContext = Depends(get_tenant_context),
+    ctx: TenantContext = Depends(_get_tenant_ctx),
     notes_manager: ApplicationNotesManager = Depends(get_application_notes_manager),
 ) -> List[ApplicationNote]:
     """Get notes for a specific application."""
@@ -793,7 +782,7 @@ async def get_application_notes(
 async def update_note(
     note_id: str,
     request: NoteUpdateRequest,
-    ctx: TenantContext = Depends(get_tenant_context),
+    ctx: TenantContext = Depends(_get_tenant_ctx),
     notes_manager: ApplicationNotesManager = Depends(get_application_notes_manager),
 ) -> Dict[str, bool]:
     """Update an existing note."""
@@ -815,7 +804,7 @@ async def update_note(
 @router.delete("/notes/{note_id}")
 async def delete_note(
     note_id: str,
-    ctx: TenantContext = Depends(get_tenant_context),
+    ctx: TenantContext = Depends(_get_tenant_ctx),
     notes_manager: ApplicationNotesManager = Depends(get_application_notes_manager),
 ) -> Dict[str, bool]:
     """Delete a note."""

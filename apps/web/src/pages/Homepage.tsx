@@ -562,8 +562,11 @@ function UserJourneySection() {
                 </div>
               </div>
 
-              {/* Dashboard mock - more playful */}
-              <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-white/10 bg-black/20">
+              {/* Visual design mock only: fake browser chrome (dots, URL, Live). No data fetch. */}
+              <div
+                className="absolute bottom-0 left-0 right-0 p-4 border-t border-white/10 bg-black/20"
+                aria-hidden
+              >
                 <div className="flex items-center gap-2 text-white/40 text-xs font-mono">
                   <div className="flex gap-1">
                     <div className="w-2 h-2 rounded-full bg-red-500/60" />

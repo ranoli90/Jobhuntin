@@ -186,6 +186,7 @@ class Settings(BaseSettings):
 
     # ── Stripe / Billing ─────────────────────────────────────────
     stripe_secret_key: str = ""
+    # MUST be set via STRIPE_WEBHOOK_SECRET env in production (validation in validate_critical)
     stripe_webhook_secret: str = "dev-placeholder-webhook-secret"
     stripe_pro_price_id: str = ""  # Stripe Price ID for PRO plan ($29/month)
     stripe_team_base_price_id: str = ""  # Stripe Price ID for TEAM base ($199/month)
@@ -202,7 +203,7 @@ class Settings(BaseSettings):
     )
     annual_discount_pct: int = 20  # percent discount for annual billing
 
-    # Webhook signing (set real secrets in prod/staging)
+    # Webhook signing. MUST be set via WEBHOOK_SIGNING_SECRET env in production (validation in validate_critical)
     webhook_signing_secret: str = "dev-placeholder-webhook-signing"
 
     # ── Stripe Connect (Marketplace) ──────────────────────────────

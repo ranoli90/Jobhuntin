@@ -1,15 +1,26 @@
-import React from "react";
+import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { pushToast } from "../../lib/toast";
-import { useQuery } from "@tanstack/react-query";
-import { apiGet } from "../../lib/api";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiGet, apiPost } from "../../lib/api";
 import { Button } from "../../components/ui/Button";
 import { Card } from "../../components/ui/Card";
 import { Badge } from "../../components/ui/Badge";
 import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
+import { Input } from "../../components/ui/Input";
+import { Label } from "../../components/ui/Label";
+import { Textarea } from "../../components/ui/Textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../../components/ui/Select";
+import { Alert, AlertDescription } from "../../components/ui/Alert";
+import { FocusTrap } from "focus-trap-react";
 import {
   ArrowLeft,
-  Briefcase,
   Clock,
   CheckCircle,
   XCircle,
@@ -18,6 +29,7 @@ import {
   FileText,
   History,
   Plus,
+  Loader2,
 } from "lucide-react";
 import { formatDate } from "../../lib/format";
 import { getLocale } from "../../lib/i18n";
@@ -55,6 +67,30 @@ interface ApplicationDetail {
   events: ApplicationEvent[];
 }
 
+interface ApplicationNote {
+  id: string;
+  application_id: string;
+  title: string;
+  content: string;
+  category: string;
+  tags: string[];
+  created_at: string;
+  updated_at: string;
+}
+
+const NOTE_CATEGORIES = [
+  "general",
+  "contact_info",
+  "interview_prep",
+  "follow_up",
+  "feedback",
+  "questions",
+  "research",
+  "salary_info",
+  "next_steps",
+  "personal_notes",
+];
+
 function statusVariant(
   status: string,
 ): "success" | "warning" | "error" | "default" {
@@ -79,11 +115,41 @@ export default function ApplicationDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const locale = getLocale();
+  const queryClient = useQueryClient();
+  const [showAddNoteModal, setShowAddNoteModal] = useState(false);
+  const [noteForm, setNoteForm] = useState({
+    title: "",
+    content: "",
+    category: "general",
+  });
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["application", id],
     queryFn: () => apiGet<ApplicationDetail>(`applications/${id}`),
     enabled: !!id,
+  });
+
+  const notesQuery = useQuery({
+    queryKey: ["ux-notes", id],
+    queryFn: () => apiGet<ApplicationNote[]>(`ux/notes/${id}`),
+    enabled: !!id,
+  });
+
+  const createNoteMutation = useMutation({
+    mutationFn: async (payload: {
+      application_id: string;
+      title: string;
+      content: string;
+      category: string;
+      tags?: string[];
+    }) => apiPost<ApplicationNote>("ux/notes", payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["ux-notes", id] });
+      queryClient.invalidateQueries({ queryKey: ["ux-notes-statistics"] });
+      setShowAddNoteModal(false);
+      setNoteForm({ title: "", content: "", category: "general" });
+      pushToast({ title: "Note added", tone: "success" });
+    },
   });
 
   if (!id) {
@@ -344,33 +410,222 @@ export default function ApplicationDetailPage() {
         </Card>
       )}
 
-      {/* LOW: Notes/Annotations Section */}
+      {/* Notes Section */}
       <Card className="p-6" shadow="sm">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <FileText className="w-5 h-5 text-slate-600" />
             <h2 className="text-lg font-bold text-slate-900">Notes</h2>
+            {notesQuery.data && notesQuery.data.length > 0 && (
+              <Badge variant="default" className="text-xs">
+                {notesQuery.data.length}
+              </Badge>
+            )}
           </div>
           <Button
             variant="outline"
             size="sm"
-            onClick={() => {
-              // TODO: Implement notes creation
-              pushToast({ title: "Notes feature coming soon", tone: "info" });
-            }}
+            onClick={() => setShowAddNoteModal(true)}
           >
             <Plus className="w-4 h-4 mr-2" />
             Add Note
           </Button>
         </div>
-        <div className="text-center py-8 text-slate-500">
-          <FileText className="w-12 h-12 mx-auto mb-2 opacity-50" />
-          <p>
-            No notes yet. Add notes to track your thoughts about this
-            application.
-          </p>
-        </div>
+
+        {notesQuery.isLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="w-8 h-8 animate-spin text-slate-400" />
+          </div>
+        ) : notesQuery.error ? (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              {notesQuery.error instanceof Error
+                ? notesQuery.error.message
+                : "Failed to load notes"}
+            </AlertDescription>
+            <Button
+              variant="outline"
+              size="sm"
+              className="mt-2"
+              onClick={() => notesQuery.refetch()}
+            >
+              Retry
+            </Button>
+          </Alert>
+        ) : notesQuery.data && notesQuery.data.length > 0 ? (
+          <div className="space-y-3">
+            {notesQuery.data
+              .sort(
+                (a, b) =>
+                  new Date(b.updated_at).getTime() -
+                  new Date(a.updated_at).getTime(),
+              )
+              .map((note) => (
+                <div
+                  key={note.id}
+                  className="p-4 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/30"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                      <h3 className="font-medium text-slate-900 dark:text-slate-100">
+                        {note.title}
+                      </h3>
+                      <p className="text-sm text-slate-600 dark:text-slate-400 mt-1 whitespace-pre-wrap">
+                        {note.content}
+                      </p>
+                      <div className="flex items-center gap-2 mt-2">
+                        <Badge variant="secondary" className="text-xs">
+                          {note.category.replace(/_/g, " ")}
+                        </Badge>
+                        <span className="text-xs text-slate-500">
+                          {formatDate(note.updated_at, locale)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+          </div>
+        ) : (
+          <div className="text-center py-8 text-slate-500">
+            <FileText className="w-12 h-12 mx-auto mb-2 opacity-50" />
+            <p>
+              No notes yet. Add notes to track your thoughts about this
+              application.
+            </p>
+          </div>
+        )}
       </Card>
+
+      {/* Add Note Modal */}
+      {showAddNoteModal && (
+        <div
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="add-note-modal-title"
+          onClick={(e) =>
+            e.target === e.currentTarget && setShowAddNoteModal(false)
+          }
+        >
+          <FocusTrap
+            active={showAddNoteModal}
+            focusTrapOptions={{
+              escapeDeactivates: true,
+              allowOutsideClick: true,
+              onDeactivate: () => setShowAddNoteModal(false),
+            }}
+          >
+            <div className="bg-white dark:bg-slate-900 rounded-lg p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-xl">
+              <div className="flex justify-between items-center mb-4">
+                <h2
+                  id="add-note-modal-title"
+                  className="text-xl font-semibold text-slate-900 dark:text-slate-100"
+                >
+                  Add Note
+                </h2>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowAddNoteModal(false)}
+                  aria-label="Close"
+                >
+                  ✕
+                </Button>
+              </div>
+
+              {createNoteMutation.error && (
+                <Alert variant="destructive" className="mb-4">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>
+                    {createNoteMutation.error instanceof Error
+                      ? createNoteMutation.error.message
+                      : "Failed to add note"}
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="note-title">Title</Label>
+                  <Input
+                    id="note-title"
+                    value={noteForm.title}
+                    onChange={(e) =>
+                      setNoteForm((p) => ({ ...p, title: e.target.value }))
+                    }
+                    placeholder="Note title"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="note-content">Content</Label>
+                  <Textarea
+                    id="note-content"
+                    value={noteForm.content}
+                    onChange={(e) =>
+                      setNoteForm((p) => ({ ...p, content: e.target.value }))
+                    }
+                    placeholder="Note content..."
+                    rows={4}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="note-category">Category</Label>
+                  <Select
+                    value={noteForm.category}
+                    onValueChange={(v) =>
+                      setNoteForm((p) => ({ ...p, category: v }))
+                    }
+                  >
+                    <SelectTrigger id="note-category">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {NOTE_CATEGORIES.map((cat) => (
+                        <SelectItem key={cat} value={cat}>
+                          {cat.replace(/_/g, " ")}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-2 mt-6">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowAddNoteModal(false)}
+                  disabled={createNoteMutation.isPending}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={() => {
+                    if (!noteForm.title.trim()) return;
+                    createNoteMutation.mutate({
+                      application_id: app.id,
+                      title: noteForm.title.trim(),
+                      content: noteForm.content.trim(),
+                      category: noteForm.category,
+                    });
+                  }}
+                  disabled={
+                    !noteForm.title.trim() || createNoteMutation.isPending
+                  }
+                >
+                  {createNoteMutation.isPending && (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  )}
+                  Add Note
+                </Button>
+              </div>
+            </div>
+          </FocusTrap>
+        </div>
+      )}
 
       {/* Empty states for missing data */}
       {(!data.inputs || data.inputs.length === 0) &&

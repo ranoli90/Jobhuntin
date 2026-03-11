@@ -116,17 +116,33 @@ const ApplicationExportPage: React.FC = () => {
 
   const fetchApplications = async () => {
     try {
-      const data = await apiGet<{
-        applications?: Application[];
-        items?: Application[];
-      }>("me/applications");
-      setApplications(data.items ?? data.applications ?? []);
+      setLoading(true);
+      const all: Application[] = [];
+      const limit = 100;
+      let offset = 0;
+      let hasMore = true;
+
+      while (hasMore) {
+        const data = await apiGet<{
+          items?: Application[];
+          applications?: Application[];
+          pagination?: { has_more: boolean };
+        }>(`me/applications?limit=${limit}&offset=${offset}`);
+        const items = data.items ?? data.applications ?? [];
+        all.push(...items);
+        hasMore = data.pagination?.has_more ?? items.length >= limit;
+        offset += limit;
+      }
+
+      setApplications(all);
     } catch (error_) {
       setError(
         error_ instanceof Error
           ? error_.message
           : "Failed to fetch applications",
       );
+    } finally {
+      setLoading(false);
     }
   };
 

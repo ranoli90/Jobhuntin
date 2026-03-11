@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   ArrowLeft,
   Bell,
@@ -15,7 +16,7 @@ import { Button } from "../../components/ui/Button";
 import { Badge } from "../../components/ui/Badge";
 import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
 import { cn } from "../../lib/utils";
-import { apiGet, apiPatch } from "../../lib/api";
+import { apiGet, apiPost } from "../../lib/api";
 import { pushToast } from "../../lib/toast";
 
 interface Alert {
@@ -36,89 +37,40 @@ interface AlertsData {
   historical: Alert[];
 }
 
-const mockAlertsData: AlertsData = {
-  active: [
-    {
-      id: "a1",
-      type: "critical",
-      title: "API Rate Limit Exceeded",
-      message:
-        "Tenant 'Enterprise Solutions' has exceeded their API rate limit. Requests are being throttled.",
-      tenant_id: "t5",
-      tenant_name: "Enterprise Solutions",
-      status: "active",
-      created_at: "2026-02-12T10:30:00Z",
-      acknowledged_at: null,
-      acknowledged_by: null,
-    },
-    {
-      id: "a2",
-      type: "warning",
-      title: "High Error Rate Detected",
-      message:
-        "Match API error rate has exceeded 5% in the last hour. Current rate: 7.2%.",
-      tenant_id: "system",
-      tenant_name: "System",
-      status: "active",
-      created_at: "2026-02-12T09:45:00Z",
-      acknowledged_at: null,
-      acknowledged_by: null,
-    },
-    {
-      id: "a3",
-      type: "warning",
-      title: "Quota Near Limit",
-      message:
-        "Tenant 'Global Systems' is at 89% of their monthly match quota.",
-      tenant_id: "t3",
-      tenant_name: "Global Systems",
-      status: "active",
-      created_at: "2026-02-12T08:00:00Z",
-      acknowledged_at: null,
-      acknowledged_by: null,
-    },
-    {
-      id: "a4",
-      type: "info",
-      title: "Scheduled Maintenance",
-      message:
-        "Planned maintenance window scheduled for Feb 14, 2026 at 2:00 AM UTC. Expected downtime: 30 minutes.",
-      tenant_id: "system",
-      tenant_name: "System",
-      status: "active",
-      created_at: "2026-02-11T15:00:00Z",
-      acknowledged_at: null,
-      acknowledged_by: null,
-    },
-  ],
-  historical: [
-    {
-      id: "h1",
-      type: "critical",
-      title: "Database Connection Pool Exhausted",
-      message:
-        "Connection pool reached 100% capacity. Automatic scaling triggered.",
-      tenant_id: "system",
-      tenant_name: "System",
-      status: "resolved",
-      created_at: "2026-02-10T14:20:00Z",
-      acknowledged_at: "2026-02-10T14:25:00Z",
-      acknowledged_by: "admin@example.com",
-    },
-    {
-      id: "h2",
-      type: "warning",
-      title: "Memory Usage High",
-      message: "Server memory usage exceeded 85%. Monitoring closely.",
-      tenant_id: "system",
-      tenant_name: "System",
-      status: "acknowledged",
-      created_at: "2026-02-10T10:00:00Z",
-      acknowledged_at: "2026-02-10T10:05:00Z",
-      acknowledged_by: "admin@example.com",
-    },
-  ],
-};
+/** Map API AlertResponse to our Alert shape. Dashboard API: /admin/dashboard/alerts */
+function mapApiAlertToAlert(raw: {
+  id: string;
+  rule_name: string;
+  severity: string;
+  status: string;
+  message: string;
+  triggered_at: string;
+  acknowledged_at: string | null;
+  acknowledged_by: string | null;
+}): Alert {
+  const type =
+    raw.severity === "critical" || raw.severity === "error"
+      ? "critical"
+      : raw.severity === "warning"
+        ? "warning"
+        : "info";
+  const status =
+    raw.status === "firing"
+      ? "active"
+      : (raw.status as "acknowledged" | "resolved");
+  return {
+    id: raw.id,
+    type,
+    title: raw.rule_name,
+    message: raw.message,
+    tenant_id: "system",
+    tenant_name: "System",
+    status,
+    created_at: raw.triggered_at,
+    acknowledged_at: raw.acknowledged_at,
+    acknowledged_by: raw.acknowledged_by,
+  };
+}
 
 function AlertIcon({ type }: { type: Alert["type"] }) {
   switch (type) {
@@ -207,68 +159,65 @@ function AlertCard({
   );
 }
 
+const ALERTS_QUERY_KEY = ["admin", "dashboard", "alerts"] as const;
+
 export default function AdminAlertsPage() {
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
-  const [alertsData, setAlertsData] = useState<AlertsData | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
   const [severityFilter, setSeverityFilter] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [tab, setTab] = useState<"active" | "historical">("active");
 
-  const fetchAlerts = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const parameters = new URLSearchParams();
-      if (severityFilter) parameters.append("severity", severityFilter);
-      if (statusFilter) parameters.append("status", statusFilter);
-      const data = await apiGet<AlertsData>(`admin/alerts?${parameters}`);
-      setAlertsData(data);
-    } catch (error_) {
-      setError(
-        error_ instanceof Error ? error_.message : "Failed to load alerts",
-      );
-      setAlertsData(null);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { data: rawAlerts = [], isLoading, error, refetch } = useQuery({
+    queryKey: [...ALERTS_QUERY_KEY, severityFilter, statusFilter],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (severityFilter) params.set("severity", severityFilter);
+      if (statusFilter) params.set("status", statusFilter);
+      return apiGet<Array<{
+        id: string;
+        rule_name: string;
+        severity: string;
+        status: string;
+        message: string;
+        triggered_at: string;
+        acknowledged_at: string | null;
+        acknowledged_by: string | null;
+      }>>(`admin/dashboard/alerts?${params}`);
+    },
+  });
 
-  useEffect(() => {
-    fetchAlerts();
-  }, [severityFilter, statusFilter]);
-
-  const handleAcknowledge = async (alertId: string) => {
-    try {
-      await apiPatch(`admin/alerts/${alertId}/acknowledge`, {});
+  const acknowledgeMutation = useMutation({
+    mutationFn: (alertId: string) =>
+      apiPost(`admin/dashboard/alerts/${alertId}/acknowledge`, {}),
+    onSuccess: () => {
       pushToast({
         title: "Alert Acknowledged",
         description: "The alert has been acknowledged.",
         tone: "success",
       });
-      setAlertsData((previous) => {
-        if (!previous) return previous;
-        const alert = previous.active.find((a) => a.id === alertId);
-        if (alert) {
-          const updated = { ...alert, status: "acknowledged" as const };
-          updated.acknowledged_at = new Date().toISOString();
-          updated.acknowledged_by = "current-user@example.com";
-          return {
-            active: previous.active.filter((a) => a.id !== alertId),
-            historical: [updated, ...previous.historical],
-          };
-        }
-        return previous;
-      });
-    } catch {
+      queryClient.invalidateQueries({ queryKey: ALERTS_QUERY_KEY });
+    },
+    onError: () => {
       pushToast({
         title: "Acknowledgement Failed",
         description: "Could not acknowledge alert.",
         tone: "error",
       });
-      await fetchAlerts();
-    }
+    },
+  });
+
+  const alertsData: AlertsData = {
+    active: rawAlerts
+      .filter((a) => a.status === "firing")
+      .map(mapApiAlertToAlert),
+    historical: rawAlerts
+      .filter((a) => a.status !== "firing")
+      .map(mapApiAlertToAlert),
+  };
+
+  const handleAcknowledge = (alertId: string) => {
+    acknowledgeMutation.mutate(alertId);
   };
 
   const filteredAlerts =
@@ -284,7 +233,7 @@ export default function AdminAlertsPage() {
           return true;
         });
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <LoadingSpinner label="Loading alerts..." />
@@ -300,8 +249,10 @@ export default function AdminAlertsPage() {
           <h2 className="text-lg font-semibold text-slate-900">
             Failed to load alerts
           </h2>
-          <p className="text-sm text-slate-600">{error}</p>
-          <Button onClick={() => fetchAlerts()}>Retry</Button>
+          <p className="text-sm text-slate-600">
+            {error instanceof Error ? error.message : "Failed to load alerts"}
+          </p>
+          <Button onClick={() => refetch()}>Retry</Button>
         </div>
       </div>
     );

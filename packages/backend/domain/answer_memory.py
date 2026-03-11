@@ -202,7 +202,7 @@ class AnswerMemoryManager:
 
         attempt_id = str(uuid.uuid4())
 
-        # Generate AI feedback and score (placeholder)
+        # Generate AI feedback and score (stub; requires LLM integration for real feedback)
         ai_score, feedback = await self._generate_ai_feedback(question_id, answer)
 
         async with self.db_pool.acquire() as conn:
@@ -626,12 +626,14 @@ class AnswerMemoryManager:
         question_id: str,
         answer: str,
     ) -> tuple[float, str]:
-        """Generate AI feedback and score for an answer."""
+        """Generate AI feedback and score for an answer.
 
-        # Placeholder implementation
-        # In production, integrate with LLM for real feedback
+        Stub: Returns heuristic-based default score/feedback. Real implementation
+        requires LLM integration (e.g. OpenAI/Anthropic) to evaluate answer quality,
+        relevance, and provide actionable feedback.
+        """
 
-        # Simple scoring based on answer length and content
+        # Heuristic fallback until LLM integration is added
         answer_length = len(answer)
 
         if answer_length < 50:

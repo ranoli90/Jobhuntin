@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from "react";
-import { apiGet, apiPost } from "@/lib/api";
+import React, { useState } from "react";
+import { apiPost } from "@/lib/api";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
-import { Badge } from "@/components/ui/Badge";
 import { Alert, AlertDescription } from "@/components/ui/Alert";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
@@ -14,398 +13,111 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/Select";
-import { Switch } from "@/components/ui/Switch";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/Tabs";
-import { Progress } from "@/components/ui/Progress";
 import {
   Send,
-  Clock,
   CheckCircle,
   AlertTriangle,
-  Settings,
   RefreshCw,
-  RotateCw,
-  Search,
-  Filter,
-  Play,
-  Pause,
-  RotateCcw,
-  Users,
-  Mail,
-  Activity,
-  Zap,
   Download,
-  Trash2,
-  Eye,
+  Loader2,
 } from "lucide-react";
 
-interface NotificationBatch {
-  id: string;
-  name: string;
-  tenant_id: string;
-  user_ids: string[];
-  batch_size: number;
-  priority: string;
-  status: string;
-  created_at: string;
-  updated_at: string;
-}
-
-interface BatchProcessingResult {
+/** API response from POST /communications/notifications/batch */
+interface BatchSendResponse {
   batch_id: string;
-  total_users: number;
+  total: number;
   successful: number;
   failed: number;
-  skipped: number;
-  processing_time_seconds: number;
-  error_details: Array<{
-    user_id: string;
-    error: string;
-  }>;
-  created_at: string;
+  results: Array<
+    | { success: true; notification_id: string }
+    | { success: false; error: string }
+  >;
+  message: string;
 }
 
-interface UserNotificationBatch {
-  id: string;
-  batch_id: string;
-  user_id: string;
-  tenant_id: string;
-  notification_data: Record<string, any>;
-  status: string;
-  error_message: string | null;
-  processing_attempts: number;
-  sent_at: string | null;
-  created_at: string;
-  updated_at: string;
-}
-
-interface BatchProcessingStats {
-  total_processed: number;
-  successful: number;
-  failed: number;
-  skipped: number;
-  average_processing_time: number;
-  total_batches: number;
-  completed_batches: number;
-  total_notifications: number;
-}
+/**
+ * User IDs: No API exists for listing tenant members or team users.
+ * Backend note: POST /communications/notifications/batch currently sends all
+ * notifications to the current user. To support targeting multiple users, the
+ * backend would need to accept user_id per notification in the request.
+ */
+const BATCH_ENDPOINT = "communications/notifications/batch";
 
 const BatchProcessor: React.FC = () => {
-  const [batches, setBatches] = useState<NotificationBatch[]>([]);
-  const [batchResults, setBatchResults] = useState<BatchProcessingResult[]>([]);
-  const [stats, setStats] = useState<BatchProcessingStats | null>(null);
-  const [selectedBatch, setSelectedBatch] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [autoRefresh, setAutoRefresh] = useState(true);
-  const [showCreateBatch, setShowCreateBatch] = useState(false);
-  const [showBatchDetails, setShowBatchDetails] = useState(false);
-  const [showRetryFailed, setShowRetryFailed] = useState(false);
-
-  // Create batch form state
   const [batchForm, setBatchForm] = useState({
-    name: "",
-    tenant_id: "",
-    user_ids: [],
-    notification_template: {
+    title: "",
+    message: "",
+    category: "general",
+    priority: "medium",
+    channels: ["in_app"] as string[],
+    batch_size: 10,
+  });
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [lastResult, setLastResult] = useState<BatchSendResponse | null>(null);
+  const [showSendForm, setShowSendForm] = useState(true);
+
+  const handleSendBatch = async () => {
+    setError(null);
+    setSending(true);
+    try {
+      const template = {
+        title: batchForm.title,
+        message: batchForm.message || batchForm.title,
+        category: batchForm.category,
+        priority: batchForm.priority,
+        channels: batchForm.channels,
+        data: {},
+      };
+      const notifications = Array.from({ length: batchForm.batch_size }, () => ({
+        ...template,
+      }));
+
+      const data = await apiPost<BatchSendResponse>(BATCH_ENDPOINT, {
+        notifications,
+      });
+
+      setLastResult(data);
+      setShowSendForm(false);
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Failed to send batch notifications",
+      );
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const handleReset = () => {
+    setLastResult(null);
+    setError(null);
+    setShowSendForm(true);
+    setBatchForm({
       title: "",
       message: "",
       category: "general",
       priority: "medium",
       channels: ["in_app"],
-      data: {},
-    },
-    batch_size: 100,
-    priority: "medium",
-  });
-
-  useEffect(() => {
-    fetchBatches();
-    fetchBatchResults();
-    fetchStats();
-
-    if (autoRefresh) {
-      const interval = setInterval(() => {
-        fetchBatches();
-        fetchBatchResults();
-        fetchStats();
-      }, 20_000);
-
-      return () => clearInterval(interval);
-    }
-  }, [autoRefresh]);
-
-  const fetchBatches = async () => {
-    try {
-      const data = await apiGet<{ batches?: NotificationBatch[] }>(
-        "communications/batch/history?limit=50",
-      );
-      setBatches(data.batches || []);
-    } catch (error_) {
-      setError(
-        error_ instanceof Error ? error_.message : "Failed to fetch batches",
-      );
-    } finally {
-      setLoading(false);
-    }
+      batch_size: 10,
+    });
   };
-
-  const fetchBatchResults = async () => {
-    try {
-      // This would normally fetch from the API
-      // For now, we'll simulate some batch results
-      const mockResults: BatchProcessingResult[] = [
-        {
-          batch_id: "1",
-          total_users: 100,
-          successful: 95,
-          failed: 3,
-          skipped: 2,
-          processing_time_seconds: 45.2,
-          error_details: [],
-          created_at: new Date(Date.now() - 3_600_000).toISOString(),
-        },
-        {
-          batch_id: "2",
-          total_users: 50,
-          successful: 48,
-          failed: 2,
-          skipped: 0,
-          processing_time_seconds: 23.7,
-          error_details: [],
-          created_at: new Date(Date.now() - 7_200_000).toISOString(),
-        },
-      ];
-
-      setBatchResults(mockResults);
-    } catch (error_) {
-      setError(
-        error_ instanceof Error
-          ? error_.message
-          : "Failed to fetch batch results",
-      );
-    }
-  };
-
-  const fetchStats = async () => {
-    try {
-      // This would normally fetch from the API
-      // For now, we'll simulate some stats
-      const mockStats: BatchProcessingStats = {
-        total_processed: 150,
-        successful: 143,
-        failed: 5,
-        skipped: 2,
-        average_processing_time: 34.5,
-        total_batches: 2,
-        completed_batches: 2,
-        total_notifications: 150,
-      };
-
-      setStats(mockStats);
-    } catch (error_) {
-      setError(
-        error_ instanceof Error ? error_.message : "Failed to fetch stats",
-      );
-    }
-  };
-
-  const handleCreateBatch = async () => {
-    try {
-      // In a real implementation, this would get user IDs from the API
-      // For now, we'll use mock user IDs
-      const mockUserIds = Array.from(
-        { length: batchForm.batch_size },
-        (_, index) => `user_${index + 1}`,
-      );
-
-      await apiPost("communications/batch/create", {
-        name: batchForm.name,
-        tenant_id: batchForm.tenant_id || "default",
-        user_ids: mockUserIds,
-        notification_template: batchForm.notification_template,
-        batch_size: batchForm.batch_size,
-        priority: batchForm.priority,
-      });
-
-      await fetchBatches();
-      setShowCreateBatch(false);
-      setBatchForm({
-        name: "",
-        tenant_id: "",
-        user_ids: [],
-        notification_template: {
-          title: "",
-          message: "",
-          category: "general",
-          priority: "medium",
-          channels: ["in_app"],
-          data: {},
-        },
-        batch_size: 100,
-        priority: "medium",
-      });
-      setError(null);
-    } catch (error_) {
-      setError(
-        error_ instanceof Error ? error_.message : "Failed to create batch",
-      );
-    }
-  };
-
-  const handleProcessBatch = async (batchId: string) => {
-    try {
-      await apiPost(`communications/batch/process/${batchId}`, undefined);
-
-      await fetchBatches();
-      await fetchBatchResults();
-      await fetchStats();
-
-      // Show success message
-      alert(`Batch ${batchId} processed successfully`);
-    } catch (error_) {
-      setError(
-        error_ instanceof Error ? error_.message : "Failed to process batch",
-      );
-    }
-  };
-
-  const handleRetryFailed = async (batchId: string) => {
-    try {
-      const data = await apiPost<{ successful?: number }>(
-        `communications/batch/retry/${batchId}`,
-        undefined,
-      );
-
-      await fetchBatches();
-      await fetchBatchResults();
-
-      alert(`Retried ${data.successful ?? 0} failed notifications`);
-      setShowRetryFailed(false);
-    } catch (error_) {
-      setError(
-        error_ instanceof Error
-          ? error_.message
-          : "Failed to retry failed notifications",
-      );
-    }
-  };
-
-  const handleCancelBatch = async (batchId: string) => {
-    try {
-      if (!confirm("Are you sure you want to cancel this batch?")) return;
-
-      await apiPost(`communications/batch/cancel/${batchId}`, undefined);
-
-      await fetchBatches();
-      alert(`Batch ${batchId} cancelled`);
-    } catch (error_) {
-      setError(
-        error_ instanceof Error ? error_.message : "Failed to cancel batch",
-      );
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    const colors = {
-      pending: "bg-yellow-100 text-yellow-800",
-      processing: "bg-blue-100 text-blue-800",
-      completed: "bg-green-100 text-green-800",
-      cancelled: "bg-gray-100 text-gray-800",
-    };
-    return colors[status as keyof typeof colors] || "bg-gray-100 text-gray-800";
-  };
-
-  const getStatusIcon = (status: string) => {
-    const icons = {
-      pending: <Clock className="h-4 w-4" />,
-      processing: <RefreshCw className="h-4 w-4" />,
-      completed: <CheckCircle className="h-4 w-4" />,
-      cancelled: <Trash2 className="h-4 w-4" />,
-    };
-    return icons[status as keyof typeof icons] || <Clock className="h-4 w-4" />;
-  };
-
-  const getPriorityColor = (priority: string) => {
-    const colors = {
-      critical: "bg-red-100 text-red-800",
-      high: "bg-orange-100 text-orange-800",
-      medium: "bg-yellow-100 text-yellow-800",
-      low: "bg-blue-100 text-blue-800",
-    };
-    return (
-      colors[priority as keyof typeof colors] || "bg-gray-100 text-gray-800"
-    );
-  };
-
-  const formatTimeAgo = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffSeconds = Math.floor(diffMs / 1000);
-
-    if (diffSeconds < 60) return "Just now";
-    if (diffSeconds < 3600)
-      return `${Math.floor(diffSeconds / 60)} minutes ago`;
-    if (diffSeconds < 86_400)
-      return `${Math.floor(diffSeconds / 3600)} hours ago`;
-    return `${Math.floor(diffSeconds / 86_400)} days ago`;
-  };
-
-  const getBatchStatusColor = (status: string) => {
-    const colors = {
-      pending: "bg-yellow-100 text-yellow-800",
-      processing: "bg-blue-100 text-blue-800",
-      completed: "bg-green-100 text-green-800",
-      cancelled: "bg-gray-100 text-gray-800",
-    };
-    return colors[status as keyof typeof colors] || "bg-gray-100 text-gray-800";
-  };
-
-  const getBatchStatusIcon = (status: string) => {
-    const icons = {
-      pending: <Clock className="h-4 w-4" />,
-      processing: <RefreshCw className="h-4 w-4" />,
-      completed: <CheckCircle className="h-4 w-4" />,
-      cancelled: <Trash2 className="h-4 w-4" />,
-    };
-    return icons[status as keyof typeof icons] || <Clock className="h-4 w-4" />;
-  };
-
-  const filteredBatches = selectedBatch
-    ? batches.filter((batch) => batch.id === selectedBatch)
-    : batches;
-
-  const selectedBatchData = selectedBatch
-    ? batches.find((batch) => batch.id === selectedBatch)
-    : null;
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold">Batch Processor</h1>
-          <p className="text-6">
-            Process notifications in batches with intelligent throttling and
-            error handling
+          <p className="text-muted-foreground">
+            Send notifications in batches via{" "}
+            <code className="text-sm">POST /communications/notifications/batch</code>
           </p>
         </div>
-        <div className="flex space-x-2">
-          <Button onClick={() => setShowCreateBatch(true)}>
-            <Send className="h-4 w-4 mr-2" />
-            Create Batch
+        {lastResult && (
+          <Button variant="outline" onClick={handleReset}>
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Send Another
           </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setAutoRefresh(!autoRefresh)}
-          >
-            <RefreshCw
-              className={`h-4 w-4 mr-2 ${autoRefresh ? "animate-spin" : ""}`}
-            />
-            {autoRefresh ? "Auto-refresh" : "Manual refresh"}
-          </Button>
-        </div>
+        )}
       </div>
 
       {error && (
@@ -415,91 +127,90 @@ const BatchProcessor: React.FC = () => {
         </Alert>
       )}
 
-      {/* Batch Stats */}
-      {stats && (
+      {/* Stats from last batch */}
+      {lastResult && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">
-                Total Processed
-              </CardTitle>
+              <CardTitle className="text-sm font-medium">Total</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.total_processed}</div>
-              <div className="text-sm text-gray-500">All notifications</div>
+              <div className="text-2xl font-bold">{lastResult.total}</div>
+              <div className="text-sm text-muted-foreground">Notifications</div>
             </CardContent>
           </Card>
-
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">
-                Success Rate
-              </CardTitle>
+              <CardTitle className="text-sm font-medium">Successful</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-green-600">
-                {stats.total_processed > 0
-                  ? ((stats.successful / stats.total_processed) * 100).toFixed(
-                      1,
-                    )
-                  : "0.0"}
-                %
+                {lastResult.successful}
               </div>
-              <div className="text-sm text-gray-500">
-                {stats.successful}/{stats.total_processed}
+              <div className="text-sm text-muted-foreground">
+                {lastResult.total > 0
+                  ? ((lastResult.successful / lastResult.total) * 100).toFixed(1)
+                  : "0"}
+                % success rate
               </div>
             </CardContent>
           </Card>
-
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Failed Rate</CardTitle>
+              <CardTitle className="text-sm font-medium">Failed</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-red-600">
-                {stats.total_processed > 0
-                  ? ((stats.failed / stats.total_processed) * 100).toFixed(1)
-                  : "0.0"}
-                %
+                {lastResult.failed}
               </div>
-              <div className="text-sm text-gray-500">
-                {stats.failed}/{stats.total_processed}
-              </div>
+              <div className="text-sm text-muted-foreground">Errors</div>
             </CardContent>
           </Card>
-
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">
-                Avg Processing Time
-              </CardTitle>
+              <CardTitle className="text-sm font-medium">Batch ID</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-blue-600">
-                {stats.average_processing_time}s
+              <div className="text-sm font-mono truncate" title={lastResult.batch_id}>
+                {lastResult.batch_id}
               </div>
-              <div className="text-sm text-gray-500">Per batch</div>
             </CardContent>
           </Card>
         </div>
       )}
 
-      {/* Create Batch Modal */}
-      {showCreateBatch && (
+      {/* Send batch form */}
+      {showSendForm && (
         <Card className="p-6">
           <CardHeader>
-            <CardTitle>Create Notification Batch</CardTitle>
+            <CardTitle>Send Batch Notifications</CardTitle>
+            <p className="text-sm text-muted-foreground">
+              Sends notifications to the current user. Backend does not yet
+              support targeting multiple users per batch.
+            </p>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="batch-name">Batch Name</Label>
+                <Label htmlFor="batch-title">Title</Label>
                 <Input
-                  id="batch-name"
-                  placeholder="Enter batch name"
-                  value={batchForm.name}
+                  id="batch-title"
+                  placeholder="Notification title"
+                  value={batchForm.title}
                   onChange={(e) =>
-                    setBatchForm({ ...batchForm, name: e.target.value })
+                    setBatchForm({ ...batchForm, title: e.target.value })
+                  }
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="batch-message">Message</Label>
+                <Textarea
+                  id="batch-message"
+                  placeholder="Notification message (optional)"
+                  rows={2}
+                  value={batchForm.message}
+                  onChange={(e) =>
+                    setBatchForm({ ...batchForm, message: e.target.value })
                   }
                 />
               </div>
@@ -511,7 +222,7 @@ const BatchProcessor: React.FC = () => {
                   onValueChange={(value) =>
                     setBatchForm({
                       ...batchForm,
-                      batch_size: Number.parseInt(value),
+                      batch_size: Number.parseInt(value, 10),
                     })
                   }
                 >
@@ -519,11 +230,11 @@ const BatchProcessor: React.FC = () => {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="5">5 notifications</SelectItem>
+                    <SelectItem value="10">10 notifications</SelectItem>
                     <SelectItem value="50">50 notifications</SelectItem>
                     <SelectItem value="100">100 notifications</SelectItem>
                     <SelectItem value="200">200 notifications</SelectItem>
-                    <SelectItem value="500">500 notifications</SelectItem>
-                    <SelectItem value="1000">1000 notifications</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -552,15 +263,9 @@ const BatchProcessor: React.FC = () => {
                 <div className="space-y-2">
                   <Label htmlFor="batch-category">Category</Label>
                   <Select
-                    value={batchForm.notification_template.category}
+                    value={batchForm.category}
                     onValueChange={(value) =>
-                      setBatchForm({
-                        ...batchForm,
-                        notification_template: {
-                          ...batchForm.notification_template,
-                          category: value,
-                        },
-                      })
+                      setBatchForm({ ...batchForm, category: value })
                     }
                   >
                     <SelectTrigger>
@@ -581,39 +286,19 @@ const BatchProcessor: React.FC = () => {
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="batch-template">Notification Template</Label>
-                <Textarea
-                  id="batch-template"
-                  placeholder="Notification title"
-                  rows={3}
-                  value={batchForm.notification_template.title}
-                  onChange={(e) =>
-                    setBatchForm({
-                      ...batchForm,
-                      notification_template: {
-                        ...batchForm.notification_template,
-                        title: e.target.value,
-                      },
-                    })
-                  }
-                />
-              </div>
-
-              <div className="flex space-x-2">
+              <div className="flex gap-2">
                 <Button
-                  onClick={handleCreateBatch}
-                  disabled={
-                    !batchForm.name || !batchForm.notification_template.title
-                  }
+                  onClick={handleSendBatch}
+                  disabled={!batchForm.title || sending}
                 >
-                  <Send className="h-4 w-4 mr-2" />
-                  Create Batch
+                  {sending ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Send className="h-4 w-4 mr-2" />
+                  )}
+                  {sending ? "Sending…" : "Send Batch"}
                 </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => setShowCreateBatch(false)}
-                >
+                <Button variant="outline" onClick={handleReset}>
                   Cancel
                 </Button>
               </div>
@@ -622,304 +307,63 @@ const BatchProcessor: React.FC = () => {
         </Card>
       )}
 
-      {/* Batch List */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Notification Batches</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {batches.map((batch) => (
-              <Card key={batch.id} className="p-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div className="flex-1">
-                      <h4 className="font-medium">{batch.name}</h4>
-                      <p className="text-sm text-gray-500">
-                        {batch.user_ids.length} users
-                      </p>
-                      <div className="flex items-center space-x-2 mt-2">
-                        <Badge className={getBatchStatusColor(batch.status)}>
-                          {batch.status}
-                        </Badge>
-                        <Badge className={getPriorityColor(batch.priority)}>
-                          {batch.priority}
-                        </Badge>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <div className="text-sm text-gray-500">
-                      {formatTimeAgo(batch.created_at)}
-                    </div>
-                    <div className="flex space-x-1">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => setSelectedBatch(batch.id)}
-                      >
-                        <Eye className="h-3 w-3" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleProcessBatch(batch.id)}
-                        disabled={batch.status !== "pending"}
-                      >
-                        {batch.status === "pending" ? (
-                          <Play className="h-3 w-3" />
-                        ) : (
-                          <Pause className="h-3 w-3" />
-                        )}
-                      </Button>
-                      {batch.status === "pending" && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleCancelBatch(batch.id)}
-                        >
-                          <Trash2 className="h-3 w-3" />
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </Card>
-            ))}
-
-            {batches.length === 0 && (
-              <div className="text-center py-8">
-                <Send className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-500">
-                  No notification batches created yet
-                </p>
-                <p className="text-sm text-gray-400 mt-2">
-                  Click "Create Batch" to start processing notifications in
-                  batches
-                </p>
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Batch Details Modal */}
-      {showBatchDetails && selectedBatchData && (
-        <Card className="p-6">
+      {/* Last batch results detail */}
+      {lastResult && lastResult.results.length > 0 && (
+        <Card>
           <CardHeader>
-            <CardTitle>Batch Details</CardTitle>
+            <CardTitle>Last Batch Results</CardTitle>
+            <p className="text-sm text-muted-foreground">
+              {lastResult.message}
+            </p>
           </CardHeader>
           <CardContent>
-            <Tabs defaultValue="overview" className="space-y-4">
-              <TabsList>
-                <TabsTrigger value="overview">Overview</TabsTrigger>
-                <TabsTrigger value="results">Results</TabsTrigger>
-                <TabsTrigger value="users">Users</TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="overview">
-                <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label>Batch ID</Label>
-                      <Input value={selectedBatchData.id} readOnly />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Name</Label>
-                      <Input value={selectedBatchData.name} readOnly />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label>Users Count</Label>
-                      <Input
-                        value={selectedBatchData.user_ids.length}
-                        readOnly
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Batch Size</Label>
-                      <Input value={selectedBatchData.batch_size} readOnly />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label>Priority</Label>
-                      <Select value={selectedBatchData.priority} disabled>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="critical">Critical</SelectItem>
-                          <SelectItem value="high">High</SelectItem>
-                          <SelectItem value="medium">Medium</SelectItem>
-                          <SelectItem value="low">Low</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Status</Label>
-                      <Select value={selectedBatchData.status} disabled>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="pending">Pending</SelectItem>
-                          <SelectItem value="processing">Processing</SelectItem>
-                          <SelectItem value="completed">Completed</SelectItem>
-                          <SelectItem value="cancelled">Cancelled</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>Created At</Label>
-                    <Input
-                      value={formatTimeAgo(selectedBatchData.created_at)}
-                      readOnly
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>Updated At</Label>
-                    <Input
-                      value={formatTimeAgo(selectedBatchData.updated_at)}
-                      readOnly
-                    />
-                  </div>
-                </div>
-              </TabsContent>
-
-              <TabsContent value="results">
-                <div className="space-y-4">
-                  {batchResults
-                    .filter(
-                      (result) => result.batch_id === selectedBatchData.id,
-                    )
-                    .map((result) => (
-                      <Card key={result.batch_id} className="p-4">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-3">
-                            <div className="flex-1">
-                              <h4 className="font-medium">Processing Result</h4>
-                              <p className="text-sm text-gray-500">
-                                {result.processing_time_seconds.toFixed(2)}s
-                              </p>
-                            </div>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <div className="text-sm text-gray-500">
-                              {result.total_users} users
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <span className="text-green-600">
-                                {result.successful}
-                              </span>
-                              <span className="text-red-600">
-                                {result.failed}
-                              </span>
-                              <span className="text-gray-600">
-                                {result.skipped}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      </Card>
-                    ))}
-
-                  {batchResults.length === 0 && (
-                    <div className="text-center py-4">
-                      <Activity className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                      <p className="text-sm text-gray-500">
-                        No processing results yet
-                      </p>
-                    </div>
+            <div className="space-y-2 max-h-48 overflow-y-auto">
+              {lastResult.results.slice(0, 20).map((r, i) => (
+                <div key={i} className="flex items-center gap-2 text-sm">
+                  {r.success ? (
+                    <>
+                      <CheckCircle className="h-4 w-4 text-green-600 shrink-0" />
+                      <span className="font-mono text-muted-foreground">
+                        {r.notification_id}
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <AlertTriangle className="h-4 w-4 text-red-600 shrink-0" />
+                      <span className="text-red-600">{r.error}</span>
+                    </>
                   )}
                 </div>
-              </TabsContent>
-
-              <TabsContent value="users">
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label>User Count</Label>
-                    <Input value={selectedBatchData.user_ids.length} readOnly />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Users List</Label>
-                    <div className="bg-gray-50 p-3 rounded-lg max-h-32 overflow-y-auto">
-                      {selectedBatchData.user_ids.map((userId, index) => (
-                        <div
-                          key={userId}
-                          className="text-sm p-2 border rounded"
-                        >
-                          {userId}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </TabsContent>
-            </Tabs>
-
-            <div className="flex space-x-2 mt-6">
-              <Button onClick={() => setShowBatchDetails(false)}>Close</Button>
+              ))}
+              {lastResult.results.length > 20 && (
+                <p className="text-sm text-muted-foreground pt-2">
+                  … and {lastResult.results.length - 20} more
+                </p>
+              )}
             </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Quick Actions */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Quick Actions</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Button
               variant="outline"
-              className="h-20"
-              onClick={() => setShowCreateBatch(true)}
-            >
-              <Send className="h-6 w-6 mx-auto mb-2" />
-              Create Batch
-            </Button>
-            <Button
-              variant="outline"
-              className="h-20"
+              size="sm"
+              className="mt-4"
               onClick={() => {
-                const firstFailed = batchResults.find((r) => r.failed > 0);
-                if (firstFailed) handleRetryFailed(firstFailed.batch_id);
-              }}
-              disabled={!batchResults.some((r) => r.failed > 0)}
-            >
-              <RotateCw className="h-6 w-6 mx-auto mb-2" />
-              Retry Failed
-            </Button>
-            <Button
-              variant="outline"
-              className="h-20"
-              onClick={() => {
-                // Export batch data
-                const dataString = JSON.stringify(batches, null, 2);
-                const blob = new Blob([dataString], {
-                  type: "application/json",
-                });
+                const blob = new Blob(
+                  [JSON.stringify(lastResult, null, 2)],
+                  { type: "application/json" },
+                );
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement("a");
                 a.href = url;
-                a.download = "notification-batches.json";
+                a.download = `batch-${lastResult.batch_id}.json`;
                 a.click();
+                URL.revokeObjectURL(url);
               }}
             >
               <Download className="h-4 w-4 mr-2" />
-              Export Data
+              Export Results
             </Button>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };

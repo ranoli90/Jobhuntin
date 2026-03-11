@@ -22,6 +22,7 @@ Key endpoints:
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
+import asyncpg
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
@@ -193,6 +194,99 @@ def _get_tenant_ctx():
     raise NotImplementedError("Tenant context dependency not injected")
 
 
+async def _get_session_from_db(
+    conn: asyncpg.Connection, session_id: str, user_id: str
+) -> Optional[Dict[str, Any]]:
+    """Retrieve interview session from database (interview_sessions, voice_interview_sessions).
+    Supports migration 003 (session_id PK) and 021 (id PK) schemas.
+    Returns None if not found or tables do not exist.
+    """
+    row = None
+    voice_settings: Dict[str, Any] = {}
+
+    # Try session_id column first (003 schema)
+    try:
+        row = await conn.fetchrow(
+            """
+            SELECT session_id::text AS sid, user_id, job_id, company, job_title,
+                   interview_type, difficulty, questions, responses, feedback,
+                   current_question_index, total_score, status, started_at, completed_at
+            FROM public.interview_sessions
+            WHERE session_id = $1::uuid AND user_id = $2
+            """,
+            session_id,
+            user_id,
+        )
+        if row:
+            vis = await conn.fetchrow(
+                """
+                SELECT voice_settings FROM public.voice_interview_sessions
+                WHERE interview_session_id = $1::uuid
+                """,
+                session_id,
+            )
+            if vis and vis.get("voice_settings"):
+                voice_settings = vis["voice_settings"] or {}
+    except Exception:
+        pass
+
+    # Fallback: try id column (021 schema - no company/job_title/interview_type/current_question_index)
+    if not row:
+        try:
+            row = await conn.fetchrow(
+                """
+                SELECT id::text AS sid, user_id, job_id,
+                       COALESCE(session_type, 'general')::text AS interview_type,
+                       difficulty, questions, responses, feedback,
+                       total_score, status, started_at, completed_at
+                FROM public.interview_sessions
+                WHERE id = $1::uuid AND user_id = $2
+                """,
+                session_id,
+                user_id,
+            )
+            if row:
+                vis = await conn.fetchrow(
+                    """
+                    SELECT voice_settings FROM public.voice_interview_sessions
+                    WHERE interview_session_id = $1::uuid
+                    """,
+                    session_id,
+                )
+                if vis and vis.get("voice_settings"):
+                    voice_settings = vis["voice_settings"] or {}
+        except Exception:
+            return None
+
+    if not row:
+        return None
+
+    questions = row.get("questions") or []
+    if isinstance(questions, str):
+        import json
+
+        questions = json.loads(questions) if questions else []
+
+    return {
+        "session_id": row.get("sid") or session_id,
+        "user_id": str(row["user_id"]),
+        "job_id": str(row["job_id"]) if row.get("job_id") else None,
+        "company": row.get("company") or "",
+        "job_title": row.get("job_title") or "",
+        "interview_type": (row.get("interview_type") or "general").lower(),
+        "difficulty": (str(row.get("difficulty")) or "medium").lower(),
+        "questions": questions,
+        "responses": row.get("responses") or [],
+        "feedback": row.get("feedback") or [],
+        "current_question_index": int(row.get("current_question_index") or 0),
+        "total_score": float(row.get("total_score") or 0),
+        "status": (row.get("status") or "in_progress").lower(),
+        "started_at": row.get("started_at"),
+        "completed_at": row.get("completed_at"),
+        "voice_settings": voice_settings,
+    }
+
+
 @router.post("/create", response_model=CreateVoiceSessionResponse)
 async def create_voice_session(
     request: CreateVoiceSessionRequest,
@@ -272,72 +366,44 @@ async def create_voice_session(
 async def start_voice_question(
     request: StartVoiceQuestionRequest,
     ctx: TenantContext = Depends(_get_tenant_ctx),
+    db: asyncpg.Pool = Depends(_get_pool),
 ) -> StartVoiceQuestionResponse:
     """Start a voice question with text-to-speech.
 
     Args:
         request: Voice question start request
         ctx: Tenant context for identification
+        db: Database pool for session retrieval
 
     Returns:
         Voice question start response
     """
     try:
-        # TODO: Implement session retrieval from database
-        # For now, we'll need to manage sessions in memory
-        # In production, this would retrieve from database
-
-        # Create a placeholder session for demo purposes
-
-        placeholder_session = {
-            "session_id": request.session_id,
-            "questions": [
-                {
-                    "id": "demo_q1",
-                    "question": "Tell me about yourself and why you're interested in this role.",
-                    "question_type": "BEHAVIORAL",
-                    "difficulty": "EASY",
-                    "phase": "INTRODUCTION",
-                    "time_limit_seconds": 120,
-                }
-            ],
-            "current_question_index": 0,
-            "voice_enabled": True,
-            "voice_settings": {
-                "text_to_speech": {
-                    "provider": "openai_tts",
-                    "voice": "alloy",
-                    "speed": 1.0,
-                    "pitch": 0.0,
-                    "language": "en-US",
-                },
-                "speech_to_text": {
-                    "provider": "openai_whisper",
-                    "language": "en-US",
-                    "model": "whisper-1",
-                    "timeout": 30,
-                },
-            },
-            "status": "in_progress",
-        }
-
-        # Create voice simulator instance
-        voice_simulator = get_voice_interview_simulator()
-
-        # Create temporary session object (use .get() to avoid KeyError on malformed data)
-        data = placeholder_session
         class TempSession:
             def __init__(self, d):
                 self.session_id = d.get("session_id", "")
                 self.questions = d.get("questions", [])
                 self.current_question_index = d.get("current_question_index", 0)
-                self.voice_enabled = d.get("voice_enabled", False)
+                self.voice_enabled = d.get("voice_enabled", True)
                 self.voice_settings = d.get("voice_settings", {})
                 self.status = d.get("status", "active")
 
+        data: Optional[Dict[str, Any]] = None
+        async with db.acquire() as conn:
+            data = await _get_session_from_db(
+                conn, request.session_id, ctx.user_id
+            )
+
+        if not data:
+            raise HTTPException(
+                status_code=404,
+                detail="Session not found. Create a session first or ensure it was persisted.",
+            )
+
+        data["voice_enabled"] = True
         temp_session = TempSession(data)
 
-        # Start voice question
+        voice_simulator = get_voice_interview_simulator()
         result = await voice_simulator.start_voice_question(
             session=temp_session,
             question_index=request.question_index,
@@ -345,6 +411,8 @@ async def start_voice_question(
 
         return StartVoiceQuestionResponse(**result)
 
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Failed to start voice question: {e}")
         raise HTTPException(status_code=500, detail="Failed to start voice question")
@@ -354,38 +422,45 @@ async def start_voice_question(
 async def transcribe_voice_response(
     request: TranscribeVoiceRequest,
     ctx: TenantContext = Depends(_get_tenant_ctx),
+    db: asyncpg.Pool = Depends(_get_pool),
 ) -> TranscribeVoiceResponse:
     """Transcribe voice response to text.
 
     Args:
         request: Voice transcription request
         ctx: Tenant context for identification
+        db: Database pool for session retrieval
 
     Returns:
         Transcription result with analytics
     """
     try:
-        # TODO: Implement session retrieval from database
-        # For now, we'll use a placeholder
-
-        # Create temporary session object
         class TempSession:
-            def __init__(self, session_id):
-                self.session_id = session_id
-                self.questions = []
-                self.responses = []
-                self.feedback = []
+            def __init__(self, d):
+                self.session_id = d.get("session_id", "")
+                self.questions = d.get("questions", [])
+                self.responses = d.get("responses", [])
+                self.feedback = d.get("feedback", [])
                 self.voice_responses = []
                 self.voice_analytics = []
-                self.current_question_index = 0
-                self.status = "in_progress"
+                self.current_question_index = d.get("current_question_index", 0)
+                self.status = d.get("status", "in_progress")
 
-        temp_session = TempSession(request.session_id)
+        data: Optional[Dict[str, Any]] = None
+        async with db.acquire() as conn:
+            data = await _get_session_from_db(
+                conn, request.session_id, ctx.user_id
+            )
 
-        # Create voice simulator instance
+        if not data:
+            raise HTTPException(
+                status_code=404,
+                detail="Session not found. Create a session first or ensure it was persisted.",
+            )
+
+        temp_session = TempSession(data)
+
         voice_simulator = get_voice_interview_simulator()
-
-        # Transcribe voice response
         result = await voice_simulator.transcribe_voice_response(
             session=temp_session,
             audio_data=request.audio_data,
@@ -394,6 +469,8 @@ async def transcribe_voice_response(
 
         return TranscribeVoiceResponse(**result)
 
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Failed to transcribe voice response: {e}")
         raise HTTPException(
@@ -405,36 +482,40 @@ async def transcribe_voice_response(
 async def get_voice_session(
     session_id: str,
     ctx: TenantContext = Depends(_get_tenant_ctx),
+    db: asyncpg.Pool = Depends(_get_pool),
 ) -> VoiceSessionResponse:
     """Get voice interview session details.
 
     Args:
         session_id: Session identifier
         ctx: Tenant context for identification
+        db: Database pool for session retrieval
 
     Returns:
         Voice session details
     """
     try:
-        # TODO: Implement session retrieval from database
-        # For now, return placeholder data
+        async with db.acquire() as conn:
+            data = await _get_session_from_db(conn, session_id, ctx.user_id)
 
-        return VoiceSessionResponse(
-            session_id=session_id,
-            user_id="demo_user",
-            job_id="demo_job",
-            company="Demo Company",
-            job_title="Software Engineer",
-            interview_type="general",
-            difficulty="medium",
-            total_questions=10,
-            current_question_index=0,
-            total_score=0.0,
-            voice_enabled=True,
-            voice_settings={
+        if not data:
+            raise HTTPException(
+                status_code=404,
+                detail="Session not found. Create a session first or ensure it was persisted.",
+            )
+
+        questions = data.get("questions") or []
+        started_at = data.get("started_at")
+        started_at_str = (
+            started_at.isoformat() if hasattr(started_at, "isoformat") else str(started_at or "")
+        )
+
+        voice_settings = data.get("voice_settings") or {}
+        if not voice_settings:
+            voice_settings = {
                 "text_to_speech": {
                     "provider": "openai_tts",
-                    "voice": "aloy",
+                    "voice": "alloy",
                     "speed": 1.0,
                     "pitch": 0.0,
                     "language": "en-US",
@@ -452,12 +533,28 @@ async def get_voice_session(
                     "enable_emotional_tone": True,
                     "enable_speaking_rate": True,
                 },
-            },
-            voice_responses_count=0,
-            session_status="in_progress",
-            started_at="2024-01-01T00:00:00Z",
+            }
+
+        return VoiceSessionResponse(
+            session_id=data.get("session_id") or session_id,
+            user_id=data.get("user_id", ""),
+            job_id=data.get("job_id") or "",
+            company=data.get("company", ""),
+            job_title=data.get("job_title", ""),
+            interview_type=data.get("interview_type", "general"),
+            difficulty=data.get("difficulty", "medium"),
+            total_questions=len(questions),
+            current_question_index=data.get("current_question_index", 0),
+            total_score=data.get("total_score", 0.0),
+            voice_enabled=True,
+            voice_settings=voice_settings,
+            voice_responses_count=len(data.get("responses") or []),
+            session_status=data.get("status", "in_progress"),
+            started_at=started_at_str,
         )
 
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Failed to get voice session {session_id}: {e}")
         raise HTTPException(status_code=500, detail="Failed to retrieve voice session")

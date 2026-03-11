@@ -684,6 +684,7 @@ async def get_user_interests(
             "tenant_id": profile.tenant_id,
             "interests": profile.interests,
             "keywords": profile.keywords,
+            "interaction_history": profile.interaction_history,
             "last_updated": profile.last_updated.isoformat(),
             "created_at": profile.created_at.isoformat(),
         }

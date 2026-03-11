@@ -17,6 +17,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import JSONResponse, RedirectResponse
 from pydantic import BaseModel, EmailStr, Field
 
+from api.dependencies import get_pool
 from backend.domain.session_manager import SessionManager
 from packages.backend.domain.masking import mask_ip
 from shared.config import Settings, settings_dependency
@@ -337,11 +338,6 @@ def _build_redirect_url(settings: Settings, return_to: str | None) -> str:
     if safe_return:
         redirect = f"{redirect}?returnTo={quote(safe_return, safe='')}"
     return redirect
-
-
-async def _get_pool():
-    """Database pool dependency - overridden at app startup."""
-    raise NotImplementedError("Pool dependency not injected")
 
 
 async def _find_or_create_user_by_email(
@@ -826,7 +822,7 @@ async def verify_magic_link(
     return_to: str | None = None,
     admin_redirect: str | None = None,
     settings: Settings = Depends(settings_dependency),
-    db: Any = Depends(_get_pool),
+    db: Any = Depends(get_pool),
 ) -> RedirectResponse:
     """S1: Verify magic link token, create user if new, set httpOnly cookie, redirect to app.
     User clicks link in email -> hits this endpoint -> [create user if new] -> set cookie -> redirect.
@@ -1242,7 +1238,7 @@ async def request_magic_link(
     request: Request,
     body: MagicLinkRequest,
     settings: Settings = Depends(settings_dependency),
-    db: Any = Depends(_get_pool),
+    db: Any = Depends(get_pool),
 ) -> MagicLinkResponse:
     """Generate a magic link and email it via Resend."""
     # S6: Global IP rate limit to prevent mass enumeration from a single IP

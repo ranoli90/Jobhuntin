@@ -342,10 +342,7 @@ class ApplicationExportManager:
         data: List[Dict[str, Any]],
         config: ExportConfig,
     ) -> StreamingResponse:
-        """Export to PDF format (placeholder implementation)."""
-
-        # For now, return a simple text-based PDF
-        # In production, use a proper PDF library like reportlab
+        """Export to PDF format using reportlab."""
         from reportlab.lib import colors
         from reportlab.lib.pagesizes import A4
         from reportlab.lib.styles import getSampleStyleSheet
