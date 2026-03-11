@@ -70,7 +70,6 @@ export default function ToolsHub() {
         ogTitle="Free AI Job Search Tools | JobHuntin"
         ogImage="https://jobhuntin.com/og-image.png"
         canonicalUrl="https://jobhuntin.com/tools"
-        includeDate={true}
         schema={[
           {
             "@context": "https://schema.org",

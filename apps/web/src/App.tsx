@@ -176,8 +176,8 @@ export default function App() {
   return (
     <>
       <OfflineBanner />
-      <Helmet defaultTitle="JobHuntin — The automation platform for job seekers" titleTemplate="%s | JobHuntin">
-        <meta name="description" content="Upload your resume. Our system intelligently tailors every application and submits them automatically — while you sleep." />
+      <Helmet defaultTitle="JobHuntin — The Application Engine That Runs While You Sleep" titleTemplate="%s | JobHuntin">
+        <meta name="description" content="Upload your resume. Our platform tailors every application and submits to hundreds of jobs daily." />
         <meta property="og:type" content="website" />
         <meta property="og:site_name" content="JobHuntin" />
         <meta property="og:locale" content="en_US" />

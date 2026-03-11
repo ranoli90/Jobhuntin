@@ -13,6 +13,14 @@ export default function Terms() {
         description="Read the terms and conditions for using JobHuntin's AI job hunting services. Understanding your rights and responsibilities."
         ogTitle="Terms of Service | JobHuntin"
         canonicalUrl="https://jobhuntin.com/terms"
+        schema={{
+          "@context": "https://schema.org",
+          "@type": "WebPage",
+          "name": "Terms of Service | JobHuntin",
+          "description": "Terms and conditions for using JobHuntin's AI job hunting services.",
+          "url": "https://jobhuntin.com/terms",
+          "dateModified": "2026-02-28"
+        }}
       />
 
       <main className="max-w-4xl mx-auto px-6 py-28 sm:py-32">

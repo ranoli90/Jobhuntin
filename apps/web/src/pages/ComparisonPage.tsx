@@ -81,6 +81,7 @@ export default function ComparisonPage() {
   if (!competitor) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center bg-slate-50">
+        <SEO title="Comparison Not Found | JobHuntin" description="We don't have a comparison for this tool yet." noindex />
         <Bot className="w-16 h-16 text-primary-500 mb-4 animate-bounce" />
         <h2 className="text-2xl font-bold mb-4 text-slate-900">Competitor Not Found</h2>
         <p className="text-slate-500 mb-6">We don't have a comparison for this tool yet.</p>
@@ -103,7 +104,6 @@ export default function ComparisonPage() {
         description={description}
         ogTitle={title}
         canonicalUrl={canonicalUrl}
-        includeDate={true}
         breadcrumbs={[
           { name: "Home", url: "https://jobhuntin.com" },
           { name: "Compare Tools", url: "https://jobhuntin.com/best/ai-auto-apply-tools" },

@@ -28,7 +28,6 @@ export default function ChromeExtension() {
         ogTitle="Chrome Extension | JobHuntin Auto-Apply"
         ogImage="https://jobhuntin.com/og/chrome-extension.png"
         canonicalUrl="https://jobhuntin.com/chrome-extension"
-        includeDate={true}
         schema={[
           {
             "@context": "https://schema.org",
@@ -44,7 +43,8 @@ export default function ChromeExtension() {
             "aggregateRating": {
               "@type": "AggregateRating",
               "ratingValue": "4.9",
-              "ratingCount": "1247"
+              "bestRating": "5",
+              "reviewCount": "1247"
             }
           }
         ]}

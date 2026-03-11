@@ -13,6 +13,14 @@ export default function Privacy() {
         description="Comprehensive details on how JobHuntin collects, uses, and protects your personal data. Compliant with GDPR, CCPA, and global privacy standards."
         ogTitle="Privacy Policy | JobHuntin"
         canonicalUrl="https://jobhuntin.com/privacy"
+        schema={{
+          "@context": "https://schema.org",
+          "@type": "WebPage",
+          "name": "Privacy Policy | JobHuntin",
+          "description": "Comprehensive details on how JobHuntin collects, uses, and protects your personal data.",
+          "url": "https://jobhuntin.com/privacy",
+          "dateModified": "2026-02-28"
+        }}
       />
 
       {/* Header handled by Layout, but keeping independent nav if accessed directly or for print styles */}

@@ -10,6 +10,8 @@ export default function Maintenance() {
       <SEO
         title="Maintenance | JobHuntin"
         description="JobHuntin is temporarily unavailable for maintenance. We'll be back shortly."
+        canonicalUrl="https://jobhuntin.com/maintenance"
+        noindex
       />
       <div className="max-w-lg text-center">
         <div className="w-20 h-20 rounded-2xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center mx-auto mb-6">

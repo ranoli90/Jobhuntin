@@ -92,7 +92,6 @@ export default function About() {
                 ogTitle="About JobHuntin | AI Job Search Automation"
                 ogImage="https://jobhuntin.com/og-image.png"
                 canonicalUrl="https://jobhuntin.com/about"
-                includeDate={true}
                 schema={[
                     {
                         "@context": "https://schema.org",

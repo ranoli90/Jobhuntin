@@ -112,13 +112,12 @@ export default function SuccessStories() {
         ogTitle="Success Stories | JobHuntin"
         ogImage="https://jobhuntin.com/og/success-stories.png"
         canonicalUrl="https://jobhuntin.com/success-stories"
-        includeDate={true}
         schema={[
           {
             "@context": "https://schema.org",
             "@type": "SoftwareApplication",
             "name": "JobHuntin",
-            "applicationCategory": "CareerAutomation",
+            "applicationCategory": "BusinessApplication",
             "aggregateRating": {
               "@type": "AggregateRating",
               "ratingValue": "5",
@@ -133,7 +132,7 @@ export default function SuccessStories() {
             "reviewBody": story.quote,
             "reviewRating": { "@type": "Rating", "ratingValue": "5", "bestRating": "5" },
             "datePublished": story.date || new Date().toISOString().split("T")[0],
-            "itemReviewed": { "@type": "SoftwareApplication", "name": "JobHuntin", "applicationCategory": "CareerAutomation" },
+            "itemReviewed": { "@type": "SoftwareApplication", "name": "JobHuntin", "applicationCategory": "BusinessApplication" },
           })),
         ]}
       />

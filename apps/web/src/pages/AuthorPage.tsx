@@ -12,6 +12,7 @@ export default function AuthorPage() {
   if (!author) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <SEO title="Author Not Found | JobHuntin" description="The requested author could not be found." noindex />
         <div className="text-center">
           <h1 className="text-4xl font-bold text-slate-900 mb-4">Author not found</h1>
         </div>
@@ -27,7 +28,24 @@ export default function AuthorPage() {
       <SEO
         title={title}
         description={description}
+        ogTitle={title}
         canonicalUrl={`https://jobhuntin.com/authors/${authorId}`}
+        schema={[
+          {
+            "@context": "https://schema.org",
+            "@type": "Person",
+            "name": author.name,
+            "description": author.bio,
+            "url": `https://jobhuntin.com/authors/${authorId}`,
+            "image": author.image.startsWith("http") ? author.image : `https://jobhuntin.com${author.image.startsWith("/") ? "" : "/"}${author.image}`
+          },
+          {
+            "@context": "https://schema.org",
+            "@type": "ProfilePage",
+            "name": title,
+            "mainEntity": { "@type": "Person", "name": author.name }
+          }
+        ]}
       />
       <div className="max-w-4xl mx-auto px-6 py-16 sm:py-20">
         <div className="flex items-center mb-12">

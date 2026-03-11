@@ -46,6 +46,12 @@ export default function Contact() {
   if (submitted) {
     return (
       <div className="min-h-screen bg-slate-50 font-sans text-slate-900 selection:bg-primary-500/20 selection:text-primary-700 flex items-center justify-center p-6">
+        <SEO
+          title="Message Sent | JobHuntin"
+          description="Your message has been received. We'll get back to you within 24 hours."
+          canonicalUrl="https://jobhuntin.com/contact"
+          noindex
+        />
         <div className="max-w-md w-full text-center">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}

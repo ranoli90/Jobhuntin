@@ -93,7 +93,6 @@ export default function BlogHome() {
         description={description}
         ogTitle={title}
         canonicalUrl="https://jobhuntin.com/blog"
-        includeDate={true}
         schema={[
           {
             "@context": "https://schema.org",

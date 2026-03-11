@@ -124,6 +124,9 @@ export const SEO: React.FC<SEOProps> = ({
       <meta property="og:description" content={displayOgDescription} />
       <meta property="og:url" content={resolvedCanonical} />
       <meta property="og:image" content={resolvedOgImage} />
+      <meta property="og:image:width" content="1200" />
+      <meta property="og:image:height" content="630" />
+      <meta property="og:image:alt" content={displayOgTitle} />
       <meta property="og:type" content={article ? 'article' : ogType} />
       <meta property="og:site_name" content={SITE_NAME} />
       <meta property="og:locale" content={DEFAULT_LOCALE} />

@@ -203,6 +203,7 @@ export default function BlogPost() {
   if (!post) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center bg-[#F7F6F3]">
+        <SEO title="Article Not Found | JobHuntin" description="The requested article could not be found." noindex />
         <h1 className="text-2xl font-bold mb-4 text-[#2D2A26]">Article Not Found</h1>
         <Link to="/blog" className="text-[#455DD3] hover:underline flex items-center gap-2 font-medium">
           <ArrowLeft className="w-4 h-4" /> Back to Blog
@@ -222,7 +223,10 @@ export default function BlogPost() {
         description={description}
         ogTitle={title}
         canonicalUrl={canonicalUrl}
-        includeDate={true}
+        article
+        articlePublishedDate={post.date}
+        articleModifiedDate={post.date}
+        articleAuthor={post.author}
         schema={[
           {
             "@context": "https://schema.org",

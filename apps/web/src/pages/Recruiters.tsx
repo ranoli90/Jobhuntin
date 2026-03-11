@@ -16,7 +16,6 @@ export default function Recruiters() {
         ogTitle="For Recruiters | JobHuntin Talent Pipeline"
         ogImage="https://jobhuntin.com/og/recruiters.png"
         canonicalUrl="https://jobhuntin.com/recruiters"
-        includeDate={true}
         schema={[
           {
             "@context": "https://schema.org",
