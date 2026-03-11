@@ -92,7 +92,8 @@ export function useOnboarding(options: UseOnboardingOptions = {}) {
   // Initialize async state loading; use server progress when no localStorage (cross-device)
   useEffect(() => {
     let cancelled = false;
-    loadInitialState().then(initialState => {
+    loadInitialState()
+      .then(initialState => {
       if (cancelled) return;
       let step = 0;
       let completed: string[] = [];
@@ -112,7 +113,11 @@ export function useOnboarding(options: UseOnboardingOptions = {}) {
       setCompletedSteps(completed);
       if (initialState) setFormData(initialState.formData);
       setIsLoading(false);
-    });
+    })
+      .catch((err) => {
+        if (!cancelled && import.meta.env.DEV) console.warn("[useOnboarding] loadInitialState failed:", err);
+        if (!cancelled) setIsLoading(false);
+      });
     return () => { cancelled = true; };
   }, [loadInitialState, serverProgress?.step, serverProgress?.completed?.length]);
 

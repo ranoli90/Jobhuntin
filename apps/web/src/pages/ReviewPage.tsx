@@ -27,7 +27,7 @@ function generateFAQ(competitor: typeof competitorsData[0]): FAQItem[] {
         },
         {
             question: `What do users say about ${competitor.name}?`,
-            answer: `Users like ${competitor.strengths.slice(0, 2).join(' and ')}, but complain about ${competitor.weaknesses.slice(0, 2).join(' and ')}. Most end up switching to JobHuntin for real automation.`,
+            answer: `Users like ${(competitor.strengths ?? []).slice(0, 2).join(' and ') || 'some features'}, but complain about ${(competitor.weaknesses ?? []).slice(0, 2).join(' and ') || 'some issues'}. Most end up switching to JobHuntin for real automation.`,
         },
         {
             question: `How much does ${competitor.name} cost?`,
@@ -39,7 +39,7 @@ function generateFAQ(competitor: typeof competitorsData[0]): FAQItem[] {
         },
         {
             question: `What is better than ${competitor.name}?`,
-            answer: `JobHuntin. It delivers ${competitor.differentiators.join('. ')} with a fully autonomous agent that handles discovery, tailoring, and submission for you.`,
+            answer: `JobHuntin. It delivers ${(competitor.differentiators ?? []).join('. ') || 'key advantages'} with a fully autonomous agent that handles discovery, tailoring, and submission for you.`,
         },
     ];
 }

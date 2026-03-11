@@ -346,11 +346,14 @@ async def _get_tenant_info(auth_header: str) -> tuple[str | None, TenantTier]:
                 )
                 if row:
                     tenant_id = row["tenant_id"]
-                    tier = (
-                        TenantTier(row["plan"].upper())
-                        if row["plan"]
-                        else TenantTier.FREE
-                    )
+                    try:
+                        tier = (
+                            TenantTier(row["plan"].upper())
+                            if row.get("plan")
+                            else TenantTier.FREE
+                        )
+                    except ValueError:
+                        tier = TenantTier.FREE
                     return tenant_id, tier
         except Exception as e:
             logger.debug(f"Failed to fetch tenant info from DB: {e}")
@@ -455,8 +458,11 @@ async def idempotency_middleware(request: Request, call_next):
                     )
                 except json.JSONDecodeError:
                     logger.warning("Failed to parse cached idempotency response")
-                    # Fall through to process request - continue to line 445
-                    pass
+                    # Do not reprocess - idempotency would be violated (duplicate mutations)
+                    return JSONResponse(
+                        content={"error": "Cached response corrupted"},
+                        status_code=503,
+                    )
 
             # Process request (we hold the lock)
             try:

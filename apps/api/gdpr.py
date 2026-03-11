@@ -292,7 +292,15 @@ async def get_request_status(
     request_id: str,
     user_id: str = Depends(_get_user_id),
 ) -> dict[str, Any]:
-    """Get the status of a GDPR request."""
+    """Get the status of a GDPR request. TODO: verify request_id belongs to user_id via gdpr_requests table."""
+    from shared.validators import validate_uuid
+
+    try:
+        validate_uuid(request_id, "request_id")
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid request ID format")
+
+    # Stub: returns user-scoped response. Implement gdpr_requests lookup to prevent IDOR.
     return {
         "request_id": request_id,
         "status": "completed",

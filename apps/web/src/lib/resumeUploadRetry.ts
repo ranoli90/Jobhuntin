@@ -154,7 +154,9 @@ export class ResumeUploadRetryManager {
    * Convert base64 back to File
    */
   private base64ToFile(base64: string, fileName: string, fileType: string): File {
-    const byteString = atob(base64.split(',')[1]);
+    const dataPart = base64.split(',')[1];
+    if (!dataPart) throw new Error("Invalid base64 data URL: missing data part");
+    const byteString = atob(dataPart);
     const arrayBuffer = new ArrayBuffer(byteString.length);
     const uint8Array = new Uint8Array(arrayBuffer);
     

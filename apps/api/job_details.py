@@ -145,6 +145,13 @@ async def get_job_details(
     Returns:
         Comprehensive job details
     """
+    from shared.validators import validate_uuid
+
+    try:
+        validate_uuid(job_id, "job_id")
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid job ID format")
+
     try:
         from backend.domain.repositories import get_pool
 

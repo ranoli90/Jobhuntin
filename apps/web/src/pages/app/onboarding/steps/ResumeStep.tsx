@@ -476,9 +476,11 @@ export function ResumeStep({
                                             {t("onboarding.detectedSkills", locale) || "Detected Skills"}
                                         </p>
                                         <div className="flex flex-wrap gap-1.5">
-                                            {parsedResume.skills.slice(0, 12).map((skill, i) => (
+                                            {(parsedResume.skills ?? []).slice(0, 12).map((skill, i) => {
+                                                const skillLabel = typeof skill === 'string' ? skill : (skill as { name?: string; skill?: string })?.name ?? (skill as { name?: string; skill?: string })?.skill ?? String(skill);
+                                                return (
                                                 <motion.span
-                                                    key={skill}
+                                                    key={`${skillLabel}-${i}`}
                                                     initial={{ opacity: 0, scale: 0.9 }}
                                                     animate={{ opacity: 1, scale: 1 }}
                                                     transition={{ delay: i * 0.03 }}
@@ -487,15 +489,15 @@ export function ResumeStep({
                                                         "text-[10px] font-semibold bg-white border border-slate-200 text-slate-700"
                                                     )}
                                                 >
-                                                    {skill}
+                                                    {skillLabel}
                                                 </motion.span>
-                                            ))}
-                                            {parsedResume.skills.length > 12 && (
+                                            );})}
+                                            {(parsedResume.skills ?? []).length > 12 && (
                                                 <span className={cn(
                                                     "inline-flex items-center px-2 py-0.5 rounded-full",
                                                     "text-[10px] font-black bg-primary-50 border border-primary-200 text-primary-700"
                                                 )}>
-                                                    +{parsedResume.skills.length - 12} {t("onboarding.more", locale) || "more"}
+                                                    +{(parsedResume.skills ?? []).length - 12} {t("onboarding.more", locale) || "more"}
                                                 </span>
                                             )}
                                         </div>

@@ -139,13 +139,13 @@ export default function CategoryHub() {
                     viewport={{ once: true }}
                     className="mb-16"
                 >
-                    <h2 className="text-3xl font-black text-slate-900 mb-6">{seoData.h2s[0]}</h2>
+                    <h2 className="text-3xl font-black text-slate-900 mb-6">{seoData.h2s?.[0] ?? ""}</h2>
                     <div className="bg-white rounded-3xl border border-slate-100 p-8 shadow-sm">
                         <p className="text-lg text-slate-600 leading-relaxed mb-6">
-                            {seoData.contentSections[0].content}
+                            {seoData.contentSections?.[0]?.content ?? ""}
                         </p>
                         <div className="flex flex-wrap gap-2">
-                            {seoData.contentSections[0].keywords.map((keyword: string) => (
+                            {(seoData.contentSections?.[0]?.keywords ?? []).map((keyword: string) => (
                                 <span key={keyword} className="bg-slate-100 text-slate-700 text-sm font-medium px-3 py-1 rounded-full">
                                     {keyword}
                                 </span>

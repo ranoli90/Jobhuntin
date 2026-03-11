@@ -442,7 +442,7 @@ async def get_email_log(
                 "email_type": r["email_type"],
                 "template_name": r["template_name"],
                 "recipient": r["recipient"],
-                "sent_at": r["sent_at"].isoformat() if r["sent_at"] else None,
+                "sent_at": r.get("sent_at").isoformat() if r.get("sent_at") else None,
             }
             for r in rows
         ]

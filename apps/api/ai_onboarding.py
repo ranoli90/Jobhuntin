@@ -215,12 +215,14 @@ async def _verify_session_ownership(
             raise HTTPException(status_code=410, detail="Session has expired")
 
         # Verify ownership
-        if str(session_row["user_id"]) != ctx.user_id:
+        row_user_id = session_row.get("user_id")
+        row_tenant_id = session_row.get("tenant_id")
+        if not row_user_id or str(row_user_id) != ctx.user_id:
             raise HTTPException(
                 status_code=403,
                 detail="Access denied: Session does not belong to current user",
             )
-        if str(session_row["tenant_id"]) != ctx.tenant_id:
+        if not row_tenant_id or str(row_tenant_id) != ctx.tenant_id:
             raise HTTPException(
                 status_code=403,
                 detail="Access denied: Session does not belong to current tenant",

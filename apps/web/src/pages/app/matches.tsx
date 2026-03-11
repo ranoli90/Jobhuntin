@@ -235,7 +235,7 @@ export default function MatchesPage() {
 
     const shareData = {
       title: `Job Match Report`,
-      text: `Match Score: ${Math.round(match.data.score * 100)}% - ${match.data.reasoning.slice(0, 100)}...`,
+      text: `Match Score: ${Math.round(match.data.score * 100)}% - ${(match.data.reasoning ?? "").slice(0, 100)}...`,
       url: window.location.href,
     };
 

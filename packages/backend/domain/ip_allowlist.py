@@ -484,7 +484,7 @@ async def init_ip_allowlist_tables(conn: asyncpg.Connection) -> None:
             ADD COLUMN IF NOT EXISTS ip_allowlist_enabled BOOLEAN DEFAULT false
             """
         )
-    except Exception:
-        pass
+    except Exception as e:
+        logger.warning("IP allowlist column init failed (may already exist): %s", e)
 
     logger.info("IP allowlist tables initialized")

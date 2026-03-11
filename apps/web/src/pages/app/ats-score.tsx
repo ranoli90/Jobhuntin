@@ -335,14 +335,14 @@ export default function ATSScorePage() {
                   <MetricBar
                     key={metric.key}
                     label={metric.label}
-                    value={atsScore.data!.metrics[metric.key] ?? 0}
+                    value={atsScore.data?.metrics?.[metric.key] ?? 0}
                     description={metric.description}
                   />
                 ))}
               </div>
             </Card>
 
-            {atsScore.data.recommendations.length > 0 && (
+            {(atsScore.data?.recommendations?.length ?? 0) > 0 && (
               <Card className="p-6">
                 <h3 className="font-semibold text-slate-900 mb-4 flex items-center gap-2">
                   <AlertTriangle className="w-5 h-5 text-amber-500" />

@@ -13,6 +13,10 @@ from typing import Any
 
 import asyncpg
 
+from shared.logging_config import get_logger
+
+logger = get_logger("sorce.profile_assembly")
+
 from .deep_profile import (
     DealbreakerConfig,
     DeepProfile,
@@ -139,8 +143,8 @@ async def assemble_profile(
             ws_data = profile_data["work_style"]
             if isinstance(ws_data, dict):
                 work_style = WorkStyleProfile(**ws_data)
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning("Failed to parse work_style from profile_data: %s", e)
 
     # Career trajectory
     trajectory = CareerTrajectory.OPEN

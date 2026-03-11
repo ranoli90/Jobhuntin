@@ -658,7 +658,10 @@ async def answer_hold(
         )
 
     # Use first unresolved input; single answer applies to it
-    first_id = str(unresolved[0]["id"])
+    first_row = unresolved[0]
+    first_id = str(first_row.get("id", ""))
+    if not first_id:
+        raise HTTPException(status_code=500, detail="Invalid input data")
     answers = [{"input_id": first_id, "answer": body.answer}]
 
     async with db_transaction(db) as conn:

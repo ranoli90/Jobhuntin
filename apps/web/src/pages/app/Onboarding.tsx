@@ -127,13 +127,17 @@ export default function Onboarding() {
     };
   }, []);
 
-  // Load cached data on component mount
+  // Load cached data on component mount (skills: prefer skill-review cache over resume)
   React.useEffect(() => {
     const loadCachedData = async () => {
       if (profile?.id) {
         try {
-          // Load cached resume data
-          const cachedResume = await cacheService.getParsedResume(profile.id);
+          const [cachedResume, cachedSkills, cachedPrefs] = await Promise.all([
+            cacheService.getParsedResume(profile.id),
+            cacheService.getSkills(profile.id),
+            cacheService.getUserPreferences(profile.id),
+          ]);
+
           if (cachedResume) {
             if (import.meta.env.DEV) console.log('[Onboarding] Loading cached resume data');
             setParsedResume({
@@ -144,18 +148,15 @@ export default function Onboarding() {
               headline: cachedResume.headline,
             });
             setParsedProfile(cachedResume.parsedProfile);
-            setRichSkills(cachedResume.richSkills || []);
           }
 
-          // Load cached skills
-          const cachedSkills = await cacheService.getSkills(profile.id);
-          if (cachedSkills) {
+          if (cachedSkills?.length) {
             if (import.meta.env.DEV) console.log('[Onboarding] Loading cached skills');
             setRichSkills(cachedSkills);
+          } else if (cachedResume?.richSkills?.length) {
+            setRichSkills(cachedResume.richSkills);
           }
 
-          // Load cached preferences
-          const cachedPrefs = await cacheService.getUserPreferences(profile.id);
           if (cachedPrefs) {
             if (import.meta.env.DEV) console.log('[Onboarding] Loading cached preferences');
             setPreferences(cachedPrefs);
@@ -926,9 +927,9 @@ export default function Onboarding() {
     try {
       const trimmedPrefs = {
         ...preferences,
-        location: preferences.location.trim(),
-        role_type: preferences.role_type.trim(),
-        salary_min: preferences.salary_min.trim(),
+        location: (preferences.location ?? "").trim(),
+        role_type: (preferences.role_type ?? "").trim(),
+        salary_min: (preferences.salary_min ?? "").trim(),
       };
 
       // Cache preferences data

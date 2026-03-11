@@ -248,7 +248,9 @@ async def get_current_user_id(
         payload = pyjwt.decode(
             token, s.jwt_secret, algorithms=["HS256"], audience="authenticated"
         )
-        user_id: str = payload["sub"]
+        user_id = payload.get("sub")
+        if not user_id:
+            raise HTTPException(status_code=401, detail="Invalid token: missing subject")
         jti = payload.get("jti")
         payload.get("session_id")  # M2: Extract session_id for tracking
 

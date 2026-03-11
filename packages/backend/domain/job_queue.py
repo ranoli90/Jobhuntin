@@ -255,7 +255,7 @@ class JobQueueRepo:
             """,
             days_old,
         )
-        deleted = int(result.split()[-1]) if "DELETE" in result else 0
+        deleted = int(result.split()[-1]) if result and "DELETE" in result else 0
         if deleted > 0:
             logger.info("Cleaned up %d old jobs", deleted)
         return deleted

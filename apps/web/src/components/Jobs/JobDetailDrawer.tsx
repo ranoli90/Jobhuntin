@@ -2,6 +2,7 @@ import * as React from "react";
 import { FocusTrap } from "focus-trap-react";
 import { X, MapPin, DollarSign, ExternalLink, Bookmark, Share2, CheckCircle, Briefcase, Sparkles, Wand2 } from "lucide-react";
 import { Button } from "../ui/Button";
+import { pushToast } from "../../lib/toast";
 import { Card } from "../ui/Card";
 import { Badge } from "../ui/Badge";
 import type { JobPosting } from "../../hooks/useJobs";
@@ -180,14 +181,30 @@ export function JobDetailDrawer({ job, isOpen, onClose, onApply, onSave, isSaved
             <Button
               variant="ghost"
               className="w-full gap-2"
-              onClick={() => {
-                navigator.share?.({
-                  title: job.title,
-                  text: `Check out this ${job.title} position at ${job.company}`,
-                  url: job.url || window.location.href,
-                }).catch(() => {
-                  navigator.clipboard.writeText(job.url || window.location.href);
-                });
+              onClick={async () => {
+                const url = job.url || window.location.href;
+                try {
+                  if (navigator.share) {
+                    await navigator.share({
+                      title: job.title,
+                      text: `Check out this ${job.title} position at ${job.company}`,
+                      url,
+                    });
+                    pushToast({ title: "Shared!", tone: "success" });
+                  } else {
+                    await navigator.clipboard.writeText(url);
+                    pushToast({ title: "Link copied to clipboard", tone: "success" });
+                  }
+                } catch (e) {
+                  if ((e as Error).name !== "AbortError") {
+                    try {
+                      await navigator.clipboard.writeText(url);
+                      pushToast({ title: "Link copied to clipboard", tone: "success" });
+                    } catch {
+                      pushToast({ title: "Failed to share or copy", tone: "error" });
+                    }
+                  }
+                }
               }}
             >
               <Share2 className="h-4 w-4" />

@@ -490,21 +490,21 @@ async def stripe_webhook(
             if not row:
                 return {"status": "ok"}
 
+            data_obj = (event.get("data") or {}).get("object")
+            if not isinstance(data_obj, dict):
+                logger.warning("Stripe event missing data.object: type=%s", event.get("type"))
+                return {"status": "ok"}
+
             if event["type"] == "checkout.session.completed":
-                session = event["data"]["object"]
-                await handle_checkout_completed(conn, session)
+                await handle_checkout_completed(conn, data_obj)
             elif event["type"] == "invoice.payment_succeeded":
-                invoice = event["data"]["object"]
-                await handle_payment_succeeded(conn, invoice)
+                await handle_payment_succeeded(conn, data_obj)
             elif event["type"] == "invoice.payment_failed":
-                invoice = event["data"]["object"]
-                await handle_payment_failed(conn, invoice)
+                await handle_payment_failed(conn, data_obj)
             elif event["type"] == "customer.subscription.deleted":
-                subscription = event["data"]["object"]
-                await handle_subscription_cancelled(conn, subscription)
+                await handle_subscription_cancelled(conn, data_obj)
             elif event["type"] == "customer.subscription.updated":
-                subscription = event["data"]["object"]
-                await handle_subscription_updated(conn, subscription)
+                await handle_subscription_updated(conn, data_obj)
 
     return {"status": "ok"}
 

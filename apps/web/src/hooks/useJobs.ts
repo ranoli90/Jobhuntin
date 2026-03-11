@@ -1,4 +1,4 @@
-import { useMemo, useEffect } from "react";
+import { useMemo, useEffect, useRef } from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { apiGet } from "../lib/api";
 import { pushToast } from "../lib/toast";
@@ -92,13 +92,19 @@ export function useJobs(filters: JobFilters) {
     staleTime: 2 * 60 * 1000, // #63: 2 min - swiped jobs removed on invalidate; shorter stale for fresher feed
   });
 
+  const hasShownErrorRef = useRef(false);
   useEffect(() => {
     if (query.error) {
-      pushToast({
-        title: "Failed to load jobs",
-        description: (query.error as Error).message || "Please check your connection and try again.",
-        tone: "error",
-      });
+      if (!hasShownErrorRef.current) {
+        hasShownErrorRef.current = true;
+        pushToast({
+          title: "Failed to load jobs",
+          description: (query.error as Error).message || "Please check your connection and try again.",
+          tone: "error",
+        });
+      }
+    } else {
+      hasShownErrorRef.current = false;
     }
   }, [query.error]);
 

@@ -354,7 +354,7 @@ class SessionManager:
                     user_id,
                 )
 
-            count = int(result.split()[-1])
+            count = int(result.split()[-1]) if result else 0
 
             await self._record_audit(
                 conn,
@@ -449,7 +449,7 @@ class SessionManager:
                 """,
                 str(threshold_days),
             )
-            count = int(result.split()[-1])
+            count = int(result.split()[-1]) if result else 0
 
         incr("sessions.cleanup_deleted", None, count)
         logger.info("Cleaned up %d expired/revoked sessions", count)

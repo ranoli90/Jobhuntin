@@ -324,17 +324,18 @@ async def start_voice_question(
         # Create voice simulator instance
         voice_simulator = get_voice_interview_simulator()
 
-        # Create temporary session object
+        # Create temporary session object (use .get() to avoid KeyError on malformed data)
+        data = placeholder_session
         class TempSession:
-            def __init__(self, data):
-                self.session_id = data["session_id"]
-                self.questions = data["questions"]
-                self.current_question_index = data["current_question_index"]
-                self.voice_enabled = data["voice_enabled"]
-                self.voice_settings = data["voice_settings"]
-                self.status = data["status"]
+            def __init__(self, d):
+                self.session_id = d.get("session_id", "")
+                self.questions = d.get("questions", [])
+                self.current_question_index = d.get("current_question_index", 0)
+                self.voice_enabled = d.get("voice_enabled", False)
+                self.voice_settings = d.get("voice_settings", {})
+                self.status = d.get("status", "active")
 
-        temp_session = TempSession(placeholder_session)
+        temp_session = TempSession(data)
 
         # Start voice question
         result = await voice_simulator.start_voice_question(

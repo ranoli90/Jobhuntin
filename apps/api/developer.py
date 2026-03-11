@@ -70,8 +70,9 @@ class CreateWebhookRequest(BaseModel):
             ip = ipaddress.ip_address(socket.gethostbyname(parsed.hostname))
             if ip.is_private or ip.is_loopback or ip.is_reserved or ip.is_link_local:
                 raise ValueError("Webhook URL must point to a public address")
-        except (socket.gaierror, ValueError):
-            pass  # hostname didn't resolve; allow (will fail at webhook delivery time)
+        except (socket.gaierror, ValueError) as e:
+            logger.warning("Webhook URL hostname check skipped (resolve failed): %s", e)
+            # Allow; will fail at webhook delivery if unreachable
         return v
 
 

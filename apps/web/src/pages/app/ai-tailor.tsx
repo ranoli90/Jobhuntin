@@ -399,7 +399,7 @@ export default function AITailorPage() {
                   Highlighted Skills
                 </h4>
                 <div className="flex flex-wrap gap-2">
-                  {tailor.data.highlighted_skills.map((skill, i) => (
+                  {(tailor.data.highlighted_skills ?? []).map((skill, i) => (
                     <Badge key={i} variant="primary" size="sm">
                       {skill}
                     </Badge>
@@ -411,7 +411,7 @@ export default function AITailorPage() {
                   Added Keywords
                 </h4>
                 <div className="flex flex-wrap gap-2">
-                  {tailor.data.added_keywords.map((keyword, i) => (
+                  {(tailor.data.added_keywords ?? []).map((keyword, i) => (
                     <Badge key={i} variant="lagoon" size="sm">
                       {keyword}
                     </Badge>

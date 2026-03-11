@@ -172,12 +172,13 @@ async def prepare_resume_for_application(
     try:
         integration_service = get_resume_agent_integration()
 
+        job = request.job or {}
         result = await integration_service.prepare_resume_for_application(
             user_id=ctx.user_id,
-            job_id=request.job.get("id", ""),
+            job_id=job.get("id", ""),
             application_id=request.application_id,
             profile=request.profile,
-            job=request.job,
+            job=job,
             template_style=request.template_style,
             force_tailoring=request.force_tailoring,
         )
