@@ -89,9 +89,9 @@ class CSRFMiddleware:
     ]
 
     @classmethod
-    def exempt_urls(cls) -> list[str]:
+    def exempt_urls(cls, env: str | None = None) -> list[str]:
         """Return list of URL patterns to exempt from CSRF."""
-        return cls.EXEMPT_PATHS
+        return list(cls.EXEMPT_PATHS)
 
 
 def setup_csrf_middleware(app, secret: str) -> None:
@@ -116,8 +116,8 @@ def setup_csrf_middleware(app, secret: str) -> None:
         logger.error("starlette-csrf not installed - CSRF protection disabled")
         return
 
-    exempt_patterns = [re.compile(p) for p in CSRFMiddleware.exempt_urls()]
     s = get_settings()
+    exempt_patterns = [re.compile(p) for p in CSRFMiddleware.exempt_urls()]
     api_host = urlparse(s.api_public_url).hostname if s.api_public_url else ""
     app_host = urlparse(s.app_base_url).hostname if s.app_base_url else ""
     is_cross_origin = api_host != app_host and api_host and app_host
@@ -144,6 +144,12 @@ def setup_csrf_middleware(app, secret: str) -> None:
     # Secure=True is ONLY allowed over HTTPS. In local dev, it must be False.
     cookie_secure = is_prod or (s.app_base_url and s.app_base_url.startswith("https"))
 
+    # cookie_domain: For local dev with frontend (5173) and API (8000) on different ports,
+    # set domain="localhost" so the cookie is readable by JS on both origins.
+    cookie_domain = None
+    if not is_prod and api_host in ("localhost", "127.0.0.1") and app_host in ("localhost", "127.0.0.1"):
+        cookie_domain = "localhost" if api_host == "localhost" else None
+
     # cookie_httponly=False: double-submit pattern requires JS to read token for header
     app.add_middleware(
         CSRFForCORSMiddleware,
@@ -153,6 +159,7 @@ def setup_csrf_middleware(app, secret: str) -> None:
         cookie_httponly=False,
         cookie_samesite="none" if is_cross_origin else "lax",
         cookie_path="/",
+        cookie_domain=cookie_domain,
         exempt_urls=exempt_patterns,
     )
     logger.info(

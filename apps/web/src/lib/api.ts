@@ -108,17 +108,18 @@ export function getAuthToken(): string | null {
 
   // SECURITY: No localStorage fallback for production - only use httpOnly cookies
   // This prevents XSS attacks from stealing auth tokens
-  if (import.meta.env.PROD) {
-    console.warn("localStorage auth fallback disabled in production");
-    return null;
-  }
-
-  // Fallback to localStorage only for development
-  if (import.meta.env.DEV) {
-    console.warn("Using localStorage auth fallback - development only");
+  // VITE_ALLOW_LOCALSTORAGE_AUTH: allow localStorage token for local E2E testing (localhost only)
+  const allowLocalStorage =
+    import.meta.env.DEV ||
+    (import.meta.env.VITE_ALLOW_LOCALSTORAGE_AUTH === "true" &&
+      typeof window !== "undefined" &&
+      /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?(\/|$)/.test(window.location.origin));
+  if (allowLocalStorage) {
     return localStorage.getItem(AUTH_TOKEN_KEY);
   }
-
+  if (import.meta.env.PROD) {
+    return null;
+  }
   return null;
 }
 
@@ -127,6 +128,22 @@ function getCsrfToken(): string | null {
   if (typeof document === "undefined") return null;
   const match = document.cookie.match(/(?:^|; )csrftoken=([^;]*)/);
   return match ? decodeURIComponent(match[1]) : null;
+}
+
+/** Ensure CSRF cookie is set before mutations. Call before PATCH/POST/DELETE when token is missing. */
+let _csrfPreparePromise: Promise<void> | null = null;
+export async function ensureCsrfCookie(): Promise<void> {
+  if (getCsrfToken()) return;
+  if (_csrfPreparePromise) return _csrfPreparePromise;
+  _csrfPreparePromise = (async () => {
+    try {
+      const base = getApiBase();
+      if (base) await fetch(`${base.replace(/\/$/, "")}/csrf/prepare`, { credentials: "include" });
+    } catch {
+      // Ignore - mutations may fail with 403
+    }
+  })();
+  await _csrfPreparePromise;
 }
 
 export function setAuthToken(token: string) {
@@ -352,6 +369,10 @@ export async function apiFetch(
   const url = path.startsWith("http")
     ? path
     : `${API_BASE.replace(/\/$/, "")}/${path.replace(/^\//, "")}`;
+  const method = (options.method || "GET").toUpperCase();
+  if (method !== "GET" && method !== "HEAD" && method !== "OPTIONS") {
+    await ensureCsrfCookie();
+  }
   const authHeaders = await getAuthHeaders();
   const headers: HeadersInit = {
     ...authHeaders,

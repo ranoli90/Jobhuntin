@@ -52,6 +52,7 @@ async def _check_session_revocation(jti: str, settings: Any) -> bool:
                 status_code=503,
                 detail="Authentication service temporarily unavailable. Please try again.",
             )
+        # Local/dev: allow auth to proceed when Redis is unavailable
         return False
 
 

@@ -7,7 +7,7 @@ import {
   useCallback,
   useRef,
 } from "react";
-import { apiGet, getApiBase } from "../lib/api";
+import { apiGet, getApiBase, getAuthHeaders } from "../lib/api";
 import { pushToast } from "../lib/toast";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -69,10 +69,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         // causing an unwanted redirect + "session expired" toast on first visit.
         try {
           const base = getApiBase();
+          const authHeaders = await getAuthHeaders();
           const resp = await fetch(`${base.replace(/\/$/, "")}/me/profile`, {
             method: "GET",
             credentials: "include",
-            headers: { "Content-Type": "application/json" },
+            headers: { "Content-Type": "application/json", ...authHeaders },
           });
           if (!resp.ok) {
             // Silently handle 401 on initial load — user simply isn't logged in yet
