@@ -254,27 +254,17 @@ let _redirecting = false;
 /** Handle API error (401 redirect, throw with message). Exported for custom fetch flows (e.g. blob download). */
 export function handleApiError(resp: Response, body: string): never {
   if (resp.status === 401 && !_redirecting) {
-    // Skip redirect logic entirely if already on the login page — prevents infinite loop
     const isLoginPage = typeof window !== "undefined" && window.location.pathname === "/login";
     if (!isLoginPage) {
       _redirecting = true;
       const returnTo = typeof window !== "undefined" ? encodeURIComponent(window.location.pathname + window.location.search) : "";
       const isOnboarding = typeof window !== "undefined" && window.location.pathname.startsWith("/app/onboarding");
-      // A4: On onboarding, flush state to localStorage before redirect
       if (isOnboarding) {
         import("../hooks/useOnboarding").then((m) => m.flushOnboardingBeforeRedirect()).catch(() => {});
       }
-      const delayMs = isOnboarding ? 600 : 200;
-      if (typeof window !== "undefined") {
-        const evt = new CustomEvent("auth:unauthorized", { detail: { returnTo } });
-        window.dispatchEvent(evt);
-      }
-      setTimeout(() => {
-        _redirecting = false;
-        if (typeof window !== "undefined") {
-          window.location.href = `/login?returnTo=${returnTo}`;
-        }
-      }, delayMs);
+      const evt = new CustomEvent("auth:unauthorized", { detail: { returnTo } });
+      window.dispatchEvent(evt);
+      // AuthContext handles redirect; avoid double redirect by not redirecting here
     }
   }
   const parsedMsg = tryParseMessage(body);

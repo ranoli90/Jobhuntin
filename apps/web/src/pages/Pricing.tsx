@@ -182,7 +182,7 @@ export default function Pricing() {
 
   const handleProCta = async () => {
     if (!isLoggedIn) {
-      navigate('/login?returnTo=/pricing');
+      navigate(`/login?returnTo=${encodeURIComponent('/pricing')}`);
       return;
     }
     if (isProOrHigher) {

@@ -116,10 +116,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             setUser(null);
             sessionExpiryRef.current = null;
 
-            // Only show toast and redirect if this is not the initial load
+            const err = error as Error & { status?: number };
+            const is401 = err?.status === 401;
             const isLoginPage = window.location.pathname === '/login';
-            if (!isInitialLoad && !isLoginPage) {
-                const msg = error instanceof Error ? error.message : "Your session has expired";
+            if (!isInitialLoad && !isLoginPage && !is401) {
+                const msg = err instanceof Error ? err.message : "Your session has expired";
                 pushToast({ title: "Session expired", description: `${msg}. Please sign in again.`, tone: "error" });
                 const returnTo = window.location.pathname + window.location.search;
                 sessionStorage.setItem('returnTo', returnTo);

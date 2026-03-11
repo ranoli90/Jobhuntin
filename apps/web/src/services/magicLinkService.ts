@@ -352,6 +352,8 @@ class MagicLinkService {
     }
 
     const allowedPaths = new Set([
+      '/',
+      '/pricing',
       '/app/onboarding',
       '/app/dashboard',
       '/app/jobs',
