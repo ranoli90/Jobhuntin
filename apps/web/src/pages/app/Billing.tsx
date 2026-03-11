@@ -329,7 +329,7 @@ export default function Billing() {
                             })}
                           </TableCell>
                           <TableCell className="font-bold text-slate-900 dark:text-slate-100">
-                            ${((invoice.total ?? invoice.amount_paid ?? invoice.amount_due ?? 0) / 100).toFixed(2)}
+                            ${((Number(invoice.total ?? invoice.amount_paid ?? invoice.amount_due ?? 0) || 0) / 100).toFixed(2)}
                           </TableCell>
                           <TableCell className="text-right">
                             <a
