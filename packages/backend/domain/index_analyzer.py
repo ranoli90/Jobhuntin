@@ -1440,6 +1440,16 @@ class IndexAnalyzer:
                     "sql": recommendation.sql_statement,
                 }
 
+            # SECURITY: Validate table_name to prevent SQL injection
+            import re
+
+            if not recommendation.table_name or not re.match(
+                r"^[a-zA-Z_][a-zA-Z0-9_]*$", recommendation.table_name
+            ):
+                raise ValueError(
+                    "Invalid table_name: must be alphanumeric with underscores only"
+                )
+
             # For reorganization, we typically use VACUUM FULL or REINDEX
             async with self.db_pool.acquire() as conn:
                 await conn.execute(f"VACUUM FULL {recommendation.table_name}")
