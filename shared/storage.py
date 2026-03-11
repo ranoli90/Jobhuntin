@@ -15,6 +15,18 @@ from shared.logging_config import get_logger
 logger = get_logger("sorce.storage")
 
 
+def _reject_path_traversal(bucket: str, path: str) -> None:
+    """Reject path traversal attempts. Raises ValueError if path is unsafe."""
+    if ".." in bucket or "/" in bucket or "\\" in bucket:
+        raise ValueError("Invalid bucket name")
+    if ".." in path or path.startswith("/") or path.startswith("\\"):
+        raise ValueError("Invalid path: path traversal not allowed")
+    # Reject encoded traversal
+    decoded = path.replace("%2e%2e", "..").replace("%2E%2E", "..")
+    if ".." in decoded:
+        raise ValueError("Invalid path: path traversal not allowed")
+
+
 class StorageService:
     """Abstract base class for file storage services."""
 
@@ -50,6 +62,7 @@ class LocalStorageService(StorageService):
         self, bucket: str, path: str, data: bytes, content_type: str = "application/pdf"
     ) -> str:
         """Save file to local filesystem."""
+        _reject_path_traversal(bucket, path)
         full_path = self.base_path / bucket / path
         full_path.parent.mkdir(parents=True, exist_ok=True)
         full_path.write_bytes(data)
@@ -66,12 +79,14 @@ class LocalStorageService(StorageService):
     async def download_file(self, storage_path: str) -> bytes:
         """Read file from local filesystem."""
         bucket, path = storage_path.split("/", 1)
+        _reject_path_traversal(bucket, path)
         full_path = self.base_path / bucket / path
         return full_path.read_bytes()
 
     async def delete_file(self, storage_path: str) -> None:
         """Delete file from local filesystem."""
         bucket, path = storage_path.split("/", 1)
+        _reject_path_traversal(bucket, path)
         full_path = self.base_path / bucket / path
         if full_path.exists():
             full_path.unlink()
@@ -161,6 +176,7 @@ class S3CompatibleStorageService(StorageService):
         self, bucket: str, path: str, data: bytes, content_type: str = "application/pdf"
     ) -> str:
         """Upload file to S3-compatible storage."""
+        _reject_path_traversal(bucket, path)
         object_path = f"/{bucket}/{path}"
         url = f"{self.endpoint_url}{object_path}"
 
@@ -251,6 +267,7 @@ class S3CompatibleStorageService(StorageService):
     async def download_file(self, storage_path: str) -> bytes:
         """Download file from S3-compatible storage."""
         bucket, path = storage_path.split("/", 1)
+        _reject_path_traversal(bucket, path)
         object_path = f"/{bucket}/{path}"
         url = f"{self.endpoint_url}{object_path}"
 
@@ -274,6 +291,7 @@ class S3CompatibleStorageService(StorageService):
     async def delete_file(self, storage_path: str) -> None:
         """Delete file from S3-compatible storage."""
         bucket, path = storage_path.split("/", 1)
+        _reject_path_traversal(bucket, path)
         object_path = f"/{bucket}/{path}"
         url = f"{self.endpoint_url}{object_path}"
 
@@ -312,6 +330,7 @@ class RenderDiskStorageService(StorageService):
         self, bucket: str, path: str, data: bytes, content_type: str = "application/pdf"
     ) -> str:
         """Save file to Render persistent disk."""
+        _reject_path_traversal(bucket, path)
         full_path = self.disk_path / bucket / path
         full_path.parent.mkdir(parents=True, exist_ok=True)
         full_path.write_bytes(data)
@@ -331,12 +350,14 @@ class RenderDiskStorageService(StorageService):
     async def download_file(self, storage_path: str) -> bytes:
         """Read file from Render persistent disk."""
         bucket, path = storage_path.split("/", 1)
+        _reject_path_traversal(bucket, path)
         full_path = self.disk_path / bucket / path
         return full_path.read_bytes()
 
     async def delete_file(self, storage_path: str) -> None:
         """Delete file from Render persistent disk."""
         bucket, path = storage_path.split("/", 1)
+        _reject_path_traversal(bucket, path)
         full_path = self.disk_path / bucket / path
         if full_path.exists():
             full_path.unlink()

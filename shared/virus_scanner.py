@@ -272,6 +272,11 @@ def is_file_type_allowed(filename: str, content_type: str) -> bool:
         "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         "text/plain",
         "text/csv",
+        "image/jpeg",
+        "image/jpg",
+        "image/png",
+        "image/tiff",
+        "image/bmp",
     ]
 
     # Check content type
@@ -280,7 +285,18 @@ def is_file_type_allowed(filename: str, content_type: str) -> bool:
 
     # Check filename extension
     filename_lower = filename.lower()
-    allowed_extensions = [".pdf", ".doc", ".docx", ".txt", ".csv"]
+    allowed_extensions = [
+        ".pdf",
+        ".doc",
+        ".docx",
+        ".txt",
+        ".csv",
+        ".jpg",
+        ".jpeg",
+        ".png",
+        ".tiff",
+        ".bmp",
+    ]
     if not any(filename_lower.endswith(ext) for ext in allowed_extensions):
         return False
 

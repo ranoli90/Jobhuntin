@@ -1710,7 +1710,7 @@ async def resume_parse(
     """Upload PDF → extract text → LLM parse → normalize → upsert profile."""
     user_id = ctx.user_id
     incr("api.resume_parse.requests", tags={"tenant_id": ctx.tenant_id})
-    if file.content_type not in ("application/pdf", "application/octet-stream"):
+    if file.content_type not in ("application/pdf",):
         raise HTTPException(status_code=400, detail="Only PDF files are accepted")
 
     # Pre-check Content-Length header to reject before reading body into memory
@@ -1724,6 +1724,26 @@ async def resume_parse(
         raise HTTPException(
             status_code=413,
             detail=f"File too large. Maximum size is {_settings.max_upload_size_bytes // 1_048_576} MB",
+        )
+
+    # MIME validation: verify PDF magic bytes (prevent content-type spoofing)
+    if len(pdf_bytes) < 8 or not pdf_bytes.startswith(b"%PDF-"):
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid PDF format - file content does not match declared type",
+        )
+
+    # Virus scan before processing
+    from shared.virus_scanner import is_file_type_allowed, scan_uploaded_file
+
+    filename = file.filename or "resume.pdf"
+    if not is_file_type_allowed(filename, file.content_type or "application/pdf"):
+        raise HTTPException(status_code=400, detail="File type not allowed")
+    scan_result = await scan_uploaded_file(pdf_bytes, filename)
+    if not scan_result.clean:
+        raise HTTPException(
+            status_code=400,
+            detail="File security scan failed. Please upload a different file.",
         )
 
     resume_url, canonical_dict = await process_resume_upload(
@@ -2020,19 +2040,14 @@ async def serve_storage_file(
     if not tenant_id:
         raise HTTPException(status_code=401, detail="Authentication required")
 
-    # Validate path components
-    # Normalize path and check for traversal attempts
-    normalized_path = os.path.normpath(path)
-    if (
-        ".." in normalized_path
-        or normalized_path.startswith("/")
-        or normalized_path.startswith("\\")
-    ):
+    # Validate path components - check raw path first (normpath removes "..")
+    if ".." in path:
         raise HTTPException(status_code=400, detail="Invalid path")
-
-    # Additional checks for encoded traversal attempts
     decoded_path = path.replace("%2e%2e", "..").replace("%2E%2E", "..")
     if ".." in decoded_path:
+        raise HTTPException(status_code=400, detail="Invalid path")
+    normalized_path = os.path.normpath(path)
+    if normalized_path.startswith("/") or normalized_path.startswith("\\"):
         raise HTTPException(status_code=400, detail="Invalid path")
 
     # SECURITY: Add tenant isolation to storage path
@@ -2043,6 +2058,8 @@ async def serve_storage_file(
 
     try:
         data = await storage.download_file(storage_path)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid path")
     except FileNotFoundError:
         raise HTTPException(status_code=404, detail="File not found")
     except Exception as e:

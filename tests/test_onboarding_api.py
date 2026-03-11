@@ -112,10 +112,11 @@ class TestResumeUpload:
                 },
             )
 
-            # Upload resume
+            # Upload resume (minimal valid PDF header for magic-byte validation)
+            pdf_bytes = b"%PDF-1.4\n%\xe2\xe3\xcf\xd3\n1 0 obj\n<<\n/Type /Catalog\n"
             response = authenticated_client.post(
                 "/webhook/resume_parse",
-                files={"file": ("resume.pdf", b"fake pdf content", "application/pdf")},
+                files={"file": ("resume.pdf", pdf_bytes, "application/pdf")},
             )
 
             # Should succeed (403 if CSRF/tenant context)
@@ -140,7 +141,8 @@ class TestResumeUpload:
     def test_resume_upload_file_too_large(self, authenticated_client):
         """Test resume upload with file exceeding size limit."""
         settings = get_settings()
-        large_content = b"x" * (settings.max_upload_size_bytes + 1)
+        # Valid PDF header + padding (magic-byte check passes before size check)
+        large_content = b"%PDF-1.4\n" + b"x" * (settings.max_upload_size_bytes + 1)
 
         response = authenticated_client.post(
             "/webhook/resume_parse",

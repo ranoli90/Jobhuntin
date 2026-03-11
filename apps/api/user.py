@@ -1519,6 +1519,13 @@ async def upload_resume(
     if file.size == 0:
         raise HTTPException(status_code=400, detail="File is empty or corrupted")
 
+    settings = get_settings()
+    if file.size and file.size > settings.max_upload_size_bytes:
+        raise HTTPException(
+            status_code=413,
+            detail=f"File too large. Maximum size is {settings.max_upload_size_bytes // 1_048_576} MB",
+        )
+
     # Enhanced file validation with virus scanning
     filename = (file.filename or "upload.pdf").lower()
 
@@ -1753,7 +1760,7 @@ async def upload_avatar(
     ext = Path(file.filename or "").suffix.lower()
     fallback_ext = allowed_types[(file.content_type or "image/png").lower()]
     suffix = ext if ext in allowed_types.values() else fallback_ext
-    storage_path = f"avatars/{ctx.user_id}/{uuid.uuid4()}{suffix}"
+    storage_path = f"{ctx.user_id}/{uuid.uuid4()}{suffix}"
 
     storage = get_storage_service()
     avatar_url = await storage.upload_file(
