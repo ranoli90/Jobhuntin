@@ -149,9 +149,9 @@ PYTHONPATH=apps:packages:. mypy apps/api/ apps/worker/ packages/backend/ shared/
 | Admin | dashboard.py | get_overview, get_metrics, get_config lacked auth | fixed |
 | API | application_pipeline.py | sort_order SQL injection; company ILIKE escape | fixed |
 | Auth | user.py | is_system_admin except pass → log | fixed |
-| Auth | test_ionos_api.py | Hardcoded IONOS_SECRET | TODO (remove or env) |
-| Worker | job_sync_service.py | Swallowed exceptions in cleanup | Medium |
-| Frontend | localStorage | QuotaExceededError handling | Low |
+| Auth | test_ionos_api.py | Hardcoded IONOS_SECRET | fixed (env vars) |
+| Worker | job_sync_service.py | Swallowed exceptions in cleanup | fixed |
+| Frontend | localStorage | QuotaExceededError handling | fixed |
 
 ### 3.7 Other
 | Area | Description |

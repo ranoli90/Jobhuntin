@@ -1,19 +1,28 @@
-"""Try different Ionos API approaches."""
+"""Try different Ionos API approaches.
+
+Credentials must be set via environment:
+  IONOS_PUBLIC_PREFIX - Ionos API public key prefix
+  IONOS_SECRET - Ionos API secret
+"""
 
 import base64
+import os
 
 import httpx
 from dotenv import load_dotenv
 
 load_dotenv()
 
-# Ionos credentials
-IONOS_PUBLIC_PREFIX = "48e1b13910ac4a6aa4e18a32460a1812"
-IONOS_SECRET = "Opgjoy-2ReOiIwd42BcbD1iLFGx1oMOXC9TLx_so1TPkuipLG-X8NvQQz-GSHlpm7RXTxqZ2HhPSTZZMhCRuaw"
+# Ionos credentials from env (never hardcode secrets)
+IONOS_PUBLIC_PREFIX = os.environ.get("IONOS_PUBLIC_PREFIX", "")
+IONOS_SECRET = os.environ.get("IONOS_SECRET", "")
 
 
 def test_ionos_endpoints():
     """Test various Ionos API endpoints."""
+    if not IONOS_PUBLIC_PREFIX or not IONOS_SECRET:
+        print("ERROR: Set IONOS_PUBLIC_PREFIX and IONOS_SECRET in .env to run this script")
+        return []
     # Prepare basic auth
     credentials = f"{IONOS_PUBLIC_PREFIX}:{IONOS_SECRET}"
     encoded_credentials = base64.b64encode(credentials.encode()).decode()

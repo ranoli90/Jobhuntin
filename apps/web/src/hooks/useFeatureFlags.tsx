@@ -1,4 +1,5 @@
 import { useState, useEffect, createContext, useContext, useCallback, ReactNode } from "react";
+import { safeSetStorage } from "../lib/utils";
 
 interface FeatureFlags {
   [key: string]: boolean;
@@ -40,10 +41,8 @@ function loadLocalFlags(): FeatureFlags {
 
 function saveLocalFlags(flags: FeatureFlags): void {
   if (typeof window === "undefined") return;
-  try {
-    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(flags));
-  } catch {
-    if (import.meta.env.DEV) console.warn("Failed to save feature flags to localStorage");
+  if (!safeSetStorage(LOCAL_STORAGE_KEY, JSON.stringify(flags))) {
+    if (import.meta.env.DEV) console.warn("Failed to save feature flags (QuotaExceeded?)");
   }
 }
 

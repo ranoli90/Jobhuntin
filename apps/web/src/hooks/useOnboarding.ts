@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useEffect, useMemo } from "react";
 import { telemetry } from "../lib/telemetry";
 import { securePIIStorage } from "../lib/secureStorage";
+import { safeSetStorage, safeGetStorage } from "../lib/utils";
 
 import { OnboardingStep, OnboardingState, OnboardingFormData } from "../types/onboarding";
 
@@ -71,11 +72,10 @@ export function useOnboarding(options: UseOnboardingOptions = {}) {
     try {
       let storedState: OnboardingState | null = null;
       try {
-        const stored = localStorage.getItem(STORAGE_KEY);
+        const stored = safeGetStorage(STORAGE_KEY);
         if (stored) storedState = JSON.parse(stored);
       } catch {
-        const fromSession = sessionStorage.getItem(STORAGE_KEY);
-        if (fromSession) storedState = JSON.parse(fromSession);
+        if (import.meta.env.DEV) console.warn("[useOnboarding] Failed to parse stored state");
       }
       // Get PII data from secure storage
       let piiData: Partial<OnboardingFormData> = {};
@@ -147,32 +147,6 @@ export function useOnboarding(options: UseOnboardingOptions = {}) {
       formData: nonPii,
     };
 
-    const safeSetStorage = (key: string, value: string): boolean => {
-      try {
-        localStorage.setItem(key, value);
-        return true;
-      } catch (e) {
-        if (e instanceof DOMException && (e.name === 'QuotaExceededError' || e.code === 22)) {
-          if (import.meta.env.DEV) console.warn('[useOnboarding] Storage full (QuotaExceeded), attempting recovery');
-          try {
-            localStorage.removeItem(STORAGE_KEY);
-            localStorage.removeItem('onboarding_ab_variant');
-            localStorage.setItem(key, value);
-            return true;
-          } catch {
-            try {
-              sessionStorage.setItem(key, value);
-              return true;
-            } catch {
-              if (import.meta.env.DEV) console.error('[useOnboarding] Storage recovery failed');
-              return false;
-            }
-          }
-        }
-        throw e;
-      }
-    };
-
     try {
       if (import.meta.env.DEV) console.log('[useOnboarding] Saving non-PII state:', state);
       if (!safeSetStorage(STORAGE_KEY, JSON.stringify(state))) {
@@ -218,20 +192,13 @@ export function useOnboarding(options: UseOnboardingOptions = {}) {
   const [abVariant, setAbVariant] = useState<"resume_first" | "role_first">("resume_first");
 
   useEffect(() => {
-    let storedVariant: string | null = null;
-    try {
-      storedVariant = localStorage.getItem("onboarding_ab_variant");
-    } catch {
-      if (import.meta.env.DEV) console.warn('[useOnboarding] localStorage access failed (QuotaExceeded?)');
-    }
+    const storedVariant = safeGetStorage("onboarding_ab_variant");
     if (storedVariant) {
       setAbVariant(storedVariant as "resume_first" | "role_first");
     } else {
       const newVariant = Math.random() > 0.5 ? "resume_first" : "role_first";
-      try {
-        localStorage.setItem("onboarding_ab_variant", newVariant);
-      } catch {
-        if (import.meta.env.DEV) console.warn('[useOnboarding] Could not persist A/B variant');
+      if (!safeSetStorage("onboarding_ab_variant", newVariant)) {
+        if (import.meta.env.DEV) console.warn("[useOnboarding] Could not persist A/B variant (QuotaExceeded?)");
       }
       setAbVariant(newVariant);
       // Log exposure
@@ -340,9 +307,7 @@ export function useOnboarding(options: UseOnboardingOptions = {}) {
     registerOnboardingFlush(() => {
       const { currentStep: s, completedSteps: c, formData: f } = stateRef.current;
       const { nonPii } = separatePII(f);
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify({ currentStep: s, completedSteps: c, formData: nonPii }));
-      } catch { /* ignore */ }
+      safeSetStorage(STORAGE_KEY, JSON.stringify({ currentStep: s, completedSteps: c, formData: nonPii }));
     });
     return () => registerOnboardingFlush(null);
   }, []);
@@ -365,7 +330,7 @@ export function useOnboarding(options: UseOnboardingOptions = {}) {
     const processQueue = async () => {
       if (!navigator.onLine) return;
       try {
-        const raw = localStorage.getItem("offline_queue");
+        const raw = safeGetStorage("offline_queue");
         if (!raw) return;
         const queue = JSON.parse(raw);
         if (queue.length === 0) return;
@@ -373,20 +338,25 @@ export function useOnboarding(options: UseOnboardingOptions = {}) {
         const MAX_AGE_MS = 24 * 60 * 60 * 1000; // 24h
         const valid = queue.filter((a: { timestamp?: number }) => !a.timestamp || Date.now() - a.timestamp < MAX_AGE_MS);
         if (valid.length === 0) {
-          localStorage.removeItem("offline_queue");
+          try {
+            localStorage.removeItem("offline_queue");
+            sessionStorage.removeItem("offline_queue");
+          } catch {
+            /* ignore */
+          }
           return;
         }
 
         // Retry: dispatch custom event so onboarding steps can re-submit; clear queue after attempt
         window.dispatchEvent(new CustomEvent("offline_queue:retry", { detail: valid }));
-        localStorage.removeItem("offline_queue");
-      } catch (error) {
-        if (import.meta.env.DEV) console.error("[useOnboarding] Failed to process offline queue:", error);
         try {
           localStorage.removeItem("offline_queue");
+          sessionStorage.removeItem("offline_queue");
         } catch {
           /* ignore */
         }
+      } catch (error) {
+        if (import.meta.env.DEV) console.error("[useOnboarding] Failed to process offline queue:", error);
       }
     };
 
@@ -397,19 +367,13 @@ export function useOnboarding(options: UseOnboardingOptions = {}) {
 
   const queueOfflineAction = useCallback((action: OfflineAction) => {
     try {
-      const queue = JSON.parse(localStorage.getItem("offline_queue") || "[]");
+      const queue = JSON.parse(safeGetStorage("offline_queue") || "[]");
       queue.push({ ...action, timestamp: Date.now() });
-      localStorage.setItem("offline_queue", JSON.stringify(queue));
-    } catch (error) {
-      if (import.meta.env.DEV) console.error('[useOnboarding] Failed to queue offline action:', error);
-      // Try to clear and retry
-      try {
-        localStorage.removeItem("offline_queue");
-        const newQueue = [{ ...action, timestamp: Date.now() }];
-        localStorage.setItem("offline_queue", JSON.stringify(newQueue));
-      } catch (retryError) {
-        if (import.meta.env.DEV) console.error('[useOnboarding] Failed to retry offline action queue:', retryError);
+      if (!safeSetStorage("offline_queue", JSON.stringify(queue))) {
+        if (import.meta.env.DEV) console.warn("[useOnboarding] Failed to queue offline action (QuotaExceeded?)");
       }
+    } catch (error) {
+      if (import.meta.env.DEV) console.error("[useOnboarding] Failed to queue offline action:", error);
     }
   }, []);
 

@@ -61,6 +61,11 @@
 - **update-render-env.sh**: Stripe keys loaded from env; no hardcoding
 - **sync_render_env_from_dotenv.py**: Fixed get_env_vars for Render API response formats
 
+### 14. Audit Fixes (Section 3.6)
+- **test_ionos_api.py**: Removed hardcoded IONOS_SECRET; credentials from IONOS_PUBLIC_PREFIX and IONOS_SECRET env vars
+- **job_sync_service.py**: Cleanup: log on failure, don't abort sync; log parse errors instead of swallowing
+- **localStorage QuotaExceededError**: safeSetStorage/safeGetStorage in utils.ts; useOnboarding, useFeatureFlags use it; sessionStorage fallback
+
 ## Environment Checklist for Production
 
 | Variable | Required |

@@ -53,3 +53,49 @@ export function escapeHtml(text: string): string {
 
   return text.replace(/[&<>"']/g, (char) => htmlEscapes[char] || char);
 }
+
+/** Check if error is QuotaExceededError (localStorage full) */
+function isQuotaExceeded(e: unknown): boolean {
+  if (e instanceof DOMException) return e.name === "QuotaExceededError" || e.code === 22;
+  return false;
+}
+
+/**
+ * Safely set item in localStorage. On QuotaExceededError, tries sessionStorage fallback.
+ * Per coding standards: handle QuotaExceededError; fallback to sessionStorage.
+ * @returns true if stored successfully, false otherwise
+ */
+export function safeSetStorage(key: string, value: string): boolean {
+  try {
+    localStorage.setItem(key, value);
+    return true;
+  } catch (e) {
+    if (isQuotaExceeded(e)) {
+      try {
+        localStorage.removeItem(key);
+        localStorage.setItem(key, value);
+        return true;
+      } catch {
+        try {
+          sessionStorage.setItem(key, value);
+          return true;
+        } catch {
+          if (import.meta.env.DEV) console.warn("[safeStorage] QuotaExceeded recovery failed");
+          return false;
+        }
+      }
+    }
+    throw e;
+  }
+}
+
+/**
+ * Safely get item - tries localStorage first, then sessionStorage (for fallback case).
+ */
+export function safeGetStorage(key: string): string | null {
+  try {
+    return localStorage.getItem(key) ?? sessionStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}

@@ -187,9 +187,12 @@ class JobSyncService:
                 elif isinstance(result, list):
                     results.extend(result)
 
-            # Cleanup expired jobs
-            expired = await self.cleanup_expired_jobs()
-            logger.info(f"Cleaned up {expired} expired jobs")
+            # Cleanup expired jobs (don't let cleanup failure abort sync)
+            try:
+                expired = await self.cleanup_expired_jobs()
+                logger.info(f"Cleaned up {expired} expired jobs")
+            except Exception as e:
+                logger.error("Cleanup expired jobs failed: %s", e, exc_info=True)
 
             # Log summary
             total_new = sum(r.jobs_new for r in results)
@@ -782,7 +785,8 @@ class JobSyncService:
             )
             try:
                 deleted = int(result.split()[-1]) if result else 0
-            except Exception:
+            except Exception as e:
+                logger.warning("Failed to parse cleanup result %r: %s", result, e)
                 deleted = 0
             incr("jobspy.jobs_expired", deleted)
             return deleted
