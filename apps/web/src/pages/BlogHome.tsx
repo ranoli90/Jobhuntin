@@ -4,6 +4,7 @@ import { SEO } from '../components/marketing/SEO';
 import { motion } from 'framer-motion';
 import { ArrowRight, Clock, User, Tag, Search } from 'lucide-react';
 
+/** When adding posts, also add slug to src/data/blog-slugs.json for sitemap (SEO #49) */
 const blogPosts = [
   {
     slug: 'is-jobright-legit',
@@ -111,7 +112,7 @@ export default function BlogHome() {
               "description": post.excerpt,
               "datePublished": post.date,
               "author": {
-                "@type": "Organization",
+                "@type": "Person",
                 "name": post.author
               },
               "url": `https://jobhuntin.com/blog/${post.slug}`

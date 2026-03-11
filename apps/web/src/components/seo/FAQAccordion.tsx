@@ -29,7 +29,7 @@ export function FAQAccordion({ items, competitorName }: FAQAccordionProps) {
     };
 
     return (
-        <section className="py-16 sm:py-20 bg-[#F7F6F3]">
+        <section className="py-16 sm:py-20 bg-slate-50">
             <div className="max-w-[720px] mx-auto px-6">
                 <h2 className="text-[clamp(1.75rem,3.5vw,28px)] font-bold text-[#2D2A26] mb-10 text-center" style={{ letterSpacing: '-0.5px' }}>
                     Frequently Asked Questions

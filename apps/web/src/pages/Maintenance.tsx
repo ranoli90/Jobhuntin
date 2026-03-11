@@ -11,18 +11,21 @@ export default function Maintenance() {
         title="Maintenance | JobHuntin"
         description="JobHuntin is temporarily unavailable for maintenance. We'll be back shortly."
       />
-      <div className="max-w-md text-center">
+      <div className="max-w-lg text-center">
         <div className="w-20 h-20 rounded-2xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center mx-auto mb-6">
           <Wrench className="w-10 h-10 text-amber-600 dark:text-amber-400" aria-hidden />
         </div>
-        <h1 className="text-2xl font-sans font-bold text-slate-900 dark:text-slate-100 mb-2">
+        <h1 className="text-2xl font-sans font-bold text-slate-900 dark:text-slate-100 mb-3">
           {t("maintenance.title", locale)}
         </h1>
-        <p className="text-slate-600 dark:text-slate-400 mb-6">
+        <p className="text-slate-600 dark:text-slate-400 mb-4">
           {t("maintenance.description", locale)}
         </p>
         <p className="text-sm text-slate-500 dark:text-slate-500 mb-6">
           {t("maintenance.expectedBack", locale)}
+        </p>
+        <p className="text-xs text-slate-400 dark:text-slate-500 mb-6">
+          {t("maintenance.progressSaved", locale)}
         </p>
         <a
           href="mailto:support@jobhuntin.com"

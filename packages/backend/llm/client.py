@@ -298,7 +298,7 @@ class LLMClient:
         # Add OpenRouter-specific headers if using OpenRouter
         if "openrouter.ai" in self.api_base:
             headers["HTTP-Referer"] = "https://jobhuntin.com"
-            headers["X-Title"] = "JobHuntin AI"
+            headers["X-Title"] = "JobHuntin"
         async with httpx.AsyncClient(timeout=self.timeout) as client:
             resp = await client.post(url, json=payload, headers=headers)
             resp.raise_for_status()

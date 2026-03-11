@@ -43,6 +43,7 @@ interface RoleData {
 import { generateLocationRoleSEO } from '../utils/seoOptimizer';
 import { generateSemanticLinksForLocationRole, generateTopicalClusters } from '../utils/semanticLinking';
 import TopicalClusters from '../components/marketing/TopicalClusters';
+import { ConversionCTA } from '../components/seo/ConversionCTA';
 import { sanitizeSlug, isValidSlug, generateJobPagePath, detectSpammyPattern } from '../utils/urlSanitizer';
 
 export default function JobNiche() {
@@ -95,7 +96,9 @@ export default function JobNiche() {
   const formattedRole = roleInfo?.name || role?.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ') || "Professional";
   const formattedCity = cityInfo?.name || city?.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ') || "Remote";
 
-  const canonicalUrl = `https://jobhuntin.com/jobs/${role ?? ''}/${city ?? ''}`;
+  const canonicalRole = role?.trim() || 'all';
+  const canonicalCity = city?.trim() || 'remote';
+  const canonicalUrl = `https://jobhuntin.com/jobs/${canonicalRole}/${canonicalCity}`;
   const ogImage = `https://jobhuntin.com/api/og?job=${encodeURIComponent(formattedRole)}&company=${encodeURIComponent(formattedCity)}&score=100&location=${encodeURIComponent(formattedCity)}`;
 
   const isUS = cityInfo?.country === 'USA';
@@ -121,7 +124,7 @@ export default function JobNiche() {
   }, [roleInfo, isUS]);
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans text-slate-900 selection:bg-primary-500/20 selection:text-primary-700">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 font-sans text-slate-900 dark:text-slate-100 selection:bg-primary-500/20 selection:text-primary-700">
       <SEO
         title={seoData.title}
         description={seoData.description}
@@ -149,7 +152,9 @@ export default function JobNiche() {
           {/* Mobile menu button */}
           <button 
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="sm:hidden p-2 text-slate-600"
+            className="sm:hidden p-2 text-slate-600 min-h-[44px] min-w-[44px] flex items-center justify-center"
+            aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+            aria-expanded={mobileMenuOpen}
           >
             {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
@@ -162,7 +167,7 @@ export default function JobNiche() {
         
         {/* Mobile menu dropdown */}
         {mobileMenuOpen && (
-          <div className="sm:hidden border-t border-slate-100 bg-white px-4 py-4">
+          <div className="sm:hidden border-t border-slate-100 bg-white px-4 py-4" role="navigation" aria-label="Mobile menu">
             <nav className="space-y-3">
               <Link to="/" className="block py-2 text-slate-700 font-medium">Home</Link>
               <Link to="/pricing" className="block py-2 text-slate-700 font-medium">Pricing</Link>
@@ -458,24 +463,7 @@ export default function JobNiche() {
           </div>
         </section>
 
-        {/* CTA - Mobile optimized */}
-        <div className="bg-primary-600 rounded-2xl sm:rounded-[3rem] p-8 sm:p-12 text-white text-center relative overflow-hidden shadow-2xl">
-          <div className="absolute top-0 right-0 w-48 sm:w-64 h-48 sm:h-64 bg-white/10 rounded-full blur-3xl" />
-          <h2 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6 relative z-10 font-display">
-            {seoData.cta.headline}
-          </h2>
-          <p className="text-primary-100 mb-6 sm:mb-10 relative z-10 max-w-lg mx-auto text-base sm:text-lg font-medium">
-            {seoData.cta.description}
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 items-center justify-center relative z-10">
-            <Link
-              to="/login"
-              className="w-full sm:w-auto bg-white text-primary-600 px-8 sm:px-10 py-4 rounded-xl sm:rounded-2xl font-black text-base sm:text-lg hover:scale-105 transition-transform shadow-xl shadow-white/5"
-            >
-              {seoData.cta.buttonText}
-            </Link>
-          </div>
-        </div>
+        <ConversionCTA variant="location" locationName={cityInfo?.name || city || undefined} />
       </main>
 
       {/* Mobile CTA bar */}

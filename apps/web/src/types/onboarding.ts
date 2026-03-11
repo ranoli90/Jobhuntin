@@ -14,6 +14,8 @@ export interface RichSkill {
     related_to: string[];
     source: string;
     project_count: number;
+    /** K5: Client-side ID for stable delete (reorder-safe) */
+    clientId?: string;
 }
 
 export interface WorkStyleProfile {

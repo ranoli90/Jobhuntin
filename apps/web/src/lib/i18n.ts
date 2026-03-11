@@ -366,6 +366,7 @@ const dictionaries: Dict = {
     "resumeRetry.retryNow": "Retry Now",
     "resumeRetry.clear": "Clear",
     "resumeRetry.attemptOf": "Attempt {current} of {max}",
+    "resumeRetry.reuploadHint": "Re-upload your resume to try again.",
     "app.save": "Save",
     "app.cancel": "Cancel",
     "app.delete": "Delete",
@@ -426,8 +427,8 @@ const dictionaries: Dict = {
     "login.feature3": "One-click apply everywhere",
 
     "404.title": "404",
-    "404.heading": "This page doesn't exist. But your dream job does.",
-    "404.description": "While you were looking for this page, someone else landed an interview. Don't let that be your story.",
+    "404.heading": "This page doesn't exist.",
+    "404.description": "The page you're looking for couldn't be found. Try searching for jobs or head back to the homepage.",
     "404.startFree": "Start free — 10 applications on us",
     "404.backHome": "Back to home",
     "404.popularSearches": "Popular job searches",
@@ -475,9 +476,10 @@ const dictionaries: Dict = {
     "settings.exporting": "Exporting…",
 
     "maintenance.title": "We're making things better",
-    "maintenance.description": "JobHuntin is temporarily unavailable for scheduled maintenance. We'll be back shortly.",
-    "maintenance.expectedBack": "Expected back soon. Check back in a few minutes or contact support for updates.",
+    "maintenance.description": "JobHuntin is temporarily unavailable for scheduled maintenance. We're improving performance and adding new features.",
+    "maintenance.expectedBack": "We expect to be back within 15–30 minutes. You can check back shortly or contact support if you need assistance.",
     "maintenance.contactSupport": "Contact support",
+    "maintenance.progressSaved": "Your progress is saved. When we're back, you can pick up right where you left off.",
 
     "homepage.checkInbox": "Check your inbox",
     "homepage.magicLinkSent": "Magic link sent!",
@@ -798,6 +800,7 @@ const dictionaries: Dict = {
     "resumeRetry.retryNow": "Réessayer maintenant",
     "resumeRetry.clear": "Effacer",
     "resumeRetry.attemptOf": "Tentative {current} sur {max}",
+    "resumeRetry.reuploadHint": "Téléchargez à nouveau votre CV pour réessayer.",
     "app.save": "Enregistrer",
     "app.cancel": "Annuler",
     "app.delete": "Supprimer",
@@ -858,8 +861,8 @@ const dictionaries: Dict = {
     "login.feature3": "Postuler en un clic partout",
 
     "404.title": "404",
-    "404.heading": "Cette page n'existe pas. Mais votre emploi idéal, oui.",
-    "404.description": "Pendant que vous cherchiez cette page, quelqu'un d'autre a décroché un entretien. Ne laissez pas ça vous arriver.",
+    "404.heading": "Cette page n'existe pas.",
+    "404.description": "La page demandée est introuvable. Essayez de rechercher des emplois ou retournez à l'accueil.",
     "404.startFree": "Commencer gratuitement — 10 candidatures offertes",
     "404.backHome": "Retour à l'accueil",
     "404.popularSearches": "Recherches populaires",
@@ -907,9 +910,10 @@ const dictionaries: Dict = {
     "settings.exporting": "Export en cours…",
 
     "maintenance.title": "Nous améliorons le service",
-    "maintenance.description": "JobHuntin est temporairement indisponible pour maintenance. Nous serons bientôt de retour.",
-    "maintenance.expectedBack": "Retour prévu sous peu. Réessayez dans quelques minutes ou contactez le support.",
+    "maintenance.description": "JobHuntin est temporairement indisponible pour maintenance. Nous améliorons les performances et ajoutons de nouvelles fonctionnalités.",
+    "maintenance.expectedBack": "Retour prévu sous 15 à 30 minutes. Réessayez bientôt ou contactez le support si besoin.",
     "maintenance.contactSupport": "Contacter le support",
+    "maintenance.progressSaved": "Votre progression est enregistrée. À notre retour, vous pourrez reprendre là où vous en étiez.",
 
     "homepage.checkInbox": "Vérifiez votre boîte de réception",
     "homepage.magicLinkSent": "Lien magique envoyé !",

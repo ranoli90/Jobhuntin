@@ -5,6 +5,7 @@ import { SEO } from '../components/marketing/SEO';
 import { FAQAccordion, type FAQItem } from '../components/seo/FAQAccordion';
 import { InternalLinkMesh } from '../components/seo/InternalLinkMesh';
 import { ConversionCTA } from '../components/seo/ConversionCTA';
+import { BreadcrumbNav } from '../components/seo/BreadcrumbNav';
 import { motion } from 'framer-motion';
 import competitorsData from '../data/competitors.json';
 
@@ -104,7 +105,6 @@ export default function PricingVs() {
                     { name: "Compare Tools", url: "https://jobhuntin.com/best/ai-auto-apply-tools" },
                     { name: competitor.name + " vs JobHuntin Pricing", url: canonicalUrl },
                 ]}
-                keywords={competitor.seo_keywords?.join(", ")}
                 schema={[
                     {
                         "@context": "https://schema.org",
@@ -163,13 +163,18 @@ export default function PricingVs() {
             />
 
             <main className="max-w-5xl mx-auto px-6 py-24">
+                <BreadcrumbNav items={[
+                    { name: "Home", url: "https://jobhuntin.com" },
+                    { name: "Compare Tools", url: "https://jobhuntin.com/best/ai-auto-apply-tools" },
+                    { name: competitor.name + " vs JobHuntin Pricing", url: canonicalUrl },
+                ]} />
                 {/* Hero */}
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="text-center mb-20"
+                    className="text-center mb-16"
                 >
-                    <div className="inline-flex items-center gap-2 bg-green-50 text-green-600 px-4 py-1 rounded-full text-sm font-bold mb-6 border border-green-100">
+                    <div className="inline-flex items-center gap-2 bg-blue-50 text-blue-600 px-4 py-1 rounded-full text-sm font-bold mb-6 border border-blue-100">
                         <DollarSign className="w-4 h-4" />
                         Pricing Breakdown
                     </div>

@@ -73,7 +73,7 @@ function ExitIntentPopup({ isOpen, onClose }: { isOpen: boolean; onClose: () => 
               </h3>
 
               <p id="exit-intent-desc" className="text-white/70 mb-6 leading-relaxed font-medium">
-                Join <span className="font-bold text-white">10,000+ job seekers</span> who automated their job search.
+                Join <span className="font-bold text-white">thousands of job seekers</span> who automated their job search.
                 Get your first interviews in just 48 hours.
               </p>
 

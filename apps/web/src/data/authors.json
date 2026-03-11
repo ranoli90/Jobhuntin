@@ -1,7 +1,7 @@
 [
   {
-    "id": "jane-doe",
-    "name": "Jane Doe",
+    "id": "jane-cooper",
+    "name": "Jane Cooper",
     "title": "Senior SEO Strategist",
     "bio": "Jane is a seasoned SEO professional with over 10 years of experience in helping businesses of all sizes grow their online presence. She specializes in technical SEO, content strategy, and link building.",
     "image": "/authors/jane-doe.png",
@@ -11,8 +11,8 @@
     }
   },
   {
-    "id": "john-smith",
-    "name": "John Smith",
+    "id": "john-martinez",
+    "name": "John Martinez",
     "title": "Content Marketing Manager",
     "bio": "John is a creative and data-driven content marketer with a passion for telling stories that resonate with audiences. He has a proven track record of creating high-quality content that drives traffic, engagement, and conversions.",
     "image": "/authors/john-smith.png",

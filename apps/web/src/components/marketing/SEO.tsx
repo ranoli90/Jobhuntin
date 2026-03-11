@@ -115,8 +115,9 @@ export const SEO: React.FC<SEOProps> = ({
       {/* Canonical */}
       <link rel="canonical" href={resolvedCanonical} />
 
-      {/* hreflang - English */}
+      {/* hreflang - English + French (SEO #50: i18n support) */}
       <link rel="alternate" hrefLang="en" href={resolvedCanonical} />
+      <link rel="alternate" hrefLang="fr" href={`${resolvedCanonical}${resolvedCanonical.includes('?') ? '&' : '?'}lang=fr`} />
 
       {/* Open Graph */}
       <meta property="og:title" content={displayOgTitle} />

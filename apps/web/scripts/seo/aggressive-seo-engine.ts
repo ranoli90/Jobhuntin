@@ -307,9 +307,32 @@ async function main() {
         console.log("      Impact:", s.impact + "\n");
     });
     
-    const sitemapPath = path.resolve(__dirname, '../../public/sitemap.xml');
-    const sitemapContent = fs.readFileSync(sitemapPath, 'utf-8');
-    const urls = sitemapContent.match(/<loc>(.*?)<\/loc>/g)?.map(m => m.replace(/<\/?loc>/g, '')) || [];
+    // SEO #57: Parse sitemap index — load child sitemaps for page URLs
+    const sitemapDir = path.resolve(__dirname, '../../public');
+    const indexPath = path.join(sitemapDir, 'sitemap.xml');
+    const indexContent = fs.readFileSync(indexPath, 'utf-8');
+    const locMatches = indexContent.match(/<loc>(.*?)<\/loc>/g) || [];
+    const extracted = locMatches.map((m: string) => m.replace(/<\/?loc>/g, '').trim());
+    const sitemapUrls = extracted.filter((u: string) => /sitemap.*\.xml$/i.test(u));
+    const pageUrls = extracted.filter((u: string) => !/sitemap.*\.xml$/i.test(u));
+    let urls: string[] = pageUrls;
+    if (sitemapUrls.length > 0) {
+        urls = [];
+        for (const smUrl of sitemapUrls) {
+            try {
+                const filename = smUrl.split('/').pop() || '';
+                const filePath = path.join(sitemapDir, filename);
+                if (fs.existsSync(filePath)) {
+                    const content = fs.readFileSync(filePath, 'utf-8');
+                    const pageLocs = content.match(/<loc>(.*?)<\/loc>/g) || [];
+                    urls.push(...pageLocs.map((m: string) => m.replace(/<\/?loc>/g, '').trim()));
+                }
+            } catch {
+                // skip
+            }
+        }
+        urls = [...new Set(urls)];
+    }
     
     const prioritized = generatePrioritizedSubmissionList(urls);
     

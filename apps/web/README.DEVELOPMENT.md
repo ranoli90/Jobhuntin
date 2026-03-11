@@ -2,7 +2,7 @@
 
 ## 🚀 Microsoft-Level Development Standards
 
-This document outlines the comprehensive development standards and practices implemented for the JobHuntin AI platform.
+This document outlines the comprehensive development standards and practices implemented for the JobHuntin platform.
 
 ## 📋 Table of Contents
 

@@ -6,6 +6,7 @@ import { ComparisonTable } from '../components/seo/ComparisonTable';
 import { FAQAccordion, type FAQItem } from '../components/seo/FAQAccordion';
 import { InternalLinkMesh } from '../components/seo/InternalLinkMesh';
 import { ConversionCTA } from '../components/seo/ConversionCTA';
+import { BreadcrumbNav } from '../components/seo/BreadcrumbNav';
 import { motion } from 'framer-motion';
 import competitorsData from '../data/competitors.json';
 
@@ -78,7 +79,6 @@ export default function ReviewPage() {
                     { name: "Reviews", url: "https://jobhuntin.com/best/ai-auto-apply-tools" },
                     { name: competitor.name + " Review", url: canonicalUrl },
                 ]}
-                keywords={competitor.seo_keywords?.join(", ")}
                 schema={[
                     {
                         "@context": "https://schema.org",
@@ -180,7 +180,12 @@ export default function ReviewPage() {
                 ]}
             />
 
-            <main className="max-w-4xl mx-auto px-6 py-24">
+            <main className="max-w-5xl mx-auto px-6 py-24">
+                <BreadcrumbNav items={[
+                    { name: "Home", url: "https://jobhuntin.com" },
+                    { name: "Reviews", url: "https://jobhuntin.com/best/ai-auto-apply-tools" },
+                    { name: `${competitor.name} Review`, url: canonicalUrl },
+                ]} />
                 {/* Hero */}
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
@@ -199,7 +204,7 @@ export default function ReviewPage() {
                         </span>
                     </div>
 
-                    <h1 className="text-3xl md:text-5xl font-sans font-black mb-6 leading-tight text-slate-900">
+                    <h1 className="text-[clamp(2rem,4vw,3rem)] md:text-[clamp(2.5rem,5vw,3.5rem)] font-sans font-black mb-6 leading-tight text-slate-900">
                         {competitor.name} Review{' '}
                         <span className="text-slate-400">(2026)</span>
                     </h1>

@@ -270,6 +270,7 @@ export default function BlogPost() {
             src={post.heroImage}
             alt=""
             aria-hidden
+            loading="eager"
             className="w-[60%] max-w-[320px] h-auto object-contain opacity-70"
           />
         </motion.div>
@@ -323,8 +324,23 @@ export default function BlogPost() {
           }}
         />
 
+        {/* Author bio — SEO #42 */}
+        <div className="bg-slate-50 dark:bg-slate-900/50 rounded-2xl p-6 mb-12 border border-slate-100 dark:border-slate-800">
+          <div className="flex items-start gap-4">
+            <div className="w-14 h-14 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center shrink-0">
+              <User className="w-7 h-7 text-primary-600 dark:text-primary-400" />
+            </div>
+            <div>
+              <h3 className="font-bold text-slate-900 dark:text-slate-100 mb-1">{post.author}</h3>
+              <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                The JobHuntin team writes about AI job search, automation, and career tips. We build the tools that help job seekers land more interviews.
+              </p>
+            </div>
+          </div>
+        </div>
+
         {/* Share */}
-        <div className="border-t border-[#E9E9E7] pt-8 mb-12">
+        <div className="border-t border-[#E9E9E7] dark:border-slate-700 pt-8 mb-12">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <span className="text-[#787774] font-medium">Share this article:</span>
             <div className="flex gap-3">

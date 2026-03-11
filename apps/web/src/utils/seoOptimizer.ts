@@ -75,24 +75,13 @@ export function generateLocationRoleSEO(
   const primaryKeywords = [
     `${role} jobs in ${location}`,
     `${location} ${role} careers`,
-    `best ${role} opportunities ${location}`,
     `${role} salary ${location}`,
     `hiring ${role} ${location}`,
-    `${location} tech jobs`,
     `${role} remote ${location}`,
     `entry level ${role} ${location}`,
     `senior ${role} ${location}`,
-    `${role} companies ${location}`,
-    // Natural long-tail variations for featured snippets
-    `how much do ${role} make in ${location}`,
-    `what companies hire ${role} in ${location}`,
-    `is ${location} good for ${role} careers`,
     `how to get ${role} job in ${location}`,
-    `${role} vs related roles salary ${location}`,
-    `remote ${role} jobs from ${location}`,
-    `${location} ${role} jobs no experience`,
-    `best ${role} training ${location}`,
-    `${role} career path ${location} ${year}`
+    `${role} career path ${location} ${year}`,
   ];
 
   // Natural long-tail variations focusing on user intent
@@ -204,7 +193,7 @@ export function generateLocationRoleSEO(
     schema: generateAdvancedSchema(role, location, locationData, roleData, currentDate),
     contentSections: generateContentSections(role, location, locationData, roleData, uniqueEntities),
     faqs: [
-      { question: `What is the average ${role} salary in ${location}?`, answer: `The average ${role} salary in ${location} ranges from $85K to $210K depending on experience and company size.` },
+      { question: `What is the average ${role} salary in ${location}?`, answer: (() => { const base = roleData?.avgSalary || 125000; const lo = Math.floor(base * 0.8 / 1000); const hi = Math.floor(base * 1.4 / 1000); return `The average ${role} salary in ${location} ranges from $${lo}K to $${hi}K depending on experience and company size.` })(), },
       { question: `Which companies hire ${role} in ${location}?`, answer: `Major employers include Fortune 500 companies, startups, and tech firms across ${location}'s diverse economy.` },
       { question: `Is ${location} a good place for ${role} careers?`, answer: `Yes — ${location} offers a strong job market for ${role} professionals with competitive salaries and career growth opportunities.` },
       { question: `How can I land a ${role} job in ${location} faster?`, answer: `Use AI-powered tools like JobHuntin to automate your applications and tailor your resume to ${location}-specific opportunities.` },
@@ -256,7 +245,8 @@ function generateAdvancedSchema(role: string, location: string, locationData: an
         '@type': 'QuantitativeValue',
         'minValue': salaryMin,
         'maxValue': salaryMax,
-        'unitText': 'YEAR'
+        'unitText': 'YEAR',
+        'unitCode': 'ANN'
       }
     },
     'jobLocationType': locationData?.remotePercentage > 50 ? 'TELECOMMUTE' : 'OFFER',
@@ -463,7 +453,7 @@ export function generateCategoryHubSEO(
     },
     {
       heading: `${categoryName}: Final Verdict`,
-      content: `After extensive testing, JobHuntin leads the category with its fully autonomous AI agent, stealth mode, and competitive pricing. It's the only tool that requires zero manual effort after initial setup.`,
+      content: `After extensive testing, JobHuntin stands out for its fully autonomous AI agent, stealth mode, and competitive pricing. Setup is minimal—the system handles applications without ongoing manual effort.`,
       keywords: [`best ${categoryName.toLowerCase()} ${year}`],
       entities: ['JobHuntin', categoryName],
     },
@@ -485,7 +475,7 @@ export function generateCategoryHubSEO(
     }],
     contentSections,
     faqs: [
-      { question: `What are the best ${categoryName.toLowerCase()}?`, answer: `JobHuntin leads the category with its fully autonomous AI agent. See our full comparison above.` },
+      { question: `What are the best ${categoryName.toLowerCase()}?`, answer: `JobHuntin is a strong option for fully autonomous applications. See our comparison above for details on features and pricing.` },
       { question: `Are ${categoryName.toLowerCase()} worth it?`, answer: `Yes — they automate repetitive tasks, saving hours per week on job applications.` },
     ],
     cta: {

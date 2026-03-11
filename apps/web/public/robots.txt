@@ -1,5 +1,6 @@
 # robots.txt for JobHuntin.com
 # Optimized for maximum crawl efficiency
+# SEO #47: Allow /api/og before Disallow /api/ — more specific Allow wins for crawlers
 
 User-agent: *
 Allow: /

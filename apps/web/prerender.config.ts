@@ -6,8 +6,9 @@ import competitorsData from './src/data/competitors.json';
 import categoriesData from './src/data/categories.json';
 import rolesData from './src/data/roles.json';
 import locationsData from './src/data/locations.json';
+import topicsData from './src/data/topics.json';
 
-// Static marketing routes
+// Static marketing routes (SEO #4: include blog, tools, locations)
 const staticRoutes = [
     '/',
     '/pricing',
@@ -18,6 +19,10 @@ const staticRoutes = [
     '/terms',
     '/about',
     '/login',
+    '/blog',
+    '/tools',
+    '/locations',
+    '/contact',
     '/guides',
     '/guides/how-to-beat-ats-with-ai',
     '/guides/automated-job-search-ethics',
@@ -42,11 +47,15 @@ const localRoutes = rolesData.flatMap((role: { id: string }) =>
     locationsData.map((loc: { id: string }) => `/jobs/${role.id}/${loc.id}`)
 );
 
+// Topic routes (SEO #48)
+const topicRoutes = Object.keys(topicsData).map((slug: string) => `/topics/${slug}`);
+
 export const prerenderRoutes = [
     ...staticRoutes,
     ...competitorRoutes,
     ...categoryRoutes,
     ...localRoutes,
+    ...topicRoutes,
 ];
 
 export default prerenderRoutes;

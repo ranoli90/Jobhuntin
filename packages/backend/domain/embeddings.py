@@ -117,7 +117,7 @@ class EmbeddingClient:
 
         if "openrouter.ai" in self.api_base:
             headers["HTTP-Referer"] = "https://jobhuntin.com"
-            headers["X-Title"] = "JobHuntin AI"
+            headers["X-Title"] = "JobHuntin"
 
         payload = {
             "model": self.model,
@@ -144,7 +144,7 @@ class EmbeddingClient:
 
         if "openrouter.ai" in self.api_base:
             headers["HTTP-Referer"] = "https://jobhuntin.com"
-            headers["X-Title"] = "JobHuntin AI"
+            headers["X-Title"] = "JobHuntin"
 
         payload = {
             "model": self.model,

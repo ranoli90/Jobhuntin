@@ -132,7 +132,7 @@ export function ConversionCTA({
                         aria-label="Trust signals"
                     >
                         <span className="flex items-center gap-1.5" role="listitem">
-                            <span className="font-semibold text-white">10,000+</span>
+                            <span className="font-semibold text-white">thousands of</span>
                             job seekers trust us
                         </span>
                         <span className="flex items-center gap-1.5" role="listitem">

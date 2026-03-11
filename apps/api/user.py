@@ -1319,7 +1319,7 @@ async def update_profile(
 
 
 def _merge_contact_fields(contact: dict, body_contact: dict) -> None:
-    """Merge nested contact fields from update body into contact dict."""
+    """Merge nested contact fields from update body into contact dict. OB-015: Only copy allowed keys."""
     contact_fields = (
         "first_name",
         "last_name",
@@ -1332,7 +1332,11 @@ def _merge_contact_fields(contact: dict, body_contact: dict) -> None:
     )
     for field in contact_fields:
         if field in body_contact and body_contact[field] is not None:
-            contact[field] = body_contact[field]
+            val = body_contact[field]
+            if isinstance(val, str):
+                from packages.backend.domain.sanitization import sanitize_text_input
+                val = sanitize_text_input(val, max_length=500)
+            contact[field] = val
     if "avatar_url" in body_contact and body_contact["avatar_url"]:
         contact["avatar_url"] = body_contact["avatar_url"]
 
@@ -1358,9 +1362,13 @@ def _merge_profile_update(profile_data: dict, body: ProfileUpdate) -> None:
     if body.work_style is not None:
         profile_data["work_style"] = body.work_style
     # C1/C3: Merge onboarding progress; never go backwards; union completed steps (two tabs)
+    # R1: Reject out-of-order step jumps (step 3 before step 2)
     if body.onboarding_step is not None:
         current_step = profile_data.get("onboarding_step", 0)
-        profile_data["onboarding_step"] = max(current_step, body.onboarding_step)
+        requested = body.onboarding_step
+        if requested > current_step + 1:
+            requested = current_step + 1  # Clamp to prevent skip-ahead
+        profile_data["onboarding_step"] = max(current_step, requested)
     if body.onboarding_completed_steps is not None:
         existing = set(profile_data.get("onboarding_completed_steps") or [])
         profile_data["onboarding_completed_steps"] = list(existing | set(body.onboarding_completed_steps))

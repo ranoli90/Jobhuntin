@@ -1,7 +1,7 @@
 import React, { useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { ArrowRight, Sparkles, Quote } from 'lucide-react';
 import { SEO } from '../components/marketing/SEO';
+import { ConversionCTA } from '../components/seo/ConversionCTA';
+import { Sparkles, Quote, Linkedin, CheckCircle2 } from 'lucide-react';
 import { cn } from '../lib/utils';
 
 interface Outcome {
@@ -20,6 +20,9 @@ interface Story {
   quote: string;
   outcomes: Outcome[];
   accent: string; // color block for card
+  date?: string; // ISO date for Review schema
+  /** Optional LinkedIn profile for E-E-A-T verification */
+  linkedin?: string;
 }
 
 const STORIES: Story[] = [
@@ -102,7 +105,7 @@ function Reveal({ children, className = "", delay = 0 }: { children: React.React
 
 export default function SuccessStories() {
   return (
-    <div className="min-h-screen bg-white text-[#2D2A26]">
+    <div className="min-h-screen bg-slate-50 text-[#2D2A26]">
       <SEO
         title="Success Stories | Real Outcomes from JobHuntin Users"
         description="JobHuntin users share their outcomes: hired in 14 days, salary bumps, remote roles, and promotions. Real results, not reviews."
@@ -110,14 +113,29 @@ export default function SuccessStories() {
         ogImage="https://jobhuntin.com/og/success-stories.png"
         canonicalUrl="https://jobhuntin.com/success-stories"
         includeDate={true}
-        schema={STORIES.map(story => ({
-          "@context": "https://schema.org",
-          "@type": "Review",
-          "author": { "@type": "Person", "name": story.name },
-          "reviewBody": story.quote,
-          "reviewRating": { "@type": "Rating", "ratingValue": "5", "bestRating": "5" },
-          "itemReviewed": { "@type": "SoftwareApplication", "name": "JobHuntin", "applicationCategory": "CareerAutomation" },
-        }))}
+        schema={[
+          {
+            "@context": "https://schema.org",
+            "@type": "SoftwareApplication",
+            "name": "JobHuntin",
+            "applicationCategory": "CareerAutomation",
+            "aggregateRating": {
+              "@type": "AggregateRating",
+              "ratingValue": "5",
+              "bestRating": "5",
+              "reviewCount": STORIES.length,
+            },
+          },
+          ...STORIES.map(story => ({
+            "@context": "https://schema.org",
+            "@type": "Review",
+            "author": { "@type": "Person", "name": story.name },
+            "reviewBody": story.quote,
+            "reviewRating": { "@type": "Rating", "ratingValue": "5", "bestRating": "5" },
+            "datePublished": story.date || new Date().toISOString().split("T")[0],
+            "itemReviewed": { "@type": "SoftwareApplication", "name": "JobHuntin", "applicationCategory": "CareerAutomation" },
+          })),
+        ]}
       />
 
       {/* Hero — matches homepage, playful */}
@@ -132,7 +150,7 @@ export default function SuccessStories() {
         <div className="relative max-w-[1080px] mx-auto px-6 py-20 sm:py-28">
           <Reveal>
             <p className="text-[12px] font-medium text-[#7DD3CF] uppercase tracking-wider mb-[12px]">Real outcomes</p>
-            <h1 className="text-[clamp(2.25rem,5vw,3.5rem)] font-bold text-white leading-tight mb-[16px]" style={{ letterSpacing: '-1.5px' }}>
+            <h1 className="text-[clamp(2rem,4vw,3rem)] font-bold text-white leading-tight mb-[16px]" style={{ letterSpacing: '-1.5px' }}>
               They got hired. <span className="text-[#7DD3CF]">You're next.</span>
             </h1>
             <p className="text-[16px] text-white/75 max-w-[480px] font-medium">
@@ -168,7 +186,17 @@ export default function SuccessStories() {
                         </div>
                         <div className="min-w-0 flex-1">
                           <p className="text-[12px] font-medium text-[#9B9A97] uppercase tracking-wider mb-0.5">{story.role} · {story.company}</p>
-                          <h3 className="text-xl sm:text-2xl font-bold text-[#2D2A26] mb-2">{story.name}</h3>
+                          <div className="flex items-center gap-2 mb-2">
+                            <h3 className="text-xl sm:text-2xl font-bold text-[#2D2A26]">{story.name}</h3>
+                            {story.linkedin && (
+                              <a href={story.linkedin} target="_blank" rel="noopener noreferrer" className="text-[#455DD3] hover:text-[#3A4FB8]" aria-label={`${story.name} on LinkedIn`}>
+                                <Linkedin className="w-5 h-5" />
+                              </a>
+                            )}
+                            <span className="inline-flex items-center gap-1 text-[10px] font-medium text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full" title="Real user outcome">
+                              <CheckCircle2 className="w-3 h-3" /> Real outcome
+                            </span>
+                          </div>
                           <span className="inline-block px-4 py-1.5 rounded-xl text-[14px] font-bold text-white shadow-sm" style={{ background: story.accent }}>
                             {story.outcome}
                           </span>
@@ -206,34 +234,7 @@ export default function SuccessStories() {
         </div>
       </section>
 
-      {/* CTA — homepage style */}
-      <section className="bg-[#2D2A26] py-16 sm:py-24 relative overflow-hidden">
-        <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse 60% 40% at 50% 100%, rgba(23,190,187,0.1) 0%, transparent 70%)' }} />
-        <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-40" preserveAspectRatio="none" viewBox="0 0 1440 400" aria-hidden="true">
-          <path d="M-80 350 C300 250, 600 450, 900 300 S1200 180, 1520 280" stroke="#7DD3CF" strokeOpacity="0.08" strokeWidth="1.5" fill="none" />
-        </svg>
-        <div className="relative max-w-[1080px] mx-auto px-6 text-center">
-          <Reveal>
-            <h2 className="text-[clamp(1.75rem,4vw,36px)] font-bold text-white mb-4" style={{ letterSpacing: '-1px' }}>
-              Your turn.
-            </h2>
-            <p className="text-[16px] text-[#9B9A97] max-w-[400px] mx-auto mb-8">
-              20 free applications per week. No credit card. Start in two minutes.
-            </p>
-            <Link
-              to="/login"
-              className={cn(
-                "inline-flex items-center gap-2 h-[48px] px-[28px] rounded-xl text-[16px] font-semibold",
-                "bg-[#455DD3] text-white hover:bg-[#3A4FB8] transition-all duration-300",
-                "shadow-lg shadow-[#455DD3]/30 hover:shadow-[#455DD3]/50 hover:scale-[1.02] active:scale-[0.98]",
-                "focus-visible:ring-2 focus-visible:ring-[#455DD3] focus-visible:ring-offset-2 focus-visible:ring-offset-[#2D2A26] focus-visible:outline-none"
-              )}
-            >
-              Get started free <ArrowRight className="w-4 h-4" />
-            </Link>
-          </Reveal>
-        </div>
-      </section>
+      <ConversionCTA variant="default" />
     </div>
   );
 }

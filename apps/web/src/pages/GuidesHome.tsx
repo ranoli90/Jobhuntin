@@ -20,12 +20,12 @@ export default function GuidesHome() {
   const [searchOpen, setSearchOpen] = useState(false);
   const shouldReduceMotion = useReducedMotion();
   return (
-    <div className="min-h-screen bg-slate-50 font-sans text-slate-900 selection:bg-primary-500/20 selection:text-primary-700">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 font-sans text-slate-900 dark:text-slate-100 selection:bg-primary-500/20 selection:text-primary-700">
       <SEO
         title="Job Search Guides | AI Auto-Apply, ATS Optimization & Resume Tips 2026"
         description="Master AI-powered job hunting with our guides. Learn to beat ATS systems, optimize your resume, use auto-apply tools ethically, and scale your job search safely."
         ogTitle="Job Search Guides | AI Automation Playbook"
-        ogImage="https://jobhuntin.com/og/guides.png"
+        ogImage="https://jobhuntin.com/og-image.png"
         canonicalUrl="https://jobhuntin.com/guides"
         keywords="job search guides, AI job hunting tips, ATS optimization guide, resume tips 2026, cover letter guide"
         breadcrumbs={[{ name: 'Home', url: 'https://jobhuntin.com' }, { name: 'Guides', url: 'https://jobhuntin.com/guides' }]}

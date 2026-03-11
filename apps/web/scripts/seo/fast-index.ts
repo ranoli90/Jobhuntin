@@ -80,19 +80,43 @@ function httpPost(url: string, data: string, headers: Record<string, string>): P
 function sleep(ms: number) { return new Promise(r => setTimeout(r, ms)); }
 
 // ─── Load all URLs from sitemaps ─────────────────────────────────────────────
+// SEO #56: Parse sitemap.xml index first; fall back to sitemap-*.xml files
 function loadAllUrlsFromSitemaps(): string[] {
   const sitemapDir = path.resolve(__dirname, '../../public');
-  const sitemapFiles = fs.readdirSync(sitemapDir)
-    .filter((f: string) => f.startsWith('sitemap') && f.endsWith('.xml') && f !== 'sitemap.xml');
+  const sitemapIndexPath = path.join(sitemapDir, 'sitemap.xml');
+  let sitemapFiles: string[] = [];
+
+  if (fs.existsSync(sitemapIndexPath)) {
+    const indexContent = fs.readFileSync(sitemapIndexPath, 'utf-8');
+    const locMatches = indexContent.match(/<loc>(.*?)<\/loc>/g) || [];
+    const urls = locMatches.map((m: string) => m.replace(/<\/?loc>/g, ''));
+    sitemapFiles = urls
+      .map((u: string) => {
+        try {
+          const url = new URL(u);
+          return url.pathname.replace(/^\//, '').split('/').pop() || '';
+        } catch {
+          return '';
+        }
+      })
+      .filter((f: string) => f && f.startsWith('sitemap') && f.endsWith('.xml') && f !== 'sitemap.xml');
+    if (sitemapFiles.length > 0) log('SITEMAP', `sitemap.xml index: ${sitemapFiles.length} child sitemaps`);
+  }
+
+  if (sitemapFiles.length === 0) {
+    sitemapFiles = fs.readdirSync(sitemapDir)
+      .filter((f: string) => f.startsWith('sitemap') && f.endsWith('.xml') && f !== 'sitemap.xml');
+  }
 
   const allUrls: string[] = [];
   for (const file of sitemapFiles) {
-    const content = fs.readFileSync(path.join(sitemapDir, file), 'utf-8');
+    const filePath = path.join(sitemapDir, file);
+    if (!fs.existsSync(filePath)) continue;
+    const content = fs.readFileSync(filePath, 'utf-8');
     const matches = content.match(/<loc>(.*?)<\/loc>/g) || [];
     const urls = matches.map((m: string) => m.replace(/<\/?loc>/g, ''));
     allUrls.push(...urls);
     log('SITEMAP', `${file}: ${urls.length} URLs`);
-    // Log first 3 URLs from each sitemap as samples
     urls.slice(0, 3).forEach((u: string) => log('SITEMAP', `  sample: ${u}`));
     if (urls.length > 3) log('SITEMAP', `  ... and ${urls.length - 3} more`);
   }

@@ -57,16 +57,16 @@ export function ComparisonTable({ competitor, variant = 'full' }: ComparisonTabl
 
     return (
         <div className="overflow-x-auto rounded-3xl border border-slate-200 bg-white shadow-sm">
-            <table className="w-full text-left">
+            <table className="w-full text-left" aria-label={`Feature comparison: JobHuntin vs ${competitor.name}`}>
                 <thead>
                     <tr className="border-b border-slate-100 bg-slate-50/50">
-                        <th className="px-6 py-5 text-sm font-bold text-slate-500 uppercase tracking-wider">Feature</th>
-                        <th className="px-6 py-5 text-sm font-bold text-primary-600 uppercase tracking-wider text-center">
+                        <th scope="col" className="px-6 py-5 text-sm font-bold text-slate-500 uppercase tracking-wider">Feature</th>
+                        <th scope="col" className="px-6 py-5 text-sm font-bold text-primary-600 uppercase tracking-wider text-center">
                             <span className="inline-flex items-center gap-2">
                                 🦁 JobHuntin
                             </span>
                         </th>
-                        <th className="px-6 py-5 text-sm font-bold text-slate-400 uppercase tracking-wider text-center">
+                        <th scope="col" className="px-6 py-5 text-sm font-bold text-slate-400 uppercase tracking-wider text-center">
                             {competitor.name}
                         </th>
                     </tr>

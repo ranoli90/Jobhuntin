@@ -22,6 +22,9 @@ const topics = JSON.parse(
 const guides = JSON.parse(
   fs.readFileSync(path.resolve(__dirname, '../src/data/guides.json'), 'utf-8')
 );
+const blogSlugs = JSON.parse(
+  fs.readFileSync(path.resolve(__dirname, '../src/data/blog-slugs.json'), 'utf-8')
+);
 
 // Static routes
 const staticRoutes = [
@@ -38,19 +41,13 @@ const staticRoutes = [
   // New SEO pages
   { path: '/blog', priority: 0.9, changefreq: 'daily' },
   { path: '/tools', priority: 0.9, changefreq: 'weekly' },
-  { path: '/tools/ai-resume-builder', priority: 0.8, changefreq: 'monthly' },
-  { path: '/tools/cover-letter-generator', priority: 0.8, changefreq: 'monthly' },
-  { path: '/tools/job-tracker', priority: 0.8, changefreq: 'monthly' },
-  { path: '/tools/ats-score-checker', priority: 0.8, changefreq: 'monthly' },
-  { path: '/tools/job-match-scorer', priority: 0.8, changefreq: 'monthly' },
-  { path: '/tools/ai-job-assistant', priority: 0.8, changefreq: 'monthly' },
-  // Blog posts
-  { path: '/blog/is-jobright-legit', priority: 0.9, changefreq: 'weekly' },
-  { path: '/blog/ai-job-application-tools-compared', priority: 0.9, changefreq: 'weekly' },
-  { path: '/blog/how-to-auto-apply-jobs', priority: 0.8, changefreq: 'monthly' },
-  { path: '/blog/ats-resume-optimization', priority: 0.8, changefreq: 'monthly' },
-  { path: '/blog/job-search-statistics-2026', priority: 0.8, changefreq: 'monthly' },
-  { path: '/blog/interview-success-stories', priority: 0.8, changefreq: 'monthly' },
+  // Tool sub-pages removed from sitemap until routes exist (SEO #2)
+  // Blog posts - from blog-slugs.json (SEO #49: single source)
+  ...blogSlugs.map((slug, i) => ({
+    path: `/blog/${slug}`,
+    priority: i < 2 ? 0.9 : 0.8,
+    changefreq: i < 2 ? 'weekly' : 'monthly',
+  })),
   // Dedicated outranking page
   { path: '/vs/jobright', priority: 1.0, changefreq: 'daily' },
   // Guides

@@ -193,6 +193,14 @@
 | C2 | useOnboarding: 150ms debounce on nextStep/prevStep for rapid back/forward |
 | OB-006 | `_hydrate_job_matches`: incr("growth.hydrate_job_matches.failed") on exception |
 | N1 | api.ts: default timeout 10s→15s for slow 3G |
+| R1 (race) | user.py: clamp onboarding_step to current+1; reject skip-ahead |
+| OB-015 | _merge_contact_fields: sanitize_text_input for contact string fields |
+| R5 | resumeUploadRetry: requiresReupload flag; ResumeUploadRetry shows reuploadHint when no file data |
+| K5 | RichSkill clientId; handleDeleteSkill by reference; ensureClientId for parsed skills |
+| C4 | handleComplete: 200ms debounce + completingRef |
+| A4 | AuthContext: toast "Progress saved. Sign in again" before redirect on 401 during onboarding |
+| B1 | main.py: global_exception_handler returns 503 for TooManyConnections/PoolTimeout |
+| BC4 | RichSkillRequest: field_validators sanitize skill, context, last_used, source, related_to |
 
 ---
 
@@ -200,18 +208,12 @@
 
 | ID | Reason |
 |----|--------|
-| OB-002 | Require Redis: infra change; dev fallback needed |
-| A4 (critical) | Full ReAuthModal: complex; A6 flush mitigates |
-| R1 (race) | Backend step ordering: requires API design |
-| A1 (auth) | Magic link expired redirect |
-| B1, B2 | DB pool, Redis: ops/infra |
-| BC4 | XSS: verify all inputs (audit) |
+| OB-002 | Redis required in prod (auth.py raises); dev fallback kept |
+| A4 (full) | Full ReAuthModal: complex; flush + toast mitigates |
+| A1 (auth) | Magic link expired: backend sends hint=expired; Login shows message |
+| B2 | Redis down: dependencies.py returns 503 in prod |
 | S3 | linkedinUrl: restore effect handles |
 | S5 | workStyleAnswers: acceptable race |
 | S2 | serverProgress: already in deps |
 | OB-012 | full_name: already synced from first+last |
-| OB-015 | _merge_contact_fields: only copies allowed fields |
 | X2 | Error summary: already has aria-live |
-| R5 | updateAfterFailure: file size limits |
-| K5 | handleDeleteSkill: skills have no IDs |
-| C4 | Double-click: I1 completingRef covers |

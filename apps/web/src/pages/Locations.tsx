@@ -1,9 +1,9 @@
-
 import React, { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { MapPin, Briefcase, Building2, ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { SEO } from '../components/marketing/SEO';
+import { ConversionCTA } from '../components/seo/ConversionCTA';
 import locations from '../data/locations.json';
 import roles from '../data/roles.json';
 
@@ -166,18 +166,7 @@ export default function Locations() {
                     </div>
                 </section>
 
-                <section className="bg-primary-600 rounded-3xl p-8 sm:p-12 text-white text-center">
-                    <h2 className="text-2xl sm:text-3xl font-bold mb-4">Let Our AI Find Jobs For You</h2>
-                    <p className="text-primary-100 mb-8 max-w-xl mx-auto">
-                        Stop browsing manually. Set your preferences once, and JobHuntin's AI agent discovers and applies to matching jobs 24/7.
-                    </p>
-                    <Link
-                        to="/login"
-                        className="inline-flex items-center gap-2 bg-white text-primary-700 px-8 py-4 rounded-xl font-bold hover:bg-primary-50 transition-colors"
-                    >
-                        Start Auto-Applying <ArrowRight className="w-5 h-5" />
-                    </Link>
-                </section>
+                <ConversionCTA variant="location" />
             </main>
         </div>
     );

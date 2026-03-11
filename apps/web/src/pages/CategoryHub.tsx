@@ -92,7 +92,7 @@ export default function CategoryHub() {
     const faq = generateFAQ(category);
 
     return (
-        <div className="min-h-screen bg-slate-50 font-sans text-slate-900 selection:bg-primary-500/20 selection:text-primary-700">
+        <div className="min-h-screen bg-slate-50 dark:bg-slate-950 font-sans text-slate-900 dark:text-slate-100 selection:bg-primary-500/20 selection:text-primary-700">
             <SEO
                 title={seoData.title}
                 description={seoData.description}
@@ -117,9 +117,9 @@ export default function CategoryHub() {
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="text-center mb-20"
+                    className="text-center mb-16"
                 >
-                    <div className="inline-flex items-center gap-2 bg-amber-50 text-amber-600 px-4 py-1 rounded-full text-sm font-bold mb-6 border border-amber-100">
+                    <div className="inline-flex items-center gap-2 bg-blue-50 text-blue-600 px-4 py-1 rounded-full text-sm font-bold mb-6 border border-blue-100">
                         <Trophy className="w-4 h-4" />
                         Updated {new Date().toLocaleString('default', { month: 'long', year: 'numeric' })}
                     </div>
@@ -145,7 +145,7 @@ export default function CategoryHub() {
                             {seoData.contentSections?.[0]?.content ?? ""}
                         </p>
                         <div className="flex flex-wrap gap-2">
-                            {(seoData.contentSections?.[0]?.keywords ?? []).map((keyword: string) => (
+                            {(seoData.contentSections?.[0]?.keywords ?? []).slice(0, 5).map((keyword: string) => (
                                 <span key={keyword} className="bg-slate-100 text-slate-700 text-sm font-medium px-3 py-1 rounded-full">
                                     {keyword}
                                 </span>
@@ -159,7 +159,7 @@ export default function CategoryHub() {
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
-                    className="mb-12"
+                    className="mb-16"
                 >
                     <div className="bg-primary-50 rounded-3xl border-2 border-primary-200 p-8 md:p-10 relative overflow-hidden">
                         <div className="absolute top-4 right-4 bg-primary-600 text-white text-xs font-bold px-4 py-1.5 rounded-full flex items-center gap-1">
@@ -210,13 +210,13 @@ export default function CategoryHub() {
                     viewport={{ once: true }}
                     className="mb-16"
                 >
-                    <h2 className="text-3xl font-black text-slate-900 mb-6">{seoData.h2s[1]}</h2>
+                    <h2 className="text-3xl font-black text-slate-900 mb-6">{seoData.h2s?.[1] ?? 'What Makes a Great Category'}</h2>
                     <div className="bg-white rounded-3xl border border-slate-100 p-8 shadow-sm">
                         <p className="text-lg text-slate-600 leading-relaxed mb-6">
-                            {seoData.contentSections[1].content}
+                            {seoData.contentSections?.[1]?.content}
                         </p>
                         <div className="flex flex-wrap gap-2">
-                            {seoData.contentSections[1].keywords.map((keyword: string) => (
+                            {(seoData.contentSections?.[1]?.keywords ?? []).slice(0, 5).map((keyword: string) => (
                                 <span key={keyword} className="bg-slate-100 text-slate-700 text-sm font-medium px-3 py-1 rounded-full">
                                     {keyword}
                                 </span>
@@ -226,8 +226,8 @@ export default function CategoryHub() {
                 </motion.div>
 
                 {/* Competitor List with H2 */}
-                <div className="mb-20">
-                    <h2 className="text-3xl font-black text-slate-900 mb-8">{seoData.h2s[2]}</h2>
+                <div className="mb-16">
+                    <h2 className="text-3xl font-black text-slate-900 mb-8">{seoData.h2s?.[2] ?? 'Top Tools Compared'}</h2>
                     <div className="space-y-6">
                         {competitors.map((comp, i) => {
                             const score = comp.rating_vs_jobhuntin ? Math.round(
@@ -319,13 +319,13 @@ export default function CategoryHub() {
                     viewport={{ once: true }}
                     className="mb-16"
                 >
-                    <h2 className="text-3xl font-black text-slate-900 mb-6">{seoData.h2s[3]}</h2>
+                    <h2 className="text-3xl font-black text-slate-900 mb-6">{seoData.h2s?.[3] ?? 'Pricing Comparison'}</h2>
                     <div className="bg-white rounded-3xl border border-slate-100 p-8 shadow-sm">
                         <p className="text-lg text-slate-600 leading-relaxed mb-6">
-                            {seoData.contentSections[2].content}
+                            {seoData.contentSections?.[2]?.content}
                         </p>
                         <div className="flex flex-wrap gap-2">
-                            {seoData.contentSections[2].keywords.map(keyword => (
+                            {(seoData.contentSections?.[2]?.keywords ?? []).slice(0, 5).map(keyword => (
                                 <span key={keyword} className="bg-slate-100 text-slate-700 text-sm font-medium px-3 py-1 rounded-full">
                                     {keyword}
                                 </span>

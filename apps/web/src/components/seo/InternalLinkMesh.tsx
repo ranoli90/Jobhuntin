@@ -218,14 +218,14 @@ export function InternalLinkMesh({
                         All Free Tools
                     </Link>
                     <Link
-                        to="/app/tailor"
+                        to="/tools#ai-resume-builder"
                         className="flex items-center gap-2 px-4 py-3 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-100 hover:border-slate-200 text-sm font-medium text-slate-700 hover:text-slate-800 transition-all group"
                     >
                         <Wrench className="w-4 h-4 text-slate-400 group-hover:text-slate-600 transition-colors shrink-0" />
                         AI Resume Tailor
                     </Link>
                     <Link
-                        to="/app/ats-score"
+                        to="/tools#ats-score-checker"
                         className="flex items-center gap-2 px-4 py-3 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-100 hover:border-slate-200 text-sm font-medium text-slate-700 hover:text-slate-800 transition-all group"
                     >
                         <Wrench className="w-4 h-4 text-slate-400 group-hover:text-slate-600 transition-colors shrink-0" />

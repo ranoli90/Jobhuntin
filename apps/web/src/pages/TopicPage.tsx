@@ -152,7 +152,7 @@ export default function TopicPage() {
         schema={articleSchema}
       />
 
-      <main className="max-w-7xl mx-auto px-6 py-12 sm:py-16">
+      <main className="max-w-5xl mx-auto px-6 py-12 sm:py-16">
         {/* Breadcrumb */}
         <nav aria-label="Breadcrumb" className="mb-8">
           <ol className="flex flex-wrap items-center gap-2 text-sm text-slate-600">

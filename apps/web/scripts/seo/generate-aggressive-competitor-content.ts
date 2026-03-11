@@ -239,7 +239,7 @@ async function generateAggressiveSEOContent(
       ]
     }
 
-    Make this content extremely persuasive and SEO-optimized. Use power words, emotional triggers, and compelling statistics. Position JobHuntin as the clear winner while maintaining credibility.
+    Make this content compelling and well-optimized. Use clear value propositions and credible positioning. Position JobHuntin favorably while maintaining accuracy.
 
     Return ONLY the raw JSON object. No markdown, no comments, no explanations.
   `;

@@ -21,6 +21,8 @@ export interface ResumeUploadState {
   nextRetryIn: number;
   error?: string;
   isOffline: boolean;
+  /** R5: True when file was too large to store; re-upload required */
+  requiresReupload?: boolean;
 }
 
 const MAX_RETRIES = 3;
@@ -97,6 +99,7 @@ export class ResumeUploadRetryManager {
       nextRetryIn: Math.max(0, metadata.nextRetryTime - now),
       error: metadata.error,
       isOffline: !navigator.onLine,
+      requiresReupload: !hasFileData && metadata.uploadAttempts > 0,
     };
   }
 

@@ -240,7 +240,6 @@ export default function Onboarding() {
   const [emailTypoSuggestion, setEmailTypoSuggestion] = React.useState<string | null>(null);
   const [richSkills, setRichSkills] = React.useState<RichSkill[]>([]);
   const [isSavingSkills, setIsSavingSkills] = React.useState(false);
-  // O9: onboarding_state in localStorage; no encryption — acceptable for non-PII (preferences, step index)
   const [workStyleAnswers, setWorkStyleAnswers] = React.useState<Record<string, string>>(() => {
     try {
       const stored = localStorage.getItem("onboarding_state");
@@ -631,9 +630,13 @@ export default function Onboarding() {
           console.log('[Onboarding] First skill type:', techSkills.length > 0 ? typeof techSkills[0] : 'empty');
         }
 
+        const ensureClientId = (sk: RichSkill, i: number): RichSkill => ({
+          ...sk,
+          clientId: sk.clientId ?? (crypto.randomUUID?.() ?? `skill-${Date.now()}-${i}`),
+        });
         if (techSkills.length > 0 && typeof techSkills[0] === 'object' && techSkills[0] !== null) {
           // Rich skills format from V2 parser
-          const parsedSkills: RichSkill[] = techSkills.map((s: RichSkill | string) => (
+          const parsedSkills: RichSkill[] = techSkills.map((s: RichSkill | string, i: number) => ensureClientId(
             typeof s === 'string' ? {
               skill: s,
               confidence: 0.5,
@@ -654,7 +657,8 @@ export default function Onboarding() {
               related_to: s.related_to || [],
               source: s.source || "resume",
               project_count: s.project_count || 0,
-            }
+            },
+            i
           ));
           if (import.meta.env.DEV) console.log('[Onboarding] Parsed rich skills:', parsedSkills);
           setRichSkills(parsedSkills);
@@ -662,7 +666,7 @@ export default function Onboarding() {
         } else {
           // Old format - convert to rich skills with default values
           if (import.meta.env.DEV) console.log('[Onboarding] Using old format for skills');
-          const parsedSkills = techSkills.map((skill: string) => ({
+          const parsedSkills = techSkills.map((skill: string, i: number) => ensureClientId({
             skill,
             confidence: 0.5,
             years_actual: null,
@@ -672,7 +676,7 @@ export default function Onboarding() {
             related_to: [],
             source: "resume",
             project_count: 0,
-          }));
+          }, i));
           setRichSkills(parsedSkills);
           resumeData.richSkills = parsedSkills;
         }
@@ -1052,7 +1056,11 @@ export default function Onboarding() {
 
   // I1: Ref guard prevents double-submit before React state update (rapid double-click)
   const completingRef = React.useRef(false);
+  // C4: Debounce handleComplete to prevent double-click
+  const lastCompleteRef = React.useRef(0);
   const handleComplete = async () => {
+    if (Date.now() - lastCompleteRef.current < 200) return;
+    lastCompleteRef.current = Date.now();
     if (completingRef.current) return;
     completingRef.current = true;
     setSaveError(null);

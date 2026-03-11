@@ -80,7 +80,7 @@ async function generateCompetitorData(name: string, url?: string, explicitModel?
 
   const prompt = `Research "${name}"${url ? ` (${url})` : ''}. Return JSON:
 {"slug":"kebab-case","name":"Official","domain":"example.com","tagline":"<10 words","tags":["Auto-Apply","Resume"],"pricing":{"freeTrial":false,"freemium":false,"startingPrice":0,"currency":"USD"},"features":{"autoApply":false,"resumeBuilder":false,"coverLetterGen":false,"networking":false,"jobTracking":false,"extension":false,"emailFinder":false,"interviewPrep":false,"salaryInsights":false},"weaknesses":["3 cons"],"strengths":["3 pros"],"seoKeywords":["5 keywords"],"differentiators":["3 USPs"],"verdict":"2 sentences","rating_vs_jobhuntin":{"speed":[5,9],"quality":[5,9],"automation":[5,9],"stealth":[5,9],"price_value":[5,9]}}
-Be objective. Highlight gaps vs JobHuntin AI.`;
+Be objective. Highlight gaps vs JobHuntin.`;
 
   const modelsToTry = explicitModel ? [explicitModel] : PAID_MODELS;
   let lastError: Error | null = null;

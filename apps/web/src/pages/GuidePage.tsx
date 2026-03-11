@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Bot, ArrowLeft, BookOpen, Clock, Calendar, Share2, ChevronRight, Zap, Shield, Target, Menu, X } from 'lucide-react';
 import { SEO } from '../components/marketing/SEO';
+import { ConversionCTA } from '../components/seo/ConversionCTA';
+import { BreadcrumbNav } from '../components/seo/BreadcrumbNav';
 import { motion, useReducedMotion } from 'framer-motion';
 import { config } from '../config';
 import { XSSProtection } from '../lib/validation';
@@ -125,6 +127,11 @@ export default function GuidePage() {
 
 
       <main className="max-w-4xl mx-auto px-6 py-16 sm:py-20">
+        <BreadcrumbNav items={[
+          { name: 'Home', url: 'https://jobhuntin.com' },
+          { name: 'Guides', url: 'https://jobhuntin.com/guides' },
+          { name: guide.title, url: `https://jobhuntin.com/guides/${guideSlug}` },
+        ]} />
         {/* Sticky Navigation for Desktop */}
         {!shouldReduceMotion && headings.length > 0 && (
           <div className="hidden lg:block fixed top-24 left-8 w-64 z-40">
@@ -254,19 +261,7 @@ export default function GuidePage() {
           </div>
         </div>
 
-        <div className="bg-slate-900 rounded-[2rem] sm:rounded-[3rem] p-8 sm:p-12 text-white text-center relative overflow-hidden shadow-2xl">
-          <div className="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10" />
-          <h2 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6 relative z-10 font-display text-balance">Experience the automation.</h2>
-          <p className="text-slate-400 mb-8 sm:mb-10 relative z-10 max-w-lg mx-auto text-base sm:text-lg text-balance">
-            Ready to put these strategies into practice? Let our agent handle your next 50 applications.
-          </p>
-          <Link
-            to="/login"
-            className="inline-block bg-primary-600 hover:bg-primary-700 text-white px-8 sm:px-10 py-3 sm:py-4 rounded-xl sm:rounded-2xl font-bold text-base sm:text-lg hover:scale-105 transition-transform shadow-xl shadow-primary-500/20 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-slate-900"
-          >
-            Start Your Run
-          </Link>
-        </div>
+        <ConversionCTA variant="guide" guideName={guide.title} />
       </main>
 
 

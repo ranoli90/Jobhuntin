@@ -63,12 +63,12 @@ export default function ToolsHub() {
   const description = 'Free AI-powered job search tools: ATS-optimized resume builder, cover letter generator, job application tracker, and ATS score checker. No signup required for basic features.';
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white font-sans text-slate-900">
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white dark:from-slate-950 dark:to-slate-900 font-sans text-slate-900 dark:text-slate-100">
       <SEO
         title={title}
         description={description}
         ogTitle="Free AI Job Search Tools | JobHuntin"
-        ogImage="https://jobhuntin.com/og/tools.png"
+        ogImage="https://jobhuntin.com/og-image.png"
         canonicalUrl="https://jobhuntin.com/tools"
         includeDate={true}
         schema={[
@@ -141,12 +141,13 @@ export default function ToolsHub() {
           {tools.map((tool, index) => (
             <motion.div
               key={tool.slug}
+              id={tool.slug}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
             >
               <Link
-                to={tool.path}
+                to={`/tools#${tool.slug}`}
                 className="block bg-white rounded-2xl p-6 shadow-sm border border-slate-100 hover:shadow-lg hover:border-primary-200 transition-all group h-full"
               >
                 <div className="flex items-start gap-4 mb-4">

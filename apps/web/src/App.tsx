@@ -186,6 +186,7 @@ export default function App() {
         <meta name="twitter:site" content="@jobhuntin" />
         <meta name="twitter:creator" content="@jobhuntin" />
         {location.pathname.startsWith("/app") && <meta name="robots" content="noindex, nofollow" />}
+        {/* SEO #7: Canonical only for routes without page-level SEO (SEO component overrides when present) */}
         <link rel="canonical" href={`${config.urls.homepage}${location.pathname === "/" ? "" : location.pathname}`} />
         <link rel="alternate" hrefLang="en" href={`${config.urls.homepage}${location.pathname}`} />
         <link rel="alternate" hrefLang="x-default" href={`${config.urls.homepage}${location.pathname}`} />

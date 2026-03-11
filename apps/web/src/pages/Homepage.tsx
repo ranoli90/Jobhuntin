@@ -225,6 +225,8 @@ function UserJourneySection() {
                   <img
                     src={JOURNEY_ILLUSTRATIONS[s.id]}
                     alt=""
+                    width={220}
+                    height={160}
                     className="object-contain w-full h-full"
                     loading="lazy"
                     aria-hidden
@@ -298,7 +300,7 @@ export default function Homepage() {
   return (
     <>
       <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-[#2D2A26] focus:text-white focus:rounded-lg">Skip to main content</a>
-      <SEO title="JobHuntin — The Application Engine That Runs While You Sleep" description="Upload your resume. Our platform tailors every application and submits to hundreds of jobs daily." ogTitle="JobHuntin — The Application Engine That Runs While You Sleep" canonicalUrl="https://jobhuntin.com/" ogImage="https://jobhuntin.com/og-image.png" keywords="AI job search, auto apply jobs, AI resume builder, job application automation, AI job hunting" breadcrumbs={[{ name: "Home", url: "https://jobhuntin.com" }]} schema={{ "@context": "https://schema.org", "@type": "SoftwareApplication", "name": "JobHuntin", "applicationCategory": "BusinessApplication", "operatingSystem": "Web", "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }, "description": "Automated system that tailors and submits job applications." }} />
+      <SEO title="JobHuntin — The Application Engine That Runs While You Sleep" description="Upload your resume. Our platform tailors every application and submits to hundreds of jobs daily." ogTitle="JobHuntin — The Application Engine That Runs While You Sleep" canonicalUrl="https://jobhuntin.com/" ogImage="https://jobhuntin.com/og-image.png"  breadcrumbs={[{ name: "Home", url: "https://jobhuntin.com" }]} schema={{ "@context": "https://schema.org", "@type": "SoftwareApplication", "name": "JobHuntin", "applicationCategory": "BusinessApplication", "operatingSystem": "Web", "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD", "priceValidUntil": new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split("T")[0] }, "description": "Automated system that tailors and submits job applications." }} />
 
       {/* ═══════════════════════════════════════════
           HERO — dark bg, flowing artwork, experiential
@@ -322,8 +324,8 @@ export default function Homepage() {
           <path className="hero-line hero-line-4" d="M-100 600 C350 500, 650 720, 950 560 S1250 420, 1540 520" stroke="#7B93DB" strokeOpacity="0.07" strokeWidth="1" fill="none" />
         </svg>
 
-        <img src="/illustrations/career-progress.svg" alt="" aria-hidden loading="lazy" decoding="async" className="absolute left-[-2%] bottom-[8%] w-[240px] sm:w-[300px] opacity-[0.18] pointer-events-none hidden lg:block" />
-        <img src="/illustrations/celebration.svg" alt="" aria-hidden loading="lazy" decoding="async" className="absolute right-[-1%] top-[12%] w-[200px] sm:w-[240px] opacity-[0.15] pointer-events-none hidden lg:block" />
+        <img src="/illustrations/career-progress.svg" alt="" aria-hidden loading="lazy" decoding="async" width={300} height={240} className="absolute left-[-2%] bottom-[8%] w-[240px] sm:w-[300px] opacity-[0.18] pointer-events-none hidden lg:block" />
+        <img src="/illustrations/celebration.svg" alt="" aria-hidden loading="lazy" decoding="async" width={240} height={200} className="absolute right-[-1%] top-[12%] w-[200px] sm:w-[240px] opacity-[0.15] pointer-events-none hidden lg:block" />
 
         <div className="relative max-w-[1080px] mx-auto px-6 pt-[140px] sm:pt-[180px] pb-[60px]">
           <div className="max-w-[680px] mx-auto text-center">
@@ -401,7 +403,7 @@ export default function Homepage() {
           ═══════════════════════════════════════════ */}
       <section className="py-8 border-y border-[#E9E9E7]" aria-label="Trusted by job seekers worldwide">
         <div className="max-w-5xl mx-auto px-6">
-          <p className="text-center text-sm font-medium text-[#787774] mb-4">Trusted by 10,000+ job seekers from companies like</p>
+          <p className="text-center text-sm font-medium text-[#787774] mb-4">Trusted by job seekers from companies like</p>
           <div className="flex flex-wrap items-center justify-center gap-8 opacity-60">
             {['Google', 'Meta', 'Amazon', 'Microsoft', 'Apple', 'Netflix'].map(company => (
               <span key={company} className="text-lg font-bold text-[#2D2A26] tracking-tight">{company}</span>

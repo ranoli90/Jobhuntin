@@ -1129,9 +1129,25 @@ async def global_exception_handler(request: Request, exc: Exception) -> JSONResp
     """C7: Error Handling - Catch-all for unhandled exceptions.
 
     Prevents stack trace leaks in production while providing useful
-    error information in development.
+    error information in development. B1: Return 503 for pool exhaustion.
     """
     request_id = request.headers.get("X-Request-ID", "unknown")
+    # B1: DB pool exhausted - return 503
+    exc_name = type(exc).__name__
+    if "TooManyConnections" in exc_name or "PoolTimeout" in exc_name or (
+        isinstance(exc, (TimeoutError, ConnectionError)) and "pool" in str(exc).lower()
+    ):
+        logger.warning("Database pool exhausted or timeout: %s", exc)
+        return JSONResponse(
+            status_code=503,
+            content={
+                "error": {
+                    "code": "SERVICE_UNAVAILABLE",
+                    "message": "Service temporarily unavailable. Please try again.",
+                    "request_id": request_id,
+                }
+            },
+        )
     logger.error(
         "Unhandled exception",
         extra={
@@ -1348,6 +1364,22 @@ class RichSkillRequest(BaseModel):
     project_count: int = Field(
         default=0, ge=0, le=1000, description="Number of projects using this skill"
     )
+
+    @field_validator("skill", "context", "last_used", "source")
+    @classmethod
+    def sanitize_text(cls, v: str | None) -> str | None:
+        """BC4: Sanitize free-text fields to prevent XSS."""
+        if v is None:
+            return None
+        from packages.backend.domain.sanitization import sanitize_text_input
+        return sanitize_text_input(v, max_length=500)
+
+    @field_validator("related_to")
+    @classmethod
+    def sanitize_related_to(cls, v: list[str]) -> list[str]:
+        """BC4: Sanitize related skill names."""
+        from packages.backend.domain.sanitization import sanitize_text_input
+        return [sanitize_text_input(x, max_length=100) for x in (v or [])[:20]]
 
 
 class SaveSkillsRequest(BaseModel):

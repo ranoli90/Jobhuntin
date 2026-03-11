@@ -122,6 +122,7 @@ function AddSkillForm({ onAdd, onCancel, locale }: AddSkillFormProps) {
             related_to: [],
             source: "manual",
             project_count: 0,
+            clientId: crypto.randomUUID?.() ?? `skill-${Date.now()}-${Math.random().toString(36).slice(2)}`,
         };
 
         onAdd(newSkill);
@@ -257,8 +258,8 @@ export function SkillReviewStep({
         setIsAddingSkill(false);
     };
 
-    const handleDeleteSkill = (index: number) => {
-        setRichSkills(prev => prev.filter((_, i) => i !== index));
+    const handleDeleteSkill = (skill: RichSkill) => {
+        setRichSkills(prev => prev.filter(s => s !== skill));
     };
 
     const handleUpdateSkill = (index: number, updates: Partial<RichSkill>) => {
@@ -316,7 +317,7 @@ export function SkillReviewStep({
                                             key={`${skill.skill}-${globalIdx}`}
                                             skill={skill}
                                             onEdit={() => setEditingIndex(globalIdx)}
-                                            onDelete={() => handleDeleteSkill(globalIdx)}
+                                            onDelete={() => handleDeleteSkill(skill)}
                                             locale={locale}
                                         />
                                     );
@@ -342,7 +343,7 @@ export function SkillReviewStep({
                                             key={`${skill.skill}-${globalIdx}`}
                                             skill={skill}
                                             onEdit={() => setEditingIndex(globalIdx)}
-                                            onDelete={() => handleDeleteSkill(globalIdx)}
+                                            onDelete={() => handleDeleteSkill(skill)}
                                             locale={locale}
                                         />
                                     );
@@ -370,7 +371,7 @@ export function SkillReviewStep({
                                             key={`${skill.skill}-${globalIdx}`}
                                             skill={skill}
                                             onEdit={() => setEditingIndex(globalIdx)}
-                                            onDelete={() => handleDeleteSkill(globalIdx)}
+                                            onDelete={() => handleDeleteSkill(skill)}
                                             locale={locale}
                                         />
                                     );

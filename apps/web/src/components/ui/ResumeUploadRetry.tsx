@@ -122,6 +122,11 @@ export function ResumeUploadRetry({ onRetry, onClear, className }: ResumeUploadR
           <p className="text-xs text-gray-600 mb-3">
             {retryMessage}
           </p>
+          {uploadState.requiresReupload && (
+            <p className="text-xs text-amber-600 mb-3">
+              {t("resumeRetry.reuploadHint", locale) || "Re-upload your resume to try again."}
+            </p>
+          )}
           
           {uploadState.error && (
             <div className="text-xs text-red-600 mb-3 p-2 bg-red-50 rounded">
