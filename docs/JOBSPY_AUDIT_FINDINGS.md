@@ -150,6 +150,12 @@ Triggers → JobSyncService.sync_all_sources()
 3. **3-hour interval** – config change + per-user last_synced tracking
 4. **Throttling** – limit concurrent per-user syncs, respect JobSpy rate limits
 
+### Implemented (2026-03-11)
+
+- **Login hook:** `sync_for_user` triggered on magic-link verification (fire-and-forget)
+- **3-hour interval:** `jobspy_sync_interval_hours` default changed from 4 to 3
+- **Retries:** JobSpy fetch retries up to 2 times with exponential backoff (1s, 2s)
+
 ### Further Enhancements
 
 - **Job alerts as primary driver:** When user has job_alerts, use those exclusively for their sync

@@ -170,11 +170,12 @@ class Settings(BaseSettings):
     jobspy_linkedin_fetch_description: bool = True
     jobspy_hours_old: int = 168  # Only fetch jobs from last 7 days
     jobspy_job_ttl_days: int = 7
-    jobspy_sync_interval_hours: int = 4
+    jobspy_sync_interval_hours: int = 3
     jobspy_concurrent_sources: int = 2
     jobspy_timeout_seconds: int = 120
     jobspy_description_max_length: int = 50000
     jobspy_quality_min_desc_length: int = 50
+    jobspy_retry_count: int = 2  # Retries with exponential backoff on transient failures
 
     # ── Stripe / Billing ─────────────────────────────────────────
     stripe_secret_key: str = ""

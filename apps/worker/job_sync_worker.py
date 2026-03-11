@@ -51,7 +51,7 @@ async def run_sync_loop():
     logger.info("Job sync worker started")
     logger.info(f"Sources: {sync_service.jobspy.sources}")
     logger.info(
-        f"Sync interval: {getattr(settings, 'jobspy_sync_interval_hours', 4)} hours"
+        f"Sync interval: {getattr(settings, 'jobspy_sync_interval_hours', 3)} hours"
     )
 
     # Run initial sync on startup
@@ -64,7 +64,7 @@ async def run_sync_loop():
     while not _shutdown:
         try:
             # Calculate sleep time (4 hours default)
-            interval_hours = getattr(settings, "jobspy_sync_interval_hours", 4)
+            interval_hours = getattr(settings, "jobspy_sync_interval_hours", 3)
             sleep_seconds = interval_hours * 60 * 60
 
             logger.info(f"Sleeping for {interval_hours} hours until next sync...")

@@ -140,30 +140,49 @@ class JobSpyClient:
         )
 
         start_time = time.time()
-        try:
-            df = await loop.run_in_executor(executor, func)
-            jobs = self._normalize_jobs(df)
-            duration_ms = int((time.time() - start_time) * 1000)
+        max_retries = getattr(self.settings, "jobspy_retry_count", 2)
+        last_error: Exception | None = None
 
-            incr("jobspy.jobs_fetched", len(jobs))
-            observe("jobspy.fetch_duration_ms", duration_ms)
+        for attempt in range(max_retries + 1):
+            try:
+                df = await loop.run_in_executor(executor, func)
+                jobs = self._normalize_jobs(df)
+                duration_ms = int((time.time() - start_time) * 1000)
 
-            for source in sources:
-                self._record_success(source)
+                incr("jobspy.jobs_fetched", len(jobs))
+                observe("jobspy.fetch_duration_ms", duration_ms)
 
-            return jobs
-
-        except Exception as e:
-            error_msg = str(e)
-            logger.error(f"JobSpy fetch failed: {error_msg}")
-
-            if "429" in error_msg or "rate" in error_msg.lower():
                 for source in sources:
-                    self._record_failure(source)
-                incr("jobspy.rate_limited")
+                    self._record_success(source)
 
-            incr("jobspy.fetch_failed")
-            raise JobSpyError(f"Failed to fetch jobs: {error_msg}")
+                return jobs
+
+            except Exception as e:
+                last_error = e
+                error_msg = str(e)
+
+                if "429" in error_msg or "rate" in error_msg.lower():
+                    for source in sources:
+                        self._record_failure(source)
+                    incr("jobspy.rate_limited")
+                    raise JobSpyError(f"Failed to fetch jobs: {error_msg}")
+
+                if "validation" in error_msg.lower() or "invalid" in error_msg.lower():
+                    raise JobSpyError(f"Failed to fetch jobs: {error_msg}")
+
+                if attempt < max_retries:
+                    delay = 2 ** attempt
+                    logger.warning(
+                        "JobSpy fetch attempt %d failed, retrying in %ds: %s",
+                        attempt + 1,
+                        delay,
+                        error_msg[:100],
+                    )
+                    await asyncio.sleep(delay)
+                else:
+                    logger.error("JobSpy fetch failed after %d attempts: %s", max_retries + 1, error_msg)
+                    incr("jobspy.fetch_failed")
+                    raise JobSpyError(f"Failed to fetch jobs: {error_msg}") from last_error
 
     def _scrape_sync(self, **kwargs) -> Any:
         """Synchronous scrape call (runs in thread pool)."""

@@ -1075,6 +1075,22 @@ async def verify_magic_link(
     # Note: We don't have the old jti here, so this is a placeholder for future enhancement
     # For now, we'll revoke on explicit logout only
 
+    # On-login: trigger per-user job sync (fire-and-forget, non-blocking)
+    try:
+        from backend.domain.job_sync_service import JobSyncService
+
+        async def _sync_jobs_on_login():
+            try:
+                sync = JobSyncService(db)
+                await sync.sync_for_user(str(user_id), max_concurrent=2)
+            except Exception as e:
+                logger.warning("[LOGIN] Per-user job sync failed: %s", e)
+
+        import asyncio
+        asyncio.create_task(_sync_jobs_on_login())
+    except Exception as e:
+        logger.debug("[LOGIN] Could not enqueue job sync: %s", e)
+
     is_prod = settings.env.value in ("prod", "staging")
     response = RedirectResponse(url=redirect_url, status_code=302)
     cookie_kwargs = dict(
