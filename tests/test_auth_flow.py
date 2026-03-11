@@ -130,11 +130,17 @@ class TestMagicLinkRequest:
         mock_resend.assert_called_once()
 
     def test_magic_link_rate_limiting(
-        self, client, mock_redis, mock_generate_magic_link, mock_db_pool
+        self,
+        client,
+        mock_redis,
+        mock_resend,
+        mock_generate_magic_link,
+        mock_db_pool,
     ):
         """Test rate limiting on magic link requests."""
         import uuid
 
+        mock_resend.return_value = None  # Email sent successfully
         email = f"ratelimit-{uuid.uuid4().hex}@example.com"
 
         # Make requests up to the limit
