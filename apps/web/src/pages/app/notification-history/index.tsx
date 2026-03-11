@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
@@ -6,6 +7,7 @@ import { Alert, AlertDescription } from "@/components/ui/Alert";
 import { Bell, Clock, CheckCircle, Eye } from "lucide-react";
 
 const NotificationHistoryPage: React.FC = () => {
+  const navigate = useNavigate();
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -16,7 +18,11 @@ const NotificationHistoryPage: React.FC = () => {
           </p>
         </div>
         <div className="flex space-x-2">
-          <Button variant="outline">
+          <Button
+            variant="outline"
+            onClick={() => navigate("/app/communication-preferences")}
+            aria-label="View all communication preferences"
+          >
             <Eye className="h-4 w-4 mr-2" />
             View All
           </Button>

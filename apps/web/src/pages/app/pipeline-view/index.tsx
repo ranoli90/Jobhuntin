@@ -70,6 +70,7 @@ const PipelineViewPage: React.FC = () => {
   const [selectedPriority, setSelectedPriority] = useState("all");
   const [sortBy, setSortBy] = useState("last_activity");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+  const [showFilters, setShowFilters] = useState(true);
 
   useEffect(() => {
     fetchPipelineData();
@@ -191,6 +192,42 @@ const PipelineViewPage: React.FC = () => {
     return applications.filter((app) => app.stage === stageId);
   };
 
+  const handleExport = () => {
+    const headers = [
+      "Company",
+      "Job Title",
+      "Status",
+      "Stage",
+      "Priority",
+      "Location",
+      "Salary",
+      "Last Activity",
+      "Created",
+    ];
+    const rows = applications.map((a) => [
+      a.company,
+      a.job_title,
+      a.status,
+      a.stage,
+      a.priority,
+      a.location,
+      formatSalary(a.salary_min, a.salary_max),
+      formatTimeAgo(a.last_activity),
+      new Date(a.created_at).toLocaleDateString(),
+    ]);
+    const csv =
+      headers.join(",") +
+      "\n" +
+      rows.map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `pipeline-export-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   if (loading) {
     return (
       <div className="space-y-6">
@@ -218,11 +255,22 @@ const PipelineViewPage: React.FC = () => {
           </p>
         </div>
         <div className="flex space-x-2">
-          <Button variant="outline" size="sm">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleExport}
+            aria-label="Export pipeline to CSV"
+          >
             <Download className="h-4 w-4 mr-2" />
             Export
           </Button>
-          <Button variant="outline" size="sm">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowFilters((v) => !v)}
+            aria-label={showFilters ? "Hide filters" : "Show filters"}
+            aria-pressed={showFilters}
+          >
             <Filter className="h-4 w-4 mr-2" />
             Filters
           </Button>
@@ -230,6 +278,7 @@ const PipelineViewPage: React.FC = () => {
       </div>
 
       {/* Filters */}
+      {showFilters && (
       <Card>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -302,6 +351,7 @@ const PipelineViewPage: React.FC = () => {
           </div>
         </CardContent>
       </Card>
+      )}
 
       {error && (
         <Alert variant="destructive">

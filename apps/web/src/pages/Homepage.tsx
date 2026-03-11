@@ -529,7 +529,6 @@ export default function Homepage() {
           HERO — dark bg, flowing artwork, experiential
           ═══════════════════════════════════════════ */}
       <section
-        id="main-content"
         className="relative overflow-hidden min-h-[90vh] flex flex-col justify-center"
         style={{
           background:

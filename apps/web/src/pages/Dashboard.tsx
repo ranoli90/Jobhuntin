@@ -452,11 +452,11 @@ export default function Dashboard() {
   if (isNewUser) {
     return (
       <ErrorBoundary reportError showToast>
-        <main
-          id="main-content"
+        <div
           ref={mainContentReference}
           tabIndex={-1}
           aria-label="Dashboard"
+          role="main"
         >
           <motion.div
             initial={shouldReduceMotion ? undefined : { opacity: 0, y: 20 }}
@@ -566,18 +566,18 @@ export default function Dashboard() {
               </div>
             </Card>
           </motion.div>
-        </main>
+        </div>
       </ErrorBoundary>
     );
   }
 
   return (
     <ErrorBoundary reportError showToast>
-      <main
-        id="main-content"
+      <div
         ref={mainContentReference}
         tabIndex={-1}
         aria-label="Dashboard"
+        role="main"
       >
         <motion.div
           initial={shouldReduceMotion ? undefined : { opacity: 0, y: 20 }}
@@ -959,7 +959,7 @@ export default function Dashboard() {
             </div>
           </div>
         </motion.div>
-      </main>
+      </div>
     </ErrorBoundary>
   );
 }
