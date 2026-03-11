@@ -79,18 +79,19 @@ export async function getQuotaState(): Promise<{ used: number; reset: Date }> {
   try {
     client = await pool.connect();
     const result = await client.query(
-      'SELECT daily_quota_used, daily_quota_reset FROM seo_engine_progress WHERE service_id = $1',
+      'SELECT last_index, daily_quota_used, daily_quota_reset FROM seo_engine_progress WHERE service_id = $1',
       [SERVICE_ID]
     );
     const data = result.rows[0];
     if (data) {
       const reset = new Date(data.daily_quota_reset);
-      // If reset time passed, reset quota
+      // If reset time passed, reset quota only (preserve last_index to avoid progress loss)
       if (reset < new Date()) {
-        await saveProgress(data.last_index || 0, 0, new Date());
+        const lastIndex = Number(data.last_index) || 0;
+        await saveProgress(lastIndex, 0, new Date());
         return { used: 0, reset: new Date(Date.now() + 24 * 60 * 60 * 1000) };
       }
-      return { used: data.daily_quota_used, reset };
+      return { used: Number(data.daily_quota_used) || 0, reset };
     }
     return { used: 0, reset: new Date(Date.now() + 24 * 60 * 60 * 1000) };
   } catch (e) {

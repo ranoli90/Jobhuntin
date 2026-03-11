@@ -165,12 +165,30 @@ class AnswerAttemptRequest(BaseModel):
     answer: str
     confidence_score: float = 0.0
 
+    @field_validator("answer")
+    @classmethod
+    def sanitize_answer(cls, v: str) -> str:
+        from packages.backend.domain.sanitization import sanitize_text_input
+        return sanitize_text_input(v)
+
 
 class AnswerMemoryRequest(BaseModel):
     question_id: str
     memorized_answer: str
     key_points: List[str] = []
     examples: List[str] = []
+
+    @field_validator("memorized_answer")
+    @classmethod
+    def sanitize_memorized_answer(cls, v: str) -> str:
+        from packages.backend.domain.sanitization import sanitize_text_input
+        return sanitize_text_input(v)
+
+    @field_validator("key_points", "examples", mode="before")
+    @classmethod
+    def sanitize_list_items(cls, v: List[str]) -> List[str]:
+        from packages.backend.domain.sanitization import sanitize_text_input
+        return [sanitize_text_input(str(x)) for x in (v or [])]
 
 
 class ResumeVersionRequest(BaseModel):

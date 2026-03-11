@@ -457,6 +457,13 @@ async def stripe_webhook(
     if not sig_header:
         raise HTTPException(status_code=400, detail="Missing Stripe signature")
 
+    if not settings.stripe_webhook_secret:
+        logger.error("Stripe webhook secret not configured")
+        raise HTTPException(
+            status_code=503,
+            detail="Webhook not configured. Set STRIPE_WEBHOOK_SECRET.",
+        )
+
     try:
         event = stripe.Webhook.construct_event(
             payload, sig_header, settings.stripe_webhook_secret
@@ -466,38 +473,63 @@ async def stripe_webhook(
     except stripe.error.SignatureVerificationError:
         raise HTTPException(status_code=400, detail="Invalid signature")
 
-    # Handle the event
+    event_id = event.get("id")
+    if not event_id:
+        raise HTTPException(status_code=400, detail="Invalid event: missing id")
+
     async with db.acquire() as conn:
-        if event["type"] == "checkout.session.completed":
-            session = event["data"]["object"]
-            await handle_checkout_completed(conn, session)
-        elif event["type"] == "invoice.payment_succeeded":
-            invoice = event["data"]["object"]
-            await handle_payment_succeeded(conn, invoice)
-        elif event["type"] == "invoice.payment_failed":
-            invoice = event["data"]["object"]
-            await handle_payment_failed(conn, invoice)
-        elif event["type"] == "customer.subscription.deleted":
-            subscription = event["data"]["object"]
-            await handle_subscription_cancelled(conn, subscription)
-        elif event["type"] == "customer.subscription.updated":
-            subscription = event["data"]["object"]
-            await handle_subscription_updated(conn, subscription)
+        async with conn.transaction():
+            # Idempotency: INSERT first - if conflict, event already processed (atomic)
+            row = await conn.fetchrow(
+                """
+                INSERT INTO public.processed_stripe_events (event_id) VALUES ($1)
+                ON CONFLICT (event_id) DO NOTHING RETURNING event_id
+                """,
+                event_id,
+            )
+            if not row:
+                return {"status": "ok"}
+
+            if event["type"] == "checkout.session.completed":
+                session = event["data"]["object"]
+                await handle_checkout_completed(conn, session)
+            elif event["type"] == "invoice.payment_succeeded":
+                invoice = event["data"]["object"]
+                await handle_payment_succeeded(conn, invoice)
+            elif event["type"] == "invoice.payment_failed":
+                invoice = event["data"]["object"]
+                await handle_payment_failed(conn, invoice)
+            elif event["type"] == "customer.subscription.deleted":
+                subscription = event["data"]["object"]
+                await handle_subscription_cancelled(conn, subscription)
+            elif event["type"] == "customer.subscription.updated":
+                subscription = event["data"]["object"]
+                await handle_subscription_updated(conn, subscription)
 
     return {"status": "ok"}
 
 
+def _extract_id(obj: Any, key: str) -> str | None:
+    """Extract ID from Stripe object (may be string or expanded dict)."""
+    if not isinstance(obj, dict):
+        return None
+    val = obj.get(key)
+    if isinstance(val, dict):
+        return val.get("id")
+    return val if isinstance(val, str) else None
+
+
 async def handle_checkout_completed(conn: asyncpg.Connection, session: dict):
     """Handle successful checkout completion."""
-    customer_id = session.get("customer")
-    subscription_id = session.get("subscription")
-    metadata = session.get("metadata", {})
+    customer_id = _extract_id(session, "customer")
+    subscription_id = _extract_id(session, "subscription")
+    metadata = session.get("metadata") or {}
 
     # Extract tenant_id and plan from metadata to update tenant record
     tenant_id = metadata.get("tenant_id")
     plan = metadata.get("plan")
 
-    if subscription_id:
+    if subscription_id and customer_id:
         await update_subscription_state(conn, customer_id, "active", subscription_id)
 
     # Update tenant plan if metadata is available
@@ -512,10 +544,10 @@ async def handle_checkout_completed(conn: asyncpg.Connection, session: dict):
 
 async def handle_payment_succeeded(conn: asyncpg.Connection, invoice: dict):
     """Handle successful payment."""
-    customer_id = invoice.get("customer")
-    subscription_id = invoice.get("subscription")
+    customer_id = _extract_id(invoice, "customer")
+    subscription_id = _extract_id(invoice, "subscription")
 
-    if subscription_id:
+    if subscription_id and customer_id:
         await update_subscription_state(conn, customer_id, "active", subscription_id)
 
     logger.info("Payment succeeded for customer %s", customer_id)
@@ -523,25 +555,32 @@ async def handle_payment_succeeded(conn: asyncpg.Connection, invoice: dict):
 
 async def handle_payment_failed(conn: asyncpg.Connection, invoice: dict):
     """Handle failed payment."""
-    customer_id = invoice.get("customer")
-
+    customer_id = _extract_id(invoice, "customer")
+    if not customer_id:
+        logger.warning("Payment failed event missing customer_id")
+        return
     await update_subscription_state(conn, customer_id, "past_due")
     logger.warning("Payment failed for customer %s", customer_id)
 
 
 async def handle_subscription_cancelled(conn: asyncpg.Connection, subscription: dict):
     """Handle subscription cancellation."""
-    customer_id = subscription.get("customer")
-
+    customer_id = _extract_id(subscription, "customer")
+    if not customer_id:
+        logger.warning("Subscription cancelled event missing customer_id")
+        return
     await update_subscription_state(conn, customer_id, "canceled")
     logger.info("Subscription cancelled for customer %s", customer_id)
 
 
 async def handle_subscription_updated(conn: asyncpg.Connection, subscription: dict):
     """Handle subscription updates."""
-    customer_id = subscription.get("customer")
+    customer_id = _extract_id(subscription, "customer")
     status = subscription.get("status")
-    subscription_id = subscription.get("id")
-
+    sub_id = subscription.get("id")
+    subscription_id = sub_id if isinstance(sub_id, str) else (sub_id.get("id") if isinstance(sub_id, dict) else None)
+    if not customer_id:
+        logger.warning("Subscription updated event missing customer_id")
+        return
     await update_subscription_state(conn, customer_id, status, subscription_id)
     logger.info("Subscription updated for customer %s: %s", customer_id, status)

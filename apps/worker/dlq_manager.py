@@ -356,7 +356,8 @@ class DLQManager:
 
             if older_than_days:
                 param_count += 1
-                query += f" AND created_at < now() - interval '{older_than_days} days'"
+                query += f" AND created_at < now() - (${param_count} || ' days')::interval"
+                params.append(older_than_days)
 
             async with self.pool.acquire() as conn:
                 result = await conn.execute(query, *params)

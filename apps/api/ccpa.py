@@ -11,9 +11,9 @@ async def data_access_request(
     user_id: str = Depends(get_current_user_id), pool=Depends(get_pool)
 ):
     async with pool.acquire() as conn:
-        user_data = await conn.fetchrow("SELECT * FROM users WHERE id = $1", user_id)
+        user_data = await conn.fetchrow("SELECT * FROM public.users WHERE id = $1", user_id)
         application_data = await conn.fetch(
-            "SELECT * FROM applications WHERE user_id = $1", user_id
+            "SELECT * FROM public.applications WHERE user_id = $1", user_id
         )
 
         # Handle None user_data and application_data gracefully

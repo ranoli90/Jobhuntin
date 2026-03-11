@@ -15,6 +15,7 @@ import asyncio
 import json
 import os
 import random
+import tempfile
 import time
 from typing import Any, Callable, Optional, TypedDict
 
@@ -984,6 +985,7 @@ class FormAgent:
 
     async def _process_task(self, page: Page, task: dict) -> None:
         ctx = await self._build_context(task)
+        ctx.setdefault("_temp_paths", [])  # Track temp files for cleanup
         try:
             await self._emit_started(ctx)
 
@@ -1011,10 +1013,9 @@ class FormAgent:
             # Success
             await self._handle_success(task, ctx, page)
         finally:
-            # Clean up downloaded resume temp file
+            # Clean up temporary files to prevent resource leaks
             import os
 
-            # MEDIUM: Clean up temporary files to prevent resource leaks
             resume_path = ctx.get("resume_path")
             if resume_path and os.path.exists(resume_path):
                 try:
@@ -1022,6 +1023,14 @@ class FormAgent:
                     logger.debug("Cleaned up resume temp file: %s", resume_path)
                 except OSError:
                     pass
+
+            for path in ctx.get("_temp_paths", []):
+                if path and os.path.exists(path) and path.startswith(tempfile.gettempdir()):
+                    try:
+                        os.unlink(path)
+                        logger.debug("Cleaned up temp file: %s", path)
+                    except OSError:
+                        pass
 
     async def _build_context(self, task: dict) -> dict:
         """Construct the execution context from task payload and DB."""
@@ -1059,6 +1068,7 @@ class FormAgent:
             "blueprint": blueprint,
             "job": job,
             "profile": profile,
+            "profile_data": raw_profile,  # Raw profile_data for portfolio_url, documents
             "application_url": job["application_url"],
             "resume_path": resume_path,
         }
@@ -1388,6 +1398,8 @@ class FormAgent:
             try:
                 with open(fd, "w", encoding="utf-8") as f:
                     f.write(content)
+                # Track for cleanup
+                ctx.setdefault("_temp_paths", []).append(path)
                 return path
             except Exception:
                 # MEDIUM: Clean up file handle on error
@@ -1412,11 +1424,15 @@ class FormAgent:
             if not user_id:
                 return None
 
-            # Try to get portfolio from profile data
-            profile_data = ctx.get("profile_data", {})
-            portfolio_url = profile_data.get("portfolio_url") or profile_data.get(
-                "portfolio"
-            )
+            # Try to get portfolio from profile (profile is normalized CanonicalProfile)
+            profile_obj = ctx.get("profile") or ctx.get("profile_data")
+            portfolio_url = None
+            if profile_obj:
+                contact = getattr(profile_obj, "contact", None) or (profile_obj.get("contact") if isinstance(profile_obj, dict) else None)
+                if contact:
+                    portfolio_url = getattr(contact, "portfolio_url", None) or (contact.get("portfolio_url") if isinstance(contact, dict) else None)
+                if not portfolio_url and isinstance(profile_obj, dict):
+                    portfolio_url = profile_obj.get("portfolio_url") or profile_obj.get("portfolio")
 
             if portfolio_url:
                 # Download portfolio file if it's a URL
@@ -1431,11 +1447,20 @@ class FormAgent:
                         resp = await client.get(portfolio_url, timeout=30.0)
                         resp.raise_for_status()
 
-                        # Save to temp file
                         fd, path = tempfile.mkstemp(suffix=".pdf", prefix="portfolio_")
-                        with open(fd, "wb") as f:
-                            f.write(resp.content)
-                        return path
+                        try:
+                            with open(fd, "wb") as f:
+                                f.write(resp.content)
+                            ctx.setdefault("_temp_paths", []).append(path)
+                            return path
+                        except Exception:
+                            try:
+                                os.close(fd)
+                                if os.path.exists(path):
+                                    os.unlink(path)
+                            except OSError:
+                                pass
+                            raise
                 elif os.path.exists(portfolio_url):
                     return portfolio_url
 
@@ -1458,9 +1483,9 @@ class FormAgent:
             if not user_id:
                 return None
 
-            # Try to get document from profile data or user documents
-            profile_data = ctx.get("profile_data", {})
-            documents = profile_data.get("documents", [])
+            # Try to get document from raw profile_data (documents not in CanonicalProfile)
+            profile_data = ctx.get("profile_data") or (ctx.get("profile") if isinstance(ctx.get("profile"), dict) else None)
+            documents = (profile_data or {}).get("documents", []) if isinstance(profile_data, dict) else []
 
             # Find document by type
             for doc in documents:
@@ -1493,13 +1518,22 @@ class FormAgent:
                                 elif "doc" in content_type or doc_url.endswith(".doc"):
                                     ext = ".doc"
 
-                                # Save to temp file
                                 fd, path = tempfile.mkstemp(
                                     suffix=ext, prefix=f"{doc_type}_"
                                 )
-                                with open(fd, "wb") as f:
-                                    f.write(resp.content)
-                                return path
+                                try:
+                                    with open(fd, "wb") as f:
+                                        f.write(resp.content)
+                                    ctx.setdefault("_temp_paths", []).append(path)
+                                    return path
+                                except Exception:
+                                    try:
+                                        os.close(fd)
+                                        if os.path.exists(path):
+                                            os.unlink(path)
+                                    except OSError:
+                                        pass
+                                    raise
                         elif os.path.exists(doc_url):
                             return doc_url
 
@@ -1624,7 +1658,6 @@ class FormAgent:
 
     async def _send_status_change_email(
         self,
-        conn: asyncpg.Connection,
         ctx: dict,
         old_status: str,
         new_status: str,
@@ -1637,11 +1670,12 @@ class FormAgent:
             # Get user_id from context if not present
             user_id = ctx.get("user_id")
             if not user_id:
-                # Try to get user_id from application
-                user_id = await conn.fetchval(
-                    "SELECT user_id FROM public.applications WHERE id = $1",
-                    ctx["app_id"],
-                )
+                # Acquire connection to fetch user_id (caller may not have valid conn)
+                async with self.pool.acquire() as conn:
+                    user_id = await conn.fetchval(
+                        "SELECT user_id FROM public.applications WHERE id = $1",
+                        ctx["app_id"],
+                    )
 
             if user_id:
                 await email_manager.send_status_change_email(
@@ -1750,7 +1784,6 @@ class FormAgent:
 
             # Send status change email
             await self._send_status_change_email(
-                conn,
                 ctx,
                 "PROCESSING",
                 final_status,
@@ -1845,9 +1878,8 @@ class FormAgent:
             "agent.applications_requires_input", tags={"tenant_id": tenant_id or "none"}
         )
 
-        # Send status change email
+        # Send status change email (use pool - conn is released after transaction)
         await self._send_status_change_email(
-            conn,
             {"app_id": app_id, "tenant_id": tenant_id},
             "PROCESSING",
             "REQUIRES_INPUT",
@@ -1928,7 +1960,6 @@ class FormAgent:
 
                 # Send status change email for failure
                 await self._send_status_change_email(
-                    conn,
                     {"app_id": app_id, "tenant_id": tenant_id, "user_id": user_id},
                     "PROCESSING",
                     "FAILED",

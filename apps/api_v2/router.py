@@ -98,14 +98,21 @@ async def submit_application(
     tenant_id = api_key["tenant_id"]
 
     from backend.domain.priority import compute_priority_score
+    from backend.domain.quotas import QuotaExceededError, check_can_create_application
 
-    priority = compute_priority_score(api_key.get("tenant_plan", "PRO"))
+    plan = api_key.get("tenant_plan") or "FREE"
+    priority = compute_priority_score(plan)
 
-    async with db.acquire() as conn:
-        # Find or create job
+    from packages.backend.domain.repositories import db_transaction
+
+    try:
+        async with db_transaction(db) as conn:
+            await check_can_create_application(conn, tenant_id, plan)
+            # Find or create job (scope by tenant to prevent cross-tenant data leak)
         job = await conn.fetchrow(
-            "SELECT id FROM public.jobs WHERE url = $1 LIMIT 1",
+            "SELECT id FROM public.jobs WHERE url = $1 AND tenant_id = $2 LIMIT 1",
             body.job_url,
+            tenant_id,
         )
         job_id = job["id"] if job else None
         if not job_id:
@@ -124,12 +131,14 @@ async def submit_application(
                VALUES (
                    (SELECT user_id FROM public.tenant_members WHERE tenant_id = $1 AND role = 'OWNER' LIMIT 1),
                    $2, $1, $3, 'QUEUED', $4
-               ) RETURNING id""",
+               )                RETURNING id""",
             tenant_id,
             job_id,
             body.blueprint_key,
             priority,
         )
+    except QuotaExceededError as e:
+        raise HTTPException(status_code=402, detail=e.message)
 
     from api_v2.auth import record_api_usage
 

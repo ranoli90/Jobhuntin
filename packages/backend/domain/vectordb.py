@@ -275,16 +275,16 @@ class PgVectorBackend(VectorDBBackend):
             # Use native pgvector cosine similarity search
             vec_str = "[" + ",".join(str(x) for x in query_embedding) + "]"
 
-            # Build filter conditions
-            where_clauses = ["namespace = $1"]
-            params: list[Any] = [namespace]
-            param_idx = 2
+            # Build filter conditions: $1=vec, $2=namespace, $3,$4=filter1, ...
+            where_clauses = ["namespace = $2"]
+            params: list[Any] = [vec_str, namespace]
+            param_idx = 3
 
             if filters:
                 for key, value in filters.items():
-                    where_clauses.append(f"metadata->>${key} = ${param_idx}")
-                    params.append(str(value))
-                    param_idx += 1
+                    where_clauses.append(f"metadata->>${param_idx} = ${param_idx + 1}")
+                    params.extend([key, str(value)])
+                    param_idx += 2
 
             query = f"""
                 SELECT
@@ -296,7 +296,6 @@ class PgVectorBackend(VectorDBBackend):
                 ORDER BY embedding <=> $1::vector
                 LIMIT ${param_idx}
             """
-            params.insert(0, vec_str)
             params.append(top_k)
 
             rows = await self._conn.fetch(query, *params)
@@ -315,8 +314,10 @@ class PgVectorBackend(VectorDBBackend):
 
             if filters:
                 for key, value in filters.items():
-                    where_clauses.append(f"metadata->>${key} = ${len(params) + 1}")
-                    params.append(str(value))
+                    key_param = len(params) + 1
+                    val_param = len(params) + 2
+                    where_clauses.append(f"metadata->>${key_param} = ${val_param}")
+                    params.extend([key, str(value)])
 
             query = f"""
                 SELECT id, embedding, metadata
@@ -370,8 +371,10 @@ class PgVectorBackend(VectorDBBackend):
         params: list[Any] = [namespace]
 
         for key, value in filters.items():
-            where_clauses.append(f"metadata->>${key} = ${len(params) + 1}")
-            params.append(str(value))
+            key_param = len(params) + 1
+            val_param = len(params) + 2
+            where_clauses.append(f"metadata->>${key_param} = ${val_param}")
+            params.extend([key, str(value)])
 
         result = await self._conn.execute(
             f"DELETE FROM {table_name} WHERE {' AND '.join(where_clauses)}", *params

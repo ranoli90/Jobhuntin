@@ -181,7 +181,7 @@ class DLQManager:
             query = "SELECT * FROM dead_letter_queue WHERE id = $1"
 
             async with self.db_pool.acquire() as conn:
-                result = await conn.fetch(query, [dlq_item_id])
+                result = await conn.fetch(query, dlq_item_id)
 
                 if not result:
                     return None
@@ -215,7 +215,7 @@ class DLQManager:
             query = "DELETE FROM dead_letter_queue WHERE id = $1"
 
             async with self.db_pool.acquire() as conn:
-                result = await conn.execute(query, [dlq_item_id])
+                result = await conn.execute(query, dlq_item_id)
 
                 return result == "DELETE 1"
 
@@ -374,16 +374,16 @@ class DLQManager:
             query = """
                 SELECT
                     COUNT(*) as total_items,
-                    COUNT(CASE WHEN status = 'pending') as pending_count,
-                    COUNT(CASE WHEN status = 'retrying' as retrying_count,
-                    COUNT(CASE WHEN status = 'completed' as completed_count,
-                    COUNT(CASE WHEN status = 'failed' as failed_count
+                    COUNT(CASE WHEN status = 'pending' THEN 1 END) as pending_count,
+                    COUNT(CASE WHEN status = 'retrying' THEN 1 END) as retrying_count,
+                    COUNT(CASE WHEN status = 'completed' THEN 1 END) as completed_count,
+                    COUNT(CASE WHEN status = 'failed' THEN 1 END) as failed_count
                 FROM dead_letter_queue
                 WHERE tenant_id = $1
             """
 
             async with self.db_pool.acquire() as conn:
-                result = await conn.fetch(query, [tenant_id])
+                result = await conn.fetch(query, tenant_id)
                 row = result[0] if result else {}
 
                 summary = {
@@ -427,7 +427,7 @@ class DLQManager:
             ]
 
             async with self.db_pool.acquire() as conn:
-                await conn.execute(query, params)
+                await conn.execute(query, *params)
 
         except Exception as e:
             logger.error(f"Failed to store DLQ item: {e}")
@@ -438,7 +438,7 @@ class DLQManager:
             query = "DELETE FROM dead_letter_queue WHERE id = $1"
 
             async with self.db_pool.acquire() as conn:
-                await conn.execute(query, [dlq_item_id])
+                await conn.execute(query, dlq_item_id)
 
         except Exception as e:
             logger.error(f"Failed to remove DLQ item: {e}")
@@ -460,7 +460,7 @@ class DLQManager:
             params = [attempt_count + 1, next_retry_at.isoformat(), dlq_item_id]
 
             async with self.db_pool.acquire() as conn:
-                await conn.execute(query, params)
+                await conn.execute(query, *params)
 
         except Exception as e:
             logger.error(f"Failed to update DLQ item retry: {e}")

@@ -1265,12 +1265,22 @@ class SaveAnswerRequest(BaseModel):
         ..., max_length=5000, description="Answer value (max 5000 characters)"
     )
 
+    @field_validator("field_label")
+    @classmethod
+    def sanitize_field_label(cls, v: str) -> str:
+        from packages.backend.domain.sanitization import sanitize_text_input
+        return sanitize_text_input(v, max_length=200)
+
+    @field_validator("field_type")
+    @classmethod
+    def sanitize_field_type(cls, v: str) -> str:
+        from packages.backend.domain.sanitization import sanitize_text_input
+        return sanitize_text_input(v, max_length=50)
+
     @field_validator("answer_value")
     @classmethod
     def sanitize_answer(cls, v: str) -> str:
-        """MEDIUM: Sanitize HTML in user input to prevent XSS."""
         from packages.backend.domain.sanitization import sanitize_text_input
-
         return sanitize_text_input(v, max_length=5000)
 
 
@@ -1718,10 +1728,11 @@ async def resume_task(
         )
 
     async with db_transaction(db) as conn:
-        # Update each answer and mark resolved
+        # Update each answer and mark resolved (scope by application_id to prevent IDOR)
         await InputRepo.update_answers(
             conn,
             [{"input_id": a.input_id, "answer": a.answer} for a in body.answers],
+            application_id=body.application_id,
         )
 
         # Emit USER_ANSWERED event per answer

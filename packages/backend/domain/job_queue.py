@@ -128,7 +128,10 @@ class JobQueueRepo:
             WITH claimable AS (
                 SELECT id
                 FROM public.background_jobs
-                WHERE status IN ('queued', 'pending')
+                WHERE (
+                    status IN ('queued', 'pending')
+                    OR (status = 'running' AND lock_expires_at < now())
+                )
                   AND (scheduled_at IS NULL OR scheduled_at <= now())
                   AND attempts < max_attempts
                   {queue_filter}

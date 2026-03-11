@@ -146,17 +146,28 @@ async def revoke_session(
             detail="Cannot revoke current session. Use /sessions/all to revoke others.",
         )
 
-    success = await manager.revoke_session(
+    row = await manager.revoke_session(
         session_id,
         reason="USER_REVOKED",
         revoked_by_user_id=ctx.user_id,
         user_id=ctx.user_id,
     )
 
-    if not success:
+    if not row:
         raise HTTPException(
             status_code=404, detail="Session not found or already revoked"
         )
+
+    # Add JTI to Redis blacklist so the revoked JWT is immediately invalid
+    meta = row.get("metadata")
+    jti = meta.get("jti") if isinstance(meta, dict) else None
+    if jti:
+        try:
+            from apps.api.auth import _revoke_session_token
+            from shared.config import get_settings
+            await _revoke_session_token(jti, get_settings())
+        except Exception as e:
+            logger.warning("Failed to revoke session token in Redis: %s", e)
 
     incr("sessions.revoke_single")
     return RevokeResponse(revoked=True, session_id=session_id, count=1)
@@ -190,11 +201,19 @@ async def revoke_all_other_sessions(
         except Exception as e:
             logger.debug("Could not extract session_id from JWT cookie: %s", e)
 
-    count = await manager.revoke_all_user_sessions(
+    count, jtis = await manager.revoke_all_user_sessions(
         ctx.user_id,
         reason="USER_REVOKED_ALL",
         except_session_id=current_session_id,
     )
+
+    for jti in jtis:
+        try:
+            from apps.api.auth import _revoke_session_token
+            from shared.config import get_settings
+            await _revoke_session_token(jti, get_settings())
+        except Exception as e:
+            logger.warning("Failed to revoke session token in Redis: %s", e)
 
     incr("sessions.revoke_all")
     return RevokeResponse(revoked=True, count=count)

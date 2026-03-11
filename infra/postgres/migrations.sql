@@ -52,3 +52,9 @@ ALTER TABLE public.jobs ADD COLUMN IF NOT EXISTS external_id TEXT;
 ALTER TABLE public.jobs ADD COLUMN IF NOT EXISTS application_url TEXT;
 CREATE UNIQUE INDEX IF NOT EXISTS idx_jobs_external_id ON public.jobs(external_id) WHERE external_id IS NOT NULL;
 ALTER TABLE public.applications ADD COLUMN IF NOT EXISTS attempt_count INTEGER NOT NULL DEFAULT 0;
+
+-- Stripe webhook idempotency: prevent duplicate processing on retries
+CREATE TABLE IF NOT EXISTS public.processed_stripe_events (
+    event_id TEXT PRIMARY KEY,
+    processed_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);

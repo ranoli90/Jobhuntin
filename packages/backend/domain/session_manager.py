@@ -218,23 +218,41 @@ class SessionManager:
         session_id: str,
         reason: str,
         revoked_by_user_id: str | None = None,
-    ) -> bool:
+        user_id: str | None = None,
+    ) -> dict | None:
+        """Revoke a session. If user_id is provided, only revoke if session belongs to that user (prevents cross-user revocation)."""
         now = datetime.now(timezone.utc)
 
         async with self._pool.acquire() as conn:
-            row = await conn.fetchrow(
-                """
-                UPDATE public.user_sessions
-                SET is_revoked = true,
-                    revoked_at = $1,
-                    revoked_reason = $2
-                WHERE session_id = $3 AND is_revoked = false
-                RETURNING user_id, tenant_id
-                """,
-                now,
-                reason,
-                session_id,
-            )
+            if user_id:
+                row = await conn.fetchrow(
+                    """
+                    UPDATE public.user_sessions
+                    SET is_revoked = true,
+                        revoked_at = $1,
+                        revoked_reason = $2
+                    WHERE session_id = $3 AND user_id = $4 AND is_revoked = false
+                    RETURNING user_id, tenant_id, metadata
+                    """,
+                    now,
+                    reason,
+                    session_id,
+                    user_id,
+                )
+            else:
+                row = await conn.fetchrow(
+                    """
+                    UPDATE public.user_sessions
+                    SET is_revoked = true,
+                        revoked_at = $1,
+                        revoked_reason = $2
+                    WHERE session_id = $3 AND is_revoked = false
+                    RETURNING user_id, tenant_id, metadata
+                    """,
+                    now,
+                    reason,
+                    session_id,
+                )
 
             if not row:
                 return False
@@ -255,17 +273,57 @@ class SessionManager:
             session_id[:8],
             reason,
         )
-        return True
+        return row
+
+    async def update_session_jti(self, session_id: str, jti: str) -> None:
+        """Store jti in session metadata for Redis revocation on revoke."""
+        async with self._pool.acquire() as conn:
+            await conn.execute(
+                """
+                UPDATE public.user_sessions
+                SET metadata = jsonb_set(COALESCE(metadata, '{}'), '{jti}', to_jsonb($2::text))
+                WHERE session_id = $1
+                """,
+                session_id,
+                jti,
+            )
 
     async def revoke_all_user_sessions(
         self,
         user_id: str,
         reason: str,
         except_session_id: str | None = None,
-    ) -> int:
+    ) -> tuple[int, list[str]]:
+        """Revoke all user sessions. Returns (count, list of jtis for Redis revocation)."""
         now = datetime.now(timezone.utc)
 
         async with self._pool.acquire() as conn:
+            if except_session_id:
+                rows = await conn.fetch(
+                    """
+                    SELECT session_id, metadata
+                    FROM public.user_sessions
+                    WHERE user_id = $1 AND is_revoked = false AND session_id != $2
+                    """,
+                    user_id,
+                    except_session_id,
+                )
+            else:
+                rows = await conn.fetch(
+                    """
+                    SELECT session_id, metadata
+                    FROM public.user_sessions
+                    WHERE user_id = $1 AND is_revoked = false
+                    """,
+                    user_id,
+                )
+
+            jtis: list[str] = []
+            for row in rows:
+                meta = row.get("metadata")
+                if isinstance(meta, dict) and meta.get("jti"):
+                    jtis.append(str(meta["jti"]))
+
             if except_session_id:
                 result = await conn.execute(
                     """
@@ -315,10 +373,10 @@ class SessionManager:
             count,
             reason,
         )
-        return count
+        return count, jtis
 
     async def revoke_sessions_on_password_change(self, user_id: str) -> int:
-        count = await self.revoke_all_user_sessions(
+        count, _ = await self.revoke_all_user_sessions(
             user_id,
             reason="PASSWORD_CHANGED",
         )
@@ -330,7 +388,7 @@ class SessionManager:
         user_id: str,
         event: str,
     ) -> int:
-        count = await self.revoke_all_user_sessions(
+        count, _ = await self.revoke_all_user_sessions(
             user_id,
             reason=f"SECURITY_EVENT:{event}",
         )
@@ -456,16 +514,17 @@ class SessionManager:
         )
 
         if count >= self.MAX_SESSIONS_PER_USER:
-            oldest = await conn.fetchval(
+            oldest_row = await conn.fetchrow(
                 """
-                SELECT session_id FROM public.user_sessions
+                SELECT session_id, metadata FROM public.user_sessions
                 WHERE user_id = $1 AND is_revoked = false AND expires_at > now()
                 ORDER BY last_activity_at ASC
                 LIMIT 1
                 """,
                 user_id,
             )
-            if oldest:
+            if oldest_row:
+                oldest = oldest_row["session_id"]
                 await conn.execute(
                     """
                     UPDATE public.user_sessions
@@ -481,6 +540,18 @@ class SessionManager:
                     user_id,
                     oldest[:8],
                 )
+                # Revoke JTI in Redis so evicted session token is invalid
+                meta = oldest_row.get("metadata")
+                jti = meta.get("jti") if isinstance(meta, dict) else None
+                if jti:
+                    try:
+                        from shared.config import get_settings
+                        from shared.session_revocation import revoke_jti_in_redis
+
+                        s = get_settings()
+                        await revoke_jti_in_redis(jti, s.redis_url, s.env.value)
+                    except Exception as e:
+                        logger.warning("Failed to revoke evicted session JTI in Redis: %s", e)
 
     async def _record_audit(
         self,

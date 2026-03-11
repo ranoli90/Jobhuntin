@@ -141,47 +141,10 @@ async def _mark_token_consumed(jti: str, settings: Settings) -> bool:
 
 
 async def _revoke_session_token(jti: str, settings: Settings) -> None:
-    """Revoke a session token by adding jti to Redis blacklist.
+    """Revoke a session token by adding jti to Redis blacklist."""
+    from shared.session_revocation import revoke_jti_in_redis
 
-    This prevents session token replay attacks. Once revoked, the token
-    cannot be used for authentication even if it hasn't expired.
-
-    Args:
-        jti: JWT ID claim from the session token
-        settings: Application settings
-    """
-    if not settings.redis_url:
-        if settings.env.value == "prod":
-            logger.critical(
-                "Redis not available in production - session token revocation disabled. "
-                "This is a security risk. Set REDIS_URL environment variable."
-            )
-            raise RuntimeError(
-                "Redis required for production session token revocation. "
-                "Set REDIS_URL environment variable."
-            )
-        logger.warning(
-            "Redis not available - session token revocation disabled. "
-            "Set REDIS_URL for production deployments."
-        )
-        return
-
-    try:
-        from shared.redis_client import get_redis
-
-        r = await get_redis()
-        # Store revoked jti with 7-day TTL (matches session token TTL)
-        SESSION_TTL_SECONDS = 7 * 24 * 3600
-        key = f"auth:revoked_jti:{jti}"
-        await r.set(key, "1", ex=SESSION_TTL_SECONDS)
-        logger.debug("Session token revoked: %s", jti)
-    except Exception as e:
-        logger.error("Failed to revoke session token: %s", e)
-        # In production, fail closed - don't allow session if revocation fails
-        if settings.env.value == "prod":
-            raise RuntimeError(
-                "Failed to revoke session token. Redis may be unavailable."
-            )
+    await revoke_jti_in_redis(jti, settings.redis_url, settings.env.value)
 
 
 async def _is_session_token_revoked(jti: str, settings: Settings) -> bool:
@@ -1003,8 +966,8 @@ async def verify_magic_link(
             )
 
     # Create session with device fingerprinting
+    session_manager = SessionManager(db)
     try:
-        session_manager = SessionManager(db)
         session_info = await session_manager.create_session(
             user_id=user_id,
             tenant_id=tenant_id,
@@ -1072,17 +1035,24 @@ async def verify_magic_link(
     import jwt as _jwt
 
     _now = _dt.now(timezone.utc)
+    jti = str(_uuid_mod.uuid4())
     session_payload = {
         "sub": str(user_id),
         "email": email,
         "aud": "authenticated",
-        "jti": str(_uuid_mod.uuid4()),
+        "jti": jti,
         "session_id": session_info.session_id,  # M2: Store session_id for tracking
         "iat": _now,
         "nbf": _now,
         "exp": _now + _td(seconds=SESSION_TTL_SECONDS),
     }
     session_token = _jwt.encode(session_payload, settings.jwt_secret, algorithm="HS256")
+
+    # Store jti in session metadata so revoke can blacklist the JWT in Redis
+    try:
+        await session_manager.update_session_jti(session_info.session_id, jti)
+    except Exception as e:
+        logger.warning("Failed to store jti in session metadata: %s", e)
 
     # Revoke any previous session tokens for this user (optional - for session rotation)
     # This ensures only one active session per user at a time
@@ -1370,12 +1340,12 @@ async def resend_webhook(
     event_type = payload.type
     data = payload.data
 
-    # Extract email info
-    email_to = (
-        data.get("to", ["unknown"])[0]
-        if isinstance(data.get("to"), list)
-        else data.get("to", "unknown")
-    )
+    # Extract email info (guard against empty list)
+    to_val = data.get("to", ["unknown"])
+    if isinstance(to_val, list):
+        email_to = to_val[0] if to_val else "unknown"
+    else:
+        email_to = to_val if to_val else "unknown"
     email_id = data.get("email_id") or data.get("id", "unknown")
 
     # Log the event

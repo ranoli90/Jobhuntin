@@ -13,6 +13,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, field_validator
 
 from backend.domain.audit import record_audit_event
+from backend.domain.plans import plan_config_for
 from backend.domain.tenant import TenantContext, TenantScopeError, require_role
 from shared.logging_config import get_logger
 
@@ -105,7 +106,20 @@ async def create_api_key(
     except TenantScopeError:
         raise HTTPException(status_code=403, detail="Only admins can create API keys")
 
-    tier = body.tier if body.tier in TIER_LIMITS else "free"
+    # Enforce api_access: FREE plan cannot create API keys
+    plan = ctx.plan or "FREE"
+    config = plan_config_for(plan, None)
+    if not config.get("features", {}).get("api_access", False):
+        raise HTTPException(
+            status_code=403,
+            detail="API access requires PRO or higher plan. Upgrade to create API keys.",
+        )
+
+    # Validate tier against plan: FREE can only create "free" tier keys
+    requested_tier = body.tier if body.tier in TIER_LIMITS else "free"
+    if plan == "FREE" and requested_tier != "free":
+        requested_tier = "free"
+    tier = requested_tier
     limits = TIER_LIMITS[tier]
     raw_key, key_hash, key_prefix = generate_api_key()
 

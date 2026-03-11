@@ -798,18 +798,34 @@ class InputRepo:
     async def update_answers(
         conn: asyncpg.Connection,
         answers: list[dict],
+        application_id: str | None = None,
     ) -> None:
-        """Set answer + resolved on each input row."""
-        await conn.executemany(
-            """
-            UPDATE public.application_inputs
-            SET    answer      = $2,
-                   answered_at = now(),
-                   resolved    = true
-            WHERE  id = $1
-            """,
-            [(a["input_id"], a["answer"]) for a in answers],
-        )
+        """Set answer + resolved on each input row. Scoped by application_id to prevent IDOR."""
+        if application_id:
+            for a in answers:
+                await conn.execute(
+                    """
+                    UPDATE public.application_inputs
+                    SET    answer      = $2,
+                           answered_at = now(),
+                           resolved    = true
+                    WHERE  id = $1 AND application_id = $3
+                    """,
+                    a["input_id"],
+                    a["answer"],
+                    application_id,
+                )
+        else:
+            await conn.executemany(
+                """
+                UPDATE public.application_inputs
+                SET    answer      = $2,
+                       answered_at = now(),
+                       resolved    = true
+                WHERE  id = $1
+                """,
+                [(a["input_id"], a["answer"]) for a in answers],
+            )
 
 
 # ---------------------------------------------------------------------------

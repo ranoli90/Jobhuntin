@@ -617,6 +617,12 @@ async def undo_application(
 class AnswerHoldBody(BaseModel):
     answer: str = Field(..., min_length=1, max_length=5000)
 
+    @field_validator("answer")
+    @classmethod
+    def sanitize_answer(cls, v: str) -> str:
+        from packages.backend.domain.sanitization import sanitize_text_input
+        return sanitize_text_input(v, max_length=5000)
+
 
 @router.post("/me/applications/{application_id}/answer")
 async def answer_hold(
@@ -653,7 +659,7 @@ async def answer_hold(
     answers = [{"input_id": first_id, "answer": body.answer}]
 
     async with db_transaction(db) as conn:
-        await InputRepo.update_answers(conn, answers)
+        await InputRepo.update_answers(conn, answers, application_id=application_id)
         await EventRepo.emit(
             conn,
             application_id,
@@ -864,10 +870,9 @@ async def update_application_status(
         if not app:
             raise HTTPException(status_code=404, detail="Application not found")
 
-        # Update status and notes
+        # Update status and notes ($1=application_id, $2=user_id, $3=status, $4=notes optional)
+        params: list[Any] = [application_id, ctx.user_id, body.status]
         update_fields = ["status = $3", "updated_at = CURRENT_TIMESTAMP"]
-        params = [body.status, application_id, ctx.user_id]
-
         if body.notes:
             update_fields.append("notes = $4")
             params.append(body.notes)
@@ -877,7 +882,7 @@ async def update_application_status(
             f"""
             UPDATE public.applications
             SET {", ".join(update_fields)}
-            WHERE id = ${len(params)} AND user_id = ${len(params) + 1}
+            WHERE id = $1 AND user_id = $2
             """,
             *params,
         )
@@ -1609,6 +1614,22 @@ async def upload_avatar(
         raise HTTPException(
             status_code=413,
             detail=f"Avatar too large. Maximum size is {settings.max_avatar_size_bytes // 1_048_576} MB",
+        )
+    # Validate magic bytes to prevent content-type spoofing (e.g. HTML as image)
+    avatar_magic = {
+        b"\xff\xd8\xff": "JPEG",
+        b"\x89PNG\r\n\x1a\n": "PNG",
+        b"RIFF": "WEBP",  # WEBP: RIFF....WEBP at offset 8
+    }
+    valid = (
+        data.startswith(b"\xff\xd8\xff")
+        or data.startswith(b"\x89PNG\r\n\x1a\n")
+        or (len(data) >= 12 and data[:4] == b"RIFF" and data[8:12] == b"WEBP")
+    )
+    if not valid:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid image format - file content does not match declared type",
         )
     ext = Path(file.filename or "").suffix.lower()
     fallback_ext = allowed_types[file.content_type.lower()]  # type: ignore[operator]
