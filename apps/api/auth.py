@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import html
 import math
 import time
 from datetime import timezone
@@ -144,38 +145,6 @@ async def _revoke_session_token(jti: str, settings: Settings) -> None:
     from shared.session_revocation import revoke_jti_in_redis
 
     await revoke_jti_in_redis(jti, settings.redis_url, settings.env.value)
-
-
-async def _is_session_token_revoked(jti: str, settings: Settings) -> bool:
-    """Check if a session token has been revoked.
-
-    Args:
-        jti: JWT ID claim from the session token
-        settings: Application settings
-
-    Returns:
-        True if token is revoked, False otherwise
-    """
-    if not settings.redis_url:
-        # In production, require Redis for revocation checks
-        if settings.env.value == "prod":
-            logger.warning(
-                "Redis not available - cannot check session token revocation. "
-                "Assuming token is valid (security risk)."
-            )
-        return False
-
-    try:
-        from shared.redis_client import get_redis
-
-        r = await get_redis()
-        key = f"auth:revoked_jti:{jti}"
-        exists = await r.exists(key)
-        return bool(exists)
-    except Exception as e:
-        logger.warning("Failed to check session token revocation: %s", e)
-        # AUTH-002: Fail closed — when Redis is down, treat token as revoked (reject)
-        return True
 
 
 class MagicLinkRequest(BaseModel):
@@ -578,28 +547,27 @@ def _get_app_branding(settings: Settings) -> dict[str, str]:
 def _render_email_html(
     settings: Settings, action_link: str, return_to: str | None
 ) -> str:
-    """Render HTML email with template variables."""
+    """Render HTML email with template variables. Escapes all values to prevent template injection/XSS."""
     expires_minutes = max(1, settings.magic_link_token_ttl_seconds // 60)
     branding = _get_app_branding(settings)
 
     # Simplify the link display to show the main domain, not the API URL
-    # Extract just the domain part for cleaner display
     display_link = action_link
     if branding["app_base_url"] and branding["api_public_url"]:
-        # Replace API URL with main domain for display purposes
         display_link = action_link.replace(
             branding["api_public_url"], branding["app_base_url"]
         )
 
-    html = (
-        MAGIC_LINK_TEMPLATE_HTML.replace("$action_link", action_link)
-        .replace("$display_link", display_link)
-        .replace("$expires_minutes", str(expires_minutes))
-        .replace("$app_name", branding["app_name"])
-        .replace("$app_domain", branding["app_domain"])
-        .replace("$app_tagline", branding["app_tagline"])
+    # Escape all template values to prevent injection (settings/URLs could contain malicious content)
+    out = (
+        MAGIC_LINK_TEMPLATE_HTML.replace("$action_link", html.escape(action_link))
+        .replace("$display_link", html.escape(display_link))
+        .replace("$expires_minutes", html.escape(str(expires_minutes)))
+        .replace("$app_name", html.escape(branding["app_name"]))
+        .replace("$app_domain", html.escape(branding["app_domain"]))
+        .replace("$app_tagline", html.escape(branding["app_tagline"]))
     )
-    return html
+    return out
 
 
 def _render_email_text(
@@ -692,7 +660,7 @@ async def _send_magic_link_email(
         return
 
     # Render email content using templates
-    html = _render_email_html(settings, action_link, return_to)
+    html_content = _render_email_html(settings, action_link, return_to)
     text_content = _render_email_text(settings, action_link, return_to)
 
     # Get destination for logging
@@ -704,11 +672,14 @@ async def _send_magic_link_email(
         "from": settings.email_from,
         "to": [email],
         "subject": f"Sign in to {branding['app_name']}",
-        "html": html,
+        "html": html_content,
         "text": text_content,
         "headers": {
             "List-Unsubscribe": f"<{branding['app_base_url']}/app/settings#notifications>",
             "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+            "Precedence": "auto",
+            "Auto-Submitted": "auto-generated",
+            "X-Auto-Response-Suppress": "OOF, AutoReply",
         },
     }
 
@@ -832,8 +803,9 @@ async def verify_magic_link(
         redirect_url = (
             f"{settings.app_base_url.rstrip('/')}/login?error=auth_failed&hint=invalid"
         )
-        if return_to:
-            redirect_url += f"&returnTo={quote(return_to, safe='')}"
+        safe_rt = _sanitize_return_to(return_to)
+        if safe_rt:
+            redirect_url += f"&returnTo={quote(safe_rt, safe='')}"
         return RedirectResponse(url=redirect_url, status_code=302)
 
     try:
@@ -854,8 +826,9 @@ async def verify_magic_link(
         redirect_url = (
             f"{settings.app_base_url.rstrip('/')}/login?error=auth_failed&hint={hint}"
         )
-        if return_to:
-            redirect_url += f"&returnTo={quote(return_to, safe='')}"
+        safe_rt = _sanitize_return_to(return_to)
+        if safe_rt:
+            redirect_url += f"&returnTo={quote(safe_rt, safe='')}"
         return RedirectResponse(url=redirect_url, status_code=302)
 
     # Verify IP binding if present
@@ -871,8 +844,9 @@ async def verify_magic_link(
                 extra={"expected_ip_hash": ip_hash, "actual_ip_hash": current_ip_hash},
             )
             redirect_url = f"{settings.app_base_url.rstrip('/')}/login?error=auth_failed&hint=ip_mismatch"
-            if return_to:
-                redirect_url += f"&returnTo={quote(return_to, safe='')}"
+            safe_rt = _sanitize_return_to(return_to)
+            if safe_rt:
+                redirect_url += f"&returnTo={quote(safe_rt, safe='')}"
             return RedirectResponse(url=redirect_url, status_code=302)
 
     if not await _mark_token_consumed(jti, settings):
@@ -880,8 +854,9 @@ async def verify_magic_link(
         redirect_url = (
             f"{settings.app_base_url.rstrip('/')}/login?error=auth_failed&hint=used"
         )
-        if return_to:
-            redirect_url += f"&returnTo={quote(return_to, safe='')}"
+        safe_rt = _sanitize_return_to(return_to)
+        if safe_rt:
+            redirect_url += f"&returnTo={quote(safe_rt, safe='')}"
         return RedirectResponse(url=redirect_url, status_code=302)
 
     # Handle user creation for new users (user_identifier is email for new users)
@@ -915,8 +890,9 @@ async def verify_magic_link(
                     user_identifier,
                 )
                 redirect_url = f"{settings.app_base_url.rstrip('/')}/login?error=auth_failed&hint=invalid"
-                if return_to:
-                    redirect_url += f"&returnTo={quote(return_to, safe='')}"
+                safe_rt = _sanitize_return_to(return_to)
+                if safe_rt:
+                    redirect_url += f"&returnTo={quote(safe_rt, safe='')}"
                 return RedirectResponse(url=redirect_url, status_code=302)
             user_id = user_identifier
 

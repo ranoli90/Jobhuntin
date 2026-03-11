@@ -19,13 +19,14 @@ async def revoke_jti_in_redis(jti: str, redis_url: str | None, env: str) -> None
         env: Environment (prod, staging, local)
     """
     if not redis_url:
-        if env == "prod":
+        if env in ("prod", "staging"):
             logger.critical(
-                "Redis not available in production - session token revocation disabled. "
-                "Set REDIS_URL environment variable."
+                "Redis not available in %s - session token revocation disabled. "
+                "Set REDIS_URL environment variable.",
+                env,
             )
             raise RuntimeError(
-                "Redis required for production session token revocation. "
+                f"Redis required for {env} session token revocation. "
                 "Set REDIS_URL environment variable."
             )
         logger.warning(
@@ -43,7 +44,7 @@ async def revoke_jti_in_redis(jti: str, redis_url: str | None, env: str) -> None
         logger.debug("Session token revoked: %s", jti)
     except Exception as e:
         logger.error("Failed to revoke session token: %s", e)
-        if env == "prod":
+        if env in ("prod", "staging"):
             raise RuntimeError(
                 "Failed to revoke session token. Redis may be unavailable."
             ) from e

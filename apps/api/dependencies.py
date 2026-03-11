@@ -24,10 +24,11 @@ async def _check_session_revocation(jti: str, settings: Any) -> bool:
         True if token is revoked, False otherwise
     """
     if not settings.redis_url:
-        if settings.env.value == "prod":
+        if settings.env.value in ("prod", "staging"):
             logger.critical(
-                "Redis not available in production - cannot check session revocation. "
-                "Rejecting request (fail closed). Set REDIS_URL."
+                "Redis not available in %s - cannot check session revocation. "
+                "Rejecting request (fail closed). Set REDIS_URL.",
+                settings.env.value,
             )
             raise HTTPException(
                 status_code=503,
@@ -46,7 +47,7 @@ async def _check_session_revocation(jti: str, settings: Any) -> bool:
         raise
     except Exception as e:
         logger.warning("Failed to check session token revocation: %s", e)
-        if settings.env.value == "prod":
+        if settings.env.value in ("prod", "staging"):
             raise HTTPException(
                 status_code=503,
                 detail="Authentication service temporarily unavailable. Please try again.",
@@ -256,18 +257,22 @@ async def get_current_user_id(
         jti = payload.get("jti")
         payload.get("session_id")  # M2: Extract session_id for tracking
 
+        # Require jti for revocation check; tokens without jti bypass revocation (reject)
+        if not jti:
+            logger.warning("Token missing jti claim - rejecting (cannot verify revocation)")
+            raise HTTPException(status_code=401, detail="Invalid token: missing jti")
+
         # Check if session token has been revoked (C1: Session Token Replay Fix)
-        if jti:
-            revoked = await _check_session_revocation(jti, s)
-            if revoked:
-                logger.warning(
-                    "Revoked session token attempted: jti=%s, user_id=%s",
-                    jti,
-                    user_id,
-                )
-                raise HTTPException(
-                    status_code=401, detail="Session revoked. Please sign in again."
-                )
+        revoked = await _check_session_revocation(jti, s)
+        if revoked:
+            logger.warning(
+                "Revoked session token attempted: jti=%s, user_id=%s",
+                jti,
+                user_id,
+            )
+            raise HTTPException(
+                status_code=401, detail="Session revoked. Please sign in again."
+            )
 
         # M2: session_id is stored in JWT payload and extracted by sessions.py
         # endpoints directly from the cookie for session management
