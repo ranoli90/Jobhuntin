@@ -302,17 +302,28 @@ def _sanitize_return_to(value: str | None) -> str | None:
     return f"{path_only}?{query}" if query else path_only
 
 
-def _build_redirect_url(settings: Settings, return_to: str | None) -> str:
+def _get_login_base_url(settings: Settings) -> str:
+    """Return base URL for login/error redirects. Avoids redirecting to API host when misconfigured."""
     base = settings.app_base_url.rstrip("/")
-    if not base or base == "http://localhost:5173":
+    if (
+        not base
+        or "sorce" in base.lower()
+        or "api." in base.lower()
+        or base.startswith("http://localhost:8000")
+    ):
+        if settings.env.value in ("prod", "staging"):
+            return "https://jobhuntin.com"
+        return "http://localhost:5173"
+    return base
+
+
+def _build_redirect_url(settings: Settings, return_to: str | None) -> str:
+    base = _get_login_base_url(settings)
+    if settings.env.value in ("prod", "staging") and base == "http://localhost:5173":
         logger.warning(
-            "[MAGIC_LINK] APP_BASE_URL not configured properly, "
-            "magic links may not work in production. "
-            "Set APP_BASE_URL environment variable to your "
-            "production URL (e.g., https://jobhuntin.com)"
+            "[MAGIC_LINK] APP_BASE_URL not configured in prod/staging; using localhost fallback. "
+            "Set APP_BASE_URL to your production URL (e.g., https://jobhuntin.com)"
         )
-    if not base:
-        base = "http://localhost:5173"
     redirect = f"{base}/login"
     safe_return = _sanitize_return_to(return_to)
     if safe_return:
@@ -801,7 +812,7 @@ async def verify_magic_link(
     """
     if not token or not settings.jwt_secret:
         redirect_url = (
-            f"{settings.app_base_url.rstrip('/')}/login?error=auth_failed&hint=invalid"
+            f"{_get_login_base_url(settings)}/login?error=auth_failed&hint=invalid"
         )
         safe_rt = _sanitize_return_to(return_to)
         if safe_rt:
@@ -824,7 +835,7 @@ async def verify_magic_link(
         logger.warning("Verify-magic JWT invalid: %s", exc)
         hint = "expired" if "expired" in str(exc).lower() else "invalid"
         redirect_url = (
-            f"{settings.app_base_url.rstrip('/')}/login?error=auth_failed&hint={hint}"
+            f"{_get_login_base_url(settings)}/login?error=auth_failed&hint={hint}"
         )
         safe_rt = _sanitize_return_to(return_to)
         if safe_rt:
@@ -843,7 +854,7 @@ async def verify_magic_link(
                 jti,
                 extra={"expected_ip_hash": ip_hash, "actual_ip_hash": current_ip_hash},
             )
-            redirect_url = f"{settings.app_base_url.rstrip('/')}/login?error=auth_failed&hint=ip_mismatch"
+            redirect_url = f"{_get_login_base_url(settings)}/login?error=auth_failed&hint=ip_mismatch"
             safe_rt = _sanitize_return_to(return_to)
             if safe_rt:
                 redirect_url += f"&returnTo={quote(safe_rt, safe='')}"
@@ -852,7 +863,7 @@ async def verify_magic_link(
     if not await _mark_token_consumed(jti, settings):
         logger.warning("Verify-magic replay attempt for jti: %s", jti)
         redirect_url = (
-            f"{settings.app_base_url.rstrip('/')}/login?error=auth_failed&hint=used"
+            f"{_get_login_base_url(settings)}/login?error=auth_failed&hint=used"
         )
         safe_rt = _sanitize_return_to(return_to)
         if safe_rt:
@@ -889,7 +900,7 @@ async def verify_magic_link(
                     "[MAGIC_LINK] User from token no longer exists: %s",
                     user_identifier,
                 )
-                redirect_url = f"{settings.app_base_url.rstrip('/')}/login?error=auth_failed&hint=invalid"
+                redirect_url = f"{_get_login_base_url(settings)}/login?error=auth_failed&hint=invalid"
                 safe_rt = _sanitize_return_to(return_to)
                 if safe_rt:
                     redirect_url += f"&returnTo={quote(safe_rt, safe='')}"
@@ -925,7 +936,7 @@ async def verify_magic_link(
     )
     # Add magic_verified hint for frontend analytics (magic_link_verified event)
     sep = "&" if "?" in dest else "?"
-    redirect_url = f"{settings.app_base_url.rstrip('/')}{dest}{sep}magic_verified=1"
+    redirect_url = f"{_get_login_base_url(settings)}{dest}{sep}magic_verified=1"
 
     # ----------------------------------------------------------------
     # M2: Device Fingerprinting - Detect suspicious logins
@@ -1118,7 +1129,7 @@ async def logout(
             logger.warning("Failed to revoke session token on logout: %s", e)
 
     is_prod = settings.env.value in ("prod", "staging")
-    redirect_url = f"{settings.app_base_url.rstrip('/')}/login"
+    redirect_url = f"{_get_login_base_url(settings)}/login"
     response = RedirectResponse(url=redirect_url, status_code=302)
     # SECURITY: Use same partitioned attribute as set_cookie for proper deletion
     cookie_kwargs: Dict[str, Any] = dict(
@@ -1324,7 +1335,7 @@ async def resend_webhook(
 
     webhook_secret = settings.resend_webhook_secret
     # COM-001: Require webhook secret in prod/staging to prevent unauthenticated webhooks
-    if not webhook_secret and settings.env in ("prod", "staging"):
+    if not webhook_secret and settings.env.value in ("prod", "staging"):
         logger.warning("Resend webhook rejected: RESEND_WEBHOOK_SECRET not configured")
         raise HTTPException(status_code=401, detail="Webhook not configured")
     if webhook_secret:

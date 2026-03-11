@@ -948,8 +948,6 @@ class AuthMiddleware:
         cleaned_count = 0
 
         for key in list(self.user_rate_limits.keys()):
-            len(self.user_rate_limits[key])
-
             # Remove old entries
             while (
                 self.user_rate_limits[key]

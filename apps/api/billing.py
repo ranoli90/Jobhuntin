@@ -173,7 +173,9 @@ async def billing_usage(
 
 
 def _validate_redirect_url(url: str, param_name: str, settings: Settings) -> None:
-    """Validate that redirect URL starts with an allowed origin."""
+    """Validate that redirect URL starts with an allowed origin.
+    Prevents sibling-domain bypass (e.g. https://jobhuntin.com.evil.com).
+    """
     app_url = (settings.app_base_url or "").strip()
     if not app_url or app_url == "[REDACTED]":
         raise HTTPException(
@@ -181,7 +183,16 @@ def _validate_redirect_url(url: str, param_name: str, settings: Settings) -> Non
             detail="APP_BASE_URL not configured. Cannot validate redirect URL.",
         )
     allowed_origins = [app_url.rstrip("/"), "http://localhost:5173"]
-    if not any(url.startswith(origin) for origin in allowed_origins):
+    url = url.strip()
+    valid = False
+    for origin in allowed_origins:
+        if url == origin:
+            valid = True
+            break
+        if url.startswith(origin) and len(url) > len(origin) and url[len(origin)] in ("/", "?"):
+            valid = True
+            break
+    if not valid:
         raise HTTPException(status_code=400, detail=f"Invalid {param_name}")
 
 

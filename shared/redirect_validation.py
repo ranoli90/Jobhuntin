@@ -44,7 +44,16 @@ def validate_redirect_url(url: str, param_name: str = "redirect_url") -> None:
             status_code=503,
             detail="APP_BASE_URL not configured. Cannot validate redirect URL.",
         )
-    if not any(url.startswith(origin) for origin in origins):
+    # Prevent sibling-domain bypass (e.g. https://jobhuntin.com.evil.com)
+    valid = False
+    for origin in origins:
+        if url == origin:
+            valid = True
+            break
+        if url.startswith(origin) and len(url) > len(origin) and url[len(origin)] in ("/", "?"):
+            valid = True
+            break
+    if not valid:
         raise HTTPException(status_code=400, detail=f"Invalid {param_name}")
 
 
