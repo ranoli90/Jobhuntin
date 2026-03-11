@@ -1,5 +1,5 @@
 import * as React from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import {
   HelpCircle,
   X,
@@ -18,6 +18,7 @@ export function HelpButton({ className }: HelpButtonProperties) {
   const [isOpen, setIsOpen] = React.useState(false);
   const [isAppPage, setIsAppPage] = React.useState(false);
   const menuReference = React.useRef<HTMLDivElement>(null);
+  const shouldReduceMotion = useReducedMotion();
 
   // Check if on app page (client-side only to avoid hydration mismatch)
   React.useEffect(() => {
@@ -69,10 +70,10 @@ export function HelpButton({ className }: HelpButtonProperties) {
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            initial={shouldReduceMotion ? false : { opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            transition={{ type: "spring", damping: 25, stiffness: 300 }}
+            exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.9, y: 20 }}
+            transition={shouldReduceMotion ? { duration: 0 } : { type: "spring", damping: 25, stiffness: 300 }}
             className="absolute bottom-16 right-0 w-64 bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden"
           >
             <div className="p-4 bg-black dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
@@ -132,8 +133,8 @@ export function HelpButton({ className }: HelpButtonProperties) {
 
       <motion.button
         onClick={() => setIsOpen(!isOpen)}
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
+        whileHover={shouldReduceMotion ? undefined : { scale: 1.05 }}
+        whileTap={shouldReduceMotion ? undefined : { scale: 0.95 }}
         className={cn(
           "w-14 h-14 rounded-full shadow-lg flex items-center justify-center border border-gray-200",
           "bg-white text-black hover:bg-gray-100",
@@ -143,8 +144,8 @@ export function HelpButton({ className }: HelpButtonProperties) {
         aria-expanded={isOpen}
       >
         <motion.div
-          animate={{ rotate: isOpen ? 90 : 0 }}
-          transition={{ duration: 0.2 }}
+          animate={{ rotate: shouldReduceMotion ? 0 : isOpen ? 90 : 0 }}
+          transition={{ duration: shouldReduceMotion ? 0 : 0.2 }}
         >
           {isOpen ? (
             <X className="w-6 h-6" />

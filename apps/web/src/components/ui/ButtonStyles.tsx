@@ -37,7 +37,7 @@ export const buttonSizes = {
   md: "h-12 px-6 text-base",
   lg: "h-14 px-8 text-lg",
   xl: "h-16 px-10 text-xl",
-  icon: "h-10 w-10 p-0",
+  icon: "min-h-[44px] min-w-[44px] p-0",
 };
 
 export const buttonRadius = {

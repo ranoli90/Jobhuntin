@@ -379,6 +379,9 @@ const dictionaries: Dict = {
 
     "holds.responseRequired": "RESPONSE REQUIRED",
 
+    "app404.heading": "Page not found",
+    "app404.goToDashboard": "Go to Dashboard",
+
     "app.loading": "Loading...",
     "app.error": "Something went wrong. Please try again.",
     "app.retry": "Try Again",
@@ -915,6 +918,9 @@ const dictionaries: Dict = {
     "onboarding.pickingUp": "Reprise à",
 
     "holds.responseRequired": "RÉPONSE REQUISE",
+
+    "app404.heading": "Page introuvable",
+    "app404.goToDashboard": "Aller au tableau de bord",
 
     "app.loading": "Chargement...",
     "app.error": "Une erreur est survenue. Veuillez réessayer.",
