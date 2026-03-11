@@ -592,12 +592,20 @@ async def dlq_health_check(
             )
         concurrent_stats = await tracker.get_stats()
 
+        oldest_item = stats.get("oldest_item")
+        oldest_item_age_hours: Optional[float] = None
+        if oldest_item:
+            delta = datetime.now(timezone.utc) - (
+                oldest_item if oldest_item.tzinfo else oldest_item.replace(tzinfo=timezone.utc)
+            )
+            oldest_item_age_hours = round(delta.total_seconds() / 3600, 1)
+
         return {
             "status": "healthy",
             "dlq_stats": {
                 "total_items": stats.get("total_items", 0),
                 "unique_tenants": stats.get("unique_tenants", 0),
-                "oldest_item_age_hours": None,  # TODO: Calculate from oldest_item
+                "oldest_item_age_hours": oldest_item_age_hours,
             },
             "concurrent_usage": {
                 "total_active": concurrent_stats.total_active,
