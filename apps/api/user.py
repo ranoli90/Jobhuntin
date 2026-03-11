@@ -59,8 +59,31 @@ router = APIRouter(tags=["user"])
 _profile_limiters: dict[str, tuple[RateLimiter, float]] = {}
 _upload_limiters: dict[str, tuple[RateLimiter, float]] = {}
 _apply_limiters: dict[str, tuple[RateLimiter, float]] = {}
+_job_refresh_limiters: dict[str, tuple[RateLimiter, float]] = {}
 _LIMITER_TTL = 3600  # 1 hour
 _APPLY_LIMIT_PER_MINUTE = 60  # P1: Rate limit applies (prevents spam)
+_JOB_REFRESH_WINDOW = 10800  # 3 hours
+
+
+def _get_job_refresh_limiter(user_id: str) -> RateLimiter:
+    """Rate limiter for job refresh: 1 per 3 hours per user."""
+    import time as _time
+
+    now = _time.monotonic()
+    entry = _job_refresh_limiters.get(user_id)
+    if entry and now - entry[1] < _LIMITER_TTL:
+        _job_refresh_limiters[user_id] = (entry[0], now)
+        return entry[0]
+    expired = [k for k, (_, ts) in _job_refresh_limiters.items() if now - ts > _LIMITER_TTL]
+    for k in expired:
+        _job_refresh_limiters.pop(k, None)
+    limiter = RateLimiter(
+        max_calls=1,
+        window_seconds=float(_JOB_REFRESH_WINDOW),
+        name=f"job_refresh:{user_id}",
+    )
+    _job_refresh_limiters[user_id] = (limiter, now)
+    return limiter
 
 
 def _get_profile_limiter(user_id: str) -> RateLimiter:
@@ -1727,6 +1750,39 @@ async def upload_avatar(
         )
 
     return {"avatar_url": avatar_url}
+
+
+# ---------------------------------------------------------------------------
+# User Job Refresh (per-user sync)
+# ---------------------------------------------------------------------------
+
+
+@router.post("/me/jobs/refresh")
+async def refresh_my_jobs(
+    background_tasks: BackgroundTasks,
+    ctx: TenantContext = Depends(_get_tenant_ctx),
+    db: asyncpg.Pool = Depends(_get_pool),
+) -> dict[str, str]:
+    """Trigger per-user job sync for current user's preferences and job alerts.
+    Rate-limited to once per 3 hours per user.
+    """
+    from backend.domain.job_sync_service import JobSyncService
+
+    # Rate limit: 1 refresh per 3 hours per user
+    limiter = _get_job_refresh_limiter(ctx.user_id)
+    if not await limiter.acquire():
+        raise HTTPException(
+            status_code=429,
+            detail="Job refresh is limited to once every 3 hours. Please try again later.",
+        )
+
+    sync_service = JobSyncService(db)
+    background_tasks.add_task(sync_service.sync_for_user, ctx.user_id, 2)
+
+    return {
+        "status": "refresh_started",
+        "message": "Job sync triggered for your preferences. New jobs will appear shortly.",
+    }
 
 
 # ---------------------------------------------------------------------------

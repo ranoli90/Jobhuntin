@@ -205,6 +205,91 @@ class JobSyncService:
 
         return results
 
+    async def sync_for_user(
+        self,
+        user_id: str,
+        max_concurrent: int = 2,
+    ) -> list[SyncResult]:
+        """Sync jobs for a specific user's preferences, profile, and job_alerts.
+        Uses user-specific queries; jobs still go to shared public.jobs table.
+        """
+        queries = await self._get_search_queries_for_user(user_id)
+        if not queries:
+            logger.info("No search queries for user %s, using defaults", user_id)
+            queries = DEFAULT_SEARCH_QUERIES[:5]  # Limit for per-user
+        logger.info("Per-user sync for %s: %d queries", user_id, len(queries))
+        return await self.sync_all_sources(search_queries=queries, max_concurrent=max_concurrent)
+
+    async def _get_search_queries_for_user(
+        self,
+        user_id: str,
+    ) -> list[tuple[str, str]]:
+        """Get search queries for a specific user from preferences, profile, job_alerts."""
+        seen: set[tuple[str, str]] = set()
+        queries: list[tuple[str, str]] = []
+
+        try:
+            async with self.db_pool.acquire() as conn:
+                # 1. user_preferences (role_type, location)
+                row = await conn.fetchrow(
+                    """
+                    SELECT role_type, location FROM public.user_preferences
+                    WHERE user_id = $1
+                    """,
+                    user_id,
+                )
+                if row and (row.get("role_type") or row.get("location")):
+                    term = (row["role_type"] or "software engineer").strip()
+                    loc = (row["location"] or "Remote").strip() or "Remote"
+                    if (term, loc) not in seen:
+                        seen.add((term, loc))
+                        queries.append((term, loc))
+
+                # 2. profiles.profile_data
+                prof = await conn.fetchrow(
+                    """
+                    SELECT profile_data FROM public.profiles WHERE user_id = $1
+                    """,
+                    user_id,
+                )
+                if prof and prof.get("profile_data"):
+                    pd = prof["profile_data"] or {}
+                    prefs = pd.get("preferences") or {}
+                    goals = pd.get("career_goals") or {}
+                    term = (prefs.get("role_type") or (goals.get("target_roles") or [None])[0] or "").strip()
+                    loc = (prefs.get("location") or "Remote").strip() or "Remote"
+                    if term and (term, loc) not in seen:
+                        seen.add((term, loc))
+                        queries.append((term, loc))
+
+                # 3. job_alerts (user's alerts)
+                alert_rows = await conn.fetch(
+                    """
+                    SELECT keywords, locations FROM public.job_alerts
+                    WHERE user_id = $1 AND is_active = true
+                    """,
+                    user_id,
+                )
+                for r in alert_rows:
+                    kw_list = r["keywords"] if isinstance(r["keywords"], list) else []
+                    loc_list = r["locations"] if isinstance(r["locations"], list) else []
+                    if not kw_list:
+                        kw_list = ["software engineer"]
+                    if not loc_list:
+                        loc_list = ["Remote"]
+                    for kw in kw_list[:3]:
+                        term = (kw if isinstance(kw, str) else str(kw)).strip()
+                        for loc in loc_list[:3]:
+                            loc_str = (loc if isinstance(loc, str) else str(loc)).strip() or "Remote"
+                            if term and (term, loc_str) not in seen:
+                                seen.add((term, loc_str))
+                                queries.append((term, loc_str))
+
+        except Exception as e:
+            logger.warning("Failed to get search queries for user %s: %s", user_id, e)
+
+        return queries
+
     async def _sync_query(
         self,
         search_term: str,
@@ -497,6 +582,33 @@ class JobSyncService:
                 except Exception as e:
                     logger.warning("Failed to get profile_data queries: %s", e)
 
+                # 4. Job alerts: keywords × locations from active alerts
+                try:
+                    alert_rows = await conn.fetch(
+                        """
+                        SELECT keywords, locations FROM public.job_alerts
+                        WHERE is_active = true
+                          AND (keywords != '[]'::jsonb OR locations != '[]'::jsonb)
+                        LIMIT 20
+                        """
+                    )
+                    for r in alert_rows:
+                        kw_list = r["keywords"] if isinstance(r["keywords"], list) else []
+                        loc_list = r["locations"] if isinstance(r["locations"], list) else []
+                        if not kw_list:
+                            kw_list = ["software engineer"]
+                        if not loc_list:
+                            loc_list = ["Remote"]
+                        for kw in kw_list[:3]:
+                            term = (kw if isinstance(kw, str) else str(kw)).strip()
+                            for loc in loc_list[:3]:
+                                loc_str = (loc if isinstance(loc, str) else str(loc)).strip() or "Remote"
+                                if term and (term, loc_str) not in seen:
+                                    seen.add((term, loc_str))
+                                    queries.append((term, loc_str))
+                except Exception as e:
+                    logger.warning("Failed to get job_alerts queries: %s", e)
+
         except Exception as e:
             logger.warning("Failed to get search queries: %s", e)
 
@@ -512,18 +624,15 @@ class JobSyncService:
         search_term: str,
         location: str | None,
     ) -> str:
-        """Record sync start in database."""
+        """Record sync start in database. Schema: source, status, started_at only."""
         async with self.db_pool.acquire() as conn:
             row = await conn.fetchrow(
                 """
-                INSERT INTO public.job_sync_runs
-                    (source, search_term, location, status, started_at)
-                VALUES ($1, $2, $3, 'running', now())
+                INSERT INTO public.job_sync_runs (source, status, started_at)
+                VALUES ($1, 'running', now())
                 RETURNING id
                 """,
                 source,
-                search_term,
-                location,
             )
             return str(row["id"])
 
@@ -538,7 +647,8 @@ class JobSyncService:
         error_message: str | None = None,
         duration_ms: int = 0,
     ) -> None:
-        """Record sync completion in database."""
+        """Record sync completion. Schema uses errors JSONB, not error_message."""
+        errors_json = json.dumps([{"message": error_message}]) if error_message else "[]"
         async with self.db_pool.acquire() as conn:
             await conn.execute(
                 """
@@ -548,7 +658,7 @@ class JobSyncService:
                     jobs_new = $4,
                     jobs_updated = $5,
                     jobs_skipped = $6,
-                    error_message = $7,
+                    errors = $7::jsonb,
                     duration_ms = $8,
                     completed_at = now()
                 WHERE id = $1
@@ -559,7 +669,7 @@ class JobSyncService:
                 jobs_new,
                 jobs_updated,
                 jobs_skipped,
-                error_message,
+                errors_json,
                 duration_ms,
             )
 
@@ -570,16 +680,19 @@ class JobSyncService:
         jobs_count: int = 0,
         error: str | None = None,
     ) -> None:
-        """Update source config after sync."""
+        """Update source config. Schema has last_synced_at; store extras in config JSONB."""
         async with self.db_pool.acquire() as conn:
             if success:
                 await conn.execute(
                     """
                     UPDATE public.job_sync_config SET
-                        last_sync_at = now(),
-                        consecutive_failures = 0,
-                        total_jobs_fetched = total_jobs_fetched + $2,
-                        total_syncs = total_syncs + 1
+                        last_synced_at = now(),
+                        config = config || jsonb_build_object(
+                            'consecutive_failures', 0,
+                            'total_jobs_fetched', COALESCE((config->>'total_jobs_fetched')::int, 0) + $2,
+                            'total_syncs', COALESCE((config->>'total_syncs')::int, 0) + 1
+                        ),
+                        updated_at = now()
                     WHERE source = $1
                     """,
                     source,
@@ -589,9 +702,12 @@ class JobSyncService:
                 await conn.execute(
                     """
                     UPDATE public.job_sync_config SET
-                        last_error_at = now(),
-                        last_error_message = $2,
-                        consecutive_failures = consecutive_failures + 1
+                        config = config || jsonb_build_object(
+                            'last_error_at', now(),
+                            'last_error_message', $2,
+                            'consecutive_failures', COALESCE((config->>'consecutive_failures')::int, 0) + 1
+                        ),
+                        updated_at = now()
                     WHERE source = $1
                     """,
                     source,
@@ -599,23 +715,23 @@ class JobSyncService:
                 )
 
     async def cleanup_expired_jobs(self) -> int:
-        """Remove jobs older than TTL."""
+        """Remove jobs older than TTL. Uses direct DELETE (no DB function)."""
         ttl_days = getattr(self.settings, "jobspy_job_ttl_days", 7)
         async with self.db_pool.acquire() as conn:
             result = await conn.execute(
-                "SELECT public.cleanup_expired_jobs($1)",
+                """
+                DELETE FROM public.jobs
+                WHERE last_synced_at < now() - ($1::int || ' days')::interval
+                   OR (last_synced_at IS NULL AND created_at < now() - ($1::int || ' days')::interval)
+                """,
                 ttl_days,
             )
-            # Parse result
-            if result:
-                try:
-                    parts = result.split()
-                    deleted = int(parts[-1]) if parts else 0
-                    incr("jobspy.jobs_expired", deleted)
-                    return deleted
-                except Exception:
-                    return 0
-        return 0
+            try:
+                deleted = int(result.split()[-1]) if result else 0
+            except Exception:
+                deleted = 0
+            incr("jobspy.jobs_expired", deleted)
+            return deleted
 
     async def get_sync_status(self) -> dict[str, Any]:
         """Get current sync status for all sources."""
@@ -631,12 +747,25 @@ class JobSyncService:
                 ORDER BY started_at DESC
                 """
             )
-            job_stats = await conn.fetch("SELECT * FROM public.job_source_stats")
+            job_stats: list[dict[str, Any]] = []
+            try:
+                job_stats = [dict(s) for s in await conn.fetch("SELECT * FROM public.job_source_stats")]
+            except Exception:
+                # job_source_stats table may not exist; derive from job_sync_runs
+                agg = await conn.fetch(
+                    """
+                    SELECT source, sum(jobs_new) as jobs_new, sum(jobs_updated) as jobs_updated
+                    FROM public.job_sync_runs
+                    WHERE started_at > now() - interval '24 hours'
+                    GROUP BY source
+                    """
+                )
+                job_stats = [dict(r) for r in agg]
 
         return {
             "sources": [dict(c) for c in configs],
             "recent_runs": [dict(r) for r in recent_runs],
-            "job_stats": [dict(s) for s in job_stats],
+            "job_stats": job_stats,
             "circuit_breakers": {
                 source: state.get("status", "closed")
                 for source, state in self.jobspy._circuit_breaker_state.items()
