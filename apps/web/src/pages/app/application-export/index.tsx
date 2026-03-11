@@ -201,7 +201,7 @@ const ApplicationExportPage: React.FC = () => {
       if (exportConfig.filters.status && app.status !== exportConfig.filters.status) {
         return false;
       }
-      if (exportConfig.filters.company && !app.company.toLowerCase().includes(exportConfig.filters.company.toLowerCase())) {
+      if (exportConfig.filters.company && !(app.company ?? "").toLowerCase().includes(exportConfig.filters.company.toLowerCase())) {
         return false;
       }
       if (exportConfig.filters.location && !app.location.toLowerCase().includes(exportConfig.filters.location.toLowerCase())) {

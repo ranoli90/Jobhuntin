@@ -25,6 +25,7 @@ interface JobAlert {
 }
 import { Card } from "../../components/ui/Card";
 import { Badge } from "../../components/ui/Badge";
+import { FocusTrap } from "focus-trap-react";
 import { 
   Bell, 
   BellOff, 
@@ -150,6 +151,7 @@ export default function JobAlertsPage() {
 
   const handleEditAlert = (alert: any) => {
     setEditingAlert(alert.id);
+    setShowCreateForm(true);
     setFormData({
       name: alert.name,
       keywords: alert.keywords,
@@ -263,16 +265,31 @@ export default function JobAlertsPage() {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+            aria-label={t("jobAlerts.searchPlaceholder", locale) || "Search alerts by name, keywords, or locations"}
           />
         </div>
       </Card>
 
       {/* Create/Edit Form Modal */}
       {showCreateForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="job-alerts-modal-title"
+          onClick={(e) => e.target === e.currentTarget && (setShowCreateForm(false), setEditingAlert(null))}
+        >
+          <FocusTrap
+            active={showCreateForm}
+            focusTrapOptions={{
+              escapeDeactivates: true,
+              allowOutsideClick: true,
+              onDeactivate: () => { setShowCreateForm(false); setEditingAlert(null); },
+            }}
+          >
           <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold text-slate-900">
+              <h2 id="job-alerts-modal-title" className="text-xl font-semibold text-slate-900">
                 {editingAlert 
                   ? (t("jobAlerts.editAlert", locale) || "Edit Alert")
                   : (t("jobAlerts.createAlert", locale) || "Create New Alert")
@@ -462,10 +479,12 @@ export default function JobAlertsPage() {
                 {t("common.cancel", locale) || "Cancel"}
               </Button>
               <Button
-                onClick={handleCreateAlert}
-                disabled={createAlertMutation.isPending || !formData.name.trim()}
+                onClick={editingAlert ? handleUpdateAlert : handleCreateAlert}
+                disabled={
+                  (editingAlert ? updateAlertMutation.isPending : createAlertMutation.isPending) || !formData.name.trim()
+                }
               >
-                {createAlertMutation.isPending ? (
+                {(editingAlert ? updateAlertMutation.isPending : createAlertMutation.isPending) ? (
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-600"></div>
                 ) : (
                   editingAlert ? (
@@ -481,6 +500,7 @@ export default function JobAlertsPage() {
               </Button>
             </div>
           </div>
+          </FocusTrap>
         </div>
       )}
 

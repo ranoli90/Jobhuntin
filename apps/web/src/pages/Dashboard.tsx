@@ -67,6 +67,16 @@ function JobCard({
   const acceptOpacity = useTransform(x, [0, 100, 200], [0, 0, 0.25]);
   const rejectOpacity = useTransform(x, [0, -100, -200], [0, 0, 0.25]);
   const cardRef = React.useRef<HTMLDivElement>(null);
+  const touchHandlersRef = React.useRef<{ move: (e: TouchEvent) => void; end: () => void } | null>(null);
+
+  React.useEffect(() => () => {
+    const h = touchHandlersRef.current;
+    if (h) {
+      document.removeEventListener('touchmove', h.move);
+      document.removeEventListener('touchend', h.end);
+      touchHandlersRef.current = null;
+    }
+  }, []);
 
   React.useEffect(() => {
     if (!isTop) return;
@@ -124,7 +134,7 @@ function JobCard({
         else if (info.offset.x < -100) onSwipe('REJECT');
       }}
       onTouchStart={(e) => {
-        // Handle mobile touch events
+        // Handle mobile touch events; M6: store handlers for cleanup on unmount
         const touch = e.touches[0];
         if (touch) {
           const startX = touch.clientX;
@@ -143,12 +153,11 @@ function JobCard({
               }
             }
           };
-          
           const handleTouchEnd = () => {
             document.removeEventListener('touchmove', handleTouchMove);
             document.removeEventListener('touchend', handleTouchEnd);
           };
-          
+          touchHandlersRef.current = { move: handleTouchMove, end: handleTouchEnd };
           document.addEventListener('touchmove', handleTouchMove, { passive: false });
           document.addEventListener('touchend', handleTouchEnd);
         }
@@ -281,12 +290,13 @@ export default function Dashboard() {
   const locale = useMemo(() => getLocale(), []);
 
   // L-2: Compute data-driven progress values
-  const totalApps = applications.length || 1; // avoid /0
+  const totalApps = stats.totalApps ?? stats.monthlyApps ?? applications.length ?? 0;
+  const totalForProgress = totalApps || 1; // avoid /0
   const activeCount = byStatus.APPLYING + byStatus.APPLIED;
-  const activeProgress = Math.min(100, Math.round((activeCount / totalApps) * 100));
+  const activeProgress = Math.min(100, Math.round((activeCount / totalForProgress) * 100));
   const successProgress = Math.min(100, stats.successRate);
-  const holdProgress = Math.min(100, Math.round((byStatus.HOLD / totalApps) * 100));
-  const monthlyProgress = Math.min(100, Math.round((stats.monthlyApps / Math.max(stats.monthlyApps, 100)) * 100));
+  const holdProgress = Math.min(100, Math.round((byStatus.HOLD / totalForProgress) * 100));
+  const monthlyProgress = Math.min(100, Math.round((totalApps / Math.max(totalApps, 100)) * 100));
 
   const metrics = [
     {
@@ -321,7 +331,7 @@ export default function Dashboard() {
     },
     {
       label: "Total Applications",
-      value: stats.monthlyApps,
+      value: stats.totalApps ?? stats.monthlyApps ?? 0,
       icon: Zap,
       color: 'from-primary-500 to-primary-600',
       bg: 'bg-primary-50',
@@ -1097,7 +1107,7 @@ export function JobsView() {
             </Button>
           )}
           {!hasNextPage && (
-            <Button variant="ghost" onClick={() => setFilters({ location: "", keywords: "" })}>
+            <Button variant="ghost" onClick={resetFilters}>
               {t("dashboard.resetFilters", locale)}
             </Button>
           )}
@@ -1263,6 +1273,7 @@ export function JobsView() {
               }
             }}
             className="px-3 py-2 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-all bg-white font-medium"
+            aria-label="Sort jobs by"
           >
             <option value="match_score">Match %</option>
             <option value="recently_matched">Recently Matched</option>
@@ -1430,10 +1441,10 @@ export function JobsView() {
                       </div>
                       <div>
                         <p className="text-primary-400 text-[10px] font-black uppercase tracking-widest">{job.location || 'Remote'}</p>
-                        <h3 className="text-xl font-bold truncate leading-tight">{job.company}</h3>
+                        <h3 className="text-xl font-bold truncate leading-tight">{job.company ?? "Company"}</h3>
                       </div>
                     </div>
-                    <h2 className="text-2xl font-black leading-tight mb-2">{job.title}</h2>
+                    <h2 className="text-2xl font-black leading-tight mb-2">{job.title ?? "Job"}</h2>
                     <div className="flex gap-2">
                       <Badge className="bg-white/10 text-white border-transparent">{job.job_type || 'Full-time'}</Badge>
                       <Badge className="bg-primary-500/20 text-primary-400 border-transparent">
@@ -1627,7 +1638,7 @@ export function ApplicationsView() {
   const filteredApps = useMemo(
     () => applications.filter(app =>
       (app.company ?? "").toLowerCase().includes(searchTerm.toLowerCase()) ||
-      app.job_title.toLowerCase().includes(searchTerm.toLowerCase())
+      (app.job_title ?? "").toLowerCase().includes(searchTerm.toLowerCase())
     ),
     [applications, searchTerm]
   );
@@ -1660,6 +1671,11 @@ export function ApplicationsView() {
       }
     } catch (error) {
       if (import.meta.env.DEV) console.error('Action failed:', error);
+      pushToast({
+        title: "Action failed",
+        description: (error as Error)?.message ?? "Something went wrong. Please try again.",
+        tone: "error",
+      });
     }
   }, [navigate, snoozeApplication, reviewApplication, withdrawApplication]);
 

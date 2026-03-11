@@ -100,7 +100,7 @@ function ActionsMenu({ app, onAction }: { app: ApplicationRecord; onAction: (act
 export default function ApplicationsView() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { applications, isLoading, answerHold, snoozeApplication, reviewApplication, withdrawApplication, isSubmitting } = useApplications();
+  const { applications, isLoading, error, refetch, answerHold, snoozeApplication, reviewApplication, withdrawApplication, isSubmitting } = useApplications();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
   const locale = getLocale();
@@ -119,7 +119,7 @@ export default function ApplicationsView() {
     () => applications.filter(app => {
       const matchesSearch = !searchTerm ||
         (app.company ?? "").toLowerCase().includes(searchTerm.toLowerCase()) ||
-        app.job_title.toLowerCase().includes(searchTerm.toLowerCase());
+        (app.job_title ?? "").toLowerCase().includes(searchTerm.toLowerCase());
       const matchesStatus = !statusFilter || app.status === statusFilter;
       return matchesSearch && matchesStatus;
     }),
@@ -153,6 +153,19 @@ export default function ApplicationsView() {
       if (import.meta.env.DEV) console.error('Action failed:', error);
     }
   }, [navigate, snoozeApplication, reviewApplication, withdrawApplication]);
+
+  if (error) {
+    return (
+      <div className="max-w-4xl mx-auto p-6">
+        <Card className="p-6 text-center">
+          <p className="text-slate-600 dark:text-slate-400 mb-4">
+            {t("applications.errorLoading", locale) || "Unable to load applications."}
+          </p>
+          <Button onClick={() => refetch()}>Try again</Button>
+        </Card>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (

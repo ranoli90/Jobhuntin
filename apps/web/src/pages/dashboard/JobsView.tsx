@@ -321,7 +321,7 @@ export default function JobsView() {
                         >
                             <div>
                                 <h3 id={`job-${job.id}-title`} className="text-xl font-bold text-brand-text">{job.title}</h3>
-                                <p className="text-brand-text/80">{job.company}</p>
+                                <p className="text-brand-text/80">{job.company ?? "Company"}</p>
                                 <p className="text-sm text-brand-muted mt-1">{job.location}</p>
                                 {job.match_score != null && (
                                     <p className="text-xs font-medium text-brand-primary mt-1" title="Match score based on your profile (skills, location, salary fit)">

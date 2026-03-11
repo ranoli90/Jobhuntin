@@ -831,8 +831,16 @@ class UpdateApplicationStatusBody(BaseModel):
         description="New status: 'INTERVIEW_SCHEDULED', 'OFFER_RECEIVED', 'ACCEPTED', 'REJECTED'",
     )
     notes: str | None = Field(
-        None, description="Optional notes about the status update"
+        None, max_length=5000, description="Optional notes about the status update"
     )
+
+    @field_validator("notes")
+    @classmethod
+    def sanitize_notes(cls, v: str | None) -> str | None:
+        if v is None:
+            return None
+        from packages.backend.domain.sanitization import sanitize_text_input
+        return sanitize_text_input(v, max_length=5000)
 
 
 @router.patch("/me/applications/{application_id}/status")
@@ -866,21 +874,23 @@ async def update_application_status(
         )
 
     async with db.acquire() as conn:
-        # Check if application exists and belongs to user
+        # Check if application exists and belongs to user (tenant scoping for consistency)
         app = await conn.fetchrow(
-            "SELECT id, user_id, status FROM public.applications WHERE id = $1 AND user_id = $2",
+            """SELECT id, user_id, status FROM public.applications
+               WHERE id = $1 AND user_id = $2 AND (tenant_id = $3 OR tenant_id IS NULL)""",
             application_id,
             ctx.user_id,
+            ctx.tenant_id,
         )
 
         if not app:
             raise HTTPException(status_code=404, detail="Application not found")
 
-        # Update status and notes ($1=application_id, $2=user_id, $3=status, $4=notes optional)
-        params: list[Any] = [application_id, ctx.user_id, body.status]
-        update_fields = ["status = $3", "updated_at = CURRENT_TIMESTAMP"]
+        # Update status and notes ($1=application_id, $2=user_id, $3=tenant_id, $4=status, $5=notes optional)
+        params: list[Any] = [application_id, ctx.user_id, ctx.tenant_id, body.status]
+        update_fields = ["status = $4", "updated_at = CURRENT_TIMESTAMP"]
         if body.notes:
-            update_fields.append("notes = $4")
+            update_fields.append("notes = $5")
             params.append(body.notes)
 
         # nosemgrep: python.lang.security.audit.sqli.asyncpg-sqli.asyncpg-sqli - parameterized query
@@ -888,7 +898,7 @@ async def update_application_status(
             f"""
             UPDATE public.applications
             SET {", ".join(update_fields)}
-            WHERE id = $1 AND user_id = $2
+            WHERE id = $1 AND user_id = $2 AND (tenant_id = $3 OR tenant_id IS NULL)
             """,
             *params,
         )

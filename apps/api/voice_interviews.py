@@ -240,7 +240,7 @@ async def create_voice_session(
         difficulty_enum = QuestionDifficulty(difficulty)
 
         session = await voice_simulator.create_voice_session(
-            user_id=request.user_id,
+            user_id=ctx.user_id,
             job_id=request.job_id,
             company=request.company,
             job_title=request.job_title,

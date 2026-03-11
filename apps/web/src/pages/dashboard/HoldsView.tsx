@@ -9,11 +9,22 @@ import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
 import { sharedLocale, sharedRtl } from "./shared";
 
 export default function HoldsView() {
-  const { holdApplications, answerHold, snoozeApplication, isLoading, isSubmitting } = useApplications();
+  const { holdApplications, answerHold, snoozeApplication, isLoading, error, refetch, isSubmitting } = useApplications();
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const shouldReduceMotion = useReducedMotion();
   const locale = sharedLocale;
   const rtl = sharedRtl;
+
+  if (error) {
+    return (
+      <div className="max-w-4xl mx-auto p-6">
+        <Card className="p-6 text-center">
+          <p className="text-brand-muted mb-4">Unable to load items needing your input.</p>
+          <Button onClick={() => refetch()}>Try again</Button>
+        </Card>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (

@@ -23,9 +23,11 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
+import asyncpg
 from backend.domain.resume_agent_integration import get_resume_agent_integration
 from backend.domain.tenant import TenantContext
 from shared.logging_config import get_logger
+from shared.validators import validate_uuid
 
 logger = get_logger("sorce.resume_integration")
 
@@ -152,6 +154,7 @@ def _get_tenant_ctx():
 async def prepare_resume_for_application(
     request: PrepareResumeRequest,
     ctx: TenantContext = Depends(_get_tenant_ctx),
+    db: asyncpg.Pool = Depends(_get_pool),
 ) -> PrepareResumeResponse:
     """Prepare a tailored resume for job application.
 
@@ -170,6 +173,18 @@ async def prepare_resume_for_application(
         Preparation result with metadata
     """
     try:
+        validate_uuid(request.application_id, "application_id")
+        async with db.acquire() as conn:
+            app = await conn.fetchrow(
+                """SELECT id FROM public.applications
+                   WHERE id = $1 AND user_id = $2 AND (tenant_id = $3 OR tenant_id IS NULL)""",
+                request.application_id,
+                ctx.user_id,
+                ctx.tenant_id,
+            )
+            if not app:
+                raise HTTPException(status_code=404, detail="Application not found")
+
         integration_service = get_resume_agent_integration()
 
         job = request.job or {}
@@ -200,6 +215,7 @@ async def prepare_resume_for_application(
 async def get_integration_status(
     application_id: str,
     ctx: TenantContext = Depends(_get_tenant_ctx),
+    db: asyncpg.Pool = Depends(_get_pool),
 ) -> IntegrationStatusResponse:
     """Get the status of resume integration for an application.
 
@@ -211,6 +227,18 @@ async def get_integration_status(
         Integration status information
     """
     try:
+        validate_uuid(application_id, "application_id")
+        async with db.acquire() as conn:
+            app = await conn.fetchrow(
+                """SELECT id FROM public.applications
+                   WHERE id = $1 AND user_id = $2 AND (tenant_id = $3 OR tenant_id IS NULL)""",
+                application_id,
+                ctx.user_id,
+                ctx.tenant_id,
+            )
+            if not app:
+                raise HTTPException(status_code=404, detail="Application not found")
+
         integration_service = get_resume_agent_integration()
 
         status = await integration_service.get_resume_integration_status(
@@ -241,6 +269,15 @@ async def batch_prepare_resumes(
         Batch preparation results
     """
     try:
+        # API-4: Reject applications not belonging to current user
+        for app in request.applications:
+            uid = app.get("user_id") if isinstance(app, dict) else getattr(app, "user_id", None)
+            if uid is not None and str(uid) != str(ctx.user_id):
+                raise HTTPException(
+                    status_code=403,
+                    detail="Cannot prepare resumes for other users' applications",
+                )
+
         integration_service = get_resume_agent_integration()
 
         results = await integration_service.batch_prepare_resumes(
@@ -375,6 +412,7 @@ async def update_application_agent_resume(
     application_id: str,
     pdf_path: str,
     ctx: TenantContext = Depends(_get_tenant_ctx),
+    db: asyncpg.Pool = Depends(_get_pool),
 ) -> Dict[str, Any]:
     """Update the application agent with a new resume file.
 
@@ -387,6 +425,18 @@ async def update_application_agent_resume(
         Update result
     """
     try:
+        validate_uuid(application_id, "application_id")
+        async with db.acquire() as conn:
+            app = await conn.fetchrow(
+                """SELECT id FROM public.applications
+                   WHERE id = $1 AND user_id = $2 AND (tenant_id = $3 OR tenant_id IS NULL)""",
+                application_id,
+                ctx.user_id,
+                ctx.tenant_id,
+            )
+            if not app:
+                raise HTTPException(status_code=404, detail="Application not found")
+
         integration_service = get_resume_agent_integration()
 
         success = await integration_service.update_application_agent_resume(

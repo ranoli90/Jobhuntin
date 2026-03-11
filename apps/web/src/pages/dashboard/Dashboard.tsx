@@ -289,7 +289,7 @@ export default function Dashboard() {
                               <MessageCircle className="h-3.5 w-3.5" />
                             </div>
                             <div className="min-w-0">
-                              <p className="truncate font-medium text-slate-900">{app.company}</p>
+                              <p className="truncate font-medium text-slate-900">{app.company ?? "Unknown"}</p>
                               <p className="text-xs text-slate-500 truncate">
                                 {app.hold_question?.slice(0, 50)}{app.hold_question && app.hold_question.length > 50 ? '...' : ''}
                               </p>
@@ -340,9 +340,9 @@ export default function Dashboard() {
                     {recentApps.map(app => (
                       <div key={app.id} className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-lg bg-slate-900 flex items-center justify-center text-white font-bold text-xs">{app.company?.charAt(0) || '?'}</div>
+                          <div className="w-8 h-8 rounded-lg bg-slate-900 flex items-center justify-center text-white font-bold text-xs">{(app.company ?? "").charAt(0) || '?'}</div>
                           <div>
-                            <p className="text-sm font-medium text-slate-900">{app.company}</p>
+                            <p className="text-sm font-medium text-slate-900">{app.company ?? "Unknown"}</p>
                             <p className="text-xs text-slate-500">{app.job_title}{app.last_activity ? ` · ${formatDate(app.last_activity, locale)}` : ''}</p>
                           </div>
                         </div>

@@ -150,7 +150,8 @@ export function useApplications() {
     byStatus,
     stats: {
       successRate,
-      monthlyApps: applications.length,
+      totalApps: applications.length,
+      monthlyApps: applications.length, // Same as totalApps until API provides monthly count
     },
     queueStats: queueStats ?? null,
     isLoading: query.isLoading,

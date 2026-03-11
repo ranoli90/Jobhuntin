@@ -43,8 +43,12 @@ export default function Settings() {
   const [deleteConfirmation, setDeleteConfirmation] = React.useState('');
   const [showExportConfirm, setShowExportConfirm] = React.useState(false);
 
+  const prefsInitialized = React.useRef(false);
+  const contactInitialized = React.useRef(false);
+
   React.useEffect(() => {
-    if (profile?.preferences) {
+    if (profile?.preferences && !prefsInitialized.current) {
+      prefsInitialized.current = true;
       const p = profile.preferences;
       setPreferences({
         location: p.location ?? "",
@@ -61,11 +65,14 @@ export default function Settings() {
   }, [profile?.preferences]);
 
   React.useEffect(() => {
-    setContactForm({
-      full_name: profile?.contact?.full_name ?? "",
-      headline: profile?.headline ?? "",
-      bio: profile?.bio ?? "",
-    });
+    if (profile && !contactInitialized.current) {
+      contactInitialized.current = true;
+      setContactForm({
+        full_name: profile?.contact?.full_name ?? "",
+        headline: profile?.headline ?? "",
+        bio: profile?.bio ?? "",
+      });
+    }
   }, [profile?.contact?.full_name, profile?.headline, profile?.bio]);
 
   const handleSavePreferences = async (e: React.FormEvent) => {
