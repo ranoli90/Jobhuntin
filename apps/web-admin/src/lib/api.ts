@@ -1,7 +1,11 @@
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 function getAuthToken(): string | null {
-  return localStorage.getItem("auth_token");
+  try {
+    return sessionStorage.getItem("auth_token");
+  } catch {
+    return null;
+  }
 }
 
 async function authHeaders(): Promise<Record<string, string>> {
@@ -16,6 +20,15 @@ async function request<T>(method: string, path: string, body?: unknown): Promise
   const opts: RequestInit = { method, headers };
   if (body) opts.body = JSON.stringify(body);
   const resp = await fetch(`${API_BASE}${path}`, opts);
+  if (resp.status === 401) {
+    try {
+      sessionStorage.removeItem("auth_token");
+    } catch {
+      // ignore
+    }
+    window.location.href = "/";
+    throw new Error("Session expired. Please sign in again.");
+  }
   if (!resp.ok) {
     const text = await resp.text();
     throw new Error(`API ${resp.status}: ${text}`);
