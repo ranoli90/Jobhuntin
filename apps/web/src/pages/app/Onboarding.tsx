@@ -390,7 +390,6 @@ export default function Onboarding() {
       const hasAnswers = Object.keys(workStyleAnswers).some((k) => workStyleAnswers[k]);
       if (hasAnswers) {
         const payload = mapWorkStyleForApi(workStyleAnswers);
-        if (import.meta.env.DEV) console.log('[Onboarding] Saving work style:', payload);
         await api.post("/me/work-style", payload);
         pushToast({ title: "Work style saved!", tone: "success" });
         telemetry.track("AI Learned Work Style", {
@@ -602,7 +601,6 @@ export default function Onboarding() {
 
       if (data.parsed_profile) {
         const p = data.parsed_profile;
-        if (import.meta.env.DEV) console.log('[Onboarding] Parsed profile:', p);
 
         // Cache parsed resume data for future use
         const resumeData: {
@@ -625,10 +623,6 @@ export default function Onboarding() {
 
         // Extract rich skills from parsed profile (V2 format)
         const techSkills = p.skills?.technical || [];
-        if (import.meta.env.DEV) {
-          console.log('[Onboarding] Tech skills raw:', techSkills);
-          console.log('[Onboarding] First skill type:', techSkills.length > 0 ? typeof techSkills[0] : 'empty');
-        }
 
         const ensureClientId = (sk: RichSkill, i: number): RichSkill => ({
           ...sk,
@@ -660,12 +654,10 @@ export default function Onboarding() {
             },
             i
           ));
-          if (import.meta.env.DEV) console.log('[Onboarding] Parsed rich skills:', parsedSkills);
           setRichSkills(parsedSkills);
           resumeData.richSkills = parsedSkills;
         } else {
           // Old format - convert to rich skills with default values
-          if (import.meta.env.DEV) console.log('[Onboarding] Using old format for skills');
           const parsedSkills = techSkills.map((skill: string, i: number) => ensureClientId({
             skill,
             confidence: 0.5,
@@ -811,11 +803,9 @@ export default function Onboarding() {
       await cacheService.cacheSkills(profile?.id || 'anonymous', richSkills);
 
       // Save skills to backend with retry logic
-      if (import.meta.env.DEV) console.log('[Onboarding] Saving skills:', richSkills);
-      const result = await retryWithBackoff(() =>
+      await retryWithBackoff(() =>
         api.post<{ status: string; count: number }>("/me/skills", { skills: richSkills })
       );
-      if (import.meta.env.DEV) console.log('[Onboarding] Skills saved:', result);
       pushToast({ title: "Skills saved!", tone: "success" });
       nextStep();
     } catch (error) {
@@ -874,15 +864,6 @@ export default function Onboarding() {
         full_name: `${trimmedContact.first_name} ${trimmedContact.last_name}`
       }));
       pushToast({ title: "Contact info saved!", tone: "success" });
-
-      // Track AI learning event
-      if (import.meta.env.DEV) console.log("[Telemetry] AI Learned Contact Info", {
-        hasFirstName: !!trimmedContact.first_name,
-        hasLastName: !!trimmedContact.last_name,
-        hasEmail: !!trimmedContact.email,
-        hasPhone: !!trimmedContact.phone,
-        hasLinkedIn: !!linkedinUrl,
-      });
 
       nextStep();
     } catch (error) {
@@ -995,21 +976,6 @@ export default function Onboarding() {
         });
       }
       pushToast({ title: "Preferences saved!", tone: "success" });
-
-      // Track AI learning event
-      if (import.meta.env.DEV) {
-        if (import.meta.env.DEV) console.log("[Telemetry] AI Learned Job Preferences", {
-          location: trimmedPrefs.location,
-          roleType: trimmedPrefs.role_type,
-          salaryMin: Number.parseInt(trimmedPrefs.salary_min, 10) || 0,
-          remoteOnly: trimmedPrefs.remote_only,
-          onsiteOnly: trimmedPrefs.onsite_only,
-          workAuthorized: trimmedPrefs.work_authorized,
-          visaSponsorship: trimmedPrefs.visa_sponsorship,
-          excludedCompaniesCount: trimmedPrefs.excluded_companies?.length || 0,
-          excludedKeywordsCount: trimmedPrefs.excluded_keywords?.length || 0,
-        });
-      }
 
       nextStep();
     } catch (error) {

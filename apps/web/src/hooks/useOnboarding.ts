@@ -306,8 +306,11 @@ export function useOnboarding(options: UseOnboardingOptions = {}) {
   useEffect(() => {
     registerOnboardingFlush(() => {
       const { currentStep: s, completedSteps: c, formData: f } = stateRef.current;
-      const { nonPii } = separatePII(f);
+      const { pii, nonPii } = separatePII(f);
       safeSetStorage(STORAGE_KEY, JSON.stringify({ currentStep: s, completedSteps: c, formData: nonPii }));
+      if (Object.keys(pii).length > 0) {
+        securePIIStorage.set("contact_info", pii).catch(() => {});
+      }
     });
     return () => registerOnboardingFlush(null);
   }, []);

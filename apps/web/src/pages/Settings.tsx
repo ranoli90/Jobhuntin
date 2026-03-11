@@ -8,7 +8,7 @@ import { Card } from "../components/ui/Card";
 import { LoadingSpinner } from "../components/ui/LoadingSpinner";
 import { ConfirmModal } from "../components/ui/ConfirmModal";
 import { pushToast } from "../lib/toast";
-import { getApiBase, getAuthHeaders } from "../lib/api";
+import { apiFetch, apiDelete, handleApiError } from "../lib/api";
 import { telemetry } from "../lib/telemetry";
 import { ThemeToggle } from "../components/ThemeToggle";
 
@@ -45,8 +45,14 @@ export default function Settings() {
 
   const prefsInitialized = React.useRef(false);
   const contactInitialized = React.useRef(false);
+  const prevProfileId = React.useRef<string | null>(null);
 
   React.useEffect(() => {
+    if (profile?.id !== prevProfileId.current) {
+      prevProfileId.current = profile?.id ?? null;
+      prefsInitialized.current = false;
+      contactInitialized.current = false;
+    }
     if (profile?.preferences && !prefsInitialized.current) {
       prefsInitialized.current = true;
       const p = profile.preferences;
@@ -77,6 +83,21 @@ export default function Settings() {
 
   const handleSavePreferences = async (e: React.FormEvent) => {
     e.preventDefault();
+    const SALARY_CAP = 10_000_000;
+    const salaryMin = preferences.salary_min ? Number(preferences.salary_min) : undefined;
+    const salaryMax = preferences.salary_max ? Number(preferences.salary_max) : undefined;
+    if (salaryMin != null && (Number.isNaN(salaryMin) || salaryMin < 0 || salaryMin > SALARY_CAP)) {
+      pushToast({ title: "Invalid min salary", description: `Must be 0–$${(SALARY_CAP / 1_000_000).toFixed(0)}M`, tone: "error" });
+      return;
+    }
+    if (salaryMax != null && (Number.isNaN(salaryMax) || salaryMax < 0 || salaryMax > SALARY_CAP)) {
+      pushToast({ title: "Invalid max salary", description: `Must be 0–$${(SALARY_CAP / 1_000_000).toFixed(0)}M`, tone: "error" });
+      return;
+    }
+    if (salaryMin != null && salaryMax != null && salaryMax < salaryMin) {
+      pushToast({ title: "Invalid salary range", description: "Max must be ≥ min", tone: "error" });
+      return;
+    }
     setIsSaving(true);
     try {
       await updateProfile({
@@ -181,19 +202,8 @@ export default function Settings() {
 
     setIsDeleting(true);
     try {
-      const authHeaders = await getAuthHeaders();
-      const response = await fetch(`${getApiBase()}/user/delete-account`, {
-        method: 'DELETE',
-        headers: authHeaders,
-      });
+      await apiDelete("user/delete-account");
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.detail || 'Failed to delete account');
-      }
-
-      const result = await response.json();
-      
       // Track deletion event
       telemetry.track('Account Deleted', {
         success: true,
@@ -231,13 +241,11 @@ export default function Settings() {
     setIsExporting(true);
     setShowExportConfirm(false);
     try {
-      const base = getApiBase();
-      const headers = await getAuthHeaders();
-      const res = await fetch(`${base.replace(/\/$/, "")}/me/export`, {
-        headers,
-        credentials: "include",
-      });
-      if (!res.ok) throw new Error(res.statusText || "Export failed");
+      const res = await apiFetch("me/export", { method: "GET" });
+      if (!res.ok) {
+        const text = await res.clone().text();
+        handleApiError(res, text);
+      }
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
