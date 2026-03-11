@@ -26,9 +26,8 @@ async def get_tenant_context() -> TenantContext:
 
 # Pydantic models
 class ConcurrentSessionRequest(BaseModel):
-    """Concurrent session creation request."""
+    """Concurrent session creation request. user_id is ignored; taken from auth context."""
 
-    user_id: str = Field(..., description="User ID")
     application_id: Optional[str] = Field(None, description="Application ID")
     total_steps: int = Field(default=0, description="Total number of steps")
 
@@ -74,7 +73,7 @@ async def track_concurrent_session(
 
         session = await tracker.track_session(
             session_id=session_id,
-            user_id=request.user_id,
+            user_id=ctx.user_id,
             tenant_id=ctx.tenant_id,
             application_id=request.application_id,
             total_steps=request.total_steps,
