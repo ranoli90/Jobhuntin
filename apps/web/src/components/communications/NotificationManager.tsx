@@ -485,9 +485,9 @@ const NotificationManager: React.FC = () => {
           <CardContent>
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="title">Title</Label>
+                <Label htmlFor="notification-title">Title</Label>
                 <Input
-                  id="title"
+                  id="notification-title"
                   placeholder="Notification title"
                   value={composeForm.title}
                   onChange={(e) =>
@@ -497,9 +497,9 @@ const NotificationManager: React.FC = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="message">Message</Label>
+                <Label htmlFor="notification-message">Message</Label>
                 <Textarea
-                  id="message"
+                  id="notification-message"
                   placeholder="Notification message"
                   rows={4}
                   value={composeForm.message}

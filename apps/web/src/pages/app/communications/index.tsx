@@ -64,7 +64,7 @@ const CommunicationsPage: React.FC = () => {
         </Alert>
       )}
 
-      <Tabs value={activeTab} className="space-y-4">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
         <TabsList className="grid w-full">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="email">Email</TabsTrigger>

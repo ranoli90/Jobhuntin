@@ -466,9 +466,9 @@ const ApplicationExportPage: React.FC = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="date-from">Date From</Label>
+                <Label htmlFor="page-date-from">Date From</Label>
                 <Input
-                  id="date-from"
+                  id="page-date-from"
                   type="date"
                   value={exportConfig.filters.date_from || ""}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
@@ -484,9 +484,9 @@ const ApplicationExportPage: React.FC = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="date-to">Date To</Label>
+                <Label htmlFor="page-date-to">Date To</Label>
                 <Input
-                  id="date-to"
+                  id="page-date-to"
                   type="date"
                   value={exportConfig.filters.date_to || ""}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
@@ -509,7 +509,7 @@ const ApplicationExportPage: React.FC = () => {
             <div className="space-y-2">
               <div className="flex items-center space-x-2">
                 <Checkbox
-                  id="include-notes"
+                  id="page-include-notes"
                   checked={exportConfig.include_notes}
                   onCheckedChange={(checked) =>
                     setExportConfig({
@@ -518,11 +518,11 @@ const ApplicationExportPage: React.FC = () => {
                     })
                   }
                 />
-                <Label htmlFor="include-notes">Include application notes</Label>
+                <Label htmlFor="page-include-notes">Include application notes</Label>
               </div>
               <div className="flex items-center space-x-2">
                 <Checkbox
-                  id="include-reminders"
+                  id="page-include-reminders"
                   checked={exportConfig.include_reminders}
                   onCheckedChange={(checked) =>
                     setExportConfig({
@@ -531,7 +531,7 @@ const ApplicationExportPage: React.FC = () => {
                     })
                   }
                 />
-                <Label htmlFor="include-reminders">Include reminders</Label>
+                <Label htmlFor="page-include-reminders">Include reminders</Label>
               </div>
             </div>
           </div>

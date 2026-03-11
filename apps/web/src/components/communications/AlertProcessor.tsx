@@ -518,9 +518,9 @@ const AlertProcessor: React.FC = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="title">Title</Label>
+                <Label htmlFor="alert-title">Title</Label>
                 <Input
-                  id="title"
+                  id="alert-title"
                   placeholder="Alert title"
                   value={alertForm.title}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
@@ -530,9 +530,9 @@ const AlertProcessor: React.FC = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="message">Message</Label>
+                <Label htmlFor="alert-message">Message</Label>
                 <Textarea
-                  id="message"
+                  id="alert-message"
                   placeholder="Alert message"
                   rows={4}
                   value={alertForm.message}
