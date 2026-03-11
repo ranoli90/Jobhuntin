@@ -1613,7 +1613,7 @@ export function JobsView() {
                     className="w-full"
                     onClick={() => {
                       setShowFirstStepsModal(false);
-                      navigate("/app/dashboard");
+                      navigate("/app/jobs");
                       telemetry.track("first_steps_jobs_clicked", {});
                     }}
                   >

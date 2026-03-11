@@ -15,13 +15,26 @@ export interface ApplicationRecord {
   last_activity?: string;
 }
 
-async function fetchApplications(): Promise<ApplicationRecord[]> {
-  const json = await apiGet<
-    | { items?: ApplicationRecord[]; applications?: ApplicationRecord[] }
-    | ApplicationRecord[]
-  >("me/applications");
-  if (Array.isArray(json)) return json;
-  return json.items ?? json.applications ?? [];
+interface ApplicationsResponse {
+  items?: ApplicationRecord[];
+  applications?: ApplicationRecord[];
+  pagination?: { total: number; limit: number; offset: number };
+}
+
+async function fetchApplications(): Promise<{
+  items: ApplicationRecord[];
+  total: number;
+}> {
+  const json = await apiGet<ApplicationsResponse | ApplicationRecord[]>(
+    "me/applications?limit=100",
+  );
+  if (Array.isArray(json)) {
+    return { items: json, total: json.length };
+  }
+  const items = json.items ?? json.applications ?? [];
+  const total =
+    json.pagination?.total ?? items.length;
+  return { items, total };
 }
 
 export interface QueueStats {
@@ -45,13 +58,13 @@ export function useApplications() {
     // #23: Dynamic polling - 10s when APPLYING, 30s otherwise; don't poll when tab hidden
     refetchInterval: (q) => {
       const data = q.state.data;
-      const hasApplying = data?.some((a) => a.status === "APPLYING") ?? false;
+      const hasApplying = data?.items?.some((a) => a.status === "APPLYING") ?? false;
       return hasApplying ? 10_000 : 30_000;
     },
     refetchIntervalInBackground: false,
   });
 
-  const applications = query.data ?? [];
+  const { items: applications = [], total: totalApps = 0 } = query.data ?? {};
   const hasApplying = applications.some((a) => a.status === "APPLYING");
 
   const queueStatsQuery = useQuery({
@@ -65,6 +78,7 @@ export function useApplications() {
   const successCount = applications.filter(
     (app) => app.status === "APPLIED",
   ).length;
+  const displayTotal = totalApps > 0 ? totalApps : applications.length;
   const successRate =
     applications.length > 0
       ? Math.round((successCount / applications.length) * 100)
@@ -202,12 +216,12 @@ export function useApplications() {
     byStatus,
     stats: {
       successRate,
-      totalApps: applications.length,
-      monthlyApps: applications.length, // Same as totalApps until API provides monthly count
+      totalApps: displayTotal,
+      monthlyApps: displayTotal, // Same as totalApps until API provides monthly count
     },
     queueStats: queueStats ?? null,
     isLoading: query.isLoading,
-    error: query.error ? query.error.message : null,
+    error: query.error ? String(query.error) : null,
     isSubmitting: (id: string) => submittingIds.has(id),
     refetch: query.refetch,
     answerHold,

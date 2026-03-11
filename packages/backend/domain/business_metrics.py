@@ -86,10 +86,10 @@ async def get_conversion_funnel(conn: asyncpg.Connection) -> dict[str, Any]:
             WHERE created_at >= now() - interval '30 days'
         ),
         onboarded AS (
-            SELECT COUNT(DISTINCT user_id)::int AS count
-            FROM public.onboarding_progress
-            WHERE completed_at IS NOT NULL
-            AND completed_at >= now() - interval '30 days'
+            SELECT COUNT(DISTINCT p.user_id)::int AS count
+            FROM public.profiles p
+            WHERE COALESCE((p.profile_data->>'has_completed_onboarding')::boolean, false) = true
+            AND p.updated_at >= now() - interval '30 days'
         ),
         first_application AS (
             SELECT COUNT(DISTINCT user_id)::int AS count
