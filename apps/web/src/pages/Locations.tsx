@@ -4,25 +4,40 @@ import { MapPin, Briefcase, Building2, ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { SEO } from '../components/marketing/SEO';
 import { ConversionCTA } from '../components/seo/ConversionCTA';
-import locations from '../data/locations.json';
-import roles from '../data/roles.json';
+import { useDynamicData } from '../hooks/useDynamicData';
+import { LoadingSpinner } from '../components/ui/LoadingSpinner';
 
 const POPULAR_CITIES = ['New York', 'San Francisco', 'Austin', 'London', 'Remote'];
 
 export default function Locations() {
+    const { data: locationsData, loading: loadingLocations } = useDynamicData(() => import('../data/locations.json'));
+    const { data: rolesData, loading: loadingRoles } = useDynamicData(() => import('../data/roles.json'));
+
+    const locations = locationsData ?? [];
+    const roles = rolesData ?? [];
+
     const sortedLocations = useMemo(() =>
         [...locations].sort((a, b) => a.name.localeCompare(b.name)),
-        []);
+        [locations]);
 
     const rolesByCategory = useMemo(() => {
-        const grouped: Record<string, typeof roles> = {};
-        roles.forEach(role => {
+        type RoleItem = { id: string; name: string; category?: string };
+        const grouped: Record<string, RoleItem[]> = {};
+        (roles as RoleItem[]).forEach((role) => {
             const cat = role.category || 'Other';
             if (!grouped[cat]) grouped[cat] = [];
             grouped[cat].push(role);
         });
         return grouped;
-    }, []);
+    }, [roles]);
+
+    if (loadingLocations || loadingRoles) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-white">
+                <LoadingSpinner label="Loading..." />
+            </div>
+        );
+    }
 
     const title = 'Find Jobs by Location & Role | Remote, NYC, SF, Austin & More';
     const description = 'Browse AI-powered job opportunities by location and role. Find remote jobs, tech roles in NYC, marketing positions in Austin, and more. JobHuntin auto-applies to matches.';

@@ -12,7 +12,6 @@ import { useProfile } from "./hooks/useProfile";
 import { LoadingSpinner } from "./components/ui/LoadingSpinner";
 import { config } from "./config";
 import { useGoogleAnalytics } from "./hooks/useGoogleAnalytics";
-import { listen } from 'quicklink';
 import { CookieConsent } from './components/CookieConsent';
 import { OfflineBanner } from './components/OfflineBanner';
 import { ErrorBoundary, RouteErrorBoundary } from './components/ErrorBoundary';
@@ -171,7 +170,7 @@ export default function App() {
   useGoogleAnalytics();
 
   React.useEffect(() => {
-    listen();
+    import('quicklink').then(({ listen }) => listen());
   }, []);
 
   return (

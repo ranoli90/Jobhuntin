@@ -8,11 +8,24 @@ import { InternalLinkMesh } from '../components/seo/InternalLinkMesh';
 import { ConversionCTA } from '../components/seo/ConversionCTA';
 import { BreadcrumbNav } from '../components/seo/BreadcrumbNav';
 import { motion } from 'framer-motion';
-import competitorsData from '../data/competitors.json';
+import { useDynamicData } from '../hooks/useDynamicData';
+import { LoadingSpinner } from '../components/ui/LoadingSpinner';
 
-const COMPETITORS_MAP = Object.fromEntries(
-    competitorsData.map(c => [c.slug, c])
-);
+type CompetitorData = {
+  slug: string;
+  name: string;
+  category?: string;
+  domain?: string;
+  tagline?: string;
+  verdict?: string;
+  strengths?: string[];
+  weaknesses?: string[];
+  pricing?: { starts_at?: string; free_tier?: boolean; tiers?: Array<{ name?: string; price?: string }> };
+  status?: string;
+  differentiators?: string[];
+  rating_vs_jobhuntin?: Record<string, number[]>;
+  features?: Record<string, unknown>;
+};
 
 function calculateOverallScore(ratings?: Record<string, number[]>): number {
     if (!ratings) return 0;
@@ -20,11 +33,11 @@ function calculateOverallScore(ratings?: Record<string, number[]>): number {
     return values.length > 0 ? Math.round((values.reduce((a, b) => a + b, 0) / values.length) * 10) / 10 : 0;
 }
 
-function generateFAQ(competitor: typeof competitorsData[0]): FAQItem[] {
+function generateFAQ(competitor: CompetitorData): FAQItem[] {
     return [
         {
             question: `Is ${competitor.name} worth it in 2026?`,
-            answer: `${competitor.name} ${competitor.status === 'discontinued' ? 'is no longer available.' : `offers ${competitor.strengths[0]?.toLowerCase() || 'some useful features'}`}, but it can't match JobHuntin's autonomous agent, per-application tailoring, and stealth mode.`,
+            answer: `${competitor.name} ${competitor.status === 'discontinued' ? 'is no longer available.' : `offers ${(competitor.strengths ?? [])[0]?.toLowerCase() || 'some useful features'}`}, but it can't match JobHuntin's autonomous agent, per-application tailoring, and stealth mode.`,
         },
         {
             question: `What do users say about ${competitor.name}?`,
@@ -32,7 +45,7 @@ function generateFAQ(competitor: typeof competitorsData[0]): FAQItem[] {
         },
         {
             question: `How much does ${competitor.name} cost?`,
-            answer: `${competitor.name} starts at ${competitor.pricing.starts_at}${competitor.pricing.free_tier ? ' with a free tier' : ''}. JobHuntin starts free and the $19 Pro plan includes unlimited tailored applications and stealth mode.`,
+            answer: `${competitor.name} starts at ${competitor.pricing?.starts_at}${competitor.pricing?.free_tier ? ' with a free tier' : ''}. JobHuntin starts free and the $19 Pro plan includes unlimited tailored applications and stealth mode.`,
         },
         {
             question: `Is ${competitor.name} safe to use?`,
@@ -47,7 +60,18 @@ function generateFAQ(competitor: typeof competitorsData[0]): FAQItem[] {
 
 export default function ReviewPage() {
     const { competitorSlug } = useParams<{ competitorSlug: string }>();
+    const { data: competitorsData, loading } = useDynamicData(() => import('../data/competitors.json'));
+    const competitors = (competitorsData as CompetitorData[]) ?? [];
+    const COMPETITORS_MAP = Object.fromEntries(competitors.map(c => [c.slug, c]));
     const competitor = competitorSlug ? COMPETITORS_MAP[competitorSlug] : null;
+
+    if (loading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-slate-50">
+                <LoadingSpinner label="Loading..." />
+            </div>
+        );
+    }
 
     if (!competitor) {
         return (
@@ -88,7 +112,7 @@ export default function ReviewPage() {
                             "name": competitor.name,
                             "applicationCategory": "Job Search Automation",
                             "operatingSystem": "Web",
-                            "url": `https://${competitor.domain}`,
+                            ...(competitor.domain && { url: `https://${competitor.domain}` }),
                             "aggregateRating": {
                                 "@type": "AggregateRating",
                                 "ratingValue": overallScore.toString(),
@@ -106,7 +130,7 @@ export default function ReviewPage() {
                             "@type": "Organization",
                             "name": "JobHuntin",
                         },
-                        "reviewBody": competitor.verdict,
+                        ...(competitor.verdict && { reviewBody: competitor.verdict }),
                         "datePublished": "2026-02-01",
                     },
                     {
@@ -271,7 +295,7 @@ export default function ReviewPage() {
                     </h2>
                     <div className="bg-emerald-50 rounded-3xl border border-emerald-100 p-8">
                         <ul className="space-y-4">
-                            {competitor.strengths.map((s, i) => (
+                            {(competitor.strengths ?? []).map((s, i) => (
                                 <li key={i} className="flex items-start gap-3">
                                     <span className="text-emerald-500 font-bold text-lg leading-none mt-0.5">+</span>
                                     <span className="text-slate-700 font-medium">{s}</span>
@@ -294,7 +318,7 @@ export default function ReviewPage() {
                     </h2>
                     <div className="bg-red-50 rounded-3xl border border-red-100 p-8">
                         <ul className="space-y-4">
-                            {competitor.weaknesses.map((w, i) => (
+                            {(competitor.weaknesses ?? []).map((w, i) => (
                                 <li key={i} className="flex items-start gap-3">
                                     <span className="text-red-400 font-bold text-lg leading-none mt-0.5">−</span>
                                     <span className="text-slate-700 font-medium">{w}</span>
@@ -314,14 +338,14 @@ export default function ReviewPage() {
                     <h2 className="text-2xl font-bold text-slate-900 mb-6">{competitor.name} Pricing</h2>
                     <div className="bg-white rounded-3xl border border-slate-100 p-8">
                         <p className="text-lg font-bold text-slate-900 mb-4">
-                            Starts at {competitor.pricing.starts_at}
-                            {competitor.pricing.free_tier && <span className="text-emerald-600 text-sm ml-2">• Free tier available</span>}
+                            Starts at {competitor.pricing?.starts_at}
+                            {competitor.pricing?.free_tier && <span className="text-emerald-600 text-sm ml-2">• Free tier available</span>}
                         </p>
                         <ul className="space-y-2">
-                            {competitor.pricing.tiers?.map((t, i) => (
+                            {(competitor.pricing?.tiers ?? []).map((t: { name?: string; price?: string }, i: number) => (
                                 <li key={i} className="text-slate-600 text-sm font-medium flex items-center gap-2">
                                     <span className="w-1.5 h-1.5 bg-slate-300 rounded-full" />
-                                    {t}
+                                    {t.name ?? t.price ?? ''}
                                 </li>
                             ))}
                         </ul>
@@ -343,7 +367,7 @@ export default function ReviewPage() {
                     <h2 className="text-2xl font-bold text-slate-900 mb-6">
                         {competitor.name} vs JobHuntin Features
                     </h2>
-                    <ComparisonTable competitor={competitor} variant="compact" />
+                    <ComparisonTable competitor={{ ...competitor, features: competitor.features ?? {} }} variant="compact" />
                     <p className="text-center mt-4">
                         <Link to={`/vs/${competitorSlug}`} className="text-primary-600 font-bold text-sm hover:underline inline-flex items-center gap-1">
                             See full comparison <ArrowRight className="w-4 h-4" />
@@ -380,7 +404,7 @@ export default function ReviewPage() {
                 <InternalLinkMesh
                     currentSlug={competitorSlug!}
                     currentType="review"
-                    competitorCategory={competitor.category}
+                    competitorCategory={competitor.category ? [competitor.category] : undefined}
                 />
 
                 {/* CTA */}

@@ -3,9 +3,8 @@ import { useParams, Link } from 'react-router-dom';
 import { Bot, ArrowLeft, MapPin, Target, Briefcase, Zap, TrendingUp, DollarSign, Globe, CheckCircle2, Menu, X } from 'lucide-react';
 import { SEO } from '../components/marketing/SEO';
 import { motion } from 'framer-motion';
-import rolesData from '../data/roles.json';
-import locationsData from '../data/locations.json';
-import guidesData from '../data/guides.json';
+import { useDynamicData } from '../hooks/useDynamicData';
+import { LoadingSpinner } from '../components/ui/LoadingSpinner';
 
 interface RoleSchema {
   "@context": string;
@@ -50,6 +49,10 @@ export default function JobNiche() {
   const { role, city } = useParams<{ role: string; city: string }>();
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
 
+  const { data: rolesData, loading: loadingRoles } = useDynamicData(() => import('../data/roles.json'));
+  const { data: locationsData, loading: loadingLocations } = useDynamicData(() => import('../data/locations.json'));
+  const { data: guidesData, loading: loadingGuides } = useDynamicData(() => import('../data/guides.json'));
+
   // Sanitize and validate URL parameters
   const sanitizedRole = sanitizeSlug(role || '');
   const sanitizedCity = sanitizeSlug(city || '');
@@ -57,7 +60,6 @@ export default function JobNiche() {
   // Check for invalid or spammy URLs
   if (!isValidSlug(sanitizedRole) || !isValidSlug(sanitizedCity) || 
       detectSpammyPattern(sanitizedRole) || detectSpammyPattern(sanitizedCity)) {
-    // Redirect to a valid page or show error
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
         <div className="text-center">
@@ -71,8 +73,21 @@ export default function JobNiche() {
     );
   }
 
-  const roleInfo = (rolesData as RoleData[]).find(r => r.id === sanitizedRole);
-  const cityInfo = locationsData.find(c => c.id === sanitizedCity);
+  if (loadingRoles || loadingLocations || loadingGuides) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <LoadingSpinner label="Loading..." />
+      </div>
+    );
+  }
+
+  const roles = (rolesData as RoleData[]) ?? [];
+  type LocationItem = { id: string; name: string; country?: string; state?: string; population?: string | number; techHub?: boolean; startupScene?: boolean; remotePercentage?: number; industries?: string[]; medianIncome?: number; unemploymentRate?: number; costOfLivingIndex?: number; majorEmployers?: string[] };
+  const locations = (locationsData as LocationItem[]) ?? [];
+  const guides = (guidesData as Record<string, { title: string; category: string; readTime?: string }>) ?? {};
+
+  const roleInfo = roles.find(r => r.id === sanitizedRole);
+  const cityInfo = locations.find(c => c.id === sanitizedCity);
 
   const seoData = generateLocationRoleSEO(
     roleInfo?.name || role || 'Professional',
@@ -387,9 +402,9 @@ export default function JobNiche() {
           <h2 className="text-xl sm:text-2xl font-black mb-6">Related Guides</h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {(['resume-tailoring-guide', 'how-to-beat-ats-with-ai', 'ai-cover-letter-mastery'] as const)
-              .filter(slug => guidesData[slug])
+              .filter(slug => guides[slug])
               .map(slug => {
-                const guide = guidesData[slug as keyof typeof guidesData];
+                const guide = guides[slug as keyof typeof guides];
                 return (
                   <Link
                     key={slug}
@@ -397,7 +412,7 @@ export default function JobNiche() {
                     className="bg-white p-4 sm:p-6 rounded-xl border border-slate-100 shadow-sm hover:border-primary-200 hover:shadow-md transition-all"
                   >
                     <p className="font-bold text-slate-900 mb-1">{guide.title}</p>
-                    <p className="text-xs text-slate-500">{guide.readTime} read</p>
+                    <p className="text-xs text-slate-500">{guide?.readTime ?? '5 min'} read</p>
                   </Link>
                 );
               })}

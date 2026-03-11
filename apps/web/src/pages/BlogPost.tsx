@@ -3,10 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import { SEO } from '../components/marketing/SEO';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Clock, User, Tag, Share2, Twitter, Linkedin, Facebook } from 'lucide-react';
-import { marked } from 'marked';
-import DOMPurify from 'dompurify';
-
-marked.setOptions({ gfm: true });
+import { LazyMarkdown } from '../components/ui/LazyMarkdown';
 
 const blogPosts: Record<string, {
   title: string;
@@ -307,22 +304,24 @@ export default function BlogPost() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="blog-content prose prose-lg max-w-none mb-12
-            prose-headings:font-bold prose-headings:text-[#2D2A26]
-            prose-h2:text-xl sm:prose-h2:text-2xl prose-h2:mt-10 prose-h2:mb-4 prose-h2:pb-2 prose-h2:border-b prose-h2:border-[#E9E9E7]
-            prose-h3:text-lg sm:prose-h3:text-xl prose-h3:mt-8 prose-h3:mb-3
-            prose-p:text-[#787774] prose-p:leading-[1.7] prose-p:mb-4
-            prose-a:text-[#455DD3] prose-a:font-medium prose-a:no-underline hover:prose-a:underline
-            prose-strong:text-[#2D2A26] prose-strong:font-semibold
-            prose-li:text-[#787774] prose-li:my-1
-            prose-ul:my-4 prose-ol:my-4
-            prose-table:text-sm prose-table:w-full prose-table:my-6
-            prose-th:bg-[#F7F6F3] prose-th:p-3 prose-th:text-left prose-th:font-semibold prose-th:text-[#2D2A26] prose-th:border prose-th:border-[#E9E9E7]
-            prose-td:p-3 prose-td:border prose-td:border-[#E9E9E7] prose-td:text-[#787774]"
-          dangerouslySetInnerHTML={{
-            __html: DOMPurify.sanitize(marked.parse(post.content, { async: false }) as string),
-          }}
-        />
+          className="blog-content mb-12"
+        >
+          <LazyMarkdown
+            content={post.content}
+            className="prose prose-lg max-w-none
+              prose-headings:font-bold prose-headings:text-[#2D2A26]
+              prose-h2:text-xl sm:prose-h2:text-2xl prose-h2:mt-10 prose-h2:mb-4 prose-h2:pb-2 prose-h2:border-b prose-h2:border-[#E9E9E7]
+              prose-h3:text-lg sm:prose-h3:text-xl prose-h3:mt-8 prose-h3:mb-3
+              prose-p:text-[#787774] prose-p:leading-[1.7] prose-p:mb-4
+              prose-a:text-[#455DD3] prose-a:font-medium prose-a:no-underline hover:prose-a:underline
+              prose-strong:text-[#2D2A26] prose-strong:font-semibold
+              prose-li:text-[#787774] prose-li:my-1
+              prose-ul:my-4 prose-ol:my-4
+              prose-table:text-sm prose-table:w-full prose-table:my-6
+              prose-th:bg-[#F7F6F3] prose-th:p-3 prose-th:text-left prose-th:font-semibold prose-th:text-[#2D2A26] prose-th:border prose-th:border-[#E9E9E7]
+              prose-td:p-3 prose-td:border prose-td:border-[#E9E9E7] prose-td:text-[#787774]"
+          />
+        </motion.article>
 
         {/* Author bio — SEO #42 */}
         <div className="bg-slate-50 dark:bg-slate-900/50 rounded-2xl p-6 mb-12 border border-slate-100 dark:border-slate-800">

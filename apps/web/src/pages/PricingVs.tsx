@@ -7,29 +7,51 @@ import { InternalLinkMesh } from '../components/seo/InternalLinkMesh';
 import { ConversionCTA } from '../components/seo/ConversionCTA';
 import { BreadcrumbNav } from '../components/seo/BreadcrumbNav';
 import { motion } from 'framer-motion';
-import competitorsData from '../data/competitors.json';
+import { useDynamicData } from '../hooks/useDynamicData';
+import { LoadingSpinner } from '../components/ui/LoadingSpinner';
 
-const COMPETITORS_MAP: Record<string, typeof competitorsData[0]> = Object.fromEntries(
-    competitorsData.map(c => [c.slug, c])
-);
+type CompetitorData = {
+  slug: string;
+  name: string;
+  category?: string;
+  domain?: string;
+  pricing?: {
+    starts_at?: string;
+    free_tier?: boolean;
+    tiers?: Array<{ name?: string; price?: string; features?: string[] }>;
+  };
+  features?: {
+    stealth_mode?: boolean;
+    resume_tailoring?: boolean;
+    ai_agent?: boolean;
+    auto_apply?: boolean;
+    cover_letter_gen?: boolean;
+    ats_optimization?: boolean;
+    job_tracking?: boolean;
+    browser_extension?: boolean;
+    mobile_app?: boolean;
+  };
+};
 
-function generateFAQ(competitor: typeof competitorsData[0]): FAQItem[] {
+function generateFAQ(competitor: CompetitorData): FAQItem[] {
+    const pricing = competitor.pricing ?? {};
+    const features = competitor.features ?? {};
     return [
         {
             question: `Is JobHuntin cheaper than ${competitor.name}?`,
-            answer: `JobHuntin starts free while ${competitor.name} starts at ${competitor.pricing.starts_at}. The $19 Pro plan includes unlimited tailored applications and stealth mode — more value per dollar.`,
+            answer: `JobHuntin starts free while ${competitor.name} starts at ${pricing.starts_at}. The $19 Pro plan includes unlimited tailored applications and stealth mode — more value per dollar.`,
         },
         {
             question: `Does ${competitor.name} have a free plan?`,
-            answer: `${competitor.pricing.free_tier ? `Yes, ${competitor.name} offers a free tier with limits.` : `No, ${competitor.name} starts at ${competitor.pricing.starts_at}.`} JobHuntin offers a free plan so you can see real results before upgrading.`,
+            answer: `${pricing.free_tier ? `Yes, ${competitor.name} offers a free tier with limits.` : `No, ${competitor.name} starts at ${pricing.starts_at}.`} JobHuntin offers a free plan so you can see real results before upgrading.`,
         },
         {
             question: `What's the best value between ${competitor.name} and JobHuntin?`,
-            answer: `JobHuntin. You get autonomous AI, per-application tailoring, stealth mode, and job tracking in one plan. ${competitor.name}'s top tier still ${competitor.features.stealth_mode ? 'can\'t match that scope' : 'misses stealth mode and full automation'}.`,
+            answer: `JobHuntin. You get autonomous AI, per-application tailoring, stealth mode, and job tracking in one plan. ${competitor.name}'s top tier still ${features.stealth_mode ? 'can\'t match that scope' : 'misses stealth mode and full automation'}.`,
         },
         {
             question: `Are there hidden fees with ${competitor.name}?`,
-            answer: `${competitor.name} starts at ${competitor.pricing.starts_at} with multiple tiers and gated features. JobHuntin's Pro plan includes everything — no hidden fees or per-application charges.`,
+            answer: `${competitor.name} starts at ${pricing.starts_at} with multiple tiers and gated features. JobHuntin's Pro plan includes everything — no hidden fees or per-application charges.`,
         },
         {
             question: `Can I try JobHuntin before paying?`,
@@ -40,7 +62,18 @@ function generateFAQ(competitor: typeof competitorsData[0]): FAQItem[] {
 
 export default function PricingVs() {
     const { competitorSlug } = useParams<{ competitorSlug: string }>();
+    const { data: competitorsData, loading } = useDynamicData(() => import('../data/competitors.json'));
+    const competitors = (competitorsData as CompetitorData[]) ?? [];
+    const COMPETITORS_MAP: Record<string, CompetitorData> = Object.fromEntries(competitors.map(c => [c.slug, c]));
     const competitor = competitorSlug ? COMPETITORS_MAP[competitorSlug] : null;
+
+    if (loading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-slate-50">
+                <LoadingSpinner label="Loading..." />
+            </div>
+        );
+    }
 
     if (!competitor) {
         return (
@@ -54,7 +87,7 @@ export default function PricingVs() {
     }
 
     const title = `${competitor.name} vs JobHuntin Pricing 2026 | Compare Plans & Value`;
-    const description = `Compare ${competitor.name} pricing (starts at ${competitor.pricing.starts_at}) vs JobHuntin (free tier, $19/mo Pro). See which offers better value for AI auto-apply and resume tailoring.`;
+    const description = `Compare ${competitor.name} pricing (starts at ${competitor.pricing?.starts_at}) vs JobHuntin (free tier, $19/mo Pro). See which offers better value for AI auto-apply and resume tailoring.`;
     const canonicalUrl = `https://jobhuntin.com/pricing-vs/${competitorSlug}`;
     const faq = generateFAQ(competitor);
 
@@ -123,7 +156,7 @@ export default function PricingVs() {
                             {
                                 "@type": "ListItem",
                                 "position": 1,
-                                "url": `https://${competitor.domain}`,
+                                ...(competitor.domain && { url: `https://${competitor.domain}` }),
                                 "name": competitor.name,
                                 "item": {
                                     "@type": "SoftwareApplication",
@@ -185,7 +218,7 @@ export default function PricingVs() {
                         </span>
                     </h1>
                     <p className="text-xl text-slate-500 max-w-2xl mx-auto font-medium">
-                        {competitor.name} starts at {competitor.pricing.starts_at}.
+                        {competitor.name} starts at {competitor.pricing?.starts_at}.
                         JobHuntin is free to start with Pro at $19/mo. See what you get for your money.
                     </p>
                 </motion.div>
@@ -201,30 +234,30 @@ export default function PricingVs() {
                     <div className="bg-white rounded-3xl border border-slate-200 p-8 shadow-sm">
                         <h2 className="text-xl font-bold text-slate-500 mb-2">{competitor.name}</h2>
                         <p className="text-3xl font-black text-slate-900 mb-6">
-                            {competitor.pricing.starts_at}
+                            {competitor.pricing?.starts_at}
                             <span className="text-sm text-slate-400 font-medium ml-1">starting</span>
                         </p>
                         <div className="space-y-3 mb-6">
-                            {(competitor.pricing.tiers ?? []).map((tier, i) => (
+                            {(competitor.pricing?.tiers ?? []).map((tier: { name?: string; price?: string; features?: string[] }, i: number) => (
                                 <div key={i} className="flex items-center gap-3 text-sm">
                                     <Minus className="w-4 h-4 text-slate-300" />
-                                    <span className="text-slate-600 font-medium">{tier}</span>
+                                    <span className="text-slate-600 font-medium">{tier.name ?? tier.price ?? ''}</span>
                                 </div>
                             ))}
                         </div>
                         <div className="border-t border-slate-100 pt-6">
                             <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-3">What's missing</h3>
                             <ul className="space-y-2">
-                                {!competitor.features.stealth_mode && (
+                                {!competitor.features?.stealth_mode && (
                                     <li className="flex items-center gap-2 text-sm text-red-500"><X className="w-4 h-4" /> Stealth Mode</li>
                                 )}
-                                {!competitor.features.resume_tailoring && (
+                                {!competitor.features?.resume_tailoring && (
                                     <li className="flex items-center gap-2 text-sm text-red-500"><X className="w-4 h-4" /> Per-app resume tailoring</li>
                                 )}
-                                {!competitor.features.ai_agent && (
+                                {!competitor.features?.ai_agent && (
                                     <li className="flex items-center gap-2 text-sm text-red-500"><X className="w-4 h-4" /> Autonomous AI agent</li>
                                 )}
-                                {!competitor.features.auto_apply && (
+                                {!competitor.features?.auto_apply && (
                                     <li className="flex items-center gap-2 text-sm text-red-500"><X className="w-4 h-4" /> Auto-apply</li>
                                 )}
                             </ul>
@@ -287,15 +320,15 @@ export default function PricingVs() {
                             </thead>
                             <tbody>
                                 {[
-                                    ['Autonomous AI Agent', true, competitor.features.ai_agent],
-                                    ['Per-Application Resume Tailoring', true, competitor.features.resume_tailoring],
-                                    ['Stealth Mode', true, competitor.features.stealth_mode],
-                                    ['Auto-Apply', true, competitor.features.auto_apply],
-                                    ['Cover Letter Generation', true, competitor.features.cover_letter_gen],
-                                    ['ATS Optimization', true, competitor.features.ats_optimization],
-                                    ['Job Tracking Dashboard', true, competitor.features.job_tracking],
-                                    ['Chrome Extension', true, competitor.features.browser_extension],
-                                    ['Mobile App', true, competitor.features.mobile_app],
+                                    ['Autonomous AI Agent', true, competitor.features?.ai_agent],
+                                    ['Per-Application Resume Tailoring', true, competitor.features?.resume_tailoring],
+                                    ['Stealth Mode', true, competitor.features?.stealth_mode],
+                                    ['Auto-Apply', true, competitor.features?.auto_apply],
+                                    ['Cover Letter Generation', true, competitor.features?.cover_letter_gen],
+                                    ['ATS Optimization', true, competitor.features?.ats_optimization],
+                                    ['Job Tracking Dashboard', true, competitor.features?.job_tracking],
+                                    ['Chrome Extension', true, competitor.features?.browser_extension],
+                                    ['Mobile App', true, competitor.features?.mobile_app],
                                 ].map(([feature, jh, comp], i) => (
                                     <tr key={i} className={`border-b border-slate-50 ${i % 2 === 0 ? '' : 'bg-slate-50/30'}`}>
                                         <td className="px-6 py-3 text-sm font-medium text-slate-700">{feature as string}</td>
@@ -318,7 +351,7 @@ export default function PricingVs() {
                                 <tr className="bg-primary-50 border-t-2 border-primary-200">
                                     <td className="px-6 py-4 text-sm font-bold text-slate-900">Monthly Price</td>
                                     <td className="px-6 py-4 text-center text-lg font-black text-primary-600">$19/mo</td>
-                                    <td className="px-6 py-4 text-center text-lg font-bold text-slate-500">{competitor.pricing.starts_at}</td>
+                                    <td className="px-6 py-4 text-center text-lg font-bold text-slate-500">{competitor.pricing?.starts_at}</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -332,7 +365,7 @@ export default function PricingVs() {
                 <InternalLinkMesh
                     currentSlug={competitorSlug!}
                     currentType="pricing"
-                    competitorCategory={competitor.category}
+                    competitorCategory={competitor.category ? [competitor.category] : ['ai-auto-apply-tools']}
                 />
 
                 {/* CTA */}

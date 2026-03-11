@@ -10,12 +10,14 @@ import { XSSProtection } from '../lib/validation';
 import authors from '../data/authors.json';
 import Author from '../components/marketing/Author';
 import RelatedGuides from '../components/marketing/RelatedGuides';
-
-import guides from '../data/guides.json';
+import { useDynamicData } from '../hooks/useDynamicData';
+import { LoadingSpinner } from '../components/ui/LoadingSpinner';
 
 export default function GuidePage() {
   const { guideSlug } = useParams<{ guideSlug: string }>();
-  const guide = guideSlug ? (guides as Record<string, any>)[guideSlug] : null;
+  const { data: guidesData, loading } = useDynamicData(() => import('../data/guides.json'));
+  const guides = guidesData as Record<string, { title: string; category: string; readTime: string; content: string; authorId?: string }> | null;
+  const guide = guideSlug && guides ? guides[guideSlug] : null;
   const author = guide ? authors.find(a => a.id === guide.authorId) : null;
   const [navOpen, setNavOpen] = useState(false);
   const [headings, setHeadings] = useState<Array<{id: string, text: string, level: number}>>([]);
@@ -75,6 +77,14 @@ export default function GuidePage() {
       ]
     };
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <LoadingSpinner label="Loading..." />
+      </div>
+    );
+  }
 
   if (!guide) {
     return (

@@ -5,21 +5,24 @@ import { SEO } from '../components/marketing/SEO';
 import { FAQAccordion, type FAQItem } from '../components/seo/FAQAccordion';
 import { ConversionCTA } from '../components/seo/ConversionCTA';
 import { motion } from 'framer-motion';
-import competitorsData from '../data/competitors.json';
-import categoriesData from '../data/categories.json';
+import { useDynamicData } from '../hooks/useDynamicData';
+import { LoadingSpinner } from '../components/ui/LoadingSpinner';
 import { generateCategoryHubSEO } from '../utils/seoOptimizer';
 
-const CATEGORIES_MAP: Record<string, typeof categoriesData[0]> = Object.fromEntries(
-    categoriesData.map(c => [c.slug, c])
-);
+type CategoryItem = { slug: string; name: string; description?: string; competitors: string[] };
+type CompetitorItem = {
+  slug: string;
+  name: string;
+  tagline?: string;
+  pricing?: { free_tier?: boolean; starts_at?: string };
+  status?: string;
+  rating_vs_jobhuntin?: Record<string, [number, number] | number[]>;
+  features?: { auto_apply?: boolean; resume_tailoring?: boolean; stealth_mode?: boolean; ai_agent?: boolean };
+};
 
-const COMPETITORS_MAP: Record<string, typeof competitorsData[0]> = Object.fromEntries(
-    competitorsData.map(c => [c.slug, c])
-);
-
-function generateFAQ(category: typeof categoriesData[0]): FAQItem[] {
+function generateFAQ(category: CategoryItem, competitorsMap: Record<string, CompetitorItem>): FAQItem[] {
     const toolNames = category.competitors
-        .map(slug => COMPETITORS_MAP[slug]?.name)
+        .map(slug => competitorsMap[slug]?.name)
         .filter(Boolean)
         .slice(0, 5);
 
@@ -34,7 +37,7 @@ function generateFAQ(category: typeof categoriesData[0]): FAQItem[] {
         },
         {
             question: `Which ${category.name.toLowerCase()} are free?`,
-            answer: `Several ${category.name.toLowerCase()} offer free tiers: ${category.competitors.filter(slug => COMPETITORS_MAP[slug]?.pricing.free_tier).map(slug => COMPETITORS_MAP[slug]?.name).filter(Boolean).join(', ') || 'limited options available'}. JobHuntin also offers a free tier that includes access to the AI agent. For unlimited applications with stealth mode, Pro plans start at $19/month.`,
+            answer: `Several ${category.name.toLowerCase()} offer free tiers: ${category.competitors.filter(slug => competitorsMap[slug]?.pricing?.free_tier).map(slug => competitorsMap[slug]?.name).filter(Boolean).join(', ') || 'limited options available'}. JobHuntin also offers a free tier that includes access to the AI agent. For unlimited applications with stealth mode, Pro plans start at $19/month.`,
         },
         {
             question: `Can ${category.name.toLowerCase()} get me banned from job boards?`,
@@ -49,7 +52,23 @@ function generateFAQ(category: typeof categoriesData[0]): FAQItem[] {
 
 export default function CategoryHub() {
     const { categorySlug } = useParams<{ categorySlug: string }>();
+    const { data: categoriesData, loading: loadingCategories } = useDynamicData(() => import('../data/categories.json'));
+    const { data: competitorsData, loading: loadingCompetitors } = useDynamicData(() => import('../data/competitors.json'));
+
+    const categories = (categoriesData as CategoryItem[]) ?? [];
+    const competitorsList = (competitorsData as CompetitorItem[]) ?? [];
+    const CATEGORIES_MAP: Record<string, CategoryItem> = Object.fromEntries(categories.map(c => [c.slug, c]));
+    const COMPETITORS_MAP: Record<string, CompetitorItem> = Object.fromEntries(competitorsList.map(c => [c.slug, c]));
+
     const category = categorySlug ? CATEGORIES_MAP[categorySlug] : null;
+
+    if (loadingCategories || loadingCompetitors) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-slate-50">
+                <LoadingSpinner label="Loading..." />
+            </div>
+        );
+    }
 
     if (!category) {
         return (
@@ -89,7 +108,7 @@ export default function CategoryHub() {
         }))
     };
 
-    const faq = generateFAQ(category);
+    const faq = generateFAQ(category, COMPETITORS_MAP);
 
     return (
         <div className="min-h-screen bg-slate-50 dark:bg-slate-950 font-sans text-slate-900 dark:text-slate-100 selection:bg-primary-500/20 selection:text-primary-700">
@@ -230,10 +249,11 @@ export default function CategoryHub() {
                     <h2 className="text-3xl font-black text-slate-900 mb-8">{seoData.h2s?.[2] ?? 'Top Tools Compared'}</h2>
                     <div className="space-y-6">
                         {competitors.map((comp, i) => {
-                            const score = comp.rating_vs_jobhuntin ? Math.round(
-                                Object.values(comp.rating_vs_jobhuntin).reduce(
-                                    (sum, [them]) => sum + them, 0
-                                ) / Object.keys(comp.rating_vs_jobhuntin).length * 10
+                            const rating = comp.rating_vs_jobhuntin;
+                            const score = rating ? Math.round(
+                                Object.values(rating).reduce(
+                                    (sum: number, vals: number[]) => sum + (vals[0] ?? 0), 0
+                                ) / Object.keys(rating).length * 10
                             ) / 10 : 0;
 
                             return (
@@ -270,25 +290,25 @@ export default function CategoryHub() {
                                             </div>
                                             <div className="flex flex-wrap gap-4 text-sm text-slate-600">
                                                 <span className="flex items-center gap-1">
-                                                    {comp.features.auto_apply ? <Check className="w-4 h-4 text-emerald-500" /> : <X className="w-4 h-4 text-red-400" />}
+                                                    {comp.features?.auto_apply ? <Check className="w-4 h-4 text-emerald-500" /> : <X className="w-4 h-4 text-red-400" />}
                                                     Auto-Apply
                                                 </span>
                                                 <span className="flex items-center gap-1">
-                                                    {comp.features.resume_tailoring ? <Check className="w-4 h-4 text-emerald-500" /> : <X className="w-4 h-4 text-red-400" />}
+                                                    {comp.features?.resume_tailoring ? <Check className="w-4 h-4 text-emerald-500" /> : <X className="w-4 h-4 text-red-400" />}
                                                     Resume Tailoring
                                                 </span>
                                                 <span className="flex items-center gap-1">
-                                                    {comp.features.stealth_mode ? <Check className="w-4 h-4 text-emerald-500" /> : <X className="w-4 h-4 text-red-400" />}
+                                                    {comp.features?.stealth_mode ? <Check className="w-4 h-4 text-emerald-500" /> : <X className="w-4 h-4 text-red-400" />}
                                                     Stealth Mode
                                                 </span>
                                                 <span className="flex items-center gap-1">
-                                                    {comp.features.ai_agent ? <Check className="w-4 h-4 text-emerald-500" /> : <X className="w-4 h-4 text-red-400" />}
+                                                    {comp.features?.ai_agent ? <Check className="w-4 h-4 text-emerald-500" /> : <X className="w-4 h-4 text-red-400" />}
                                                     AI Agent
                                                 </span>
                                             </div>
                                             <p className="mt-3 text-sm text-slate-500 font-medium">
-                                                Starting at {comp.pricing.starts_at}
-                                                {comp.pricing.free_tier && ' • Free tier available'}
+                                                Starting at {comp.pricing?.starts_at}
+                                                {comp.pricing?.free_tier && ' • Free tier available'}
                                             </p>
                                         </div>
                                         <div className="flex flex-col gap-2 flex-shrink-0">
@@ -338,7 +358,7 @@ export default function CategoryHub() {
                 <div className="mb-16">
                     <h2 className="text-3xl font-black text-slate-900 mb-6">Browse Other Categories</h2>
                     <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                        {categoriesData
+                        {categories
                             .filter(cat => cat.slug !== categorySlug)
                             .map(cat => (
                                 <Link

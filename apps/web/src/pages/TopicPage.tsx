@@ -1,17 +1,12 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ChevronRight, Home, BookOpen, FileText, BarChart3, Menu, X } from 'lucide-react';
-import topicsData from '../data/topics.json';
-import guidesData from '../data/guides.json';
-import competitorsData from '../data/competitors.json';
+import { useDynamicData } from '../hooks/useDynamicData';
+import { LoadingSpinner } from '../components/ui/LoadingSpinner';
 import { SEO } from '../components/marketing/SEO';
 import { ConversionCTA } from '../components/seo/ConversionCTA';
 import { XSSProtection } from '../lib/validation';
 import { config } from '../config';
-
-const topics = topicsData as Record<string, { title: string; description?: string; content: string }>;
-const guides = guidesData as Record<string, { title: string; category: string; readTime: string }>;
-const competitors = competitorsData as Array<{ slug: string; name: string }>;
 
 /** Strip HTML and truncate for meta description */
 function stripHtml(html: string, maxLen = 155): string {
@@ -45,6 +40,14 @@ const FEATURED_COMPETITORS = ['jobright', 'teal', 'simplify', 'sonara-ai'];
 
 export default function TopicPage() {
   const { slug } = useParams<{ slug: string }>();
+  const { data: topicsData, loading: loadingTopics } = useDynamicData(() => import('../data/topics.json'));
+  const { data: guidesData, loading: loadingGuides } = useDynamicData(() => import('../data/guides.json'));
+  const { data: competitorsData, loading: loadingCompetitors } = useDynamicData(() => import('../data/competitors.json'));
+
+  const topics = (topicsData as Record<string, { title: string; description?: string; content: string }>) ?? {};
+  const guides = (guidesData as Record<string, { title: string; category: string; readTime: string }>) ?? {};
+  const competitors = (competitorsData as Array<{ slug: string; name: string }>) ?? [];
+
   const topic = slug ? topics[slug] : null;
   const [navOpen, setNavOpen] = useState(false);
   const [headings, setHeadings] = useState<Array<{ id: string; text: string; level: number }>>([]);
@@ -79,6 +82,14 @@ export default function TopicPage() {
       competitors.some((c) => c.slug === s)
     ).map((s) => competitors.find((c) => c.slug === s)!);
   }, []);
+
+  if (loadingTopics || loadingGuides || loadingCompetitors) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#F7F6F3]">
+        <LoadingSpinner label="Loading..." />
+      </div>
+    );
+  }
 
   // 404 state
   if (!topic) {

@@ -25,15 +25,15 @@ import { ConfirmModal } from "../../components/ui/ConfirmModal";
 import { resumeUploadRetry } from "../../lib/resumeUploadRetry";
 import ResumeUploadRetry from "../../components/ui/ResumeUploadRetry";
 
-// Step Components
-import { WelcomeStep } from "./onboarding/steps/WelcomeStep";
-import { ResumeStep } from "./onboarding/steps/ResumeStep";
-import { SkillReviewStep } from "./onboarding/steps/SkillReviewStep";
-import { ConfirmContactStep } from "./onboarding/steps/ConfirmContactStep";
-import { PreferencesStep } from "./onboarding/steps/PreferencesStep";
-import { WorkStyleStep } from "./onboarding/steps/WorkStyleStep";
-import { CareerGoalsStep } from "./onboarding/steps/CareerGoalsStep";
-import { ReadyStep } from "./onboarding/steps/ReadyStep";
+// Step Components - lazy loaded to reduce Onboarding chunk size
+const WelcomeStep = React.lazy(() => import("./onboarding/steps/WelcomeStep").then((m) => ({ default: m.WelcomeStep })));
+const ResumeStep = React.lazy(() => import("./onboarding/steps/ResumeStep").then((m) => ({ default: m.ResumeStep })));
+const SkillReviewStep = React.lazy(() => import("./onboarding/steps/SkillReviewStep").then((m) => ({ default: m.SkillReviewStep })));
+const ConfirmContactStep = React.lazy(() => import("./onboarding/steps/ConfirmContactStep").then((m) => ({ default: m.ConfirmContactStep })));
+const PreferencesStep = React.lazy(() => import("./onboarding/steps/PreferencesStep").then((m) => ({ default: m.PreferencesStep })));
+const WorkStyleStep = React.lazy(() => import("./onboarding/steps/WorkStyleStep").then((m) => ({ default: m.WorkStyleStep })));
+const CareerGoalsStep = React.lazy(() => import("./onboarding/steps/CareerGoalsStep").then((m) => ({ default: m.CareerGoalsStep })));
+const ReadyStep = React.lazy(() => import("./onboarding/steps/ReadyStep").then((m) => ({ default: m.ReadyStep })));
 
 // Types
 import { ParsedResume, RichSkill, OnboardingFormData } from "../../types/onboarding";
@@ -1327,16 +1327,19 @@ export default function Onboarding() {
                           </div>
                         )}
                         {currentStepData.id === "welcome" && (
-                          <WelcomeStep
-                            onNext={nextStep}
-                            shouldReduceMotion={!!shouldReduceMotion}
-                            firstName={profile?.contact?.first_name}
-                          />
+                          <React.Suspense fallback={<OnboardingSkeleton />}>
+                            <WelcomeStep
+                              onNext={nextStep}
+                              shouldReduceMotion={!!shouldReduceMotion}
+                              firstName={profile?.contact?.first_name}
+                            />
+                          </React.Suspense>
                         )}
 
                         {currentStepData.id === "resume" && (
                           <>
-                            <ResumeStep
+                            <React.Suspense fallback={<ResumeStepSkeleton />}>
+                              <ResumeStep
                               onNext={handleResumeNext}
                               onPrev={prevStep}
                               onUpload={handleResumeUpload}
@@ -1358,6 +1361,7 @@ export default function Onboarding() {
                                 setRichSkills([]);
                               }}
                             />
+                            </React.Suspense>
 
                             {/* Resume Upload Retry Component */}
                             <AnimatePresence>
@@ -1380,103 +1384,115 @@ export default function Onboarding() {
                         )}
 
                         {currentStepData.id === "skill-review" && (
-                          <SkillReviewStep
-                            onNext={handleSaveSkills}
-                            onPrev={prevStep}
-                            richSkills={richSkills}
-                            setRichSkills={setRichSkills}
-                            isSaving={isSavingSkills}
-                          />
+                          <React.Suspense fallback={<SkillReviewStepSkeleton />}>
+                            <SkillReviewStep
+                              onNext={handleSaveSkills}
+                              onPrev={prevStep}
+                              richSkills={richSkills}
+                              setRichSkills={setRichSkills}
+                              isSaving={isSavingSkills}
+                            />
+                          </React.Suspense>
                         )}
 
                         {currentStepData.id === "confirm-contact" && (
-                          <ConfirmContactStep
-                            onNext={handleSaveContact}
-                            onPrev={prevStep}
-                            contactInfo={contactInfo}
-                            setContactInfo={setContactInfo}
-                            isSavingContact={isSavingContact}
-                            parsedResume={parsedResume}
-                            formErrors={formErrors}
-                            emailTypoSuggestion={emailTypoSuggestion}
-                            onApplyEmailSuggestion={(suggestion) => {
-                              setContactInfo(prev => ({
+                          <React.Suspense fallback={<OnboardingSkeleton />}>
+                            <ConfirmContactStep
+                              onNext={handleSaveContact}
+                              onPrev={prevStep}
+                              contactInfo={contactInfo}
+                              setContactInfo={setContactInfo}
+                              isSavingContact={isSavingContact}
+                              parsedResume={parsedResume}
+                              formErrors={formErrors}
+                              emailTypoSuggestion={emailTypoSuggestion}
+                              onApplyEmailSuggestion={(suggestion) => {
+                                setContactInfo(prev => ({
+                                  ...prev,
+                                  email: `${(prev.email ?? "").split('@')[0]}@${suggestion}`
+                                }));
+                                setEmailTypoSuggestion(null);
+                              }}
+                              onClearError={(field) => setFormErrors(prev => {
+                                const updated = { ...prev };
+                                delete updated[field];
+                                return updated;
+                              })}
+                              onSetFormError={(field, error) => setFormErrors(prev => ({
                                 ...prev,
-                                email: `${(prev.email ?? "").split('@')[0]}@${suggestion}`
-                              }));
-                              setEmailTypoSuggestion(null);
-                            }}
-                            onClearError={(field) => setFormErrors(prev => {
-                              const updated = { ...prev };
-                              delete updated[field];
-                              return updated;
-                            })}
-                            onSetFormError={(field, error) => setFormErrors(prev => ({
-                              ...prev,
-                              [field]: error
-                            }))}
-                          />
+                                [field]: error
+                              }))}
+                            />
+                          </React.Suspense>
                         )}
 
                         {currentStepData.id === "preferences" && (
-                          <PreferencesStep
-                            onNext={handleSavePreferences}
-                            onPrev={prevStep}
-                            preferences={preferences}
-                            setPreferences={setPreferences}
-                            isSavingPreferences={isSavingPreferences}
-                            aiSuggestions={{
-                              roles: aiSuggestions.roles.data,
-                              salary: aiSuggestions.salary.data,
-                              locations: aiSuggestions.locations.data,
-                              rolesLoading: aiSuggestions.roles.loading,
-                              salaryLoading: aiSuggestions.salary.loading,
-                              locationsLoading: aiSuggestions.locations.loading,
-                              rolesError: aiSuggestions.roles.error,
-                              salaryError: aiSuggestions.salary.error,
-                              locationsError: aiSuggestions.locations.error,
-                            }}
-                            formErrors={formErrors}
-                            hasParsedProfile={!!parsedProfile}
-                            onClearError={(field) => setFormErrors(prev => {
-                              const updated = { ...prev };
-                              delete updated[field];
-                              return updated;
-                            })}
-                          />
+                          <React.Suspense fallback={<PreferencesStepSkeleton />}>
+                            <PreferencesStep
+                              onNext={handleSavePreferences}
+                              onPrev={prevStep}
+                              preferences={preferences}
+                              setPreferences={setPreferences}
+                              isSavingPreferences={isSavingPreferences}
+                              aiSuggestions={{
+                                roles: aiSuggestions.roles.data,
+                                salary: aiSuggestions.salary.data,
+                                locations: aiSuggestions.locations.data,
+                                rolesLoading: aiSuggestions.roles.loading,
+                                salaryLoading: aiSuggestions.salary.loading,
+                                locationsLoading: aiSuggestions.locations.loading,
+                                rolesError: aiSuggestions.roles.error,
+                                salaryError: aiSuggestions.salary.error,
+                                locationsError: aiSuggestions.locations.error,
+                              }}
+                              formErrors={formErrors}
+                              hasParsedProfile={!!parsedProfile}
+                              onClearError={(field) => setFormErrors(prev => {
+                                const updated = { ...prev };
+                                delete updated[field];
+                                return updated;
+                              })}
+                            />
+                          </React.Suspense>
                         )}
 
                         {currentStepData.id === "work-style" && (
-                          <WorkStyleStep
-                            onNext={handleSaveWorkStyle}
-                            onPrev={prevStep}
-                            answers={workStyleAnswers}
-                            setAnswers={setWorkStyleAnswers}
-                            isSaving={isSavingWorkStyle}
-                          />
+                          <React.Suspense fallback={<OnboardingSkeleton />}>
+                            <WorkStyleStep
+                              onNext={handleSaveWorkStyle}
+                              onPrev={prevStep}
+                              answers={workStyleAnswers}
+                              setAnswers={setWorkStyleAnswers}
+                              isSaving={isSavingWorkStyle}
+                            />
+                          </React.Suspense>
                         )}
 
                         {currentStepData.id === "career-goals" && (
-                          <CareerGoalsStep
-                            onNext={handleSaveCareerGoals}
-                            onPrev={prevStep}
-                            careerGoals={careerGoals}
-                            setCareerGoals={setCareerGoals}
-                            isSaving={isSavingCareerGoals}
-                          />
+                          <React.Suspense fallback={<OnboardingSkeleton />}>
+                            <CareerGoalsStep
+                              onNext={handleSaveCareerGoals}
+                              onPrev={prevStep}
+                              careerGoals={careerGoals}
+                              setCareerGoals={setCareerGoals}
+                              isSaving={isSavingCareerGoals}
+                            />
+                          </React.Suspense>
                         )}
 
                         {currentStepData.id === "ready" && (
-                          <ReadyStep
-                            onNext={handleComplete}
-                            isCompleting={isCompleting}
-                            contactInfo={contactInfo}
-                            preferences={preferences}
-                            completeness={completeness}
-                            profile={profile}
-                            resumeFile={resumeFile}
-                            shouldReduceMotion={!!shouldReduceMotion}
-                          />
+                          <React.Suspense fallback={<OnboardingSkeleton />}>
+                            <ReadyStep
+                              onNext={handleComplete}
+                              isCompleting={isCompleting}
+                              contactInfo={contactInfo}
+                              preferences={preferences}
+                              completeness={completeness}
+                              profile={profile}
+                              resumeFile={resumeFile}
+                              shouldReduceMotion={!!shouldReduceMotion}
+                            />
+                          </React.Suspense>
                         )}
                       </motion.div>
                     )}

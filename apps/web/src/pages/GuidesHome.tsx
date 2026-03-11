@@ -4,21 +4,35 @@ import { Bot, ArrowLeft, BookOpen, Zap, Shield, Search, ChevronRight, Target, Me
 import { SEO } from '../components/marketing/SEO';
 import { motion, useReducedMotion } from 'framer-motion';
 import { GoogleSearch } from '../components/ui/GoogleSearch';
-import guidesRaw from '../data/guides.json';
-
-const GUIDES = Object.entries(guidesRaw as Record<string, { title: string; category: string; readTime: string; content: string }>).map(
-  ([slug, data]) => ({
-    slug,
-    title: data.title,
-    desc: data.content.replace(/<[^>]+>/g, '').slice(0, 140) + '...',
-    category: data.category,
-    readTime: data.readTime,
-  })
-);
+import { useDynamicData } from '../hooks/useDynamicData';
+import { LoadingSpinner } from '../components/ui/LoadingSpinner';
 
 export default function GuidesHome() {
   const [searchOpen, setSearchOpen] = useState(false);
   const shouldReduceMotion = useReducedMotion();
+  const { data: guidesRaw, loading } = useDynamicData(() => import('../data/guides.json'));
+
+  const GUIDES = useMemo(() => {
+    if (!guidesRaw) return [];
+    return Object.entries(guidesRaw as Record<string, { title: string; category: string; readTime: string; content: string }>).map(
+      ([slug, data]) => ({
+        slug,
+        title: data.title,
+        desc: data.content.replace(/<[^>]+>/g, '').slice(0, 140) + '...',
+        category: data.category,
+        readTime: data.readTime,
+      })
+    );
+  }, [guidesRaw]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <LoadingSpinner label="Loading..." />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 font-sans text-slate-900 dark:text-slate-100 selection:bg-primary-500/20 selection:text-primary-700">
       <SEO
