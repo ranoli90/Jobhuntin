@@ -189,4 +189,7 @@ class OnboardingSessionRepo:
             session_id,
         )
         # asyncpg execute returns "DELETE N" - check if any rows were deleted
-        return result.split()[-1] != "0"
+        if not result:
+            return False
+        parts = result.split()
+        return parts[-1] != "0" if parts else False

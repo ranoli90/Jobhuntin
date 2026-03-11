@@ -321,7 +321,7 @@ class APIKeyRotationManager:
                   AND grace_expires_at < now()
                 """
             )
-            count = int(result.split()[-1])
+            count = int(result.split()[-1]) if result else 0
 
         incr("api_keys.grace_expired", None, count)
         logger.info("Cleaned up %d expired grace period keys", count)
@@ -386,7 +386,7 @@ class APIKeyRotationManager:
                 WHERE calls_this_month > 0
                 """
             )
-            count = int(result.split()[-1])
+            count = int(result.split()[-1]) if result else 0
 
         incr("api_keys.quotas_reset", None, count)
         logger.info("Reset monthly quotas for %d API keys", count)

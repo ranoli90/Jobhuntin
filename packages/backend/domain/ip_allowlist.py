@@ -337,7 +337,7 @@ class IPAllowlistManager:
                 WHERE expires_at < now() - INTERVAL '7 days'
                 """
             )
-            count = int(result.split()[-1])
+            count = int(result.split()[-1]) if result else 0
 
         incr("ip_allowlist.temp_codes_cleaned", None, count)
         return count

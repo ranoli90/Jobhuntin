@@ -188,7 +188,8 @@ class MatchFeedbackRepo:
                 base_score,
             )
             return float(result)
-        except Exception:
+        except Exception as e:
+            logger.debug("compute_adjusted_match_score failed, using base: %s", e)
             return base_score
 
     @staticmethod

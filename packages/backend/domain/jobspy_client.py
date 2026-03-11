@@ -227,8 +227,8 @@ class JobSpyClient:
                         raw_data[k] = cleaned
                     else:
                         raw_data[k] = str(cleaned)
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning("Failed to clean job field %s: %s", k, e)
 
         return {
             "external_id": external_id,

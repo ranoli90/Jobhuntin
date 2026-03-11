@@ -320,7 +320,7 @@ class DLQManager:
                     "DELETE FROM public.job_dead_letter_queue WHERE id = $1", item_id
                 )
 
-                deleted = result.split()[-1] == "1"
+                deleted = (result or "").split()[-1] == "1"
                 if deleted:
                     logger.info("Deleted DLQ item %s", item_id)
                 else:
@@ -361,7 +361,7 @@ class DLQManager:
 
             async with self.pool.acquire() as conn:
                 result = await conn.execute(query, *params)
-                deleted_count = int(result.split()[-1])
+                deleted_count = int(result.split()[-1]) if result else 0
 
                 logger.info(
                     "Bulk deleted %d DLQ items (tenant=%s, reason=%s, older_than=%d days)",

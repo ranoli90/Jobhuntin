@@ -349,7 +349,7 @@ export default function ATSScorePage() {
                   Optimization Recommendations
                 </h3>
                 <ul className="space-y-3">
-                  {atsScore.data.recommendations.map((rec, i) => (
+                  {(atsScore.data?.recommendations ?? []).map((rec, i) => (
                     <li key={i} className="flex items-start gap-3">
                       <div className="w-6 h-6 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0 mt-0.5">
                         <span className="text-xs font-bold text-amber-600">{i + 1}</span>

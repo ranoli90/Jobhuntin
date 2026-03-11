@@ -609,7 +609,8 @@ class JobSyncService:
             # Parse result
             if result:
                 try:
-                    deleted = int(result.split()[-1])
+                    parts = result.split()
+                    deleted = int(parts[-1]) if parts else 0
                     incr("jobspy.jobs_expired", deleted)
                     return deleted
                 except Exception:

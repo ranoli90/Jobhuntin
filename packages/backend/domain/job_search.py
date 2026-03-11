@@ -256,7 +256,8 @@ def _map_job_row(r: Any) -> dict[str, Any]:
     if isinstance(raw, str):
         try:
             raw = json.loads(raw)
-        except Exception:
+        except Exception as e:
+            logger.debug("Failed to parse raw_data JSON: %s", e)
             raw = {}
 
     logo_url = r.get("company_logo_url")
