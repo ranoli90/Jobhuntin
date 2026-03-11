@@ -164,7 +164,7 @@ export interface ApiRequestOptions extends Omit<RequestInit, "headers"> {
   headers?: HeadersInit;
   /** If true, do not send JSON Content-Type (e.g. for FormData). */
   skipJsonContentType?: boolean;
-  /** Request timeout in milliseconds. Defaults to 10000. */
+  /** Request timeout in milliseconds. Defaults to 15000 (N1: slow 3G). */
   timeout?: number;
 }
 
@@ -315,7 +315,7 @@ export async function apiFetch(
   const {
     skipJsonContentType,
     headers: customHeaders,
-    timeout = 10000,
+    timeout = 15000,
     ...rest
   } = options;
 

@@ -1406,6 +1406,9 @@ async def _hydrate_job_matches(
         logger.info("Hydrated job matches for user %s", user_id)
     except Exception as e:
         logger.error("Failed to hydrate job matches: %s", e)
+        from shared.metrics import incr
+
+        incr("growth.hydrate_job_matches.failed", {"user_id": user_id})
 
 
 # ---------------------------------------------------------------------------

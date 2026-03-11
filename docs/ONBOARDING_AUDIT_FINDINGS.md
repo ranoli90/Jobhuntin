@@ -191,6 +191,8 @@
 | D3 | ProfileUpdate: field_validator for contact email/phone (align with frontend) |
 | E3 | ConfirmContactStep: JSDoc for onNext/onPrev async contract |
 | C2 | useOnboarding: 150ms debounce on nextStep/prevStep for rapid back/forward |
+| OB-006 | `_hydrate_job_matches`: incr("growth.hydrate_job_matches.failed") on exception |
+| N1 | api.ts: default timeout 10s→15s for slow 3G |
 
 ---
 
@@ -201,8 +203,6 @@
 | OB-002 | Require Redis: infra change; dev fallback needed |
 | A4 (critical) | Full ReAuthModal: complex; A6 flush mitigates |
 | R1 (race) | Backend step ordering: requires API design |
-| OB-006 | _hydrate_job_matches: add monitoring/alerting |
-| N1 (network) | Request deduplication, longer timeout |
 | A1 (auth) | Magic link expired redirect |
 | B1, B2 | DB pool, Redis: ops/infra |
 | BC4 | XSS: verify all inputs (audit) |
