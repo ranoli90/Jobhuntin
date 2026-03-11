@@ -30,15 +30,19 @@ export default function DashboardPage() {
   const [team, setTeam] = useState<TeamOverview | null>(null);
   const [usage, setUsage] = useState<BillingUsage | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     Promise.all([getTeamOverview(), getBillingUsage()])
-      .then(([t, u]) => { setTeam(t); setUsage(u); })
-      .catch(console.error)
+      .then(([t, u]) => { setTeam(t); setUsage(u); setError(null); })
+      .catch((err) => {
+        setError(err instanceof Error ? err.message : "Could not load dashboard");
+      })
       .finally(() => setLoading(false));
   }, []);
 
   if (loading) return <p className="text-muted-foreground">Loading dashboard...</p>;
+  if (error) return <p className="text-red-400">{error}</p>;
   if (!team) return <p className="text-red-400">Could not load team data.</p>;
 
   const t = team.tenant;

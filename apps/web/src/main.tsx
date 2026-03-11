@@ -31,7 +31,10 @@ if (sentryDsn) {
       replaysSessionSampleRate: import.meta.env.PROD ? 0.1 : 1.0, // 10% in prod
       replaysOnErrorSampleRate: 1.0, // 100% of sessions with errors
       // Filter out sensitive data
-      beforeSend(event, hint) {
+      beforeSend(
+        event: Parameters<NonNullable<Parameters<typeof Sentry.init>[0]["beforeSend"]>>[0],
+        _hint: Parameters<NonNullable<Parameters<typeof Sentry.init>[0]["beforeSend"]>>[1],
+      ) {
         // Remove PII from error messages
         if (event.request?.url) {
           // Remove query params that might contain sensitive data

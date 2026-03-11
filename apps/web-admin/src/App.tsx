@@ -16,7 +16,7 @@ import SubmitBlueprint from "./marketplace/SubmitBlueprint";
 import ApiKeysPage from "./developer-portal/ApiKeysPage";
 import WebhooksPage from "./developer-portal/WebhooksPage";
 
-const API_BASE = import.meta.env.VITE_API_URL || "";
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 interface User {
   id: string;
