@@ -680,67 +680,9 @@ async def create_note(
     )
 
 
-@router.get("/notes/{application_id}")
-async def get_application_notes(
-    application_id: str,
-    category: Optional[str] = None,
-    include_private: bool = True,
-    limit: int = 50,
-    ctx: TenantContext = Depends(get_tenant_context),
-    notes_manager: ApplicationNotesManager = Depends(get_application_notes_manager),
-) -> List[ApplicationNote]:
-    """Get notes for a specific application."""
-    return await notes_manager.get_application_notes(
-        tenant_id=ctx.tenant_id,
-        user_id=ctx.user_id,
-        application_id=application_id,
-        category=category,
-        include_private=include_private,
-        limit=limit,
-    )
-
-
-@router.put("/notes/{note_id}")
-async def update_note(
-    note_id: str,
-    request: NoteUpdateRequest,
-    ctx: TenantContext = Depends(get_tenant_context),
-    notes_manager: ApplicationNotesManager = Depends(get_application_notes_manager),
-) -> Dict[str, bool]:
-    """Update an existing note."""
-    success = await notes_manager.update_note(
-        tenant_id=ctx.tenant_id,
-        user_id=ctx.user_id,
-        note_id=note_id,
-        title=request.title,
-        content=request.content,
-        category=request.category,
-        tags=request.tags,
-        is_private=request.is_private,
-        is_pinned=request.is_pinned,
-        reminder_date=request.reminder_date,
-    )
-    return {"success": success}
-
-
-@router.delete("/notes/{note_id}")
-async def delete_note(
-    note_id: str,
-    ctx: TenantContext = Depends(get_tenant_context),
-    notes_manager: ApplicationNotesManager = Depends(get_application_notes_manager),
-) -> Dict[str, bool]:
-    """Delete a note."""
-    success = await notes_manager.delete_note(
-        tenant_id=ctx.tenant_id,
-        user_id=ctx.user_id,
-        note_id=note_id,
-    )
-    return {"success": success}
-
-
 @router.get("/notes/search")
 async def search_notes(
-    query: str,
+    query: str = "",
     application_id: Optional[str] = None,
     category: Optional[str] = None,
     tags: Optional[List[str]] = None,
@@ -748,7 +690,17 @@ async def search_notes(
     ctx: TenantContext = Depends(get_tenant_context),
     notes_manager: ApplicationNotesManager = Depends(get_application_notes_manager),
 ) -> List[Dict[str, Any]]:
-    """Search notes with relevance scoring."""
+    """Search notes with relevance scoring. Empty query returns recent notes."""
+    if not query.strip():
+        notes = await notes_manager.get_recent_notes(
+            tenant_id=ctx.tenant_id,
+            user_id=ctx.user_id,
+            limit=limit,
+        )
+        return [
+            {"note": n.model_dump(), "relevance_score": 0.0, "matched_terms": []}
+            for n in notes
+        ]
     results = await notes_manager.search_notes(
         tenant_id=ctx.tenant_id,
         user_id=ctx.user_id,
@@ -815,6 +767,64 @@ async def get_note_statistics(
         user_id=ctx.user_id,
         days_back=days_back,
     )
+
+
+@router.get("/notes/{application_id}")
+async def get_application_notes(
+    application_id: str,
+    category: Optional[str] = None,
+    include_private: bool = True,
+    limit: int = 50,
+    ctx: TenantContext = Depends(get_tenant_context),
+    notes_manager: ApplicationNotesManager = Depends(get_application_notes_manager),
+) -> List[ApplicationNote]:
+    """Get notes for a specific application."""
+    return await notes_manager.get_application_notes(
+        tenant_id=ctx.tenant_id,
+        user_id=ctx.user_id,
+        application_id=application_id,
+        category=category,
+        include_private=include_private,
+        limit=limit,
+    )
+
+
+@router.put("/notes/{note_id}")
+async def update_note(
+    note_id: str,
+    request: NoteUpdateRequest,
+    ctx: TenantContext = Depends(get_tenant_context),
+    notes_manager: ApplicationNotesManager = Depends(get_application_notes_manager),
+) -> Dict[str, bool]:
+    """Update an existing note."""
+    success = await notes_manager.update_note(
+        tenant_id=ctx.tenant_id,
+        user_id=ctx.user_id,
+        note_id=note_id,
+        title=request.title,
+        content=request.content,
+        category=request.category,
+        tags=request.tags,
+        is_private=request.is_private,
+        is_pinned=request.is_pinned,
+        reminder_date=request.reminder_date,
+    )
+    return {"success": success}
+
+
+@router.delete("/notes/{note_id}")
+async def delete_note(
+    note_id: str,
+    ctx: TenantContext = Depends(get_tenant_context),
+    notes_manager: ApplicationNotesManager = Depends(get_application_notes_manager),
+) -> Dict[str, bool]:
+    """Delete a note."""
+    success = await notes_manager.delete_note(
+        tenant_id=ctx.tenant_id,
+        user_id=ctx.user_id,
+        note_id=note_id,
+    )
+    return {"success": success}
 
 
 # Health check endpoint

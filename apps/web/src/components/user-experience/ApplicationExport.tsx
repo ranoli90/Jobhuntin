@@ -128,10 +128,11 @@ export const ApplicationExport: React.FC<ApplicationExportProperties> = ({
 
   const fetchApplications = async () => {
     try {
-      const data = await apiGet<{ applications?: Application[] }>(
-        "applications",
-      );
-      setApplications(data.applications || []);
+      const data = await apiGet<{
+        applications?: Application[];
+        items?: Application[];
+      }>("me/applications");
+      setApplications(data.items ?? data.applications ?? []);
     } catch (error_) {
       setError(
         error_ instanceof Error

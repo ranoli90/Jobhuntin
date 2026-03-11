@@ -1253,10 +1253,25 @@ export default function Onboarding() {
     }
     try {
       setIsSavingCareerGoals(true);
+      // Map frontend values to backend enums (experience_level: entry|mid|senior|staff, urgency: passive|casual|active|urgent)
+      const expMap: Record<string, string> = {
+        "0-1": "entry",
+        "1-3": "entry",
+        "3-5": "mid",
+        "5-10": "senior",
+        "10+": "staff",
+      };
+      const urgencyMap: Record<string, string> = {
+        active: "active",
+        open: "casual",
+        exploring: "passive",
+      };
       await updateProfile({
         career_goals: {
-          experience_level: careerGoals.experience_level,
-          urgency: careerGoals.urgency,
+          experience_level:
+            expMap[careerGoals.experience_level] ?? careerGoals.experience_level,
+          urgency:
+            urgencyMap[careerGoals.urgency] ?? careerGoals.urgency,
           primary_goal: careerGoals.primary_goal,
           why_leaving: careerGoals.why_leaving,
         },

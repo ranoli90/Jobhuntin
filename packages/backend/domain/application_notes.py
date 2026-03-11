@@ -295,6 +295,49 @@ class ApplicationNotesManager:
 
             return result == "DELETE 1"
 
+    async def get_recent_notes(
+        self,
+        tenant_id: str,
+        user_id: str,
+        limit: int = 20,
+    ) -> List[ApplicationNote]:
+        """Get recent notes ordered by updated_at."""
+
+        async with self.db_pool.acquire() as conn:
+            rows = await conn.fetch(
+                """
+                SELECT * FROM application_notes
+                WHERE tenant_id = $1 AND user_id = $2
+                ORDER BY is_pinned DESC, updated_at DESC
+                LIMIT $3
+                """,
+                tenant_id,
+                user_id,
+                limit,
+            )
+
+            notes = []
+            for row in rows:
+                note = ApplicationNote(
+                    id=row["id"],
+                    application_id=row["application_id"],
+                    user_id=row["user_id"],
+                    tenant_id=row["tenant_id"],
+                    title=row["title"],
+                    content=row["content"],
+                    category=row["category"],
+                    tags=row.get("tags", []),
+                    is_private=row["is_private"],
+                    is_pinned=row["is_pinned"],
+                    reminder_date=row.get("reminder_date"),
+                    created_at=row["created_at"],
+                    updated_at=row["updated_at"],
+                    author_id=row["author_id"],
+                )
+                notes.append(note)
+
+            return notes
+
     async def search_notes(
         self,
         tenant_id: str,
@@ -390,7 +433,7 @@ class ApplicationNotesManager:
                 SELECT * FROM application_notes
                 WHERE tenant_id = $1 AND user_id = $2
                   AND reminder_date IS NOT NULL
-                  AND reminder_date <= NOW() + INTERVAL '${param_idx} days'
+                  AND reminder_date <= NOW() + make_interval(days => $3)
                   AND reminder_date >= NOW()
                 ORDER BY reminder_date ASC
                 """,
@@ -480,7 +523,7 @@ class ApplicationNotesManager:
                 """
                 SELECT COUNT(*) FROM application_notes
                 WHERE tenant_id = $1 AND user_id = $2
-                  AND created_at >= NOW() - INTERVAL '${param_idx} days'
+                  AND created_at >= NOW() - make_interval(days => $3)
                 """,
                 tenant_id,
                 user_id,
@@ -493,7 +536,7 @@ class ApplicationNotesManager:
                 SELECT category, COUNT(*) as count
                 FROM application_notes
                 WHERE tenant_id = $1 AND user_id = $2
-                  AND created_at >= NOW() - INTERVAL '${param_idx} days'
+                  AND created_at >= NOW() - make_interval(days => $3)
                 GROUP BY category
                 ORDER BY count DESC
                 """,
