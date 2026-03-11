@@ -81,7 +81,6 @@ class CSRFMiddleware:
         "/auth/verify-magic",
         "/auth/logout",
         "/auth/webhooks/resend",
-        "/api/v2/webhook",
         "/billing/webhook",
         "/sso/saml/acs",
         "/og/",
