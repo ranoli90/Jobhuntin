@@ -23,11 +23,15 @@ from packages.backend.llm.contracts import (
     ResumeParseResponse_V2,
     build_resume_parse_prompt_v2,
 )
+from shared.ai_validation import sanitize_for_ai
 from shared.config import get_settings
 from shared.logging_config import get_logger
 from shared.metrics import incr, observe
 
 logger = get_logger("sorce.resume")
+
+# Max resume text size for LLM (matches build_resume_parse_prompt_v2 truncation)
+_RESUME_TEXT_MAX = 15_000
 
 
 def _basic_resume_parse(resume_text: str) -> dict | None:
@@ -400,9 +404,19 @@ def extract_text_from_pdf(pdf_bytes: bytes) -> str:
 
 async def parse_resume_to_profile(resume_text: str) -> dict:
     """Use the LLM client with the V2 resume parse contract for rich skills."""
+    # Sanitize to prevent prompt injection from malicious PDF content
+    sanitized = sanitize_for_ai(
+        resume_text, max_length=_RESUME_TEXT_MAX, min_length=None
+    )
+    if not sanitized.is_valid:
+        raise ValueError(sanitized.error_message or "Invalid resume text")
+    text = sanitized.sanitized_input or resume_text[: _RESUME_TEXT_MAX]
+    if sanitized.warnings:
+        logger.info("Resume text sanitization warnings: %s", sanitized.warnings)
+
     s = get_settings()
     llm_client = LLMClient(s)
-    prompt = build_resume_parse_prompt_v2(resume_text)
+    prompt = build_resume_parse_prompt_v2(text)
     result = await llm_client.call(
         prompt=prompt,
         response_format=ResumeParseResponse_V2,

@@ -18,6 +18,8 @@ Key endpoints:
 - GET /llm-career-path/emerging-skills - Get emerging skills
 """
 
+import time
+from collections import defaultdict
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
@@ -26,11 +28,48 @@ from pydantic import BaseModel, Field
 
 from backend.domain.llm_career_path import get_llm_career_path_analyzer
 from backend.domain.tenant import TenantContext
+from shared.ai_validation import sanitize_dict_for_ai, sanitize_for_ai
 from shared.logging_config import get_logger
 
 logger = get_logger("sorce.llm_career_path")
 
 router = APIRouter(tags=["llm_career_path"])
+
+_LLM_CAREER_PATH_RATE: Dict[str, List[float]] = defaultdict(list)
+_LLM_CAREER_PATH_MAX_PER_HOUR = 15
+
+
+def _check_llm_career_path_rate_limit(user_id: str) -> bool:
+    now = time.time()
+    key = f"llm_career_path:{user_id}"
+    window = 3600
+    _LLM_CAREER_PATH_RATE[key] = [t for t in _LLM_CAREER_PATH_RATE[key] if now - t < window]
+    if len(_LLM_CAREER_PATH_RATE[key]) >= _LLM_CAREER_PATH_MAX_PER_HOUR:
+        return False
+    _LLM_CAREER_PATH_RATE[key].append(now)
+    return True
+
+
+def _sanitize_str(val: str, max_len: int = 200) -> str:
+    r = sanitize_for_ai(str(val)[:max_len], max_length=max_len, min_length=None)
+    return r.sanitized_input or str(val)[:max_len] if r.is_valid else str(val)[:max_len]
+
+
+def _sanitize_str_list(vals: List[str], max_items: int = 20, max_item_len: int = 100) -> List[str]:
+    out = []
+    for v in (vals or [])[:max_items]:
+        if isinstance(v, str) and v.strip():
+            r = sanitize_for_ai(v[:max_item_len], max_length=max_item_len, min_length=None)
+            if r.is_valid and r.sanitized_input:
+                out.append(r.sanitized_input)
+    return out
+
+
+def _sanitize_dict(d: Optional[Dict[str, Any]], max_size: int = 5000) -> Optional[Dict[str, Any]]:
+    if not d or not isinstance(d, dict):
+        return d
+    r = sanitize_dict_for_ai(d, max_size=max_size)
+    return r.sanitized_input if r.is_valid else {}
 
 
 class GenerateRolesRequest(BaseModel):
@@ -179,19 +218,25 @@ async def generate_dynamic_roles(
     Returns:
         Generated career roles with market insights
     """
+    if not _check_llm_career_path_rate_limit(ctx.user_id):
+        raise HTTPException(429, "Rate limit exceeded. Try again later.")
+    industry = _sanitize_str(request.industry)
+    experience_level = _sanitize_str(request.experience_level)
+    skills = _sanitize_str_list(request.skills)
+    preferences = _sanitize_dict(request.preferences)
     try:
         llm_analyzer = get_llm_career_path_analyzer()
 
         # Generate dynamic roles
         roles = await llm_analyzer.generate_dynamic_career_roles(
-            industry=request.industry,
-            experience_level=request.experience_level,
-            skills=request.skills,
-            preferences=request.preferences,
+            industry=industry,
+            experience_level=experience_level,
+            skills=skills,
+            preferences=preferences,
         )
 
         # Get relevant market trends
-        market_trends = llm_analyzer._get_relevant_trends(request.industry)
+        market_trends = llm_analyzer._get_relevant_trends(industry)
 
         # Calculate generation confidence
         confidence = 0.8 if len(roles) >= 3 else 0.6 if len(roles) >= 1 else 0.3
@@ -224,15 +269,21 @@ async def analyze_personalized_career_path(
     Returns:
         Personalized career path with AI insights
     """
+    if not _check_llm_career_path_rate_limit(ctx.user_id):
+        raise HTTPException(429, "Rate limit exceeded. Try again later.")
+    user_profile = _sanitize_dict(request.user_profile, max_size=10000)
+    current_role = _sanitize_str(request.current_role)
+    target_role = _sanitize_str(request.target_role)
+    preferences = _sanitize_dict(request.preferences)
     try:
         llm_analyzer = get_llm_career_path_analyzer()
 
         # Analyze personalized career path
         career_path = await llm_analyzer.analyze_personalized_career_path(
-            user_profile=request.user_profile,
-            current_role=request.current_role,
-            target_role=request.target_role,
-            preferences=request.preferences,
+            user_profile=user_profile or {},
+            current_role=current_role,
+            target_role=target_role,
+            preferences=preferences,
         )
 
         # Generate key insights
@@ -283,15 +334,21 @@ async def identify_ai_skill_gaps(
     Returns:
         AI-identified skill gaps with recommendations
     """
+    if not _check_llm_career_path_rate_limit(ctx.user_id):
+        raise HTTPException(429, "Rate limit exceeded. Try again later.")
+    current_role = _sanitize_str(request.current_role)
+    target_role = _sanitize_str(request.target_role)
+    current_skills = _sanitize_str_list(request.current_skills)
+    industry = _sanitize_str(request.industry) if request.industry else None
     try:
         llm_analyzer = get_llm_career_path_analyzer()
 
         # Identify AI skill gaps
         skill_gaps = await llm_analyzer.identify_ai_skill_gaps(
-            current_role=request.current_role,
-            target_role=request.target_role,
-            current_skills=request.current_skills,
-            industry=request.industry,
+            current_role=current_role,
+            target_role=target_role,
+            current_skills=current_skills,
+            industry=industry,
         )
 
         # Sort by importance
@@ -343,14 +400,19 @@ async def generate_market_aware_recommendations(
     Returns:
         Market-aware career recommendations
     """
+    if not _check_llm_career_path_rate_limit(ctx.user_id):
+        raise HTTPException(429, "Rate limit exceeded. Try again later.")
+    user_profile = _sanitize_dict(request.user_profile, max_size=10000)
+    career_goals = _sanitize_str_list(request.career_goals, max_items=10)
+    constraints = _sanitize_dict(request.constraints)
     try:
         llm_analyzer = get_llm_career_path_analyzer()
 
         # Generate market-aware recommendations
         recommendations = await llm_analyzer.generate_market_aware_recommendations(
-            user_profile=request.user_profile,
-            career_goals=request.career_goals,
-            constraints=request.constraints,
+            user_profile=user_profile or {},
+            career_goals=career_goals,
+            constraints=constraints,
         )
 
         # Calculate opportunity score
@@ -365,7 +427,7 @@ async def generate_market_aware_recommendations(
         market_insights = [
             f"Generated {len(recommendations)} personalized recommendations",
             f"Average market demand: {opportunity_score:.2f}",
-            f"Based on {len(request.career_goals)} career goals",
+            f"Based on {len(career_goals)} career goals",
         ]
 
         # Risk assessment
@@ -404,6 +466,28 @@ async def create_personalized_learning_path(
     Returns:
         Personalized learning path
     """
+    if not _check_llm_career_path_rate_limit(ctx.user_id):
+        raise HTTPException(429, "Rate limit exceeded. Try again later.")
+    # Sanitize skill_gaps list - each gap is a dict with skill, etc.
+    sanitized_gaps = []
+    for g in (request.skill_gaps or [])[:15]:
+        if isinstance(g, dict):
+            skill = _sanitize_str(g.get("skill", ""), max_len=100)
+            sanitized_gaps.append(
+                {
+                    **g,
+                    "skill": skill,
+                    "importance": _sanitize_str(str(g.get("importance", "medium"))[:50]),
+                    "acquisition_method": _sanitize_str(str(g.get("acquisition_method", "self_study"))[:50]),
+                    "estimated_time_weeks": min(max(int(g.get("estimated_time_weeks", 4)), 1), 104),
+                    "resources": _sanitize_str_list(g.get("resources", []), max_items=5),
+                }
+            )
+    learning_style = _sanitize_str(request.learning_style or "") if request.learning_style else None
+    time_commitment = _sanitize_str(request.time_commitment or "") if request.time_commitment else None
+    budget = request.budget
+    if budget is not None and (not isinstance(budget, int) or budget < 0 or budget > 100000):
+        budget = None
     try:
         llm_analyzer = get_llm_career_path_analyzer()
 
@@ -418,20 +502,20 @@ async def create_personalized_learning_path(
                 estimated_time_weeks=gap.get("estimated_time_weeks", 4),
                 resources=gap.get("resources", []),
             )
-            for gap in request.skill_gaps
+            for gap in sanitized_gaps
         ]
 
         # Create personalized learning path
         learning_path = await llm_analyzer.create_personalized_learning_path(
             skill_gaps=skill_gaps,
-            learning_style=request.learning_style,
-            time_commitment=request.time_commitment,
-            budget=request.budget,
+            learning_style=learning_style,
+            time_commitment=time_commitment,
+            budget=budget,
         )
 
         # Extract key information
         total_timeline = learning_path.get("total_timeline_weeks", 0)
-        estimated_cost = request.budget or 0
+        estimated_cost = budget or 0
 
         # Generate success metrics
         success_metrics = [
@@ -479,9 +563,10 @@ async def get_market_trends(
         # Get market trends
         trends = llm_analyzer._market_trends
 
-        # Filter by industry if specified
+        # Filter by industry if specified (sanitize to prevent injection)
         if industry:
-            relevant_trends = llm_analyzer._get_relevant_trends(industry)
+            sanitized_industry = _sanitize_str(industry)
+            relevant_trends = llm_analyzer._get_relevant_trends(sanitized_industry)
         else:
             relevant_trends = trends
 
@@ -535,9 +620,10 @@ async def get_emerging_skills(
         # Get emerging skills
         emerging_skills_data = llm_analyzer._emerging_skills
 
-        # Filter by industry if specified
+        # Filter by industry if specified (sanitize to prevent injection)
         if industry:
-            relevant_skills = llm_analyzer._get_relevant_emerging_skills(industry)
+            sanitized_industry = _sanitize_str(industry)
+            relevant_skills = llm_analyzer._get_relevant_emerging_skills(sanitized_industry)
         else:
             relevant_skills = []
             for skill_data in emerging_skills_data:

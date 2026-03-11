@@ -36,7 +36,7 @@ from backend.llm.contracts import (
     build_role_suggestion_prompt,
     build_salary_suggestion_prompt,
 )
-from shared.ai_validation import validate_and_sanitize_ai_input
+from shared.ai_validation import sanitize_for_ai, validate_and_sanitize_ai_input
 from shared.config import get_settings
 from shared.logging_config import get_logger
 
@@ -1214,6 +1214,21 @@ async def generate_cover_letter_enhanced(
     """Generate a personalized cover letter (enhanced endpoint)."""
     if not await _check_user_rate_limit(user_id, "generate_cover_letter", 10):
         raise HTTPException(429, "Rate limit exceeded. Please try again later.")
+    # Validate and sanitize user-controlled prompt inputs
+    allowed_tone = {"professional", "enthusiastic", "creative"}
+    tone = (request.tone or "professional").strip().lower()
+    if tone not in allowed_tone:
+        tone = "professional"
+    allowed_length = {"short", "standard", "long"}
+    length = (request.length or "standard").strip().lower()
+    if length not in allowed_length:
+        length = "standard"
+    focus_areas = [
+        sanitize_input(fa)[:80]
+        for fa in (request.focus_areas or [])[:10]
+        if isinstance(fa, str) and fa.strip()
+    ]
+    focus_areas_str = ", ".join(focus_areas) if focus_areas else "technical skills, experience, fit"
     client = _get_llm_client()
 
     try:
@@ -1312,11 +1327,6 @@ Sincerely,
                 job_details = f"Error loading job details: {str(e)}"
                 logger.error(f"Error fetching job details for cover letter: {e}")
 
-        focus_areas_str = (
-            ", ".join(request.focus_areas)
-            if request.focus_areas
-            else "technical skills, experience, fit"
-        )
         prompt = f"""Generate a personalized cover letter using this template:
 
 {template_content}
@@ -1325,8 +1335,8 @@ Job details:
 {job_details}
 
 User profile: {profile_summary}
-Tone: {request.tone}
-Length: {request.length}
+Tone: {tone}
+Length: {length}
 
 Focus areas: {focus_areas_str}
 
@@ -1346,7 +1356,7 @@ Make it specific to the job and company. Include relevant skills and experience 
                 job_id=request.job_id,  # Assume valid UUID or strict string
                 content=result.content,
                 template_id=request.template_id,
-                tone=request.tone,
+                tone=tone,
                 quality_score=0.85,
                 suggestions=[
                     "Consider adding more specific metrics",
@@ -1398,6 +1408,10 @@ async def generate_cover_letter(
     """Generate a personalized cover letter for a specific job."""
     if not await _check_user_rate_limit(user_id, "generate_cover_letter", 10):
         raise HTTPException(429, "Rate limit exceeded. Please try again later.")
+    allowed_tone = {"professional", "enthusiastic", "creative"}
+    tone = (request.tone or "professional").strip().lower()
+    if tone not in allowed_tone:
+        tone = "professional"
     client = _get_llm_client()
 
     # Sanitize and strip PII before sending to external LLM
@@ -1408,7 +1422,7 @@ async def generate_cover_letter(
 
     try:
         prompt = build_cover_letter_prompt(
-            sanitized_profile, sanitized_job, request.tone
+            sanitized_profile, sanitized_job, tone
         )
         result = await client.call(
             prompt=prompt,
@@ -1516,12 +1530,25 @@ async def compute_ats_score(
     """
     if not await _check_user_rate_limit(user_id, "ats_score", 20):
         raise HTTPException(429, "Rate limit exceeded. Please try again later.")
+    # Sanitize to prevent prompt injection in downstream LLM/analysis
+    resume_result = sanitize_for_ai(
+        request.resume_text, max_length=10000, min_length=None
+    )
+    job_result = sanitize_for_ai(
+        request.job_description, max_length=5000, min_length=None
+    )
+    if not resume_result.is_valid:
+        raise HTTPException(400, resume_result.error_message or "Invalid resume text")
+    if not job_result.is_valid:
+        raise HTTPException(400, job_result.error_message or "Invalid job description")
+    sanitized_resume = resume_result.sanitized_input or request.resume_text[:10000]
+    sanitized_job = job_result.sanitized_input or request.job_description[:5000]
     from backend.domain.resume_tailoring import ATSScorer
 
     try:
         scores = await ATSScorer.score_resume(
-            resume_text=request.resume_text,
-            job_description=request.job_description,
+            resume_text=sanitized_resume,
+            job_description=sanitized_job,
         )
         overall = ATSScorer.compute_overall_score(scores)
 

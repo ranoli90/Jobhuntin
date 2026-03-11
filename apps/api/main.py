@@ -976,6 +976,7 @@ def _mount_sub_routers() -> None:
     app.dependency_overrides[agent_improvements_mod.get_tenant_context] = (
         get_tenant_context
     )
+    app.dependency_overrides[agent_improvements_mod._get_pool] = get_pool
     app.dependency_overrides[agent_improvements_mod.get_agent_improvements_manager] = (
         lambda: create_agent_improvements_manager(get_pool())
     )
@@ -1240,10 +1241,15 @@ class AnswerItem(BaseModel):
     @field_validator("answer")
     @classmethod
     def sanitize_answer(cls, v: str) -> str:
-        """MEDIUM: Sanitize HTML in user input to prevent XSS."""
+        """MEDIUM: Sanitize HTML and prompt injection in user input."""
         from packages.backend.domain.sanitization import sanitize_text_input
 
-        return sanitize_text_input(v, max_length=5000)
+        from shared.ai_validation import sanitize_for_ai
+
+        v = sanitize_text_input(v, max_length=5000)
+        # Prompt injection protection before answers reach agent LLM
+        r = sanitize_for_ai(v, max_length=5000, min_length=None)
+        return r.sanitized_input or v[:5000] if r.is_valid else v[:5000]
 
 
 class ResumeTaskRequest(BaseModel):

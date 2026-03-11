@@ -80,11 +80,14 @@ class AIValidationConfig:
 
 
 def sanitize_for_ai(
-    text: str, max_length: int = AIValidationConfig.MAX_TEXT_FIELD_SIZE
+    text: str,
+    max_length: int = AIValidationConfig.MAX_TEXT_FIELD_SIZE,
+    min_length: int | None = AIValidationConfig.MIN_TEXT_LENGTH,
 ) -> ValidationResult:
     """Sanitize text input for AI processing.
 
     Removes or neutralizes prompt injection attempts and limits length.
+    Set min_length=None to skip minimum length check (e.g. for resume text).
     """
     if not isinstance(text, str):
         return ValidationResult(
@@ -95,10 +98,10 @@ def sanitize_for_ai(
 
     warnings: list[str] = []
 
-    if len(text) < AIValidationConfig.MIN_TEXT_LENGTH:
+    if min_length is not None and len(text.strip()) < min_length:
         return ValidationResult(
             is_valid=False,
-            error_message=f"Input too short. Minimum {AIValidationConfig.MIN_TEXT_LENGTH} characters.",
+            error_message=f"Input too short. Minimum {min_length} characters.",
             error_code="INPUT_TOO_SHORT",
         )
 

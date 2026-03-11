@@ -20,7 +20,7 @@ from backend.llm.contracts import (
     RoleSuggestionResponse_V1,
     SalarySuggestionResponse_V1,
 )
-from shared.ai_validation import validate_and_sanitize_ai_input
+from shared.ai_validation import sanitize_for_ai
 from shared.logging_config import get_logger
 from shared.redis_client import get_redis
 
@@ -56,11 +56,17 @@ class AIService:
             if cached_result:
                 return RoleSuggestionResponse_V1.parse_raw(cached_result)
 
-            # Validate and sanitize input
-            sanitized_text = validate_and_sanitize_ai_input(resume_text)
-            sanitized_skills = [
-                validate_and_sanitize_ai_input(skill) for skill in skills
-            ]
+            # Validate and sanitize input (prevent prompt injection)
+            text_result = sanitize_for_ai(resume_text, max_length=10000, min_length=None)
+            if not text_result.is_valid:
+                raise ValueError(text_result.error_message or "Invalid resume text")
+            sanitized_text = text_result.sanitized_input or resume_text[:10000]
+            sanitized_skills = []
+            for skill in skills[:20]:
+                if isinstance(skill, str) and skill.strip():
+                    r = sanitize_for_ai(skill[:100], max_length=100, min_length=None)
+                    if r.is_valid and r.sanitized_input:
+                        sanitized_skills.append(r.sanitized_input)
 
             # Get AI response
             prompt = self._build_role_suggestion_prompt(
@@ -103,12 +109,17 @@ class AIService:
             if cached_result:
                 return SalarySuggestionResponse_V1.parse_raw(cached_result)
 
-            # Validate and sanitize input
-            sanitized_role = validate_and_sanitize_ai_input(role)
-            sanitized_location = validate_and_sanitize_ai_input(location)
-            sanitized_skills = [
-                validate_and_sanitize_ai_input(skill) for skill in skills
-            ]
+            # Validate and sanitize input (prevent prompt injection)
+            r_role = sanitize_for_ai(role[:200], max_length=200, min_length=None)
+            sanitized_role = r_role.sanitized_input or role[:200] if r_role.is_valid else role[:200]
+            r_loc = sanitize_for_ai(location[:200], max_length=200, min_length=None)
+            sanitized_location = r_loc.sanitized_input or location[:200] if r_loc.is_valid else location[:200]
+            sanitized_skills = []
+            for skill in skills[:20]:
+                if isinstance(skill, str) and skill.strip():
+                    r = sanitize_for_ai(skill[:100], max_length=100, min_length=None)
+                    if r.is_valid and r.sanitized_input:
+                        sanitized_skills.append(r.sanitized_input)
 
             # Get AI response
             prompt = self._build_salary_suggestion_prompt(
@@ -153,11 +164,15 @@ class AIService:
             if cached_result:
                 return LocationSuggestionResponse_V1.parse_raw(cached_result)
 
-            # Validate and sanitize input
-            sanitized_skills = [
-                validate_and_sanitize_ai_input(skill) for skill in skills
-            ]
-            sanitized_role = validate_and_sanitize_ai_input(role)
+            # Validate and sanitize input (prevent prompt injection)
+            sanitized_skills = []
+            for skill in skills[:20]:
+                if isinstance(skill, str) and skill.strip():
+                    r = sanitize_for_ai(skill[:100], max_length=100, min_length=None)
+                    if r.is_valid and r.sanitized_input:
+                        sanitized_skills.append(r.sanitized_input)
+            r_role = sanitize_for_ai(role[:200], max_length=200, min_length=None)
+            sanitized_role = r_role.sanitized_input or role[:200] if r_role.is_valid else role[:200]
 
             # Get AI response
             prompt = self._build_location_suggestion_prompt(
@@ -240,9 +255,13 @@ class AIService:
             if cached_result:
                 return OnboardingQuestionsResponse_V1.parse_raw(cached_result)
 
-            # Validate and sanitize input
-            sanitized_text = validate_and_sanitize_ai_input(resume_text)
-            sanitized_step = validate_and_sanitize_ai_input(current_step)
+            # Validate and sanitize input (prevent prompt injection)
+            text_result = sanitize_for_ai(resume_text, max_length=10000, min_length=None)
+            if not text_result.is_valid:
+                raise ValueError(text_result.error_message or "Invalid resume text")
+            sanitized_text = text_result.sanitized_input or resume_text[:10000]
+            step_result = sanitize_for_ai(current_step[:500], max_length=500, min_length=None)
+            sanitized_step = step_result.sanitized_input or current_step[:500] if step_result.is_valid else current_step[:500]
 
             # Get AI response
             prompt = self._build_onboarding_questions_prompt(
