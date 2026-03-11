@@ -489,6 +489,7 @@ export default function JobsView() {
                 }
               } else if (undoStack.length > 0) {
                 const lastRejected = undoStack.at(-1);
+                if (!lastRejected) return;
                 setUndoStack((previous) => previous.slice(0, -1));
                 setSwipedJobs((previous) => {
                   const next = new Map(previous);

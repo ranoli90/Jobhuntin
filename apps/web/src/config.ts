@@ -12,8 +12,10 @@ export const config = {
   },
 };
 
-export function validateConfig(): void {
+export function validateConfig(): string[] {
+  const errors: string[] = [];
   if (import.meta.env.PROD && !appBaseUrl) {
-    console.warn("[Config] VITE_APP_BASE_URL not set in production");
+    errors.push("VITE_APP_BASE_URL not set in production");
   }
+  return errors;
 }
