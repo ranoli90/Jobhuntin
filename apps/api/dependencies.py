@@ -316,3 +316,48 @@ async def require_admin_user_id(
 
     logger.warning("Admin access denied for user %s", user_id)
     raise HTTPException(status_code=403, detail="Admin access required")
+
+
+# Aliases for modules expecting get_current_user (dict), get_db_pool, get_tenant_id
+get_db_pool = get_pool
+
+
+async def get_current_user(
+    user_id: str = Depends(get_current_user_id),
+) -> dict[str, Any]:
+    """Return current user as dict for modules expecting {id, session_id}."""
+    return {"id": user_id}
+
+
+async def get_tenant_id(
+    user_id: str = Depends(get_current_user_id),
+    db: asyncpg.Pool = Depends(get_pool),
+) -> str:
+    """Resolve tenant_id for current user."""
+    from backend.domain.tenant import resolve_tenant_context
+
+    async with db.acquire() as conn:
+        ctx = await resolve_tenant_context(conn, user_id)
+        return ctx.tenant_id
+
+
+async def _is_admin(
+    user_id: str = Depends(get_current_user_id),
+    db: asyncpg.Pool = Depends(get_pool),
+) -> bool:
+    """Return True if current user is admin (tenant or system)."""
+    from backend.domain.tenant import (
+        TenantScopeError,
+        require_system_admin,
+        resolve_tenant_context,
+    )
+
+    async with db.acquire() as conn:
+        ctx = await resolve_tenant_context(conn, user_id)
+        if ctx.is_admin:
+            return True
+        try:
+            await require_system_admin(conn, user_id)
+            return True
+        except TenantScopeError:
+            return False

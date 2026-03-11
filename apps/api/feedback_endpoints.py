@@ -9,7 +9,12 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, field_validator
 
-from apps.api.dependencies import get_current_user, get_db_pool, get_tenant_id
+from apps.api.dependencies import (
+    _is_admin,
+    get_current_user,
+    get_db_pool,
+    get_tenant_id,
+)
 from packages.backend.domain.feedback_manager import create_feedback_manager
 from shared.logging_config import get_logger
 
@@ -146,9 +151,14 @@ async def get_feedback_summary(
     db_pool=Depends(get_db_pool),
     current_user=Depends(get_current_user),
     tenant_id=Depends(get_tenant_id),
+    is_admin: bool = Depends(_is_admin),
 ) -> Dict[str, Any]:
     """Get feedback summary with analytics."""
     try:
+        # IDOR prevention: only admin can filter by other users' feedback
+        if user_id and user_id != current_user["id"] and not is_admin:
+            user_id = None
+
         # Create feedback manager
         feedback_manager = create_feedback_manager(db_pool)
 
@@ -305,8 +315,11 @@ async def update_feedback_status(
     db_pool=Depends(get_db_pool),
     current_user=Depends(get_current_user),
     tenant_id=Depends(get_tenant_id),
+    is_admin: bool = Depends(_is_admin),
 ) -> Dict[str, Any]:
-    """Update feedback status."""
+    """Update feedback status (admin only)."""
+    if not is_admin:
+        raise HTTPException(status_code=403, detail="Admin access required")
     try:
         # Validate status
         valid_statuses = ["pending", "reviewed", "resolved", "rejected"]
@@ -324,6 +337,7 @@ async def update_feedback_status(
             feedback_id=feedback_id,
             status=status,
             admin_notes=admin_notes,
+            tenant_id=tenant_id,
         )
 
         return {
@@ -393,9 +407,14 @@ async def get_recent_feedback(
     db_pool=Depends(get_db_pool),
     current_user=Depends(get_current_user),
     tenant_id=Depends(get_tenant_id),
+    is_admin: bool = Depends(_is_admin),
 ) -> Dict[str, Any]:
     """Get recent feedback."""
     try:
+        # IDOR prevention: only admin can filter by other users' feedback
+        if user_id and user_id != current_user["id"] and not is_admin:
+            user_id = None
+
         # Create feedback manager
         feedback_manager = create_feedback_manager(db_pool)
 
@@ -432,9 +451,14 @@ async def get_nps_statistics(
     db_pool=Depends(get_db_pool),
     current_user=Depends(get_current_user),
     tenant_id=Depends(get_tenant_id),
+    is_admin: bool = Depends(_is_admin),
 ) -> Dict[str, Any]:
     """Get NPS statistics."""
     try:
+        # IDOR prevention: only admin can filter by other users' feedback
+        if user_id and user_id != current_user["id"] and not is_admin:
+            user_id = None
+
         # Create feedback manager
         feedback_manager = create_feedback_manager(db_pool)
 

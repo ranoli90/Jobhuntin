@@ -176,6 +176,8 @@ async def get_dlq_item(
     dlq_manager: get_dlq_manager = Depends(get_dlq_manager_dep),
 ):
     """Get a specific DLQ item by ID."""
+    if not ctx.is_admin:
+        raise HTTPException(status_code=403, detail="Admin access required")
     try:
         item = await dlq_manager.get_dlq_item(item_id)
         if not item:
@@ -257,6 +259,8 @@ async def retry_single_application(
     dlq_manager: get_dlq_manager = Depends(get_dlq_manager_dep),
 ):
     """Retry a single failed application from the DLQ."""
+    if not ctx.is_admin:
+        raise HTTPException(status_code=403, detail="Admin access required")
     try:
         result = await dlq_manager.retry_application(item_id, force=force)
         return result
@@ -277,6 +281,8 @@ async def delete_dlq_item(
     dlq_manager: get_dlq_manager = Depends(get_dlq_manager_dep),
 ):
     """Delete an item from the DLQ without retrying."""
+    if not ctx.is_admin:
+        raise HTTPException(status_code=403, detail="Admin access required")
     try:
         success = await dlq_manager.delete_dlq_item(item_id)
         if not success:
@@ -301,6 +307,8 @@ async def bulk_delete_dlq_items(
     dlq_manager: get_dlq_manager = Depends(get_dlq_manager_dep),
 ):
     """Bulk delete DLQ items based on criteria."""
+    if not ctx.is_admin:
+        raise HTTPException(status_code=403, detail="Admin access required")
     try:
         deleted_count = await dlq_manager.bulk_delete_dlq_items(
             tenant_id=request.tenant_id,
@@ -324,6 +332,8 @@ async def get_failure_reasons(
     dlq_manager: get_dlq_manager = Depends(get_dlq_manager_dep),
 ):
     """Get list of unique failure reasons."""
+    if not ctx.is_admin:
+        raise HTTPException(status_code=403, detail="Admin access required")
     try:
         reasons = await dlq_manager.get_failure_reasons()
         return {"failure_reasons": reasons}
@@ -346,6 +356,8 @@ async def get_tenant_dlq_summary(
     dlq_manager: get_dlq_manager = Depends(get_dlq_manager_dep),
 ):
     """Get DLQ summary for a specific tenant."""
+    if not ctx.is_admin:
+        raise HTTPException(status_code=403, detail="Admin access required")
     try:
         summary = await dlq_manager.get_tenant_dlq_summary(tenant_id)
         return summary
@@ -367,6 +379,8 @@ async def get_concurrent_usage(
     ctx: TenantContext = Depends(get_tenant_context),
 ):
     """Get current concurrent usage statistics."""
+    if not ctx.is_admin:
+        raise HTTPException(status_code=403, detail="Admin access required")
     try:
         tracker = get_concurrent_tracker()
         if tracker is None:
@@ -405,6 +419,8 @@ async def reset_concurrent_usage_stats(
     ctx: TenantContext = Depends(get_tenant_context),
 ):
     """Reset peak concurrent usage statistics."""
+    if not ctx.is_admin:
+        raise HTTPException(status_code=403, detail="Admin access required")
     try:
         tracker = get_concurrent_tracker()
         if tracker is None:
@@ -431,6 +447,8 @@ async def get_active_tasks(
     ctx: TenantContext = Depends(get_tenant_context),
 ):
     """Get list of currently active task IDs."""
+    if not ctx.is_admin:
+        raise HTTPException(status_code=403, detail="Admin access required")
     try:
         tracker = get_concurrent_tracker()
         if tracker is None:

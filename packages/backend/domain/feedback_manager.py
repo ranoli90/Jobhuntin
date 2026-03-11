@@ -390,17 +390,22 @@ class FeedbackManager:
         feedback_id: str,
         status: str,
         admin_notes: Optional[str] = None,
+        tenant_id: Optional[str] = None,
     ) -> bool:
-        """Update feedback status."""
+        """Update feedback status. tenant_id required for IDOR prevention."""
         try:
             query = """
                 UPDATE feedback_responses
                 SET status = $1, admin_notes = $2, updated_at = NOW()
                 WHERE id = $3
             """
+            params: list = [status, admin_notes, feedback_id]
+            if tenant_id:
+                query += " AND tenant_id = $4"
+                params.append(tenant_id)
 
             async with self.db_pool.acquire() as conn:
-                result = await conn.execute(query, status, admin_notes, feedback_id)
+                result = await conn.execute(query, *params)
 
                 return str(result) == "UPDATE 1"  # type: ignore[arg-type]
 

@@ -34,6 +34,10 @@ async def get_tenant_context() -> TenantContext:
     raise NotImplementedError("Tenant context dependency not injected")
 
 
+async def _get_pool():
+    raise NotImplementedError("Pool dependency not injected")
+
+
 def get_agent_improvements_manager():
     raise NotImplementedError("Agent improvements manager dependency not injected")
 
@@ -229,8 +233,12 @@ async def capture_screenshot(
     request: ScreenshotCaptureRequest,
     ctx: TenantContext = Depends(get_tenant_context),
     agent_manager: AgentImprovementsManager = Depends(get_agent_improvements_manager),
+    pool=Depends(_get_pool),
 ) -> ScreenshotCapture:
     """Capture screenshot with metadata."""
+    await _verify_application_ownership(
+        request.application_id, ctx.tenant_id, ctx.user_id, pool
+    )
     try:
         screenshot = await agent_manager.capture_screenshot(
             application_id=request.application_id,
@@ -247,14 +255,43 @@ async def capture_screenshot(
         raise HTTPException(status_code=500, detail="Failed to capture screenshot")
 
 
+async def _verify_application_ownership(
+    application_id: str,
+    tenant_id: str,
+    user_id: str,
+    pool,
+) -> None:
+    """Raise 404 if application does not belong to tenant/user (IDOR prevention)."""
+    try:
+        async with pool.acquire() as conn:
+            row = await conn.fetchrow(
+                "SELECT 1 FROM public.applications WHERE id = $1 AND "
+                "(tenant_id = $2 OR (tenant_id IS NULL AND user_id = $3))",
+                application_id,
+                tenant_id,
+                user_id,
+            )
+            if not row:
+                raise HTTPException(status_code=404, detail="Application not found")
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Failed to verify application ownership: %s", e)
+        raise HTTPException(status_code=500, detail="Failed to verify application")
+
+
 @router.get("/screenshots/{application_id}")
 async def get_application_screenshots(
     application_id: str,
     limit: int = Query(50, ge=1, le=1000),
     ctx: TenantContext = Depends(get_tenant_context),
     agent_manager: AgentImprovementsManager = Depends(get_agent_improvements_manager),
+    pool=Depends(_get_pool),
 ) -> List[ScreenshotCapture]:
     """Get all screenshots for an application."""
+    await _verify_application_ownership(
+        application_id, ctx.tenant_id, ctx.user_id, pool
+    )
     try:
         screenshots = await agent_manager._get_application_screenshots(
             application_id=application_id,
@@ -471,8 +508,12 @@ async def track_document_type(
     document_type: DocumentType,
     ctx: TenantContext = Depends(get_tenant_context),
     agent_manager: AgentImprovementsManager = Depends(get_agent_improvements_manager),
+    pool=Depends(_get_pool),
 ) -> Dict[str, Any]:
     """Track document type for uploaded files."""
+    await _verify_application_ownership(
+        application_id, ctx.tenant_id, ctx.user_id, pool
+    )
     try:
         tracking_id = await agent_manager._track_document_type(
             application_id=application_id,
@@ -496,8 +537,12 @@ async def get_document_tracking(
     application_id: str,
     ctx: TenantContext = Depends(get_tenant_context),
     agent_manager: AgentImprovementsManager = Depends(get_agent_improvements_manager),
+    pool=Depends(_get_pool),
 ) -> List[Dict[str, Any]]:
     """Get document tracking for an application."""
+    await _verify_application_ownership(
+        application_id, ctx.tenant_id, ctx.user_id, pool
+    )
     try:
         tracking = await agent_manager._get_document_tracking(
             application_id=application_id,
@@ -523,8 +568,12 @@ async def get_performance_metrics(
     limit: int = Query(100, ge=1, le=1000),
     ctx: TenantContext = Depends(get_tenant_context),
     agent_manager: AgentImprovementsManager = Depends(get_agent_improvements_manager),
+    pool=Depends(_get_pool),
 ) -> List[Dict[str, Any]]:
     """Get performance metrics for an application."""
+    await _verify_application_ownership(
+        application_id, ctx.tenant_id, ctx.user_id, pool
+    )
     try:
         metrics = await agent_manager._get_performance_metrics(
             application_id=application_id,
