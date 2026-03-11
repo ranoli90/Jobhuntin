@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { apiGet, apiPost, apiDelete } from '@/lib/api';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -58,14 +58,11 @@ const DLQDashboardPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
+  const consecutiveErrorsRef = useRef(0);
+  const BASE_POLL_MS = 30000;
+  const MAX_POLL_MS = 300000;
 
-  useEffect(() => {
-    fetchData();
-    const interval = setInterval(fetchData, 30000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const fetchData = async () => {
+  const fetchData = async (): Promise<boolean> => {
     try {
       setLoading(true);
       setError(null);
@@ -94,12 +91,37 @@ const DLQDashboardPage: React.FC = () => {
         maxConcurrent: concurrentData.max_concurrent || 10,
         currentConcurrent: concurrentData.total_active || 0,
       });
+      consecutiveErrorsRef.current = 0;
+      return true;
     } catch (err) {
+      consecutiveErrorsRef.current += 1;
       setError(err instanceof Error ? err.message : 'An error occurred');
+      return false;
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    let timeoutId: ReturnType<typeof setTimeout>;
+    let cancelled = false;
+    const scheduleNext = () => {
+      if (cancelled) return;
+      const delay = Math.min(
+        BASE_POLL_MS * Math.pow(2, consecutiveErrorsRef.current),
+        MAX_POLL_MS
+      );
+      timeoutId = setTimeout(() => {
+        if (cancelled) return;
+        fetchData().then(() => scheduleNext());
+      }, delay);
+    };
+    fetchData().then(() => scheduleNext());
+    return () => {
+      cancelled = true;
+      clearTimeout(timeoutId);
+    };
+  }, []);
 
   const handleRetryItem = async (itemId: string, force = false) => {
     try {

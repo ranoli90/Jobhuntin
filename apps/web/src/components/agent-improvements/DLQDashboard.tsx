@@ -51,14 +51,11 @@ export const DLQDashboard: React.FC<DLQDashboardProps> = ({ tenantId, isAdmin = 
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const consecutiveErrorsRef = React.useRef(0);
+  const BASE_POLL_MS = 30000;
+  const MAX_POLL_MS = 300000;
 
-  useEffect(() => {
-    fetchData();
-    const interval = setInterval(fetchData, 30000); // Refresh every 30 seconds
-    return () => clearInterval(interval);
-  }, [tenantId]);
-
-  const fetchData = async () => {
+  const fetchData = async (): Promise<boolean> => {
     try {
       setLoading(true);
       setError(null);
@@ -100,12 +97,37 @@ export const DLQDashboard: React.FC<DLQDashboardProps> = ({ tenantId, isAdmin = 
         maxConcurrent: concurrentData.max_concurrent || 10,
         currentConcurrent: concurrentData.total_active || 0,
       });
+      consecutiveErrorsRef.current = 0;
+      return true;
     } catch (err) {
+      consecutiveErrorsRef.current += 1;
       setError(err instanceof Error ? err.message : 'An error occurred');
+      return false;
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    let timeoutId: ReturnType<typeof setTimeout>;
+    let cancelled = false;
+    const scheduleNext = () => {
+      if (cancelled) return;
+      const delay = Math.min(
+        BASE_POLL_MS * Math.pow(2, consecutiveErrorsRef.current),
+        MAX_POLL_MS
+      );
+      timeoutId = setTimeout(() => {
+        if (cancelled) return;
+        fetchData().then(() => scheduleNext());
+      }, delay);
+    };
+    fetchData().then(() => scheduleNext());
+    return () => {
+      cancelled = true;
+      clearTimeout(timeoutId);
+    };
+  }, [tenantId]);
 
   const handleRetryItem = async (itemId: string, force = false) => {
     try {
