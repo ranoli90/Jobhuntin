@@ -1220,6 +1220,24 @@ class ProfileUpdate(BaseModel):
                 raise ValueError("Invalid phone number")
         return value
 
+    @field_validator("headline")
+    @classmethod
+    def sanitize_headline(cls, v: str | None) -> str | None:
+        """Item 44: Sanitize headline to prevent XSS."""
+        if v is None:
+            return None
+        from packages.backend.domain.sanitization import sanitize_text_input
+        return sanitize_text_input(v, max_length=200)
+
+    @field_validator("bio")
+    @classmethod
+    def sanitize_bio(cls, v: str | None) -> str | None:
+        """Item 44: Sanitize bio to prevent XSS."""
+        if v is None:
+            return None
+        from packages.backend.domain.sanitization import sanitize_text_input
+        return sanitize_text_input(v, max_length=5000)
+
     @field_validator("avatar_url")
     @classmethod
     def _validate_avatar(cls, value: str | None) -> str | None:

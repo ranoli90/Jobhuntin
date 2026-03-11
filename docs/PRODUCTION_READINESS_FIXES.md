@@ -52,7 +52,12 @@
 - **api/main.py**: Admin endpoints (admin, analytics, dashboard, growth, dlq) now use `require_admin_user_id` instead of `get_current_user_id`.
 - **api/user.py**: Profile includes `role` (user/admin/superadmin) for AdminGuard; derived from tenant_members and users.is_system_admin.
 
-### 12. Security
+### 12. Security Headers / XSS (Items 42–44)
+- **Security headers**: Already in setup_security_headers (CSP, X-Frame-Options, HSTS, etc.)
+- **Rate limiting**: Already in rate_limiting_middleware (100/min unauthenticated, tier-based for tenants)
+- **Input sanitization**: ProfileUpdate now sanitizes headline and bio via sanitize_text_input (Item 44)
+
+### 13. Security
 - **update-render-env.sh**: Stripe keys loaded from env; no hardcoding
 - **sync_render_env_from_dotenv.py**: Fixed get_env_vars for Render API response formats
 

@@ -130,8 +130,8 @@ PYTHONPATH=apps:packages:. mypy apps/api/ apps/worker/ packages/backend/ shared/
 | 30 | Magic link: no List-Unsubscribe, no plain-text fallback | Medium |
 | 31 | Email typo: whitelist too small | Medium |
 | 32 | No email analytics/open tracking | Medium |
-| 33 | ErrorBoundary not wired at route level | High |
-| 34 | ErrorBoundary reporting is console.log; no Sentry | High |
+| 33 | ErrorBoundary not wired at route level | done (RouteErrorBoundary on all routes) |
+| 34 | ErrorBoundary reporting is console.log; no Sentry | done (Sentry.captureException in ErrorBoundary) |
 | 35 | No global loading skeleton for route transitions | Medium |
 | 36 | PWA manifest/service worker (may exist) | Medium |
 | 37 | robots.txt conflicts | Low |
@@ -139,9 +139,9 @@ PYTHONPATH=apps:packages:. mypy apps/api/ apps/worker/ packages/backend/ shared/
 | 39 | i18n: only en/fr; no locale detection | Medium |
 | 40 | No lang/dir attributes on HTML | Medium |
 | 41 | French translations incomplete | Medium |
-| 42 | No CSP or security headers | High |
-| 43 | No rate limiting on public endpoints | Medium |
-| 44 | No input sanitization libraries (XSS) | High |
+| 42 | No CSP or security headers | done (setup_security_headers in middleware) |
+| 43 | No rate limiting on public endpoints | done (rate_limiting_middleware) |
+| 44 | No input sanitization libraries (XSS) | done (sanitize_text_input; added headline/bio) |
 
 ### 3.6 Other
 | Area | Description |
