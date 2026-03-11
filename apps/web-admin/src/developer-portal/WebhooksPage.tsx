@@ -14,29 +14,46 @@ const EVENT_OPTIONS = [
 export default function WebhooksPage() {
   const [hooks, setHooks] = useState<Webhook[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [url, setUrl] = useState("");
   const [events, setEvents] = useState<string[]>(["application.completed", "application.failed"]);
   const [createdSecret, setCreatedSecret] = useState<string | null>(null);
 
   const load = async () => {
-    const data = await apiRequest<Webhook[]>("GET", "/developer/webhooks");
-    setHooks(data);
-    setLoading(false);
+    setError(null);
+    try {
+      const data = await apiRequest<Webhook[]>("GET", "/developer/webhooks");
+      setHooks(data);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to load webhooks";
+      setError(message);
+      setHooks([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => { load(); }, []);
 
   const create = async () => {
     if (!url.trim()) return;
-    const data = await apiRequest<{ secret?: string }>("POST", "/developer/webhooks", { url, events });
-    setCreatedSecret(data.secret ?? null);
-    setUrl("");
-    load();
+    try {
+      const data = await apiRequest<{ secret?: string }>("POST", "/developer/webhooks", { url, events });
+      setCreatedSecret(data.secret ?? null);
+      setUrl("");
+      await load();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to create webhook");
+    }
   };
 
   const remove = async (id: string) => {
-    await apiRequest("DELETE", `/developer/webhooks/${id}`);
-    load();
+    try {
+      await apiRequest("DELETE", `/developer/webhooks/${id}`);
+      await load();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to delete webhook");
+    }
   };
 
   const toggleEvent = (ev: string) => {
@@ -49,6 +66,18 @@ export default function WebhooksPage() {
         <h1 className="text-2xl font-bold">Webhooks</h1>
         <p className="text-sm text-muted-foreground">Receive real-time notifications when application status changes.</p>
       </div>
+
+      {error && (
+        <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-lg flex items-center justify-between gap-4">
+          <p className="text-sm text-red-400 font-medium">{error}</p>
+          <button
+            onClick={() => { setError(null); setLoading(true); load(); }}
+            className="text-sm font-medium text-red-400 hover:text-red-300 underline"
+          >
+            Retry
+          </button>
+        </div>
+      )}
 
       <div className="bg-card border border-border rounded-lg p-5 space-y-3">
         <h2 className="font-semibold text-foreground">Add Webhook Endpoint</h2>

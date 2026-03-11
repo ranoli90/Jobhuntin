@@ -53,6 +53,8 @@ class Settings(BaseSettings):
 
     # ── Web App ──────────────────────────────────────────────────
     app_base_url: str = "https://sorce-web.onrender.com"
+    # Admin dashboard base URL (e.g. http://localhost:5174 or https://admin.jobhuntin.com). Used for admin magic link redirects.
+    app_admin_base_url: str = ""
     # Public URL of the API (for magic link verify redirect). Set API_PUBLIC_URL in prod.
     api_public_url: str = "https://sorce-api.onrender.com"
     # App branding (used in emails, etc.)

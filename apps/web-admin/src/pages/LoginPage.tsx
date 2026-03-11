@@ -13,12 +13,15 @@ export default function LoginPage() {
     setLoading(true);
     setError(null);
     try {
-      const returnTo =
-        window.location.origin + (window.location.pathname || "/");
+      const returnTo = window.location.pathname || "/";
       const resp = await fetch(`${API_BASE}/auth/magic-link`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, return_to: returnTo }),
+        body: JSON.stringify({
+          email,
+          return_to: returnTo,
+          admin_redirect: true,
+        }),
       });
       if (!resp.ok) {
         const data = await resp.json().catch(() => ({}));

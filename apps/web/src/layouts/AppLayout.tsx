@@ -19,6 +19,7 @@ import {
   MoreHorizontal,
   LayoutDashboard,
   Briefcase,
+  Bookmark,
   FileText,
   HelpCircle,
   Users,
@@ -29,6 +30,7 @@ import {
   ChevronDown,
   ChevronRight,
   Bell,
+  BellRing,
   Workflow,
   Mail,
   CalendarClock,
@@ -54,6 +56,7 @@ type NavItem = {
 const NAV_ITEMS: NavItem[] = [
   { label: "Dashboard", to: "/app/dashboard", icon: LayoutDashboard },
   { label: "Jobs", to: "/app/jobs", icon: Briefcase },
+  { label: "Saved Jobs", to: "/app/saved-jobs", icon: Bookmark },
   { label: "Applications", to: "/app/applications", icon: FileText },
   { label: "Holds", to: "/app/holds", icon: HelpCircle },
   { label: "Team", to: "/app/team", icon: Users, badge: "Coming soon" },
@@ -65,6 +68,7 @@ const NAV_ITEMS: NavItem[] = [
 
 // Phase 12-14 feature pages (More submenu)
 const MORE_NAV_ITEMS: NavItem[] = [
+  { label: "Job Alerts", to: "/app/job-alerts", icon: BellRing },
   { label: "Pipeline", to: "/app/pipeline-view", icon: Workflow },
   { label: "Notifications", to: "/app/notification-history", icon: Bell },
   { label: "Communication", to: "/app/communication-preferences", icon: Mail },

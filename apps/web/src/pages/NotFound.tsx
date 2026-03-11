@@ -86,6 +86,9 @@ export default function NotFound() {
             onSubmit={handleSearch}
             className="w-full max-w-md mx-auto mb-8"
           >
+            <p className="text-sm text-slate-500 dark:text-slate-400 mb-2">
+              {t("404.signInToSearch", getLocale())}
+            </p>
             <div className="relative">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
               <input
@@ -93,7 +96,7 @@ export default function NotFound() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search for jobs..."
-                className="w-full pl-12 pr-10 py-3 rounded-xl border border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400"
+                className="w-full pl-12 pr-10 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400"
               />
               {searchQuery && (
                 <button
@@ -142,6 +145,9 @@ export default function NotFound() {
                 {t("404.popularSearches", getLocale())}
               </span>
             </div>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mb-3 text-center">
+              {t("404.trendingRequiresSignIn", getLocale())}
+            </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {trendingSearches.map((search) => (
                 <Link
@@ -154,7 +160,7 @@ export default function NotFound() {
                     <Briefcase className="w-4 h-4" aria-hidden />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-bold text-slate-900 truncate">
+                    <p className="text-sm font-bold text-slate-900 dark:text-slate-100 truncate">
                       {search.label}
                     </p>
                     <p className="text-[10px] text-slate-500 font-medium">

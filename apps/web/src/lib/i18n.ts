@@ -503,6 +503,8 @@ const dictionaries: Dict = {
     "404.popularSearches": "Popular job searches",
     "404.findNextRole": "Find your next role with AI",
     "404.applyWithAI": "Apply with AI",
+    "404.signInToSearch": "Sign in to search jobs",
+    "404.trendingRequiresSignIn": "Sign in to browse",
 
     "settings.title": "Settings",
     "settings.profilePreferences": "Profile & preferences",
@@ -1042,6 +1044,8 @@ const dictionaries: Dict = {
     "404.popularSearches": "Recherches populaires",
     "404.findNextRole": "Trouvez votre prochain poste avec l'IA",
     "404.applyWithAI": "Postuler avec l'IA",
+    "404.signInToSearch": "Connectez-vous pour rechercher des emplois",
+    "404.trendingRequiresSignIn": "Connectez-vous pour parcourir",
 
     "settings.title": "Paramètres",
     "settings.profilePreferences": "Profil et préférences",

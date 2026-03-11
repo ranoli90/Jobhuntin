@@ -5,14 +5,18 @@ from __future__ import annotations
 from typing import Any
 
 import asyncpg
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import BaseModel, Field
 
+from fastapi.responses import StreamingResponse
+
+from backend.domain.audit import export_audit_log_csv
 from backend.domain.billing import ensure_stripe_customer, update_subscription_state
 from backend.domain.stripe_client import get_stripe, protected_stripe_call
-from backend.domain.tenant import TenantContext
+from backend.domain.tenant import TenantContext, TenantScopeError, require_role
 from shared.config import Settings, settings_dependency
 from shared.logging_config import get_logger
+from shared.sql_utils import escape_ilike
 
 logger = get_logger("sorce.api.billing")
 
@@ -355,6 +359,82 @@ async def create_portal(
             )
 
         return {"portal_url": portal_session.url}
+
+
+@router.get("/audit-log")
+async def billing_audit_log(
+    ctx: TenantContext = Depends(_get_tenant_ctx),
+    db: Any = Depends(_get_pool),
+    action: str | None = Query(None),
+    limit: int = Query(50, ge=1, le=500),
+    offset: int = Query(0, ge=0),
+) -> dict[str, Any]:
+    """Get audit log for the current tenant. Requires OWNER, ADMIN, or COMPLIANCE_OFFICER."""
+    try:
+        require_role(ctx, "OWNER", "ADMIN", "COMPLIANCE_OFFICER")
+    except TenantScopeError:
+        raise HTTPException(status_code=403, detail="Admin or compliance role required")
+    escaped_action = escape_ilike(action) if action else None
+    async with db.acquire() as conn:
+        rows = await conn.fetch(
+            """
+            SELECT id, user_id, action, resource, resource_id, details,
+                   ip_address, created_at
+            FROM public.audit_log
+            WHERE tenant_id = $1
+              AND ($2::text IS NULL OR action ILIKE $2)
+            ORDER BY created_at DESC
+            LIMIT $3 OFFSET $4
+            """,
+            ctx.tenant_id,
+            f"%{escaped_action}%" if escaped_action else None,
+            limit,
+            offset,
+        )
+        total = await conn.fetchval(
+            """
+            SELECT COUNT(*)::int FROM public.audit_log
+            WHERE tenant_id = $1 AND ($2::text IS NULL OR action ILIKE $2)
+            """,
+            ctx.tenant_id,
+            f"%{escaped_action}%" if escaped_action else None,
+        )
+    logs = [
+        {
+            "id": str(r["id"]),
+            "user_id": str(r["user_id"]) if r["user_id"] else None,
+            "action": r["action"],
+            "resource": r["resource"],
+            "resource_id": r["resource_id"],
+            "details": r["details"],
+            "ip_address": r["ip_address"],
+            "created_at": r["created_at"].isoformat(),
+        }
+        for r in rows
+    ]
+    return {"logs": logs, "total": total or 0, "limit": limit, "offset": offset}
+
+
+@router.get("/audit-log/export")
+async def billing_audit_log_export(
+    ctx: TenantContext = Depends(_get_tenant_ctx),
+    db: Any = Depends(_get_pool),
+    days: int = Query(90, ge=1, le=365),
+) -> StreamingResponse:
+    """Export audit log as CSV for the current tenant. Requires OWNER, ADMIN, or COMPLIANCE_OFFICER."""
+    try:
+        require_role(ctx, "OWNER", "ADMIN", "COMPLIANCE_OFFICER")
+    except TenantScopeError:
+        raise HTTPException(status_code=403, detail="Admin or compliance role required")
+    async with db.acquire() as conn:
+        csv_content = await export_audit_log_csv(conn, ctx.tenant_id, days=days)
+    return StreamingResponse(
+        iter([csv_content]),
+        media_type="text/csv",
+        headers={
+            "Content-Disposition": f"attachment; filename=audit_log_{ctx.tenant_id[:8]}_{days}d.csv"
+        },
+    )
 
 
 @router.get("/invoices")

@@ -1583,7 +1583,7 @@ export function JobsView() {
                     className="w-full"
                     onClick={() => {
                       setShowFirstStepsModal(false);
-                      navigate("/app/profile");
+                      navigate("/app/settings");
                       telemetry.track("first_steps_profile_clicked", {});
                     }}
                   >
@@ -1641,7 +1641,7 @@ export function JobsView() {
                     className="w-full"
                     onClick={() => {
                       setShowFirstStepsModal(false);
-                      navigate("/app/alerts");
+                      navigate("/app/job-alerts");
                       telemetry.track("first_steps_alerts_clicked", {});
                     }}
                   >

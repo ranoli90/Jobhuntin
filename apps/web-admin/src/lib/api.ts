@@ -106,6 +106,18 @@ export const getAuditLog = (limit = 50, offset = 0, action?: string) => {
   return request<AuditLogResponse>("GET", `/billing/audit-log?${params}`);
 };
 
+/** Export audit log as CSV blob. Requires auth headers. */
+export async function exportAuditLogCsv(days = 90): Promise<Blob> {
+  const headers = await authHeaders();
+  const resp = await fetch(`${API_BASE}/billing/audit-log/export?days=${days}`, {
+    method: "GET",
+    headers,
+    credentials: "include",
+  });
+  if (!resp.ok) throw new Error(`Export failed: ${resp.status}`);
+  return resp.blob();
+}
+
 // ── Annual Billing ──────────────────────────────────────────
 export const createAnnualCheckout = (plan: string, seats = 1, teamName = "") =>
   request<{ checkout_url: string; session_id: string }>("POST", "/billing/annual-checkout", {

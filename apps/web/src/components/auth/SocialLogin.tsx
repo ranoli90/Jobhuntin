@@ -62,36 +62,45 @@ export function SocialLoginButton({
         type="button"
         onClick={onClick}
         disabled={isDisabled}
+        aria-disabled={isDisabled}
         className={cn(
           "w-full h-14 sm:h-12 px-4 rounded-xl border font-semibold text-sm",
           "flex items-center justify-center gap-3",
           "transition-all duration-200",
           "focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
-          "disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none",
+          "disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none disabled:hover:bg-transparent disabled:hover:border-transparent",
           isGoogle && [
             "bg-white dark:bg-slate-900 border-gray-200 dark:border-gray-800 text-black dark:text-white",
-            "hover:bg-gray-50 dark:hover:bg-slate-800 hover:border-gray-300 dark:hover:border-gray-700",
+            !isDisabled && "hover:bg-gray-50 dark:hover:bg-slate-800 hover:border-gray-300 dark:hover:border-gray-700",
             "focus-visible:ring-gray-300",
             "shadow-sm",
           ],
           isLinkedIn && [
             "bg-white dark:bg-slate-900 border-gray-200 dark:border-gray-800 text-black dark:text-white",
-            "hover:bg-gray-50 dark:hover:bg-slate-800 hover:border-gray-300 dark:hover:border-gray-700",
+            !isDisabled && "hover:bg-gray-50 dark:hover:bg-slate-800 hover:border-gray-300 dark:hover:border-gray-700",
             "focus-visible:ring-gray-300",
             "shadow-sm",
           ],
+          showComingSoon && "opacity-60",
           className,
         )}
-        aria-label={`Continue with ${isGoogle ? "Google" : "LinkedIn"}`}
-        aria-disabled={isDisabled}
+        aria-label={
+          showComingSoon
+            ? `${isGoogle ? "Google" : "LinkedIn"} (Coming soon)`
+            : `Continue with ${isGoogle ? "Google" : "LinkedIn"}`
+        }
       >
         {isGoogle && <GoogleIcon />}
         {isLinkedIn && <LinkedInIcon />}
-        <span>Continue with {isGoogle ? "Google" : "LinkedIn"}</span>
+        <span>
+          {showComingSoon
+            ? "Coming soon"
+            : `Continue with ${isGoogle ? "Google" : "LinkedIn"}`}
+        </span>
       </button>
       {showComingSoon && (
-        <div className="absolute -top-2 -right-2 px-2 py-0.5 bg-gray-100 dark:bg-slate-800 text-gray-500 dark:text-gray-400 text-xs font-bold rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
-          Soon
+        <div className="absolute -top-2 -right-2 px-2 py-0.5 bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400 text-xs font-bold rounded-lg border border-amber-200 dark:border-amber-800 shadow-sm">
+          Coming soon
         </div>
       )}
     </div>

@@ -209,7 +209,7 @@ export default function JobsView() {
           Refresh
         </Button>
         <Link
-          to="/app/settings"
+          to="/app/job-alerts"
           className="text-sm font-medium text-brand-primary hover:text-brand-primaryHover mt-3"
         >
           Set up job alerts →

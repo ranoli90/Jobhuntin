@@ -152,6 +152,7 @@ class MagicLinkRequest(BaseModel):
     email: EmailStr
     return_to: str | None = Field(None, max_length=512, description="Path to redirect after login")
     captcha_token: str | None = Field(None, max_length=2000, description="reCAPTCHA token")
+    admin_redirect: bool = Field(False, description="If true, redirect to admin app after login")
 
 
 class MagicLinkResponse(BaseModel):
@@ -261,7 +262,10 @@ def _sanitize_return_to(value: str | None) -> str | None:
         return None
 
     # S13: Must match magicLinkService.ts allowedPaths exactly
+    # Admin paths: "/" and "/login" allowed when admin_redirect (see request_magic_link)
     allowed = {
+        "/",
+        "/login",
         "/app/onboarding",
         "/app/dashboard",
         "/app/jobs",
@@ -292,9 +296,12 @@ def _sanitize_return_to(value: str | None) -> str | None:
     }
 
     # AUTH-007: Allow exact match or subpaths (e.g. /app/onboarding/complete)
-    if path_only in allowed:
+    # "/" is special: only allow exact "/" (no subpaths)
+    if path_only == "/":
         pass
-    elif any(path_only.startswith(p + "/") for p in allowed):
+    elif path_only in allowed:
+        pass
+    elif any(path_only.startswith(p + "/") for p in allowed if p != "/"):
         pass
     else:
         return None
@@ -392,6 +399,7 @@ async def _generate_magic_link(
     db: Any,
     return_to: str | None = None,
     client_ip: str | None = None,
+    admin_redirect: bool = False,
 ) -> tuple[str, str]:
     """
     Generate a magic link with a signed JWT.
@@ -476,6 +484,17 @@ async def _generate_magic_link(
         "existing user" if existing_user_id else "new user",
         token_id,
     )
+
+    # Admin redirect: link goes directly to API verify-magic, which redirects to admin app
+    admin_base = getattr(settings, "app_admin_base_url", "") or ""
+    if admin_redirect and admin_base:
+        api_url = (getattr(settings, "api_public_url", "") or "").rstrip("/")
+        if not api_url or "sorce" in api_url.lower() or "api." in api_url.lower():
+            api_url = "http://localhost:8000"  # dev fallback
+        safe_return = "/"  # Admin always redirects to root
+        verify_url = f"{api_url}/auth/verify-magic?token={quote(token, safe='')}&returnTo={quote(safe_return, safe='')}&admin_redirect=1"
+        logger.info("[MAGIC_LINK] Using admin verify flow (direct to API)")
+        return verify_url, user_identifier
 
     # Use frontend URL for magic link (better UX - users see branded domain)
     # Frontend will redirect to backend to verify token and set cookie
@@ -805,6 +824,7 @@ async def verify_magic_link(
     request: Request,
     token: str,
     return_to: str | None = None,
+    admin_redirect: str | None = None,
     settings: Settings = Depends(settings_dependency),
     db: Any = Depends(_get_pool),
 ) -> RedirectResponse:
@@ -911,6 +931,17 @@ async def verify_magic_link(
     safe_return = _sanitize_return_to(return_to)
     dest = safe_return or "/app/dashboard"
 
+    # Admin redirect: use app_admin_base_url so user lands on admin dashboard
+    use_admin_base = admin_redirect in ("1", "true", "yes")
+    if use_admin_base and getattr(settings, "app_admin_base_url", ""):
+        base = settings.app_admin_base_url.rstrip("/")
+        sep = "&" if "?" in dest else "?"
+        redirect_url = f"{base}{dest}{sep}magic_verified=1"
+    else:
+        base = _get_login_base_url(settings)
+        sep = "&" if "?" in dest else "?"
+        redirect_url = f"{base}{dest}{sep}magic_verified=1"
+
     logger.info(
         "Successfully verified magic link for user ID: %s with jti: %s",
         user_id,
@@ -935,9 +966,6 @@ async def verify_magic_link(
             "email_domain": email.split("@")[-1] if "@" in email else "unknown",
         },
     )
-    # Add magic_verified hint for frontend analytics (magic_link_verified event)
-    sep = "&" if "?" in dest else "?"
-    redirect_url = f"{_get_login_base_url(settings)}{dest}{sep}magic_verified=1"
 
     # ----------------------------------------------------------------
     # M2: Device Fingerprinting - Detect suspicious logins
@@ -1302,9 +1330,22 @@ async def request_magic_link(
             headers={"Retry-After": str(int(math.ceil(retry_after)))},
         )
 
-    redirect = _build_redirect_url(settings, body.return_to)
+    # Admin redirect: use app_admin_base_url (requires APP_ADMIN_BASE_URL env)
+    use_admin = bool(
+        body.admin_redirect and getattr(settings, "app_admin_base_url", "")
+    )
+    if use_admin:
+        redirect = f"{settings.app_admin_base_url.rstrip('/')}/"
+    else:
+        redirect = _build_redirect_url(settings, body.return_to)
     action_link, _ = await _generate_magic_link(
-        settings, body.email, redirect, db, body.return_to, client_ip
+        settings,
+        body.email,
+        redirect,
+        db,
+        body.return_to,
+        client_ip,
+        admin_redirect=use_admin,
     )
     try:
         await _send_magic_link_email(settings, body.email, action_link, body.return_to)

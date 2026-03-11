@@ -115,6 +115,7 @@ const TeamViewWrapper = React.lazy(() => import("./pages/dashboard/TeamView"));
 
 // Job Alerts Page
 const JobAlertsPage = React.lazy(() => import("./pages/app/JobAlerts"));
+const SavedJobsPage = React.lazy(() => import("./pages/app/SavedJobs"));
 
 /**
  * Bi-directional onboarding guard:
@@ -563,6 +564,16 @@ export default function App() {
                     <RouteErrorBoundary>
                       <React.Suspense fallback={<PageLoader />}>
                         <JobAlertsPage />
+                      </React.Suspense>
+                    </RouteErrorBoundary>
+                  }
+                />
+                <Route
+                  path="saved-jobs"
+                  element={
+                    <RouteErrorBoundary>
+                      <React.Suspense fallback={<PageLoader />}>
+                        <SavedJobsPage />
                       </React.Suspense>
                     </RouteErrorBoundary>
                   }

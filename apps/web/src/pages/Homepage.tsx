@@ -30,8 +30,39 @@ function useEmailCapture() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [emailError, setEmailError] = useState("");
   const [sentEmail, setSentEmail] = useState<string | null>(null);
+  const [resendLoading, setResendLoading] = useState(false);
+  const [rateLimitCountdown, setRateLimitCountdown] = useState<number | null>(
+    null,
+  );
   const validateEmail = (e: string) =>
     ValidationUtils.validate.email(e.trim()).isValid;
+
+  useEffect(() => {
+    if (!rateLimitCountdown || rateLimitCountdown <= 0) return;
+    const timer = setInterval(() => {
+      setRateLimitCountdown((prev) => {
+        if (prev === null || prev <= 1) {
+          clearInterval(timer);
+          return null;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [rateLimitCountdown]);
+
+  const sendMagicLink = async (targetEmail: string) => {
+    const result = await magicLinkService.sendMagicLink(
+      targetEmail,
+      "/app/onboarding",
+    );
+    if (!result.success) {
+      if (result.retryAfter) setRateLimitCountdown(result.retryAfter);
+      throw new Error(result.error || "Could not send magic link");
+    }
+    return result.email;
+  };
+
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isSubmitting) return;
@@ -43,19 +74,14 @@ function useEmailCapture() {
     setIsSubmitting(true);
     setSentEmail(null);
     try {
-      const result = await magicLinkService.sendMagicLink(
-        email,
-        "/app/onboarding",
-      );
-      if (!result.success)
-        throw new Error(result.error || "Could not send magic link");
+      const normalized = await sendMagicLink(email.trim().toLowerCase());
       telemetry.track("login_magic_link_requested", { source: "homepage" });
       pushToast({
         title: "Check your inbox",
         description: "Magic link sent!",
         tone: "success",
       });
-      setSentEmail(result.email);
+      setSentEmail(normalized || email.trim().toLowerCase());
       setEmail("");
     } catch (error: unknown) {
       const message =
@@ -73,6 +99,26 @@ function useEmailCapture() {
       setIsSubmitting(false);
     }
   };
+
+  const onResend = async () => {
+    if (!sentEmail) return;
+    setResendLoading(true);
+    setEmailError("");
+    try {
+      await sendMagicLink(sentEmail);
+      pushToast({ title: "Link resent", tone: "success" });
+    } catch (error: unknown) {
+      const message =
+        typeof (error as Error)?.message === "string" &&
+        !(error as Error).message.includes("[object")
+          ? (error as Error).message
+          : "Failed to resend. Please try again.";
+      setEmailError(message);
+    } finally {
+      setResendLoading(false);
+    }
+  };
+
   return {
     email,
     setEmail,
@@ -82,6 +128,9 @@ function useEmailCapture() {
     sentEmail,
     setSentEmail,
     onSubmit,
+    onResend,
+    resendLoading,
+    rateLimitCountdown,
   };
 }
 
@@ -95,22 +144,94 @@ function EmailForm({ variant = "light" }: { variant?: "light" | "dark" }) {
     sentEmail,
     setSentEmail,
     onSubmit,
+    onResend,
+    resendLoading,
+    rateLimitCountdown,
   } = useEmailCapture();
   const dark = variant === "dark";
   if (sentEmail) {
     return (
-      <div className="flex items-center gap-4 p-5 rounded-xl bg-emerald-50 border border-emerald-200">
-        <MailCheck className="w-5 h-5 text-emerald-600 shrink-0" />
-        <div className="min-w-0 flex-1">
-          <p className="text-sm font-medium text-[#2D2A26]">Check your inbox</p>
-          <p className="text-xs text-[#787774] mt-0.5 truncate">{sentEmail}</p>
+      <div
+        className={cn(
+          "p-5 rounded-xl border space-y-3",
+          dark
+            ? "bg-emerald-500/10 border-emerald-500/30"
+            : "bg-emerald-50 border-emerald-200",
+        )}
+      >
+        <div className="flex items-start gap-4">
+          <MailCheck
+            className={cn(
+              "w-5 h-5 shrink-0",
+              dark ? "text-emerald-400" : "text-emerald-600",
+            )}
+          />
+          <div className="min-w-0 flex-1">
+            <p
+              className={cn(
+                "text-sm font-medium",
+                dark ? "text-white" : "text-[#2D2A26]",
+              )}
+            >
+              Check your inbox
+            </p>
+            <p
+              className={cn(
+                "text-xs mt-0.5 truncate",
+                dark ? "text-white/70" : "text-[#787774]",
+              )}
+            >
+              {sentEmail}
+            </p>
+            <p
+              className={cn(
+                "text-xs mt-2",
+                dark ? "text-white/60" : "text-[#787774]",
+              )}
+            >
+              Didn&apos;t receive it? Check your spam folder.
+            </p>
+          </div>
         </div>
-        <button
-          onClick={() => setSentEmail(null)}
-          className="text-xs font-medium text-emerald-700 hover:underline"
-        >
-          Change
-        </button>
+        {emailError && (
+          <p
+            className={cn(
+              "text-sm",
+              dark ? "text-red-400" : "text-red-500",
+            )}
+          >
+            {emailError}
+          </p>
+        )}
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={onResend}
+            disabled={resendLoading || !!rateLimitCountdown}
+            className={cn(
+              "text-sm font-medium px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed",
+              dark
+                ? "text-emerald-300 hover:text-emerald-200 hover:bg-white/10"
+                : "text-emerald-700 hover:bg-emerald-100",
+            )}
+          >
+            {resendLoading
+              ? "Sending…"
+              : rateLimitCountdown
+                ? `Resend in ${rateLimitCountdown}s`
+                : "Resend link"}
+          </button>
+          <button
+            onClick={() => setSentEmail(null)}
+            className={cn(
+              "text-sm font-medium px-3 py-1.5 rounded-lg transition-colors",
+              dark
+                ? "text-white/80 hover:text-white hover:bg-white/10"
+                : "text-emerald-700 hover:underline",
+            )}
+          >
+            Use a different email
+          </button>
+        </div>
       </div>
     );
   }

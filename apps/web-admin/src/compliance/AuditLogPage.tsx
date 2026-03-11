@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { apiRequest, getApiBase } from "../lib/api";
+import { apiRequest, exportAuditLogCsv } from "../lib/api";
 
 interface AuditEntry {
   id: string;
@@ -37,17 +37,16 @@ export default function AuditLogPage() {
   const handleFilter = () => { setPage(0); load(0, actionFilter); };
   const handleExport = async () => {
     try {
-      const resp = await fetch(`${getApiBase()}/billing/audit-log/export?days=90`, {
-        credentials: "include"  // SECURITY: Include httpOnly cookies for authentication
-      });
-      if (resp.ok) {
-        const blob = await resp.blob();
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url; a.download = "audit_log.csv"; a.click();
-        URL.revokeObjectURL(url);
-      } else { alert("Export failed"); }
-    } catch (e) { alert(String(e)); }
+      const blob = await exportAuditLogCsv(90);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "audit_log.csv";
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      alert(String(e));
+    }
   };
 
   const actionColor = (a: string) => {
