@@ -1042,11 +1042,11 @@ export function JobsView() {
       // Revert UI state on API failure
       setSwipeDirection(null);
       pushToast({
-        title: "Failed to record decision",
+        title: "Could not record your job decision",
         description: "Please try again.",
         tone: "error"
       });
-      setStatusMessage("Failed to record decision, please try again.");
+      setStatusMessage("Could not record decision. Please try again.");
     } finally {
       // Clear swipe direction after animation
       if (swipeTimeoutRef.current) clearTimeout(swipeTimeoutRef.current);
@@ -1085,8 +1085,8 @@ export function JobsView() {
       setStatusMessage("Swipe undone - make a new decision");
     } catch (error) {
       pushToast({
-        title: "Failed to undo",
-        description: "The decision could not be undone.",
+        title: "Could not undo",
+        description: "Your job decision could not be reverted.",
         tone: "error"
       });
     } finally {
@@ -1719,8 +1719,8 @@ export function ApplicationsView() {
     } catch (error) {
       if (import.meta.env.DEV) console.error('Action failed:', error);
       pushToast({
-        title: "Action failed",
-        description: (error as Error)?.message ?? "Something went wrong. Please try again.",
+        title: "Could not complete action",
+        description: (error as Error)?.message ?? "Please try again.",
         tone: "error",
       });
     }

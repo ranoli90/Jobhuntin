@@ -57,7 +57,7 @@ export default function UpgradeScreen() {
       const { checkout_url } = await createCheckout();
       await Linking.openURL(checkout_url);
     } catch (err) {
-      Alert.alert("Error", "Could not start checkout. Please try again.");
+      Alert.alert("Checkout failed", "Could not start checkout. Please try again.");
       console.error("Checkout error:", err);
     } finally {
       setUpgrading(false);
@@ -69,7 +69,7 @@ export default function UpgradeScreen() {
       const { portal_url } = await createPortalSession();
       await Linking.openURL(portal_url);
     } catch (err) {
-      Alert.alert("Error", "Could not open billing portal.");
+      Alert.alert("Billing portal unavailable", "Could not open billing portal. Please try again or contact support.");
       console.error("Portal error:", err);
     }
   };

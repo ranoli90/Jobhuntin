@@ -112,7 +112,7 @@ export default function OnboardingScreen({ onComplete, onPickResume }: Onboardin
         goToNext();
       }
     } catch (err) {
-      Alert.alert("Upload Failed", "Please try again.");
+      Alert.alert("Resume upload failed", "Please try again or try a different file.");
     } finally {
       setLoading(false);
     }

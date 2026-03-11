@@ -150,7 +150,7 @@ export function useBilling() {
       }
     } catch (err) {
       // Fallback: if billing/portal doesn't exist yet, redirect to checkout
-      pushToast({ title: "Billing portal error", description: (err as Error).message, tone: "error" });
+      pushToast({ title: "Could not open billing portal", description: (err as Error).message || "Please try again or contact support.", tone: "error" });
     }
   }, [baseUrl]);
 

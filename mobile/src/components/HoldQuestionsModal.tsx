@@ -71,7 +71,7 @@ export const HoldQuestionsModal: React.FC<HoldQuestionsModalProps> = ({
       await submitApplicationInputs(applicationId, answers);
       onClose();
     } catch (err: any) {
-      setError(err.message ?? "Something went wrong");
+      setError(err.message ?? "We couldn't submit your response. Please try again.");
     } finally {
       setSubmitting(false);
     }

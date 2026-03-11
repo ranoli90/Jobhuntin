@@ -201,7 +201,7 @@ export function JobDetailDrawer({ job, isOpen, onClose, onApply, onSave, isSaved
                       await navigator.clipboard.writeText(url);
                       pushToast({ title: "Link copied to clipboard", tone: "success" });
                     } catch {
-                      pushToast({ title: "Failed to share or copy", tone: "error" });
+                      pushToast({ title: "Could not copy job link", description: "Please try again or copy the URL manually.", tone: "error" });
                     }
                   }
                 }

@@ -63,11 +63,11 @@ const OAuthHandler: React.FC = () => {
         headers: { 'Content-Type': 'application/json' },
       });
 
-      if (!response.ok) throw new Error('Failed to fetch providers');
+      if (!response.ok) throw new Error('Could not load OAuth providers');
       const data = await response.json();
       setProviders(Array.isArray(data?.providers) ? data.providers : []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch providers');
+      setError(err instanceof Error ? err.message : 'Could not load OAuth providers');
     } finally {
       setLoading(false);
     }
@@ -80,11 +80,11 @@ const OAuthHandler: React.FC = () => {
         headers: { 'Content-Type': 'application/json' },
       });
 
-      if (!response.ok) throw new Error('Failed to fetch credentials');
+      if (!response.ok) throw new Error('Could not load credentials');
       const data = await response.json();
       setCredentials(data.credentials || []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch credentials');
+      setError(err instanceof Error ? err.message : 'Could not load credentials');
     }
   };
 
@@ -103,7 +103,7 @@ const OAuthHandler: React.FC = () => {
         }),
       });
 
-      if (!response.ok) throw new Error('Failed to store credentials');
+      if (!response.ok) throw new Error('Could not save credentials');
       
       await fetchCredentials();
       // Reset form
@@ -114,7 +114,7 @@ const OAuthHandler: React.FC = () => {
       
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to store credentials');
+      setError(err instanceof Error ? err.message : 'Could not save credentials');
     }
   };
 
@@ -132,15 +132,15 @@ const OAuthHandler: React.FC = () => {
         }),
       });
 
-      if (!response.ok) throw new Error('Failed to initiate OAuth flow');
+      if (!response.ok) throw new Error('Could not start OAuth sign-in');
       const data = await response.json();
       const authUrl = data?.authorization_url;
       if (!authUrl || typeof authUrl !== 'string') {
-        throw new Error('Invalid OAuth response: missing authorization URL');
+        throw new Error('Sign-in provider did not respond correctly. Please try again.');
       }
       window.open(authUrl, '_blank');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to initiate OAuth flow');
+      setError(err instanceof Error ? err.message : 'Could not start OAuth sign-in');
     }
   };
 
@@ -157,11 +157,11 @@ const OAuthHandler: React.FC = () => {
         }),
       });
 
-      if (!response.ok) throw new Error('Failed to delete credentials');
+      if (!response.ok) throw new Error('Could not remove credentials');
       
       await fetchCredentials();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete credentials');
+      setError(err instanceof Error ? err.message : 'Could not remove credentials');
     }
   };
 

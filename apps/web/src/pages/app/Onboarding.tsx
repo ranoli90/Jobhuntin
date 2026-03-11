@@ -1070,7 +1070,7 @@ export default function Onboarding() {
       const msg = (typeof err.message === 'string' && !err.message.includes('[object')) ? err.message : (t("onboarding.somethingWrong", locale) || "Something went wrong. Please try again.");
       if (import.meta.env.DEV) console.error('[Onboarding] Failed to complete:', err);
       setSaveError(msg);
-      pushToast({ title: t("onboarding.almostThere", locale) || "Almost there!", description: msg, tone: "error" });
+      pushToast({ title: t("onboarding.somethingWrong", locale) || "We couldn't complete that. Please try again.", description: msg, tone: "error" });
     } finally {
       setIsCompleting(false);
       completingRef.current = false; // Allow retry on failure

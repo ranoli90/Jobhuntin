@@ -136,8 +136,8 @@ export default function JobsView() {
                         return next;
                     });
                     pushToast({
-                        title: action === "accept" ? "Apply failed" : "Skip failed",
-                        description: err.message || "Please try again",
+                        title: action === "accept" ? "Could not apply" : "Could not skip",
+                        description: err.message || "Please try again.",
                         tone: "error",
                     });
                 }
@@ -380,7 +380,7 @@ export default function JobsView() {
                                     queryClient.invalidateQueries({ queryKey: ["jobs"] });
                                     pushToast({ title: "Application undone", tone: "success" });
                                 } catch {
-                                    pushToast({ title: "Undo failed", tone: "error" });
+                                    pushToast({ title: "Could not undo", description: "Your application could not be reverted.", tone: "error" });
                                 }
                             } else if (undoStack.length > 0) {
                                 const lastRejected = undoStack[undoStack.length - 1];

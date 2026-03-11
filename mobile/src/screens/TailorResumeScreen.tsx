@@ -122,7 +122,7 @@ export default function TailorResumeScreen() {
         Alert.alert("Note", "Could not extract text from PDF. Please paste resume text manually.");
       }
     } catch (err) {
-      Alert.alert("Error", "Failed to pick document");
+      Alert.alert("Could not open document", "Please try again or select a different file.");
     }
   };
 

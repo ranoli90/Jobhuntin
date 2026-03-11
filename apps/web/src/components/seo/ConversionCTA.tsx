@@ -72,7 +72,7 @@ export function ConversionCTA({
         setSentEmail(null);
         try {
             const result = await magicLinkService.sendMagicLink(email, '/app/onboarding');
-            if (!result.success) throw new Error(result.error || 'Failed');
+            if (!result.success) throw new Error(result.error || 'Could not send magic link');
             telemetry.track('login_magic_link_requested', { source: 'conversion_cta', variant });
             pushToast({ title: 'Check your inbox', description: 'Magic link sent!', tone: 'success' });
             setSentEmail(result.email);
@@ -81,9 +81,9 @@ export function ConversionCTA({
             const msg =
                 typeof (err as Error)?.message === 'string' && !(err as Error).message.includes('[object')
                     ? (err as Error).message
-                    : 'Something went wrong.';
+                    : "We couldn't send the magic link. Please try again.";
             setEmailError(msg);
-            pushToast({ title: 'Error', description: msg, tone: 'error' });
+            pushToast({ title: 'Could not send magic link', description: msg, tone: 'error' });
         } finally {
             setIsSubmitting(false);
         }

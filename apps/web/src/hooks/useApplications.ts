@@ -77,7 +77,7 @@ export function useApplications() {
       queryClient.invalidateQueries({ queryKey: ["applications"] });
       pushToast({ title: "Response sent", description: "Your AI agent will resume this application.", tone: "success" });
     } catch (err) {
-      pushToast({ title: "Failed to send response", description: (err as Error).message, tone: "error" });
+      pushToast({ title: "Could not send response", description: (err as Error).message || "Please try again.", tone: "error" });
       throw err;
     } finally {
       setSubmittingIds(prev => {
@@ -96,7 +96,7 @@ export function useApplications() {
       queryClient.invalidateQueries({ queryKey: ["applications"] });
       pushToast({ title: "Snoozed for 24h", description: "This hold will reappear tomorrow.", tone: "info" });
     } catch (err) {
-      pushToast({ title: "Snooze failed", description: (err as Error).message, tone: "error" });
+      pushToast({ title: "Could not snooze", description: (err as Error).message || "Please try again.", tone: "error" });
       throw err;
     } finally {
       setSubmittingIds(prev => {
@@ -115,7 +115,7 @@ export function useApplications() {
       queryClient.invalidateQueries({ queryKey: ["applications"] });
       pushToast({ title: "Marked as reviewed", description: "Application has been marked as reviewed.", tone: "success" });
     } catch (err) {
-      pushToast({ title: "Failed to mark as reviewed", description: (err as Error).message, tone: "error" });
+      pushToast({ title: "Could not mark as reviewed", description: (err as Error).message || "Please try again.", tone: "error" });
       throw err;
     } finally {
       setSubmittingIds(prev => {
@@ -133,7 +133,7 @@ export function useApplications() {
       queryClient.invalidateQueries({ queryKey: ["applications"] });
       pushToast({ title: "Application withdrawn", description: "The application has been withdrawn.", tone: "info" });
     } catch (err) {
-      pushToast({ title: "Withdraw failed", description: (err as Error).message, tone: "error" });
+      pushToast({ title: "Could not withdraw application", description: (err as Error).message || "Please try again.", tone: "error" });
       throw err;
     } finally {
       setSubmittingIds(prev => {

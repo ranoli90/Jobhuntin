@@ -30,8 +30,8 @@ export function ReferralModal({ isOpen, onClose, userName }: ReferralModalProps)
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
       pushToast({
-        title: "Failed to copy",
-        description: "Please copy the link manually",
+        title: "Could not copy referral link",
+        description: "Please copy the link manually from the field above.",
         tone: "error"
       });
     }

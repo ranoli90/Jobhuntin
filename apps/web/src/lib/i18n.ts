@@ -329,7 +329,7 @@ const dictionaries: Dict = {
     "onboarding.growthEndpointHint": "One optional step didn't complete. You're ready to job hunt!",
     "onboarding.almostThere": "Almost there!",
     "onboarding.buildingProfile": "Building your profile",
-    "onboarding.somethingWrong": "Something went wrong. Please try again.",
+    "onboarding.somethingWrong": "We couldn't complete that. Please try again.",
     "onboarding.settingUpProfile": "Setting up your profile",
     "onboarding.setup": "Setup",
     "onboarding.setupTime": "2-3 min setup",
@@ -354,7 +354,7 @@ const dictionaries: Dict = {
     "holds.responseRequired": "RESPONSE REQUIRED",
 
     "app.loading": "Loading...",
-    "app.error": "Something went wrong",
+    "app.error": "Something went wrong. Please try again.",
     "app.retry": "Try Again",
     "resumeRetry.offline": "You're offline. The resume will be automatically uploaded when you reconnect.",
     "resumeRetry.maxReached": "Maximum retry attempts reached. Please try uploading again or contact support.",
@@ -414,7 +414,7 @@ const dictionaries: Dict = {
     "jobAlerts.toggle": "Toggle",
     "jobAlerts.lastSent": "Last sent",
     "jobAlerts.confirmDelete": "Are you sure you want to delete this alert?",
-    "jobAlerts.errorLoading": "Error Loading Alerts",
+    "jobAlerts.errorLoading": "Could not load job alerts",
 
     "cookies.description": "We use cookies to analyze traffic and optimize your experience. By clicking \"Accept all\", you consent to our use of analytics and marketing cookies. \"Reject all\" uses only essential system cookies. See our",
     "cookies.privacyPolicy": "Privacy Policy",
@@ -821,7 +821,7 @@ const dictionaries: Dict = {
     "holds.responseRequired": "RÉPONSE REQUISE",
 
     "app.loading": "Chargement...",
-    "app.error": "Une erreur est survenue",
+    "app.error": "Une erreur est survenue. Veuillez réessayer.",
     "app.retry": "Réessayer",
     "resumeRetry.offline": "Hors ligne. Le CV sera téléchargé automatiquement à la reconnexion.",
     "resumeRetry.maxReached": "Nombre maximum de tentatives atteint. Réessayez ou contactez le support.",

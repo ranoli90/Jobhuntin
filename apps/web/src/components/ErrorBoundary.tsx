@@ -45,7 +45,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
     // Show user-facing toast
     if (this.props.showToast) {
       pushToast({
-        title: "Something went wrong",
+        title: "Page error",
         description: "We've been notified. Please try refreshing the page.",
         tone: "error",
       });
@@ -93,9 +93,9 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
               </svg>
             </div>
           </div>
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-slate-100 mb-2">Something went wrong</h2>
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-slate-100 mb-2">This page failed to load</h2>
           <p className="text-gray-600 dark:text-slate-400 mb-4">
-            {this.state.error?.message || 'An unexpected error occurred'}
+            {this.state.error?.message || 'An unexpected error occurred. Please try refreshing.'}
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <button
@@ -187,12 +187,12 @@ export function ErrorFallback({ error, onReset, className }: ErrorFallbackProps)
         </div>
 
         <h1 className="text-2xl font-black text-slate-900 mb-3">
-          Something went wrong
+          This page failed to load
         </h1>
 
         <p className="text-slate-500 mb-6 leading-relaxed">
-          We apologize for the inconvenience. An unexpected error has occurred.
-          Our team has been notified.
+          An unexpected error occurred. We've been notified and are looking into it.
+          Please try refreshing or going back.
         </p>
 
         {error && import.meta.env.DEV && (
@@ -265,8 +265,8 @@ export function RouteErrorBoundary({ children }: RouteErrorBoundaryProps) {
             <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <AlertCircle className="w-8 h-8 text-red-500" />
             </div>
-            <h1 className="text-xl font-bold text-slate-900 mb-2">Page Error</h1>
-            <p className="text-slate-500 mb-4">This page failed to load</p>
+            <h1 className="text-xl font-bold text-slate-900 mb-2">This page failed to load</h1>
+            <p className="text-slate-500 mb-4">An error occurred. Try refreshing or going back.</p>
             <Button onClick={() => window.location.reload()}>
               Reload Page
             </Button>

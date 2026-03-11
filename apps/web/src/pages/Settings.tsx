@@ -116,7 +116,7 @@ export default function Settings() {
       telemetry.track("preferences_saved", {});
       pushToast({ title: "Preferences saved", tone: "success" });
     } catch (err) {
-      pushToast({ title: "Could not save", description: (err as Error).message, tone: "error" });
+      pushToast({ title: "Could not save preferences", description: (err as Error).message, tone: "error" });
     } finally {
       setIsSaving(false);
     }
@@ -186,7 +186,7 @@ export default function Settings() {
       const message = apiErr.message;
       const status = apiErr.status;
       if (import.meta.env.DEV) console.error("Resume upload failed:", err);
-      pushToast({ title: "Upload failed", description: status ? `[${status}] ${message}` : message, tone: "error" });
+      pushToast({ title: "Resume upload failed", description: status ? `[${status}] ${message}` : message, tone: "error" });
       setResumeError(status ? `[${status}] ${message}` : message);
     } finally {
       setIsUploading(false);

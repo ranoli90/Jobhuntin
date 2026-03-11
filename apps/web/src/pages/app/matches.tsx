@@ -193,8 +193,8 @@ export default function MatchesPage() {
   useEffect(() => {
     if (!semanticMatchingEnabled) {
       pushToast({
-        title: "Feature Disabled",
-        description: "Semantic matching is not enabled for your account.",
+        title: "Semantic matching not available",
+        description: "This feature is not included in your plan. Upgrade to access match insights.",
         tone: "warning",
       });
       navigate("/app/jobs");
@@ -244,8 +244,8 @@ export default function MatchesPage() {
         await navigator.share(shareData);
       } catch {
         pushToast({
-          title: "Share Cancelled",
-          description: "Share operation was cancelled.",
+          title: "Share cancelled",
+          description: "You cancelled the share.",
           tone: "neutral",
         });
       }

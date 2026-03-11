@@ -112,7 +112,7 @@ export default function TeamOwnerScreen() {
       setInviteEmail("");
       load();
     } catch (err) {
-      Alert.alert("Error", String(err));
+      Alert.alert("Could not send invite", String(err) || "Please try again.");
     } finally {
       setInviting(false);
     }

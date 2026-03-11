@@ -84,11 +84,11 @@ const EmailPage: React.FC = () => {
         },
       });
 
-      if (!response.ok) throw new Error('Failed to fetch emails');
+      if (!response.ok) throw new Error('Could not load your inbox');
       const data = await response.json();
       setEmails(data.emails || []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch emails');
+      setError(err instanceof Error ? err.message : 'Could not load your inbox');
     } finally {
       setLoading(false);
     }
@@ -102,12 +102,12 @@ const EmailPage: React.FC = () => {
         },
       });
 
-      if (!response.ok) throw new Error('Failed to fetch preferences');
+      if (!response.ok) throw new Error('Could not load email preferences');
       const data = await response.json();
       setPreferences(data);
       setPreferencesForm(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch preferences');
+      setError(err instanceof Error ? err.message : 'Could not load email preferences');
     }
   };
 
@@ -121,12 +121,12 @@ const EmailPage: React.FC = () => {
         },
         body: JSON.stringify(composeForm),
       });
-      if (!response.ok) throw new Error('Failed to send email');
+      if (!response.ok) throw new Error('Could not send email');
       setShowCompose(false);
       setComposeForm({ to_email: '', subject: '', body: '', category: 'general' });
       await fetchEmails();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to send email');
+      setError(err instanceof Error ? err.message : 'Could not send email');
     }
   };
 
@@ -139,12 +139,12 @@ const EmailPage: React.FC = () => {
         },
       });
 
-      if (!response.ok) throw new Error('Failed to mark as read');
+      if (!response.ok) throw new Error('Could not mark as read');
       
       await fetchEmails();
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to mark as read');
+      setError(err instanceof Error ? err.message : 'Could not mark as read');
     }
   };
 
@@ -159,12 +159,12 @@ const EmailPage: React.FC = () => {
         },
       });
 
-      if (!response.ok) throw new Error('Failed to delete email');
+      if (!response.ok) throw new Error('Could not delete email');
       
       await fetchEmails();
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete email');
+      setError(err instanceof Error ? err.message : 'Could not delete email');
     }
   };
 
@@ -180,13 +180,13 @@ const EmailPage: React.FC = () => {
         body: JSON.stringify(preferencesForm),
       });
 
-      if (!response.ok) throw new Error('Failed to update preferences');
+      if (!response.ok) throw new Error('Could not update email preferences');
       
       await fetchPreferences();
       setShowPreferences(false);
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update preferences');
+      setError(err instanceof Error ? err.message : 'Could not update email preferences');
     }
   };
 

@@ -83,8 +83,8 @@ export default function Sessions() {
       telemetry.track("sessions_viewed", { total: data.total });
     } catch (err) {
       pushToast({
-        title: "Failed to load sessions",
-        description: (err as Error).message,
+        title: "Could not load sessions",
+        description: (err as Error).message || "Please try again.",
         tone: "error",
       });
     } finally {
@@ -106,8 +106,8 @@ export default function Sessions() {
       });
 
       if (!response.ok) {
-        const error = await response.json().catch(() => ({ detail: "Failed to revoke session" }));
-        throw new Error(error.detail || "Failed to revoke session");
+        const error = await response.json().catch(() => ({ detail: "Could not sign out this session" }));
+        throw new Error(error.detail || "Could not sign out this session");
       }
 
       telemetry.track("session_revoked", { session_id: sessionId });
@@ -121,8 +121,8 @@ export default function Sessions() {
       await fetchSessions();
     } catch (err) {
       pushToast({
-        title: "Failed to revoke session",
-        description: (err as Error).message,
+        title: "Could not sign out session",
+        description: (err as Error).message || "Please try again.",
         tone: "error",
       });
     } finally {
@@ -140,8 +140,8 @@ export default function Sessions() {
       });
 
       if (!response.ok) {
-        const error = await response.json().catch(() => ({ detail: "Failed to revoke sessions" }));
-        throw new Error(error.detail || "Failed to revoke sessions");
+        const error = await response.json().catch(() => ({ detail: "Could not sign out other sessions" }));
+        throw new Error(error.detail || "Could not sign out other sessions");
       }
 
       const data = await response.json();
@@ -157,8 +157,8 @@ export default function Sessions() {
       setShowRevokeAllModal(false);
     } catch (err) {
       pushToast({
-        title: "Failed to revoke sessions",
-        description: (err as Error).message,
+        title: "Could not sign out other sessions",
+        description: (err as Error).message || "Please try again.",
         tone: "error",
       });
     } finally {

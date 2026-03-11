@@ -162,7 +162,7 @@ export default function Billing() {
                             try {
                               await tier.action!();
                             } catch (e) {
-                              pushToast({ title: "Checkout failed", description: (e as Error).message, tone: "error" });
+                              pushToast({ title: "Checkout failed", description: (e as Error).message || "Please try again or use a different payment method.", tone: "error" });
                             }
                           }
                         : undefined
