@@ -35,12 +35,15 @@ export class ResumeUploadRetryManager {
     this.cacheService = BrowserCacheService.getInstance();
   }
 
+  /** R1: Avoid localStorage QuotaExceeded - files >4MB (~5.3MB base64) skip persistence */
+  private static readonly MAX_STORABLE_SIZE = 4 * 1024 * 1024;
+
   /**
-   * Save resume metadata for offline retry
+   * Save resume metadata for offline retry.
+   * Large files (>4MB) are not stored to avoid localStorage QuotaExceeded; retry will require re-upload.
    */
   async saveResumeMetadata(file: File, error?: string): Promise<void> {
-    const metadata: ResumeUploadMetadata = {
-      file,
+    const metadata: Omit<ResumeUploadMetadata, 'file'> & { fileBase64?: string } = {
       fileName: file.name,
       fileSize: file.size,
       fileType: file.type,
@@ -52,12 +55,16 @@ export class ResumeUploadRetryManager {
       backoffMs: BASE_DELAY,
     };
 
-    // Store file as base64 for persistence
-    const fileBase64 = await this.fileToBase64(file);
-    await this.cacheService.set('resume_upload_metadata', {
-      ...metadata,
-      fileBase64,
-    });
+    if (file.size <= ResumeUploadRetryManager.MAX_STORABLE_SIZE) {
+      try {
+        const fileBase64 = await this.fileToBase64(file);
+        (metadata as Record<string, unknown>).fileBase64 = fileBase64;
+      } catch {
+        // fileToBase64 failed; save without file for retry
+      }
+    }
+    // Omit file (not serializable); only fileBase64 is stored
+    await this.cacheService.set('resume_upload_metadata', metadata);
   }
 
   /**
@@ -77,7 +84,9 @@ export class ResumeUploadRetryManager {
     }
 
     const now = Date.now();
-    const canRetry = metadata.uploadAttempts < MAX_RETRIES && 
+    const hasFileData = !!(metadata as ResumeUploadMetadata & { fileBase64?: string }).fileBase64;
+    const canRetry = hasFileData &&
+                      metadata.uploadAttempts < MAX_RETRIES &&
                       metadata.nextRetryTime <= now &&
                       navigator.onLine;
 
@@ -101,14 +110,15 @@ export class ResumeUploadRetryManager {
   }
 
   /**
-   * Update metadata after failed attempt
+   * Update metadata after failed attempt.
+   * Preserves fileBase64 if present; does not re-add (file not available in this context).
    */
   async updateAfterFailure(error: string): Promise<void> {
-    const metadata = await this.cacheService.get<ResumeUploadMetadata>('resume_upload_metadata');
+    const metadata = await this.cacheService.get<ResumeUploadMetadata & { fileBase64?: string }>('resume_upload_metadata');
     if (!metadata) return;
 
     const nextBackoff = this.calculateBackoff(metadata.uploadAttempts + 1);
-    const updatedMetadata: ResumeUploadMetadata = {
+    const updatedMetadata: Record<string, unknown> = {
       ...metadata,
       uploadAttempts: metadata.uploadAttempts + 1,
       lastAttemptTime: Date.now(),
@@ -116,7 +126,7 @@ export class ResumeUploadRetryManager {
       error,
       backoffMs: nextBackoff,
     };
-
+    delete updatedMetadata.file; // Not serializable
     await this.cacheService.set('resume_upload_metadata', updatedMetadata);
   }
 

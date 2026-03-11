@@ -363,40 +363,42 @@ async def _find_or_create_user_by_email(
     """
     import uuid
 
-    # First try to find existing user
-    user_id = await conn.fetchval("SELECT id FROM public.users WHERE email = $1", email)
-
-    if user_id:
-        return str(user_id), False
-
-    # Create new user on verification
-    logger.info("[MAGIC_LINK] Creating new user for email: %s", _mask_email(email))
-    user_id = await conn.fetchval(
+    # Use INSERT ... ON CONFLICT to avoid race when two magic links for same new email are verified concurrently
+    new_id = str(uuid.uuid4())
+    row = await conn.fetchrow(
         """
         INSERT INTO public.users (id, email, created_at, updated_at)
         VALUES ($1, $2, now(), now())
+        ON CONFLICT (email) DO UPDATE SET updated_at = now()
         RETURNING id
-    """,
-        str(uuid.uuid4()),
+        """,
+        new_id,
         email,
     )
+    if not row:
+        raise RuntimeError("User insert/upsert failed")
+    user_id = row["id"]
+    inserted = str(user_id) == new_id
 
-    # Create profile for new user (ON CONFLICT to handle race conditions)
-    await conn.execute(
-        """
-        INSERT INTO public.profiles (user_id, profile_data)
-        VALUES ($1, '{}')
-        ON CONFLICT (user_id) DO NOTHING
-    """,
-        user_id,
-    )
+    if inserted:
+        logger.info("[MAGIC_LINK] Creating new user for email: %s", _mask_email(email))
+        await conn.execute(
+            """
+            INSERT INTO public.profiles (user_id, profile_data)
+            VALUES ($1, '{}')
+            ON CONFLICT (user_id) DO NOTHING
+            """,
+            user_id,
+        )
+        logger.info(
+            "[MAGIC_LINK] New user created with ID %s for email: %s",
+            str(user_id),
+            _mask_email(email),
+        )
+    else:
+        logger.info("[MAGIC_LINK] Existing user found (race) for email: %s", _mask_email(email))
 
-    logger.info(
-        "[MAGIC_LINK] New user created with ID %s for email: %s",
-        str(user_id),
-        _mask_email(email),
-    )
-    return str(user_id), True
+    return str(user_id), inserted
 
 
 async def _generate_magic_link(

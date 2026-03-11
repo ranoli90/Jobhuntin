@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { CheckCircle2, Zap, Sparkles } from "lucide-react";
 import { Logo } from "../../components/brand/Logo";
 import { useOnboarding } from "../../hooks/useOnboarding";
@@ -18,8 +18,10 @@ import { telemetry } from "../../lib/telemetry";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { BrowserCacheService } from "../../lib/browserCache";
 import { Skeleton, OnboardingSkeleton, ResumeStepSkeleton, PreferencesStepSkeleton, SkillReviewStepSkeleton, WorkStyleStepSkeleton } from "../../components/ui/Skeleton";
-import { checkEmailTypo } from "../../lib/emailUtils";
+import { checkEmailTypo, isValidEmail } from "../../lib/emailUtils";
+import { isValidLinkedInUrl } from "../../lib/linkedinValidation";
 import { ErrorBoundary } from "../../components/ErrorBoundary";
+import { ConfirmModal } from "../../components/ui/ConfirmModal";
 import { resumeUploadRetry } from "../../lib/resumeUploadRetry";
 import ResumeUploadRetry from "../../components/ui/ResumeUploadRetry";
 
@@ -59,11 +61,24 @@ export default function Onboarding() {
     },
     []
   );
-  const { steps, currentStep, currentStepData, progress, isFirstStep, isLastStep, nextStep, prevStep, resetOnboarding, formData, updateFormData } = useOnboarding({
+  const [searchParams, setSearchParams] = useSearchParams();
+  const urlStep = React.useMemo(() => {
+    const s = searchParams.get("step");
+    if (s == null) return null;
+    const n = parseInt(s, 10);
+    return Number.isFinite(n) && n >= 0 ? n : null;
+  }, [searchParams]);
+
+  const { steps, currentStep, currentStepData, progress, isFirstStep, isLastStep, nextStep, prevStep, goToStep, resetOnboarding, formData, updateFormData } = useOnboarding({
     serverProgress: profile && !profile.has_completed_onboarding && profile.onboarding_step != null
       ? { step: profile.onboarding_step, completed: profile.onboarding_completed_steps || [] }
       : null,
     syncToServer: profile ? syncProgressToServer : undefined,
+    initialStepFromUrl: urlStep,
+    onSyncError: (err) => {
+      if (import.meta.env.DEV) console.warn('[Onboarding] Progress sync failed:', err);
+      pushToast({ title: "Could not save progress", description: "Your progress is saved locally. Check your connection.", tone: "warning" });
+    },
   });
   const aiSuggestions = useAISuggestions();
   const locale = getLocale();
@@ -91,6 +106,17 @@ export default function Onboarding() {
       });
     }
   }, [currentStep, currentStepData?.id, loading, profile?.id, progress]);
+
+  // N1: Keep URL in sync with current step for shareable deep-links
+  React.useEffect(() => {
+    if (searchParams.get("step") !== String(currentStep)) {
+      setSearchParams((prev) => {
+        const next = new URLSearchParams(prev);
+        next.set("step", String(currentStep));
+        return next;
+      }, { replace: true });
+    }
+  }, [currentStep, searchParams, setSearchParams]);
 
   React.useEffect(() => {
     // Check for save-data preference
@@ -190,6 +216,7 @@ export default function Onboarding() {
 
   const [formErrors, setFormErrors] = React.useState<Record<string, string>>({});
   const [saveError, setSaveError] = React.useState<string | null>(null);
+  const [showRestartConfirm, setShowRestartConfirm] = React.useState(false);
 
   const [contactInfo, setContactInfo] = React.useState({
     first_name: "",
@@ -312,30 +339,16 @@ export default function Onboarding() {
   }, [currentStepData.id]);
 
   // Restore local state from formData on mount and step changes (for back navigation persistence)
-  // Only restores; does NOT call updateFormData to avoid dependency loop
+  // E1: Only restore when local state is empty to avoid overwriting user input while typing
   React.useEffect(() => {
-    if (formData.linkedinUrl && linkedinUrl !== formData.linkedinUrl) {
-      setLinkedinUrl(formData.linkedinUrl);
-    }
-    if (formData.workStyleAnswers && JSON.stringify(workStyleAnswers) !== JSON.stringify(formData.workStyleAnswers)) {
-      setWorkStyleAnswers(formData.workStyleAnswers);
-    }
-    if (formData.parsedResume && (!parsedResume || JSON.stringify(parsedResume) !== JSON.stringify(formData.parsedResume))) {
-      setParsedResume(formData.parsedResume);
-    }
-    if (formData.parsedProfile && (!parsedProfile || JSON.stringify(parsedProfile) !== JSON.stringify(formData.parsedProfile))) {
-      setParsedProfile(formData.parsedProfile);
-    }
-    if (formData.richSkills && (!richSkills.length || JSON.stringify(richSkills) !== JSON.stringify(formData.richSkills))) {
-      setRichSkills(formData.richSkills);
-    }
-    if (formData.showParsingPreview !== undefined && showParsingPreview !== formData.showParsingPreview) {
-      setShowParsingPreview(formData.showParsingPreview);
-    }
-    if (formData.careerGoals && JSON.stringify(careerGoals) !== JSON.stringify(formData.careerGoals)) {
-      setCareerGoals(formData.careerGoals);
-    }
-  }, [currentStep, formData, linkedinUrl, workStyleAnswers, parsedResume, parsedProfile, richSkills, showParsingPreview, careerGoals]);
+    if (formData.linkedinUrl && !linkedinUrl.trim()) setLinkedinUrl(formData.linkedinUrl);
+    if (formData.workStyleAnswers && Object.keys(workStyleAnswers).length === 0) setWorkStyleAnswers(formData.workStyleAnswers);
+    if (formData.parsedResume && !parsedResume) setParsedResume(formData.parsedResume);
+    if (formData.parsedProfile && !parsedProfile) setParsedProfile(formData.parsedProfile);
+    if (formData.richSkills?.length && !richSkills.length) setRichSkills(formData.richSkills);
+    if (formData.showParsingPreview !== undefined && !showParsingPreview) setShowParsingPreview(formData.showParsingPreview);
+    if (formData.careerGoals && Object.keys(careerGoals).length === 0) setCareerGoals(formData.careerGoals);
+  }, [currentStep, formData.linkedinUrl, formData.workStyleAnswers, formData.parsedResume, formData.parsedProfile, formData.richSkills, formData.showParsingPreview, formData.careerGoals]);
 
   // Clear save error when changing steps (e.g. prev/next) so it doesn't persist across steps
   React.useEffect(() => {
@@ -350,6 +363,20 @@ export default function Onboarding() {
     }
   };
 
+  /** Map frontend work style values to backend API enums (A2/A3) */
+  const mapWorkStyleForApi = (answers: Record<string, string>) => {
+    const mapped: Record<string, string> = {};
+    for (const [k, v] of Object.entries(answers)) {
+      if (!v) continue;
+      if (k === "autonomy_preference" && v === "flexible") mapped[k] = "medium";
+      else if (k === "learning_style" && v === "pairing") mapped[k] = "mixed";
+      else if (k === "learning_style" && v === "courses") mapped[k] = "studying";
+      else if (k === "pace_preference" && v === "relaxed") mapped[k] = v; // backend has relaxed
+      else mapped[k] = v;
+    }
+    return mapped;
+  };
+
   const handleSaveWorkStyle = async () => {
     triggerHaptic('light');
     setSaveError(null);
@@ -357,8 +384,9 @@ export default function Onboarding() {
     try {
       const hasAnswers = Object.keys(workStyleAnswers).some((k) => workStyleAnswers[k]);
       if (hasAnswers) {
-        if (import.meta.env.DEV) console.log('[Onboarding] Saving work style:', workStyleAnswers);
-        await api.post("/me/work-style", workStyleAnswers);
+        const payload = mapWorkStyleForApi(workStyleAnswers);
+        if (import.meta.env.DEV) console.log('[Onboarding] Saving work style:', payload);
+        await api.post("/me/work-style", payload);
         pushToast({ title: "Work style saved!", tone: "success" });
         telemetry.track("AI Learned Work Style", {
           answersCount: Object.keys(workStyleAnswers).length,
@@ -541,9 +569,8 @@ export default function Onboarding() {
   }, []);
 
   const handleResumeNext = async () => {
-    // Persist LinkedIn URL when leaving Resume step (not only at Preferences)
     const trimmed = linkedinUrl?.trim();
-    if (trimmed && /^(https?:\/\/)?(www\.)?linkedin\.com\/in\/[a-zA-Z0-9_-]+/i.test(trimmed)) {
+    if (trimmed && isValidLinkedInUrl(trimmed)) {
       try {
         await updateProfile({ contact: { linkedin_url: trimmed } });
       } catch (e) {
@@ -808,10 +835,9 @@ export default function Onboarding() {
     if (!contactInfo.first_name?.trim()) errors.first_name = "Required";
     if (!contactInfo.last_name?.trim()) errors.last_name = "Required";
 
-    const emailRes = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!contactInfo.email?.trim()) {
       errors.email = "Required";
-    } else if (!emailRes.test(contactInfo.email.trim())) {
+    } else if (!isValidEmail(contactInfo.email)) {
       errors.email = "Invalid format";
     }
 
@@ -1014,26 +1040,30 @@ export default function Onboarding() {
     }
   };
 
+  // I1: Ref guard prevents double-submit before React state update (rapid double-click)
+  const completingRef = React.useRef(false);
   const handleComplete = async () => {
+    if (completingRef.current) return;
+    completingRef.current = true;
     setSaveError(null);
     try {
       setIsCompleting(true);
       // O20: Validation before completion (names, email) handled by useProfile hook
       await completeOnboarding();
 
-      // NEW: Call the growth endpoint to process referrals and bonus apps
+      // A4: Call growth endpoint; surface non-critical failure so user knows
+      let growthFailed = false;
       try {
         await api.post("/onboarding/complete", {});
       } catch (growthErr) {
-        // Non-critical if growth endpoint fails, but log it
+        growthFailed = true;
         if (import.meta.env.DEV) console.warn("[Onboarding] Growth endpoint failed but profile marked complete:", growthErr);
       }
 
       resetOnboarding();
       sessionStorage.setItem("onboarding_just_completed", "true");
       sessionStorage.setItem("show_first_steps", "true");
-      // C4: Analytics Tracking - Track onboarding completion
-      telemetry.track("onboarding_completed", { 
+      telemetry.track("onboarding_completed", {
         step: "ready",
         total_steps: steps.length,
         final_progress: Math.round(progress),
@@ -1041,7 +1071,15 @@ export default function Onboarding() {
         has_skills: richSkills.length > 0,
         has_preferences: !!preferences.location && !!preferences.role_type,
       });
-      pushToast({ title: t("onboarding.allSet", locale) || "You're all set! Let's job hunt!", tone: "success" });
+      if (growthFailed) {
+        pushToast({
+          title: t("onboarding.allSet", locale) || "You're all set!",
+          description: t("onboarding.growthEndpointHint", locale) || "One optional step didn't complete. You're ready to job hunt!",
+          tone: "warning",
+        });
+      } else {
+        pushToast({ title: t("onboarding.allSet", locale) || "You're all set! Let's job hunt!", tone: "success" });
+      }
       navigate("/app/dashboard");
     } catch (error) {
       const err = error as Error & { status?: number };
@@ -1051,67 +1089,63 @@ export default function Onboarding() {
       pushToast({ title: t("onboarding.almostThere", locale) || "Almost there!", description: msg, tone: "error" });
     } finally {
       setIsCompleting(false);
+      completingRef.current = false; // Allow retry on failure
     }
   };
 
   // #19: Ctrl+Enter / Cmd+Enter to continue; Alt+Arrow for prev/next (single handler to avoid double-submit)
+  // N3: Use ref for handlers to avoid effect re-run on every render
+  const handlersRef = React.useRef({
+    handleResumeNext, handleConfirmParsing, handleSaveSkills, handleSaveContact,
+    handleSavePreferences, handleSaveWorkStyle, handleSaveCareerGoals, handleComplete,
+    nextStep, prevStep, showParsingPreview, parsedResume,
+    isSavingPreferences, isSavingContact, isSavingSkills, isSavingWorkStyle, isSavingCareerGoals, isCompleting, isUploading,
+    currentStepData, isFirstStep,
+  });
+  handlersRef.current = {
+    handleResumeNext, handleConfirmParsing, handleSaveSkills, handleSaveContact,
+    handleSavePreferences, handleSaveWorkStyle, handleSaveCareerGoals, handleComplete,
+    nextStep, prevStep, showParsingPreview, parsedResume,
+    isSavingPreferences, isSavingContact, isSavingSkills, isSavingWorkStyle, isSavingCareerGoals, isCompleting, isUploading,
+    currentStepData, isFirstStep,
+  };
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      const h = handlersRef.current;
       if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
         if (document.activeElement?.closest('[role="dialog"]')) return;
-        const stepId = currentStepData?.id;
+        const stepId = h.currentStepData?.id;
         if (!stepId) return;
-        if (isSavingPreferences || isSavingContact || isSavingSkills || isSavingWorkStyle || isSavingCareerGoals || isCompleting) return;
+        if (h.isSavingPreferences || h.isSavingContact || h.isSavingSkills || h.isSavingWorkStyle || h.isSavingCareerGoals || h.isCompleting || h.isUploading) return;
         e.preventDefault();
-        if (stepId === "welcome") nextStep();
-        else if (stepId === "resume") (showParsingPreview && parsedResume ? handleConfirmParsing : handleResumeNext)();
-        else if (stepId === "skill-review") handleSaveSkills();
-        else if (stepId === "confirm-contact") handleSaveContact();
-        else if (stepId === "preferences") handleSavePreferences();
-        else if (stepId === "work-style") handleSaveWorkStyle();
-        else if (stepId === "career-goals") handleSaveCareerGoals();
-        else if (stepId === "ready") handleComplete();
-      } else if (e.altKey && e.key === "ArrowLeft" && !isFirstStep) {
+        if (stepId === "welcome") h.nextStep();
+        else if (stepId === "resume") (h.showParsingPreview && h.parsedResume ? h.handleConfirmParsing : h.handleResumeNext)();
+        else if (stepId === "skill-review") h.handleSaveSkills();
+        else if (stepId === "confirm-contact") h.handleSaveContact();
+        else if (stepId === "preferences") h.handleSavePreferences();
+        else if (stepId === "work-style") h.handleSaveWorkStyle();
+        else if (stepId === "career-goals") h.handleSaveCareerGoals();
+        else if (stepId === "ready") h.handleComplete();
+      } else if (e.altKey && e.key === "ArrowLeft" && !h.isFirstStep) {
         e.preventDefault();
-        prevStep();
+        h.prevStep();
       } else if (e.altKey && e.key === "ArrowRight") {
-        if (isSavingPreferences || isSavingContact || isSavingSkills || isSavingWorkStyle || isSavingCareerGoals || isCompleting) return;
+        if (h.isSavingPreferences || h.isSavingContact || h.isSavingSkills || h.isSavingWorkStyle || h.isSavingCareerGoals || h.isCompleting || h.isUploading) return;
         e.preventDefault();
-        const stepId = currentStepData?.id;
-        if (stepId === "welcome") nextStep();
-        else if (stepId === "resume") (showParsingPreview && parsedResume ? handleConfirmParsing : handleResumeNext)();
-        else if (stepId === "skill-review") handleSaveSkills();
-        else if (stepId === "confirm-contact") handleSaveContact();
-        else if (stepId === "preferences") handleSavePreferences();
-        else if (stepId === "work-style") handleSaveWorkStyle();
-        else if (stepId === "career-goals") handleSaveCareerGoals();
-        else if (stepId === "ready") handleComplete();
+        const stepId = h.currentStepData?.id;
+        if (stepId === "welcome") h.nextStep();
+        else if (stepId === "resume") (h.showParsingPreview && h.parsedResume ? h.handleConfirmParsing : h.handleResumeNext)();
+        else if (stepId === "skill-review") h.handleSaveSkills();
+        else if (stepId === "confirm-contact") h.handleSaveContact();
+        else if (stepId === "preferences") h.handleSavePreferences();
+        else if (stepId === "work-style") h.handleSaveWorkStyle();
+        else if (stepId === "career-goals") h.handleSaveCareerGoals();
+        else if (stepId === "ready") h.handleComplete();
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [
-    currentStepData?.id,
-    isFirstStep,
-    nextStep,
-    prevStep,
-    handleResumeNext,
-    handleConfirmParsing,
-    handleSaveSkills,
-    handleSaveContact,
-    handleSavePreferences,
-    handleSaveWorkStyle,
-    handleSaveCareerGoals,
-    handleComplete,
-    showParsingPreview,
-    parsedResume,
-    isSavingPreferences,
-    isSavingContact,
-    isSavingSkills,
-    isSavingWorkStyle,
-    isSavingCareerGoals,
-    isCompleting,
-  ]);
+  }, []); // N3: Empty deps - handler reads from ref
 
   if (loading) {
     return (
@@ -1151,9 +1185,19 @@ export default function Onboarding() {
               <div className="w-1.5 h-1.5 rounded-full bg-[#455DD3] animate-pulse" aria-hidden />
               <span className="text-[9px] font-black text-[#455DD3] uppercase tracking-wider">{t("onboarding.setup", locale) || "Setup"}</span>
             </div>
-            <Button variant="ghost" size="sm" onClick={() => { if (globalThis.confirm(t("onboarding.confirmRestart", locale) || 'Are you sure? This will clear your progress.')) resetOnboarding(); }} className="text-[#787774] text-[10px] md:text-xs font-bold uppercase hover:bg-[#E9E9E7]" title={t("onboarding.clearProgress", locale) || "Clear progress and start over"} aria-label={t("onboarding.restartOnboarding", locale) || "Restart onboarding and clear progress"}>
+            <Button variant="ghost" size="sm" onClick={() => setShowRestartConfirm(true)} className="text-[#787774] text-[10px] md:text-xs font-bold uppercase hover:bg-[#E9E9E7]" title={t("onboarding.clearProgress", locale) || "Clear progress and start over"} aria-label={t("onboarding.restartOnboarding", locale) || "Restart onboarding and clear progress"}>
               {t("onboarding.restart", locale) || "Restart"}
             </Button>
+            <ConfirmModal
+              isOpen={showRestartConfirm}
+              onClose={() => setShowRestartConfirm(false)}
+              onConfirm={() => { resetOnboarding(); setShowRestartConfirm(false); }}
+              title={t("onboarding.confirmRestartTitle", locale) || "Restart onboarding?"}
+              description={t("onboarding.confirmRestart", locale) || "Are you sure? This will clear your progress."}
+              confirmText={t("onboarding.restart", locale) || "Restart"}
+              cancelText={t("onboarding.cancel", locale) || "Cancel"}
+              variant="warning"
+            />
           </div>
         </header>
 

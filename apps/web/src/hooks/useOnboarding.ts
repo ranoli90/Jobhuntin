@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useMemo } from "react";
+import React, { useState, useCallback, useEffect, useMemo } from "react";
 import { telemetry } from "../lib/telemetry";
 import { securePIIStorage } from "../lib/secureStorage";
 
@@ -11,6 +11,15 @@ interface OfflineAction {
 }
 
 const STORAGE_KEY = "onboarding_state";
+
+/** A6: Flush onboarding state before 401 redirect - registered by useOnboarding when active */
+let _onboardingFlush: (() => void) | null = null;
+export function registerOnboardingFlush(fn: (() => void) | null) {
+  _onboardingFlush = fn;
+}
+export function flushOnboardingBeforeRedirect() {
+  _onboardingFlush?.();
+}
 
 // PII fields that should be stored securely
 const PII_FIELDS = ['contactInfo'];
@@ -47,22 +56,27 @@ export interface UseOnboardingOptions {
   serverProgress?: { step: number; completed: string[] } | null;
   /** Sync progress to server when step/completed changes */
   syncToServer?: (step: number, completed: string[]) => void | Promise<void>;
+  /** N1: Deep-link to step from URL ?step=N */
+  initialStepFromUrl?: number | null;
+  /** OB-009: Called when syncToServer fails (e.g. to show toast) */
+  onSyncError?: (err: unknown) => void;
 }
 
 export function useOnboarding(options: UseOnboardingOptions = {}) {
-  const { serverProgress, syncToServer } = options;
+  const { serverProgress, syncToServer, initialStepFromUrl, onSyncError } = options;
   const [isLoading, setIsLoading] = useState(true);
 
   // Parse localStorage and secure storage once on mount for all state initializers
   const loadInitialState = useCallback(async () => {
     try {
-      // Get non-PII data from localStorage
       let storedState: OnboardingState | null = null;
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        storedState = JSON.parse(stored);
+      try {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) storedState = JSON.parse(stored);
+      } catch {
+        const fromSession = sessionStorage.getItem(STORAGE_KEY);
+        if (fromSession) storedState = JSON.parse(fromSession);
       }
-
       // Get PII data from secure storage
       let piiData: Partial<OnboardingFormData> = {};
       try {
@@ -90,6 +104,7 @@ export function useOnboarding(options: UseOnboardingOptions = {}) {
   const [formData, setFormData] = useState<OnboardingFormData>({});
 
   // Initialize async state loading; use server progress when no localStorage (cross-device)
+  // N1: URL ?step=N takes precedence for deep-linking
   useEffect(() => {
     let cancelled = false;
     loadInitialState()
@@ -101,13 +116,16 @@ export function useOnboarding(options: UseOnboardingOptions = {}) {
         step = initialState.currentStep;
         completed = initialState.completedSteps || [];
       }
-      // P1: Use server progress when no local state (e.g. new device) or server is ahead
       if (serverProgress && serverProgress.step >= 0) {
         if (!initialState || serverProgress.step > step) {
           step = serverProgress.step;
           completed = serverProgress.completed || [];
           if (import.meta.env.DEV) console.log('[useOnboarding] Using server progress:', step, completed);
         }
+      }
+      if (initialStepFromUrl != null && initialStepFromUrl >= 0) {
+        step = Math.min(initialStepFromUrl, 7); // Max step index (8 steps)
+        if (import.meta.env.DEV) console.log('[useOnboarding] Using URL step:', step);
       }
       setCurrentStep(step);
       setCompletedSteps(completed);
@@ -119,49 +137,78 @@ export function useOnboarding(options: UseOnboardingOptions = {}) {
         if (!cancelled) setIsLoading(false);
       });
     return () => { cancelled = true; };
-  }, [loadInitialState, serverProgress?.step, serverProgress?.completed?.length]);
+  }, [loadInitialState, serverProgress?.step, serverProgress?.completed?.length, initialStepFromUrl]);
 
   const saveState = useCallback(async () => {
+    const { pii, nonPii } = separatePII(formData);
+    const state: OnboardingState = {
+      currentStep,
+      completedSteps,
+      formData: nonPii,
+    };
+
+    const safeSetStorage = (key: string, value: string): boolean => {
+      try {
+        localStorage.setItem(key, value);
+        return true;
+      } catch (e) {
+        if (e instanceof DOMException && (e.name === 'QuotaExceededError' || e.code === 22)) {
+          if (import.meta.env.DEV) console.warn('[useOnboarding] Storage full (QuotaExceeded), attempting recovery');
+          try {
+            localStorage.removeItem(STORAGE_KEY);
+            localStorage.removeItem('onboarding_ab_variant');
+            localStorage.setItem(key, value);
+            return true;
+          } catch {
+            try {
+              sessionStorage.setItem(key, value);
+              return true;
+            } catch {
+              if (import.meta.env.DEV) console.error('[useOnboarding] Storage recovery failed');
+              return false;
+            }
+          }
+        }
+        throw e;
+      }
+    };
+
     try {
-      const { pii, nonPii } = separatePII(formData);
-
-      // Save non-PII data to localStorage
-      const state: OnboardingState = {
-        currentStep,
-        completedSteps,
-        formData: nonPii,
-      };
       if (import.meta.env.DEV) console.log('[useOnboarding] Saving non-PII state:', state);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      if (!safeSetStorage(STORAGE_KEY, JSON.stringify(state))) {
+        if (import.meta.env.DEV) console.warn('[useOnboarding] Could not persist state; progress may be lost on refresh');
+      }
 
-      // P1: Sync progress to server for cross-device resume
       if (syncToServer) {
         try {
           await syncToServer(currentStep, completedSteps);
         } catch (e) {
           if (import.meta.env.DEV) console.warn('[useOnboarding] Server sync failed:', e);
+          onSyncError?.(e);
         }
       }
 
-      // Save PII data to secure storage
       if (Object.keys(pii).length > 0) {
-        await securePIIStorage.set('contact_info', pii);
-        if (import.meta.env.DEV) console.log('[useOnboarding] Saved PII to secure storage');
+        try {
+          await securePIIStorage.set('contact_info', pii);
+          if (import.meta.env.DEV) console.log('[useOnboarding] Saved PII to secure storage');
+        } catch (e) {
+          if (import.meta.env.DEV) console.warn('[useOnboarding] PII save failed (storage may be full):', e);
+        }
       }
     } catch (error) {
       if (import.meta.env.DEV) console.error('[useOnboarding] Failed to save state:', error);
-      // Attempt to clear corrupted data and save minimal state
       try {
         localStorage.removeItem(STORAGE_KEY);
         securePIIStorage.clear();
         const minimalState = { currentStep: 0, completedSteps: [], formData: {} };
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(minimalState));
+        safeSetStorage(STORAGE_KEY, JSON.stringify(minimalState));
         if (import.meta.env.DEV) console.log('[useOnboarding] Recovered with minimal state');
       } catch (recoveryError) {
         if (import.meta.env.DEV) console.error('[useOnboarding] Failed to recover state:', recoveryError);
       }
     }
-  }, [currentStep, completedSteps, formData, syncToServer]);
+  }, [currentStep, completedSteps, formData, syncToServer, onSyncError]);
 
   const updateFormData = useCallback((updates: Partial<OnboardingState['formData']>) => {
     setFormData(prev => ({ ...prev, ...updates }));
@@ -171,13 +218,21 @@ export function useOnboarding(options: UseOnboardingOptions = {}) {
   const [abVariant, setAbVariant] = useState<"resume_first" | "role_first">("resume_first");
 
   useEffect(() => {
-    const storedVariant = localStorage.getItem("onboarding_ab_variant");
+    let storedVariant: string | null = null;
+    try {
+      storedVariant = localStorage.getItem("onboarding_ab_variant");
+    } catch {
+      if (import.meta.env.DEV) console.warn('[useOnboarding] localStorage access failed (QuotaExceeded?)');
+    }
     if (storedVariant) {
       setAbVariant(storedVariant as "resume_first" | "role_first");
     } else {
-      // 50/50 split
       const newVariant = Math.random() > 0.5 ? "resume_first" : "role_first";
-      localStorage.setItem("onboarding_ab_variant", newVariant);
+      try {
+        localStorage.setItem("onboarding_ab_variant", newVariant);
+      } catch {
+        if (import.meta.env.DEV) console.warn('[useOnboarding] Could not persist A/B variant');
+      }
       setAbVariant(newVariant);
       // Log exposure
       telemetry.track("A/B Test Assignment", { onboarding_flow: newVariant });
@@ -250,9 +305,30 @@ export function useOnboarding(options: UseOnboardingOptions = {}) {
     setCurrentStep(index);
   }, [currentSteps.length, currentStep]);
 
+  // S1: Save immediately on step/completed; debounce on formData (rapid typing)
   useEffect(() => {
     saveState();
-  }, [currentStep, completedSteps, formData, saveState, syncToServer]);
+  }, [currentStep, completedSteps, saveState, syncToServer]);
+  useEffect(() => {
+    const t = setTimeout(() => saveState(), 400);
+    return () => clearTimeout(t);
+  }, [formData, saveState]);
+
+  // A6: Register flush for 401 redirect - persist state before navigation
+  const stateRef = React.useRef({ currentStep, completedSteps, formData });
+  useEffect(() => {
+    stateRef.current = { currentStep, completedSteps, formData };
+  }, [currentStep, completedSteps, formData]);
+  useEffect(() => {
+    registerOnboardingFlush(() => {
+      const { currentStep: s, completedSteps: c, formData: f } = stateRef.current;
+      const { nonPii } = separatePII(f);
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({ currentStep: s, completedSteps: c, formData: nonPii }));
+      } catch { /* ignore */ }
+    });
+    return () => registerOnboardingFlush(null);
+  }, []);
 
   const resetOnboarding = useCallback(async () => {
     setCurrentStep(0);

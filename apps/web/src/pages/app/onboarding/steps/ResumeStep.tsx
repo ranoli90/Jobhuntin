@@ -8,6 +8,7 @@ import { LoadingSpinner } from "../../../../components/ui/LoadingSpinner";
 import { ParsedResume } from "../../../../types/onboarding";
 import { t, getLocale } from "../../../../lib/i18n";
 import { cn } from "../../../../lib/utils";
+import { isValidLinkedInUrl } from "../../../../lib/linkedinValidation";
 
 function SkipConfirmModal({ onStay, onSkip }: { onStay: () => void; onSkip: () => void }) {
     const containerRef = React.useRef<HTMLDivElement>(null);
@@ -121,8 +122,7 @@ export function ResumeStep({
 
     const validateLinkedInUrl = (url: string): boolean => {
         if (!url) return true;
-        const linkedinPattern = /^(https?:\/\/)?(www\.)?linkedin\.com\/in\/[a-zA-Z0-9_-]+(\/[a-zA-Z0-9_-]*)*\/?$/i;
-        return linkedinPattern.test(url.trim());
+        return isValidLinkedInUrl(url);
     };
 
     const handleLinkedinChange = (value: string) => {
@@ -147,9 +147,18 @@ export function ResumeStep({
     const handleDrop = (e: React.DragEvent) => {
         e.preventDefault();
         setIsDragging(false);
-        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-            handleFileChange(e.dataTransfer.files[0]);
+        const file = e.dataTransfer.files?.[0];
+        if (!file) return;
+        if (file.size > 15 * 1024 * 1024) {
+            setResumeError("File must be under 15MB");
+            return;
         }
+        const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+        if (!allowedTypes.includes(file.type)) {
+            setResumeError("Please upload a PDF or Word document");
+            return;
+        }
+        handleFileChange(file);
     };
 
     const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -248,9 +257,11 @@ export function ResumeStep({
                 />
                 <label
                     htmlFor="resume-upload"
+                    aria-disabled={isUploading}
                     className={cn(
-                        "flex cursor-pointer flex-col items-center gap-4 rounded-2xl border-2 border-dashed",
+                        "flex flex-col items-center gap-4 rounded-2xl border-2 border-dashed",
                         "p-8 text-center transition-all duration-200",
+                        isUploading ? "cursor-not-allowed pointer-events-none opacity-80" : "cursor-pointer",
                         resumeFile
                             ? "bg-primary-50 border-primary-300"
                             : "bg-slate-50 border-slate-200 hover:bg-white hover:border-primary-300"
@@ -368,7 +379,7 @@ export function ResumeStep({
                             <p className="font-bold">{resumeError}</p>
                             {(resumeError.toLowerCase().includes("parse") || resumeError.toLowerCase().includes("extract") || resumeError.toLowerCase().includes("read")) && (
                                 <p className="text-xs text-red-600/90 mt-1 font-normal">
-                                    You can try a different file, or skip and add your details manually in the next steps.
+                                    {t("onboarding.parsingErrorHint", locale) || "You can try a different file, or skip and add your details manually in the next steps."}
                                 </p>
                             )}
                         </div>
@@ -579,7 +590,7 @@ export function ResumeStep({
             {showSkipConfirm && (
                 <SkipConfirmModal
                     onStay={() => setShowSkipConfirm(false)}
-                    onSkip={() => { setShowSkipConfirm(false); onNext(); }}
+                    onSkip={() => { setLinkedinError(null); setShowSkipConfirm(false); onNext(); }}
                 />
             )}
         </div>

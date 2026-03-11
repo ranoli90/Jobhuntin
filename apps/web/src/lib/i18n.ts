@@ -50,7 +50,7 @@ const dictionaries: Dict = {
     "onboarding.resumeSubtitle": "We'll use this to find perfect matches",
     "onboarding.uploadResume": "Upload Resume",
     "onboarding.dragAndDrop": "Drag and drop your resume here",
-    "onboarding.fileTypes": "PDF, DOCX up to 10MB",
+    "onboarding.fileTypes": "PDF, DOCX up to 15MB",
     "onboarding.linkedinPlaceholder": "LinkedIn Profile (optional)",
     "onboarding.linkedinError": "Please enter a valid LinkedIn URL",
     "onboarding.skipResumeTitle": "Skip resume?",
@@ -60,6 +60,7 @@ const dictionaries: Dict = {
     "onboarding.parsingPreview": "Here's what we found:",
     "onboarding.looksGoodContinue": "Looks good, continue",
     "onboarding.reupload": "Re-upload",
+    "onboarding.parsingErrorHint": "You can try a different file, or skip and add your details manually in the next steps.",
 
     // Onboarding - Skill Review Step
     "onboarding.skillsTitle": "Review your skills",
@@ -70,6 +71,9 @@ const dictionaries: Dict = {
     "onboarding.cancel": "Cancel",
     "onboarding.yearsExperience": "years",
     "onboarding.confidence": "confidence",
+    "onboarding.skillsCount": "{count} skills",
+    "onboarding.maxSkillsReached": "Maximum reached",
+    "onboarding.maxSkillsDesc": "You can add up to 100 skills. Remove some to add more.",
 
     // Onboarding - Contact Step
     "onboarding.contactTitle": "Confirm your details",
@@ -290,6 +294,7 @@ const dictionaries: Dict = {
 
     // Onboarding - Misc
     "onboarding.allSet": "You're all set! Let's job hunt!",
+    "onboarding.growthEndpointHint": "One optional step didn't complete. You're ready to job hunt!",
     "onboarding.almostThere": "Almost there!",
     "onboarding.buildingProfile": "Building your profile",
     "onboarding.somethingWrong": "Something went wrong. Please try again.",
@@ -298,6 +303,7 @@ const dictionaries: Dict = {
     "onboarding.setupTime": "2-3 min setup",
     "onboarding.clearProgress": "Clear progress and start over",
     "onboarding.confirmRestart": "Are you sure? This will clear your progress.",
+    "onboarding.confirmRestartTitle": "Restart onboarding?",
     "onboarding.restartOnboarding": "Restart onboarding and clear progress",
     "onboarding.locationBadge": "Location",
     "onboarding.roleBadge": "Role",
@@ -609,7 +615,7 @@ const dictionaries: Dict = {
     "onboarding.resumeSubtitle": "Nous l'utiliserons pour trouver les matchs parfaits",
     "onboarding.uploadResume": "Télécharger le CV",
     "onboarding.dragAndDrop": "Glissez-déposez votre CV ici",
-    "onboarding.fileTypes": "PDF, DOCX jusqu'à 10 Mo",
+    "onboarding.fileTypes": "PDF, DOCX jusqu'à 15 Mo",
     "onboarding.linkedinPlaceholder": "Profil LinkedIn (optionnel)",
     "onboarding.linkedinError": "Veuillez entrer une URL LinkedIn valide",
     "onboarding.skipResumeTitle": "Passer le CV ?",
@@ -619,6 +625,7 @@ const dictionaries: Dict = {
     "onboarding.parsingPreview": "Voici ce que nous avons trouvé :",
     "onboarding.looksGoodContinue": "Ça semble bien, continuer",
     "onboarding.reupload": "Re-télécharger",
+    "onboarding.parsingErrorHint": "Vous pouvez essayer un autre fichier, ou passer et ajouter vos informations manuellement aux étapes suivantes.",
 
     // Onboarding - Skill Review Step (French)
     "onboarding.skillsTitle": "Vérifiez vos compétences",
@@ -629,6 +636,9 @@ const dictionaries: Dict = {
     "onboarding.cancel": "Annuler",
     "onboarding.yearsExperience": "années",
     "onboarding.confidence": "confiance",
+    "onboarding.skillsCount": "{count} compétences",
+    "onboarding.maxSkillsReached": "Maximum atteint",
+    "onboarding.maxSkillsDesc": "Vous pouvez ajouter jusqu'à 100 compétences. Supprimez-en pour en ajouter plus.",
 
     // Onboarding - Contact Step (French)
     "onboarding.contactTitle": "Confirmez vos coordonnées",
@@ -693,6 +703,9 @@ const dictionaries: Dict = {
     "onboarding.step": "Étape",
     "onboarding.of": "sur",
     "onboarding.restart": "Recommencer",
+    "onboarding.confirmRestart": "Êtes-vous sûr ? Cela effacera votre progression.",
+    "onboarding.confirmRestartTitle": "Recommencer l'intégration ?",
+    "onboarding.growthEndpointHint": "Une étape optionnelle n'a pas abouti. Vous êtes prêt à chercher !",
     "onboarding.welcomeBack": "Bon retour !",
     "onboarding.pickingUp": "Reprise à",
 

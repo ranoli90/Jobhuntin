@@ -216,11 +216,21 @@ export function SkillReviewStep({
     const [isAddingSkill, setIsAddingSkill] = React.useState(false);
     const [editingIndex, setEditingIndex] = React.useState<number | null>(null);
 
-    const highSkills = richSkills.filter(s => s.confidence >= 0.8);
-    const mediumSkills = richSkills.filter(s => s.confidence >= 0.5 && s.confidence < 0.8);
-    const lowSkills = richSkills.filter(s => s.confidence < 0.5);
+    const conf = (s: { confidence?: number }) => s.confidence ?? 0;
+    const highSkills = richSkills.filter(s => conf(s) >= 0.8);
+    const mediumSkills = richSkills.filter(s => conf(s) >= 0.5 && conf(s) < 0.8);
+    const lowSkills = richSkills.filter(s => conf(s) < 0.5);
 
+    const MAX_SKILLS = 100; // BC1: Frontend cap; backend allows 500
     const handleAddSkill = (skill: RichSkill) => {
+        if (richSkills.length >= MAX_SKILLS) {
+            pushToast({
+                title: t("onboarding.maxSkillsReached", locale) || "Maximum reached",
+                description: t("onboarding.maxSkillsDesc", locale) || `You can add up to ${MAX_SKILLS} skills. Remove some to add more.`,
+                tone: "warning"
+            });
+            return;
+        }
         const normalizedSkillName = skill.skill.toLowerCase().trim();
 
         // Check for duplicates, including similar spellings (case-insensitive)
@@ -298,7 +308,7 @@ export function SkillReviewStep({
                                     const globalIdx = richSkills.findIndex(s => s === skill);
                                     return (
                                         <SkillRow
-                                            key={skill.skill}
+                                            key={`${skill.skill}-${globalIdx}`}
                                             skill={skill}
                                             onEdit={() => setEditingIndex(globalIdx)}
                                             onDelete={() => handleDeleteSkill(globalIdx)}
@@ -324,7 +334,7 @@ export function SkillReviewStep({
                                     const globalIdx = richSkills.findIndex(s => s === skill);
                                     return (
                                         <SkillRow
-                                            key={skill.skill}
+                                            key={`${skill.skill}-${globalIdx}`}
                                             skill={skill}
                                             onEdit={() => setEditingIndex(globalIdx)}
                                             onDelete={() => handleDeleteSkill(globalIdx)}
@@ -352,7 +362,7 @@ export function SkillReviewStep({
                                     const globalIdx = richSkills.findIndex(s => s === skill);
                                     return (
                                         <SkillRow
-                                            key={skill.skill}
+                                            key={`${skill.skill}-${globalIdx}`}
                                             skill={skill}
                                             onEdit={() => setEditingIndex(globalIdx)}
                                             onDelete={() => handleDeleteSkill(globalIdx)}

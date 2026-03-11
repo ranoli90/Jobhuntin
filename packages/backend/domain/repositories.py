@@ -443,7 +443,7 @@ class ProfileRepo:
             VALUES ($1, $2::jsonb, $3, $4)
             ON CONFLICT (user_id) DO UPDATE
                 SET profile_data = EXCLUDED.profile_data,
-                    resume_url   = COALESCE(EXCLUDED.resume_url, profiles.resume_url),
+                    resume_url   = CASE WHEN EXCLUDED.resume_url = '' THEN NULL ELSE COALESCE(NULLIF(EXCLUDED.resume_url, ''), profiles.resume_url) END,
                     tenant_id    = COALESCE(EXCLUDED.tenant_id, profiles.tenant_id),
                     updated_at   = now()
             RETURNING id, user_id, profile_data, resume_url, tenant_id, created_at, updated_at

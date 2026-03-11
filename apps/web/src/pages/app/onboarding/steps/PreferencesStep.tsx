@@ -114,6 +114,12 @@ export function PreferencesStep({
         preferences.excluded_companies?.join(', ') || ''
     );
 
+    // F4: Sync local state when preferences changes from profile (e.g. profile loads after mount)
+    React.useEffect(() => {
+        setLocalExcludedKeywords(preferences.excluded_keywords?.join(', ') || '');
+        setLocalExcludedCompanies(preferences.excluded_companies?.join(', ') || '');
+    }, [preferences.excluded_keywords, preferences.excluded_companies]);
+
     const handleLocationChange = (value: string) => {
         setPreferences(p => ({ ...p, location: value }));
         if (onClearError && formErrors.location) {

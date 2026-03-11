@@ -39,14 +39,25 @@ export class BrowserCacheService {
     }
 
     async set(key: string, value: any, ttlSeconds?: number): Promise<void> {
+        const item = {
+            value,
+            expiresAt: ttlSeconds ? Date.now() + (ttlSeconds * 1000) : null
+        };
         try {
-            const item = {
-                value,
-                expiresAt: ttlSeconds ? Date.now() + (ttlSeconds * 1000) : null
-            };
             localStorage.setItem(key, JSON.stringify(item));
         } catch (error) {
-            console.warn('Browser cache set error:', error);
+            const isQuotaExceeded = error instanceof DOMException &&
+                (error.name === 'QuotaExceededError' || (error as DOMException & { code?: number }).code === 22);
+            if (isQuotaExceeded) {
+                try {
+                    localStorage.removeItem(key);
+                    localStorage.setItem(key, JSON.stringify(item));
+                } catch {
+                    console.warn('Browser cache: storage full, could not persist', key);
+                }
+            } else {
+                console.warn('Browser cache set error:', error);
+            }
         }
     }
 

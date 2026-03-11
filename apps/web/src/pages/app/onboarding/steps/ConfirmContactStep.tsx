@@ -7,6 +7,7 @@ import { Input } from "../../../../components/ui/Input";
 import { LoadingSpinner } from "../../../../components/ui/LoadingSpinner";
 import { ParsedResume } from "../../../../types/onboarding";
 import { t, getLocale } from "../../../../lib/i18n";
+import { isValidEmail } from "../../../../lib/emailUtils";
 
 interface ConfirmContactStepProps {
     onNext: () => void;
@@ -222,7 +223,7 @@ export function ConfirmContactStep({
                 <Button
                     type="button"
                     onClick={onNext}
-                    disabled={!contactInfo.first_name || !contactInfo.last_name || !contactInfo.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactInfo.email) || isSavingContact}
+                    disabled={!contactInfo.first_name || !contactInfo.last_name || !contactInfo.email || !isValidEmail(contactInfo.email) || isSavingContact}
                     className="flex-1 h-12 sm:h-11 rounded-xl font-bold bg-emerald-600 hover:bg-emerald-500 shadow-lg shadow-emerald-500/20 text-sm disabled:opacity-50 disabled:cursor-not-allowed group touch-manipulation"
                     aria-label={t("onboarding.confirmIdentity", locale) || "Confirm identity and continue"} data-onboarding-next
                 >

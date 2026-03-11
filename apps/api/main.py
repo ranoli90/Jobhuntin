@@ -1431,10 +1431,10 @@ async def save_user_skills(
                     raise
 
             # MEDIUM: Use centralized calculate_completeness() instead of SQL increments
-            # MEDIUM: Add null check for user_id
+            # MEDIUM: Add null check for user_id (OB-008: return proper body even in edge case)
             if not user_id:
                 logger.warning("Cannot update completeness: user_id is None")
-                return
+                return {"status": "saved", "count": len(body.skills)}
 
             from packages.backend.domain.deep_profile import calculate_completeness
             from packages.backend.domain.profile_assembly import assemble_profile

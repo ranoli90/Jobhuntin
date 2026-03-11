@@ -29,7 +29,7 @@ from fastapi import (
     UploadFile,
 )
 from fastapi import Path as FastAPIPath
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 from backend.domain.document_processor import create_document_processor
 from backend.domain.quotas import QuotaExceededError, check_can_create_application
@@ -1110,6 +1110,17 @@ class Preferences(BaseModel):
     excluded_companies: list[str] | None = None
     excluded_keywords: list[str] | None = None
 
+    @model_validator(mode="after")
+    def _validate_salary_range(self) -> "Preferences":
+        mn, mx = self.salary_min, self.salary_max
+        if mn is not None and (mn < 0 or mn > 10_000_000):
+            raise ValueError("salary_min must be between 0 and 10,000,000")
+        if mx is not None and (mx < 0 or mx > 10_000_000):
+            raise ValueError("salary_max must be between 0 and 10,000,000")
+        if mn is not None and mx is not None and mn > mx:
+            raise ValueError("salary_min must be less than or equal to salary_max")
+        return self
+
 
 class ProfileUpdate(BaseModel):
     full_name: str | None = None
@@ -1205,58 +1216,59 @@ async def update_profile(
             status_code=429, detail="Too many profile updates. Please retry later."
         )
     async with db.acquire() as conn:
-        existing = await ProfileRepo.get_profile_data(conn, ctx.user_id)
-        profile_data = dict(existing or {})
+        async with conn.transaction():
+            existing = await ProfileRepo.get_profile_data(conn, ctx.user_id)
+            profile_data = dict(existing or {})
 
-        # Check if we are completing onboarding
-        was_onboarding = profile_data.get("has_completed_onboarding", False)
+            # Check if we are completing onboarding
+            was_onboarding = profile_data.get("has_completed_onboarding", False)
 
-        _merge_profile_update(profile_data, body)
+            _merge_profile_update(profile_data, body)
 
-        now_onboarding = profile_data.get("has_completed_onboarding", False)
+            now_onboarding = profile_data.get("has_completed_onboarding", False)
 
-        if not was_onboarding and now_onboarding:
-            logger.info(
-                "[PROFILE] Onboarding completion detected",
-                extra={"user_id": str(ctx.user_id)},
-            )
-            background_tasks.add_task(
-                _hydrate_job_matches,
-                db_pool=db,
-                user_id=ctx.user_id,
-                tenant_id=ctx.tenant_id,
-                preferences=profile_data.get("preferences", {}),
-            )
+            if not was_onboarding and now_onboarding:
+                logger.info(
+                    "[PROFILE] Onboarding completion detected",
+                    extra={"user_id": str(ctx.user_id)},
+                )
+                background_tasks.add_task(
+                    _hydrate_job_matches,
+                    db_pool=db,
+                    user_id=ctx.user_id,
+                    tenant_id=ctx.tenant_id,
+                    preferences=profile_data.get("preferences", {}),
+                )
 
-        existing_row = await conn.fetchrow(
-            "SELECT resume_url FROM public.profiles WHERE user_id = $1",
-            ctx.user_id,
-        )
-        current_resume = existing_row["resume_url"] if existing_row else None
-
-        await ProfileRepo.upsert(
-            conn,
-            ctx.user_id,
-            profile_data,
-            resume_url=(
-                body.resume_url if body.resume_url is not None else current_resume
-            ),
-            tenant_id=ctx.tenant_id,
-        )
-
-        # Sync full_name to users table for display consistency
-        contact = profile_data.get("contact") or {}
-        full_name = contact.get("full_name") or ""
-        if not full_name:
-            first = contact.get("first_name", "")
-            last = contact.get("last_name", "")
-            full_name = f"{first} {last}".strip()
-        if full_name:
-            await conn.execute(
-                "UPDATE public.users SET full_name = $1, updated_at = now() WHERE id = $2",
-                full_name,
+            existing_row = await conn.fetchrow(
+                "SELECT resume_url FROM public.profiles WHERE user_id = $1",
                 ctx.user_id,
             )
+            current_resume = existing_row["resume_url"] if existing_row else None
+
+            await ProfileRepo.upsert(
+                conn,
+                ctx.user_id,
+                profile_data,
+                resume_url=(
+                    body.resume_url if body.resume_url is not None else current_resume
+                ),
+                tenant_id=ctx.tenant_id,
+            )
+
+            # Sync full_name to users table for display consistency
+            contact = profile_data.get("contact") or {}
+            full_name = contact.get("full_name") or ""
+            if not full_name:
+                first = contact.get("first_name", "")
+                last = contact.get("last_name", "")
+                full_name = f"{first} {last}".strip()
+            if full_name:
+                await conn.execute(
+                    "UPDATE public.users SET full_name = $1, updated_at = now() WHERE id = $2",
+                    full_name,
+                    ctx.user_id,
+                )
 
         logger.info(
             "[PROFILE] Profile updated successfully",
@@ -1325,10 +1337,13 @@ def _merge_profile_update(profile_data: dict, body: ProfileUpdate) -> None:
         profile_data["career_goals"] = body.career_goals
     if body.work_style is not None:
         profile_data["work_style"] = body.work_style
+    # C1/C3: Merge onboarding progress; never go backwards; union completed steps (two tabs)
     if body.onboarding_step is not None:
-        profile_data["onboarding_step"] = body.onboarding_step
+        current_step = profile_data.get("onboarding_step", 0)
+        profile_data["onboarding_step"] = max(current_step, body.onboarding_step)
     if body.onboarding_completed_steps is not None:
-        profile_data["onboarding_completed_steps"] = body.onboarding_completed_steps
+        existing = set(profile_data.get("onboarding_completed_steps") or [])
+        profile_data["onboarding_completed_steps"] = list(existing | set(body.onboarding_completed_steps))
 
     avatar_url = (
         body.avatar_url if body.avatar_url is not None else contact.get("avatar_url")

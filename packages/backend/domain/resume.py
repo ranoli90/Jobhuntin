@@ -631,11 +631,19 @@ async def process_resume_upload(
         "is_encrypted": metadata.get("is_encrypted", False),
     }
 
-    # Upsert to database
-    async with db_pool.acquire() as conn:
-        await ProfileRepo.upsert(
-            conn, user_id, canonical, resume_url, tenant_id=tenant_id
-        )
+    # Upsert to database; on failure, delete orphaned file from storage (OB-001)
+    try:
+        async with db_pool.acquire() as conn:
+            await ProfileRepo.upsert(
+                conn, user_id, canonical, resume_url, tenant_id=tenant_id
+            )
+    except Exception as e:
+        try:
+            await storage.delete_file(resume_url)
+            logger.info("[RESUME] Deleted orphaned file after DB upsert failure: %s", resume_url)
+        except Exception as del_err:
+            logger.warning("[RESUME] Could not delete orphaned file %s: %s", resume_url, del_err)
+        raise e
 
     await emit_analytics_event(
         db_pool,

@@ -156,16 +156,15 @@ export function WorkStyleStep({
         setAnswers(prev => ({ ...prev, [mapsTo]: optionValue }));
 
         if (currentQuestion < totalQuestions - 1) {
-            // Skip to next unanswered question instead of blindly incrementing
+            // E6: Use ref for latest answers to avoid stale closure on rapid clicks
+            const answersSnapshot = { ...answers, [mapsTo]: optionValue };
             setTimeout(() => {
                 setCurrentQuestion(curr => {
-                    // Look for the next unanswered question starting from curr + 1
                     for (let i = curr + 1; i < totalQuestions; i++) {
-                        if (!answers[allQuestions[i].maps_to] && allQuestions[i].maps_to !== mapsTo) {
+                        if (!answersSnapshot[allQuestions[i].maps_to] && allQuestions[i].maps_to !== mapsTo) {
                             return i;
                         }
                     }
-                    // If all remaining are answered, just go to next
                     return Math.min(curr + 1, totalQuestions - 1);
                 });
             }, 600);
@@ -204,6 +203,7 @@ export function WorkStyleStep({
                                     : "bg-slate-200"
                                 }`}
                             aria-label={`${t("onboarding.question", locale) || "Question"} ${idx + 1}`}
+                            aria-current={idx === currentQuestion ? "step" : undefined}
                         />
                     ))}
                 </div>

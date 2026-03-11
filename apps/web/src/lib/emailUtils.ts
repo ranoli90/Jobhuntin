@@ -1,3 +1,10 @@
+/** F3: Shared email validation - RFC 5322 simplified (local@domain.tld) */
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+export function isValidEmail(email: string): boolean {
+  return !!email?.trim() && EMAIL_REGEX.test(email.trim());
+}
+
 /**
  * Simple email typosquatting detection for common domains.
  */

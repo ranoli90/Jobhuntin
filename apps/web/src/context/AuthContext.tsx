@@ -232,6 +232,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             sessionStorage.setItem('session_expired', 'true');
             if (window.location.pathname === '/login') return;
             const returnTo = detail?.returnTo ?? encodeURIComponent(window.location.pathname + window.location.search);
+            // A6: Flush onboarding state before redirect when on onboarding
+            if (window.location.pathname.startsWith('/app/onboarding')) {
+                import('../hooks/useOnboarding').then(({ flushOnboardingBeforeRedirect }) => {
+                    flushOnboardingBeforeRedirect?.();
+                    setTimeout(() => { window.location.href = `/login?returnTo=${returnTo}`; }, 50);
+                }).catch(() => { window.location.href = `/login?returnTo=${returnTo}`; });
+                return;
+            }
             window.location.href = `/login?returnTo=${returnTo}`;
         };
 

@@ -34,6 +34,10 @@ class StorageService:
         """Download a file from storage."""
         raise NotImplementedError
 
+    async def delete_file(self, storage_path: str) -> None:
+        """Delete a file from storage. No-op if file does not exist."""
+        raise NotImplementedError
+
 
 class LocalStorageService(StorageService):
     """Basic local filesystem storage implementation for development."""
@@ -64,6 +68,14 @@ class LocalStorageService(StorageService):
         bucket, path = storage_path.split("/", 1)
         full_path = self.base_path / bucket / path
         return full_path.read_bytes()
+
+    async def delete_file(self, storage_path: str) -> None:
+        """Delete file from local filesystem."""
+        bucket, path = storage_path.split("/", 1)
+        full_path = self.base_path / bucket / path
+        if full_path.exists():
+            full_path.unlink()
+            logger.info("Deleted local file: %s", storage_path)
 
 
 class S3CompatibleStorageService(StorageService):
@@ -259,6 +271,28 @@ class S3CompatibleStorageService(StorageService):
                 )
             return resp.content
 
+    async def delete_file(self, storage_path: str) -> None:
+        """Delete file from S3-compatible storage."""
+        bucket, path = storage_path.split("/", 1)
+        object_path = f"/{bucket}/{path}"
+        url = f"{self.endpoint_url}{object_path}"
+
+        headers = {
+            "Host": urlparse(self.endpoint_url).netloc,
+            "x-amz-content-sha256": hashlib.sha256(b"").hexdigest(),
+            "x-amz-date": datetime.utcnow().strftime("%Y%m%dT%H%M%SZ"),
+        }
+
+        authorization = self._sign_request("DELETE", object_path, headers)
+        headers["Authorization"] = authorization
+
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            resp = await client.delete(url, headers=headers)
+            if resp.status_code not in (200, 204, 404):
+                logger.warning("S3 delete returned %s for %s", resp.status_code, storage_path)
+            else:
+                logger.info("Deleted storage file: %s", storage_path)
+
 
 class RenderDiskStorageService(StorageService):
     """Storage service using Render persistent disk
@@ -299,6 +333,14 @@ class RenderDiskStorageService(StorageService):
         bucket, path = storage_path.split("/", 1)
         full_path = self.disk_path / bucket / path
         return full_path.read_bytes()
+
+    async def delete_file(self, storage_path: str) -> None:
+        """Delete file from Render persistent disk."""
+        bucket, path = storage_path.split("/", 1)
+        full_path = self.disk_path / bucket / path
+        if full_path.exists():
+            full_path.unlink()
+            logger.info("Deleted disk file: %s", storage_path)
 
 
 def get_storage_service() -> StorageService:
