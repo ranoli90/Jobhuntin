@@ -81,18 +81,38 @@ export function useBilling() {
         description: "Your new plan is now active. It may take a moment to fully reflect.",
         tone: "success",
       });
-      // Poll aggressively for a short time to pick up webhook-driven changes
-      const interval = setInterval(() => {
-        queryClient.invalidateQueries({ queryKey: ["billing"] });
-      }, 3000);
-      const timeout = setTimeout(() => clearInterval(interval), 30_000);
+      // Poll with exponential backoff (2s, 4s, 8s, 16s); stop when tab hidden
+      const delays = [2000, 4000, 8000, 16000];
+      const timeouts: ReturnType<typeof setTimeout>[] = [];
+      const cancelAll = () => {
+        timeouts.forEach(clearTimeout);
+        timeouts.length = 0;
+      };
+      let elapsed = 0;
+      for (let i = 0; i < delays.length; i++) {
+        elapsed += delays[i];
+        const t = setTimeout(() => {
+          if (document.visibilityState === "hidden") {
+            cancelAll();
+            return;
+          }
+          queryClient.invalidateQueries({ queryKey: ["billing"] });
+        }, elapsed);
+        timeouts.push(t);
+      }
+      const cleanup = setTimeout(cancelAll, 30_000);
+      const onVisibilityChange = () => {
+        if (document.visibilityState === "hidden") cancelAll();
+      };
+      document.addEventListener("visibilitychange", onVisibilityChange);
       // Clean up the URL so reloads don't re-trigger
       const url = new URL(window.location.href);
       url.searchParams.delete("success");
       window.history.replaceState({}, "", url.toString());
       return () => {
-        clearInterval(interval);
-        clearTimeout(timeout);
+        cancelAll();
+        clearTimeout(cleanup);
+        document.removeEventListener("visibilitychange", onVisibilityChange);
       };
     }
   }, [queryClient]);
