@@ -296,9 +296,13 @@ export default function GuidePage() {
           className="prose prose-lg max-w-none prose-headings:font-display prose-headings:font-bold prose-headings:text-slate-900 prose-p:text-slate-600 prose-a:text-primary-600 mb-20 prose-strong:text-slate-900"
           dangerouslySetInnerHTML={{
             __html: XSSProtection.sanitizeHTML(
-              guide.content
-                .replaceAll("<h3>", '<h3 id="heading-0">')
-                .replaceAll("<h4>", '<h4 id="heading-1">'),
+              (() => {
+                let i = 0;
+                return guide.content.replace(
+                  /<h([34])>/g,
+                  (_, level) => `<h${level} id="heading-${i++}">`,
+                );
+              })(),
             ),
           }}
         />

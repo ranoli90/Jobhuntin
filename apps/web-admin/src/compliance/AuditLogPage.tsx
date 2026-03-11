@@ -98,15 +98,16 @@ export default function AuditLogPage() {
       <div className="flex gap-2">
         <input value={actionFilter} onChange={(e) => setActionFilter(e.target.value)}
           placeholder="Filter by action (e.g. sso, member, billing)"
-          className="flex-1 px-3 py-2 bg-muted border border-border rounded-md text-foreground text-sm" />
+          className="flex-1 px-3 py-2 bg-muted border border-border rounded-md text-foreground text-sm"
+          aria-label="Filter by action" />
         <button onClick={handleFilter}
           className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium">
           Filter
         </button>
       </div>
 
-      <div className="bg-card border border-border rounded-lg overflow-hidden">
-        <table className="w-full text-sm">
+      <div className="bg-card border border-border rounded-lg overflow-x-auto overflow-hidden">
+        <table className="w-full text-sm min-w-[600px]">
           <thead>
             <tr className="text-muted-foreground text-left border-b border-border bg-muted/30">
               <th className="px-4 py-3">Timestamp</th>
@@ -152,14 +153,14 @@ export default function AuditLogPage() {
       {total > pageSize && (
         <div className="flex justify-between items-center">
           <button disabled={page === 0} onClick={() => { setPage(page - 1); load(page - 1); }}
-            className="px-3 py-1 text-sm text-muted-foreground hover:text-foreground disabled:opacity-50">
+            className="min-h-[44px] min-w-[44px] px-3 py-1 text-sm text-muted-foreground hover:text-foreground disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-primary rounded">
             Previous
           </button>
           <span className="text-sm text-muted-foreground">
             Page {page + 1} of {Math.ceil(total / pageSize)}
           </span>
           <button disabled={(page + 1) * pageSize >= total} onClick={() => { setPage(page + 1); load(page + 1); }}
-            className="px-3 py-1 text-sm text-muted-foreground hover:text-foreground disabled:opacity-50">
+            className="min-h-[44px] min-w-[44px] px-3 py-1 text-sm text-muted-foreground hover:text-foreground disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-primary rounded">
             Next
           </button>
         </div>

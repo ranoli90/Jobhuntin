@@ -58,11 +58,13 @@ export default function InvitesPage() {
             onChange={(e) => setEmail(e.target.value)}
             className="flex-1 px-3 py-2 bg-muted border border-border rounded-md text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary"
             required
+            aria-label="Email address"
           />
           <select
             value={role}
             onChange={(e) => setRole(e.target.value)}
-            className="px-3 py-2 bg-muted border border-border rounded-md text-foreground text-sm focus:outline-none"
+            className="px-3 py-2 bg-muted border border-border rounded-md text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+            aria-label="Role"
           >
             <option value="MEMBER">Member</option>
             <option value="ADMIN">Admin</option>
@@ -77,8 +79,8 @@ export default function InvitesPage() {
         </div>
       </form>
 
-      <div className="bg-card border border-border rounded-lg overflow-hidden">
-        <table className="w-full text-sm">
+      <div className="bg-card border border-border rounded-lg overflow-x-auto overflow-hidden">
+        <table className="w-full text-sm min-w-[400px]">
           <thead>
             <tr className="text-muted-foreground text-left border-b border-border bg-muted/30">
               <th className="px-4 py-3">Email</th>

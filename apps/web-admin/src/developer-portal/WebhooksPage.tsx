@@ -79,7 +79,8 @@ export default function WebhooksPage() {
         <h2 className="font-semibold text-foreground">Add Webhook Endpoint</h2>
         <input value={url} onChange={(e) => setUrl(e.target.value)}
           placeholder="https://your-server.com/webhook"
-          className="w-full px-3 py-2 bg-muted border border-border rounded-md text-foreground text-sm" />
+          className="w-full px-3 py-2 bg-muted border border-border rounded-md text-foreground text-sm"
+          aria-label="Webhook URL" />
         <div className="flex flex-wrap gap-2">
           {EVENT_OPTIONS.map((ev) => (
             <button key={ev} onClick={() => toggleEvent(ev)}
@@ -99,8 +100,8 @@ export default function WebhooksPage() {
         )}
       </div>
 
-      <div className="bg-card border border-border rounded-lg overflow-hidden">
-        <table className="w-full text-sm">
+      <div className="bg-card border border-border rounded-lg overflow-x-auto overflow-hidden">
+        <table className="w-full text-sm min-w-[500px]">
           <thead>
             <tr className="text-muted-foreground text-left border-b border-border bg-muted/30">
               <th className="px-4 py-3">URL</th>

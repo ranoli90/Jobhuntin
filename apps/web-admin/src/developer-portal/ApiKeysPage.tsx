@@ -83,9 +83,11 @@ export default function ApiKeysPage() {
         <h2 className="font-semibold text-foreground">Create New Key</h2>
         <div className="flex gap-3">
           <input value={newKeyName} onChange={(e) => setNewKeyName(e.target.value)}
-            placeholder="Key name" className="flex-1 px-3 py-2 bg-muted border border-border rounded-md text-foreground text-sm" />
+            placeholder="Key name" className="flex-1 px-3 py-2 bg-muted border border-border rounded-md text-foreground text-sm"
+            aria-label="Key name" />
           <select value={newKeyTier} onChange={(e) => setNewKeyTier(e.target.value)}
-            className="px-3 py-2 bg-muted border border-border rounded-md text-foreground text-sm">
+            className="px-3 py-2 bg-muted border border-border rounded-md text-foreground text-sm"
+            aria-label="API tier">
             <option value="free">Free (100/mo)</option>
             <option value="pro">Pro (10k/mo, $99)</option>
             <option value="enterprise">Enterprise (unlimited)</option>

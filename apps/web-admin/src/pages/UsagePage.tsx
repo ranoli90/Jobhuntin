@@ -102,6 +102,7 @@ export default function UsagePage() {
               value={seatInput}
               onChange={(e) => setSeatInput(e.target.value)}
               className="w-32 px-3 py-2 bg-muted border border-border rounded-md text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+              aria-label="Total seats"
             />
             <button onClick={handleAddSeats} className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:opacity-90 transition-opacity">
               Update Seats
