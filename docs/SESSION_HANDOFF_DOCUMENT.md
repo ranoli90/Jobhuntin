@@ -122,10 +122,10 @@ PYTHONPATH=apps:packages:. mypy apps/api/ apps/worker/ packages/backend/ shared/
 ### 3.3 Job Application (Agent)
 | ID | Description | Priority |
 |----|-------------|----------|
-| Wire ExecutionEngine | Use `HumanBehaviorSimulator` and `AntiDetection` in agent | High |
+| Wire ExecutionEngine | Use `HumanBehaviorSimulator` and `AntiDetection` in agent | fixed |
 | HTTP-first for Greenhouse/Lever | Try API apply before Playwright | High |
 | Integrate ATS handlers | `ats_handlers.py` defines handlers but not used; pre-fill, custom selectors | High |
-| CAPTCHA failure → REQUIRES_INPUT | Don't silently continue; escalate to user | High |
+| CAPTCHA failure → REQUIRES_INPUT | Don't silently continue; escalate to user | fixed |
 | Proxy rotation for agent | Add `agent_proxies`; rotate on 429/403 | Medium |
 | OAuth session persistence | Store cookies per (user, domain) | Medium |
 | Browserless as prod default | Remote browsers for scaling | Medium |
@@ -147,7 +147,7 @@ PYTHONPATH=apps:packages:. mypy apps/api/ apps/worker/ packages/backend/ shared/
 | 22 | Admin sources: polls every 5s, no error boundary | Medium |
 | 23 | Admin pages lack RBAC; any user can access | fixed |
 | 24 | Admin sync "Trigger Sync" no confirmation modal | Medium |
-| 25 | Admin alerts: mock fallback masks outages | High |
+| 25 | Admin alerts: mock fallback masks outages | fixed |
 | 26 | Admin alerts acknowledge: optimistic update, no rollback | Medium |
 | 27 | AI Tailor: no file size validation | Medium |
 | 28 | ATS scoring runs twice per tailor (no dedup) | Medium |

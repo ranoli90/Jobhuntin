@@ -146,7 +146,15 @@ function LatencyBar({ p50, p95, p99 }: { p50: number; p95: number; p99: number }
   );
 }
 
-function AlertsPanel({ alerts, onAcknowledge }: { alerts: AlertItem[]; onAcknowledge: (id: string) => void }) {
+function AlertsPanel({
+  alerts,
+  onAcknowledge,
+  error,
+}: {
+  alerts: AlertItem[];
+  onAcknowledge: (id: string) => void;
+  error?: Error | null;
+}) {
   const [acknowledging, setAcknowledging] = useState<string | null>(null);
 
   const handleAcknowledge = async (id: string) => {
@@ -157,6 +165,18 @@ function AlertsPanel({ alerts, onAcknowledge }: { alerts: AlertItem[]; onAcknowl
       setAcknowledging(null);
     }
   };
+
+  if (error) {
+    return (
+      <div className="bg-card border border-border rounded-lg p-5">
+        <h2 className="font-semibold mb-3">Active Alerts</h2>
+        <p className="text-sm text-red-400">Alerts unavailable: {error.message}</p>
+        <p className="text-xs text-muted-foreground mt-1">
+          API or monitoring service may be down. Check backend health.
+        </p>
+      </div>
+    );
+  }
 
   if (alerts.length === 0) {
     return (
@@ -352,7 +372,11 @@ export default function Dashboard() {
     refetchInterval: 30000,
   });
 
-  const { data: alerts = [] } = useQuery({
+  const {
+    data: alerts = [],
+    isError: alertsError,
+    error: alertsErrorDetail,
+  } = useQuery({
     queryKey: ["dashboard", "alerts"],
     queryFn: () => request<AlertItem[]>("GET", "/admin/dashboard/alerts?status=firing"),
     refetchInterval: 10000,
@@ -427,7 +451,11 @@ export default function Dashboard() {
         </>
       )}
 
-      <AlertsPanel alerts={alerts} onAcknowledge={(id) => acknowledgeMutation.mutateAsync(id)} />
+      <AlertsPanel
+        alerts={alerts}
+        onAcknowledge={(id) => acknowledgeMutation.mutateAsync(id)}
+        error={alertsError ? alertsErrorDetail ?? new Error("Failed to load alerts") : null}
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <PerformanceChart trends={trends} />

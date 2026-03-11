@@ -60,6 +60,11 @@ from shared.telemetry import setup_telemetry
 from .concurrent_tracker import get_concurrent_tracker
 from .oauth_handler import OAuthHandler
 
+
+class CaptchaRequiredError(RuntimeError):
+    """CAPTCHA detected but not solved; escalate to REQUIRES_INPUT for user action."""
+
+
 # ---------------------------------------------------------------------------
 # Configuration (loaded from shared.config)
 # ---------------------------------------------------------------------------
@@ -526,8 +531,11 @@ async def fill_form_from_mapping(
     ctx: dict | None = None,
     get_portfolio_path: Callable[[dict], Any] | None = None,
     get_document_path: Callable[[dict, str], Any] | None = None,
+    behavior_simulator: Any | None = None,
 ) -> None:
-    """Fill each field using selector → value from the LLM mapping."""
+    """Fill each field using selector → value from the LLM mapping.
+    When behavior_simulator (HumanBehaviorSimulator) is provided, uses human-like
+    typing for text/textarea/email/tel to reduce bot detection."""
     field_lookup: dict[str, FormField] = {f["selector"]: f for f in form_fields}
 
     for selector, value in field_values.items():
@@ -569,7 +577,18 @@ async def fill_form_from_mapping(
             elif field_type == "checkbox":
                 await _fill_checkbox(el, value)
             elif field_type == "textarea":
-                await el.fill(value)
+                if behavior_simulator:
+                    result = await behavior_simulator.type_humanlike(
+                        page, selector, value or ""
+                    )
+                    if not result.success:
+                        logger.warning(
+                            "Humanlike textarea fill failed for %s: %s",
+                            selector,
+                            result.error,
+                        )
+                else:
+                    await el.fill(value)
             elif field_type == "file":
                 # LOW: Handle different file types (resume, portfolio, documents)
                 file_path = None
@@ -597,7 +616,24 @@ async def fill_form_from_mapping(
                         value,
                     )
             else:
-                await el.fill(value)
+                if behavior_simulator and field_type in (
+                    "text",
+                    "email",
+                    "tel",
+                    "password",
+                ):
+                    result = await behavior_simulator.type_humanlike(
+                        page, selector, value or ""
+                    )
+                    if not result.success:
+                        logger.warning(
+                            "Humanlike fill failed for %s: %s",
+                            selector,
+                            result.error,
+                        )
+                        await el.fill(value)
+                else:
+                    await el.fill(value)
 
             logger.info("Filled [step:%s] %s = %s", step_idx, selector, value[:60])
 
@@ -977,8 +1013,29 @@ class FormAgent:
         self.oauth_handler = OAuthHandler(context)
         page = await context.new_page()
 
+        # Wire AntiDetection: reduce bot fingerprinting before any navigation
+        try:
+            from packages.backend.domain.execution_engine import AntiDetection
+
+            await AntiDetection.inject_stealth(page)
+        except Exception as e:
+            logger.warning("AntiDetection.inject_stealth failed (non-blocking): %s", e)
+
         try:
             await self._process_task(page, task)
+        except CaptchaRequiredError:
+            ctx = await self._build_context(task)
+            await self._enter_hold(
+                ctx["app_id"],
+                [
+                    {
+                        "selector": "captcha",
+                        "question": "Human verification (CAPTCHA) required. Please complete the CAPTCHA on the application page and retry.",
+                    }
+                ],
+                [],
+                tenant_id=ctx.get("tenant_id"),
+            )
         except Exception as exc:
             await self._handle_failure(task, exc, page)
         finally:
@@ -1227,6 +1284,12 @@ class FormAgent:
             step_fields = [f for f in form_fields if f["step_index"] == step]
 
             if step_values:
+                from packages.backend.domain.execution_engine import (
+                    HumanBehaviorConfig,
+                    HumanBehaviorSimulator,
+                )
+
+                behavior_sim = HumanBehaviorSimulator(HumanBehaviorConfig())
                 await fill_form_from_mapping(
                     page,
                     step_values,
@@ -1235,6 +1298,7 @@ class FormAgent:
                     ctx=ctx,
                     get_portfolio_path=self._get_portfolio_path,
                     get_document_path=self._get_document_path,
+                    behavior_simulator=behavior_sim,
                 )
 
             if step < max_step:
@@ -1753,11 +1817,15 @@ class FormAgent:
                         "agent.captcha.failed",
                         tags={"type": captcha_type, "error": error},
                     )
-                    # Continue anyway - some CAPTCHAs may be solved client-side or may not block submission
+                    raise CaptchaRequiredError(
+                        f"CAPTCHA ({captcha_type}) detected but not solved: {error}"
+                    )
+        except CaptchaRequiredError:
+            raise
         except Exception as e:
             logger.warning("CAPTCHA detection/solving failed: %s", e)
             incr("agent.captcha.error", tags={"error": type(e).__name__})
-            # Continue with submission - don't block on CAPTCHA errors
+            # Continue with submission - don't block on CAPTCHA detection errors
 
         # Capture screenshot before submission
         await self.capture_screenshot(page, ctx, "pre_submit", success=True)

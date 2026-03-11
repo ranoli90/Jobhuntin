@@ -84,7 +84,7 @@ class HumanBehaviorSimulator:
     async def human_delay(self, action: str = "general") -> None:
         if action == "typing":
             delay = random.uniform(
-                self.config.minTyping_delay_ms, self.config.maxTyping_delay_ms
+                self.config.min_typing_delay_ms, self.config.max_typing_delay_ms
             )
         elif action == "click":
             delay = random.uniform(
