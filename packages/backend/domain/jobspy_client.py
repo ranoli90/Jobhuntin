@@ -215,6 +215,7 @@ class JobSpyClient:
                     logger.error("JobSpy fetch failed after %d attempts: %s", max_retries + 1, error_msg)
                     incr("jobspy.fetch_failed")
                     raise JobSpyError(f"Failed to fetch jobs: {error_msg}") from last_error
+        return []
 
     def _scrape_sync(self, **kwargs) -> Any:
         """Synchronous scrape call (runs in thread pool)."""

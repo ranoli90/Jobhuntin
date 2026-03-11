@@ -299,6 +299,7 @@ async def upload_to_supabase_storage(
                 "Supabase storage not configured; skipping upload for %s", path
             )
             return f"local-skipped/{bucket}/{path}"
+        return f"local-skipped/{bucket}/{path}"
 
     url = f"{s.supabase_url}/storage/v1/object/{bucket}/{path}"
     headers = {
@@ -319,6 +320,7 @@ async def upload_to_supabase_storage(
                 await asyncio.sleep(1.0 * (2**attempt))
             else:
                 raise
+    return ""  # unreachable; satisfies mypy
 
 
 async def generate_signed_url(storage_path: str, ttl_seconds: int | None = None) -> str:

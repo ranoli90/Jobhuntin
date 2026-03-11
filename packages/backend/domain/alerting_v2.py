@@ -76,6 +76,7 @@ async def send_pagerduty_event(
     except Exception as exc:
         logger.error("PagerDuty send failed: %s", exc)
         return None
+    return None
 
 
 # ---------------------------------------------------------------------------
@@ -162,6 +163,7 @@ async def send_opsgenie_alert(
     except Exception as exc:
         logger.error("Opsgenie send failed: %s", exc)
         return None
+    return None
 
 
 # ---------------------------------------------------------------------------
@@ -211,6 +213,7 @@ async def send_slack_message(
     except Exception as exc:
         logger.error("Slack send failed: %s", exc)
         return False
+    return False
 
 
 def slack_channel_for_tier(plan: str) -> str:

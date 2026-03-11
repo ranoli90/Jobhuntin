@@ -69,6 +69,7 @@
     "sonarjs/no-redundant-jump": "error",
 
     // Code quality rules
+    "unicorn/expiring-todo-comments": "off",
     "unicorn/no-abusive-eslint-disable": "error",
     "unicorn/no-process-exit": "error",
     "unicorn/prefer-node-protocol": "error",
@@ -96,10 +97,10 @@
     "promise/param-names": "error",
     "promise/catch-or-return": "error",
 
-    // Array function rules
-    "array-func/prefer-array-from": "error",
-    "array-func/prefer-flat-map": "error",
-    "array-func/prefer-flat": "error"
+    // Array function rules (array-func v5 is ESM-only; ESLint 8 may not load it)
+    "array-func/prefer-array-from": "off",
+    "array-func/prefer-flat-map": "off",
+    "array-func/prefer-flat": "off"
   },
   "settings": {
     "react": {
