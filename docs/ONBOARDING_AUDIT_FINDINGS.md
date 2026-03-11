@@ -170,3 +170,48 @@
 | F3 | emailUtils: isValidEmail(); ConfirmContactStep and Onboarding use shared validator |
 | I1 | handleComplete: completingRef guard prevents double-submit before React state update |
 | A4 | Growth endpoint failure: show warning toast instead of success; i18n growthEndpointHint |
+| N2 | Progress dots: clickable step indicators using goToStep; jump to completed/current steps |
+| X4 | ReadyStep: aria-label uses t("onboarding.startMyHunt") to match visible text |
+| X5 | Dismiss button: aria-label and text use t("dashboard.dismiss") |
+| I4 | WelcomeStep: setupTime fallback "2–3 min" aligned with welcomeSubtitle |
+| A1 | handleSaveWorkStyle: comment documenting optional skip (no POST when empty) |
+| D5 | ResumeStep: LinkedIn validate on blur; clear error on change when fixed |
+| I2 | ResumeUploadRetry: i18n for titles, messages, buttons; getRetryMessageI18n in lib |
+| OB-007 | create_onboarding_session: single transaction, one save after get_next_question |
+| OB-010 | useOnboarding: useEffect syncs when syncToServer becomes available (profile loads) |
+| S2 | loadInitialState: serverProgress in deps (full object) for re-run on change |
+| S4 | queueOfflineAction returned from useOnboarding |
+| A5 | syncProgressToServer: try/catch, re-throw for onSyncError |
+| R4 | ResumeUploadRetry: onRetryRef to avoid effect re-run on parent re-render |
+| F5 | handleSaveCareerGoals: explicit validation before submit; i18n careerGoalsRequired |
+| BC5 | SkillReviewStep AddSkillForm: maxLength 200, contextLengthHint (EN/FR) |
+| D1 | fileValidation.ts: isValidResumeFile magic bytes for PDF/DOCX; ResumeStep uses it |
+| K4/I5 | CareerGoalsStep: EXPERIENCE_LEVELS, URGENCY, GOALS, REASONS use i18n (EN/FR) |
+| OB-016 | ai_onboarding: session_id UUID format validation in _verify_session_ownership |
+| D3 | ProfileUpdate: field_validator for contact email/phone (align with frontend) |
+| E3 | ConfirmContactStep: JSDoc for onNext/onPrev async contract |
+| C2 | useOnboarding: 150ms debounce on nextStep/prevStep for rapid back/forward |
+
+---
+
+## Remaining (Not Fixed / Deferred)
+
+| ID | Reason |
+|----|--------|
+| OB-002 | Require Redis: infra change; dev fallback needed |
+| A4 (critical) | Full ReAuthModal: complex; A6 flush mitigates |
+| R1 (race) | Backend step ordering: requires API design |
+| OB-006 | _hydrate_job_matches: add monitoring/alerting |
+| N1 (network) | Request deduplication, longer timeout |
+| A1 (auth) | Magic link expired redirect |
+| B1, B2 | DB pool, Redis: ops/infra |
+| BC4 | XSS: verify all inputs (audit) |
+| S3 | linkedinUrl: restore effect handles |
+| S5 | workStyleAnswers: acceptable race |
+| S2 | serverProgress: already in deps |
+| OB-012 | full_name: already synced from first+last |
+| OB-015 | _merge_contact_fields: only copies allowed fields |
+| X2 | Error summary: already has aria-live |
+| R5 | updateAfterFailure: file size limits |
+| K5 | handleDeleteSkill: skills have no IDs |
+| C4 | Double-click: I1 completingRef covers |

@@ -10,7 +10,9 @@ import { t, getLocale } from "../../../../lib/i18n";
 import { isValidEmail } from "../../../../lib/emailUtils";
 
 interface ConfirmContactStepProps {
-    onNext: () => void;
+    /** E3: May be sync or async; caller should await if async. Advances to next step when contact is saved. */
+    onNext: () => void | Promise<void>;
+    /** E3: Sync; navigates to previous step. */
     onPrev: () => void;
     contactInfo: {
         first_name: string;

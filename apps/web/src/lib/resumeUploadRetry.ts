@@ -218,25 +218,31 @@ export class ResumeUploadRetryManager {
   }
 
   /**
-   * Get retry guidance message
+   * Get retry guidance message (legacy, returns English)
    */
   async getRetryMessage(): Promise<string> {
+    const { key, params } = await this.getRetryMessageI18n();
+    if (key === "resumeRetry.offline") return "You're offline. The resume will be automatically uploaded when you reconnect.";
+    if (key === "resumeRetry.maxReached") return "Maximum retry attempts reached. Please try uploading again or contact support.";
+    if (key === "resumeRetry.retryingIn") {
+      const minutes = params?.minutes ?? 1;
+      return `Retrying in ${minutes} minute${minutes !== 1 ? "s" : ""}...`;
+    }
+    return "Ready to retry.";
+  }
+
+  /**
+   * Get retry message as i18n key + params for component translation (I2)
+   */
+  async getRetryMessageI18n(): Promise<{ key: string; params?: Record<string, string | number> }> {
     const state = await this.getUploadState();
-    
-    if (!navigator.onLine) {
-      return "You're offline. The resume will be automatically uploaded when you reconnect.";
-    }
-    
-    if (state.retryCount >= MAX_RETRIES) {
-      return "Maximum retry attempts reached. Please try uploading again or contact support.";
-    }
-    
+    if (!navigator.onLine) return { key: "resumeRetry.offline" };
+    if (state.retryCount >= MAX_RETRIES) return { key: "resumeRetry.maxReached" };
     if (state.nextRetryIn > 0) {
       const minutes = Math.ceil(state.nextRetryIn / 60000);
-      return `Retrying in ${minutes} minute${minutes !== 1 ? 's' : ''}...`;
+      return { key: "resumeRetry.retryingIn", params: { minutes } };
     }
-    
-    return "Ready to retry.";
+    return { key: "resumeRetry.ready" };
   }
 }
 

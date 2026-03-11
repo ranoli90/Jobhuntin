@@ -191,9 +191,14 @@ async def _verify_session_ownership(
     Raises:
         HTTPException: If session doesn't exist or doesn't belong to user
     """
-    # Validate session_id format
-    if not session_id or len(session_id) < 10:
+    # OB-016: Validate session_id format (UUID)
+    if not session_id or not session_id.strip():
         raise HTTPException(status_code=400, detail="Invalid session ID")
+    try:
+        import uuid as _uuid
+        _uuid.UUID(session_id)
+    except (ValueError, TypeError, AttributeError):
+        raise HTTPException(status_code=400, detail="Invalid session ID format")
 
     # HIGH: Verify session ownership from database
     async with db.acquire() as conn:
@@ -258,20 +263,15 @@ async def create_onboarding_session(
             initial_context=request.initial_context,
         )
 
-        # HIGH: Persist session to database
-        async with db.acquire() as conn:
-            from packages.backend.domain.onboarding_repository import (
-                OnboardingSessionRepo,
-            )
-
-            await OnboardingSessionRepo.save_session(conn, session)
-
-        # Get first question
+        # Get first question (updates session in memory)
         first_question = await ai_onboarding.get_next_question(session)
 
-        # Update session after getting first question
+        # OB-007: Single transaction for both saves - avoid inconsistent state if second save fails
+        from packages.backend.domain.onboarding_repository import OnboardingSessionRepo
+
         async with db.acquire() as conn:
-            await OnboardingSessionRepo.save_session(conn, session)
+            async with conn.transaction():
+                await OnboardingSessionRepo.save_session(conn, session)
 
         return CreateSessionResponse(
             session_id=session.session_id,

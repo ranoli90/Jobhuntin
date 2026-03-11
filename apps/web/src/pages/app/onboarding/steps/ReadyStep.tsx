@@ -274,7 +274,7 @@ export function ReadyStep({
                     onClick={handleLaunch}
                     className="w-full h-14 md:h-20 rounded-[1.5rem] md:rounded-[3rem] text-lg md:text-3xl font-black shadow-2xl shadow-primary-600/30 bg-gradient-to-r from-primary-600 to-purple-600 hover:from-primary-500 hover:to-purple-500 hover:scale-[1.02] active:scale-95 transition-all group overflow-hidden relative"
                     disabled={isCompleting || countdown !== null}
-                    aria-label="Start My Hunt"
+                    aria-label={t("onboarding.startMyHunt", locale) || "Start My Hunt"}
                     data-onboarding-next
                 >
                     <span className="relative z-10 flex items-center justify-center gap-2 md:gap-4">

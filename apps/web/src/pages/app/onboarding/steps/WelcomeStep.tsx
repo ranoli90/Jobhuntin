@@ -96,7 +96,7 @@ export function WelcomeStep({ onNext, shouldReduceMotion, firstName }: WelcomeSt
                 >
                     <Clock className="w-3 h-3 text-[#17BEBB]" />
                     <span className="text-[10px] font-bold text-[#17BEBB] uppercase tracking-wider">
-                        {t("onboarding.setupTime", locale) || "Takes about 2 min"}
+                        {t("onboarding.setupTime", locale) || "2–3 min"}
                     </span>
                 </motion.div>
 

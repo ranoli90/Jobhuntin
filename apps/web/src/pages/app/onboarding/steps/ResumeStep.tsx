@@ -9,6 +9,7 @@ import { ParsedResume } from "../../../../types/onboarding";
 import { t, getLocale } from "../../../../lib/i18n";
 import { cn } from "../../../../lib/utils";
 import { isValidLinkedInUrl } from "../../../../lib/linkedinValidation";
+import { isValidResumeFile } from "../../../../lib/fileValidation";
 
 function SkipConfirmModal({ onStay, onSkip }: { onStay: () => void; onSkip: () => void }) {
     const containerRef = React.useRef<HTMLDivElement>(null);
@@ -120,14 +121,13 @@ export function ResumeStep({
         }
     };
 
-    const validateLinkedInUrl = (url: string): boolean => {
-        if (!url) return true;
-        return isValidLinkedInUrl(url);
-    };
-
     const handleLinkedinChange = (value: string) => {
         setLinkedinUrl(value);
-        if (value && !validateLinkedInUrl(value)) {
+        // D5: Clear error on change when user fixes it; validate on blur to avoid showing error while typing
+        if (linkedinError && (!value || isValidLinkedInUrl(value))) setLinkedinError(null);
+    };
+    const handleLinkedinBlur = () => {
+        if (linkedinUrl.trim() && !isValidLinkedInUrl(linkedinUrl)) {
             setLinkedinError(t("onboarding.linkedinError", locale));
         } else {
             setLinkedinError(null);
@@ -144,7 +144,7 @@ export function ResumeStep({
         setIsDragging(false);
     };
 
-    const handleDrop = (e: React.DragEvent) => {
+    const handleDrop = async (e: React.DragEvent) => {
         e.preventDefault();
         setIsDragging(false);
         const file = e.dataTransfer.files?.[0];
@@ -158,23 +158,38 @@ export function ResumeStep({
             setResumeError("Please upload a PDF or Word document");
             return;
         }
+        const { valid, reason } = await isValidResumeFile(file);
+        if (!valid) {
+            setResumeError(reason || "Please upload a PDF or Word document");
+            return;
+        }
         handleFileChange(file);
     };
 
-    const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
-        if (file && file.size > 15 * 1024 * 1024) {
+        if (!file) {
+            handleFileChange(null);
+            return;
+        }
+        if (file.size > 15 * 1024 * 1024) {
             setResumeError("File must be under 15MB");
             e.target.value = "";
             return;
         }
         const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
-        if (file && !allowedTypes.includes(file.type)) {
+        if (!allowedTypes.includes(file.type)) {
             setResumeError("Please upload a PDF or Word document");
             e.target.value = "";
             return;
         }
-        handleFileChange(file || null);
+        const { valid, reason } = await isValidResumeFile(file);
+        if (!valid) {
+            setResumeError(reason || "Please upload a PDF or Word document");
+            e.target.value = "";
+            return;
+        }
+        handleFileChange(file);
     };
 
     const handleRemoveFile = (e: React.MouseEvent) => {
@@ -353,6 +368,7 @@ export function ResumeStep({
                     placeholder={t("onboarding.linkedinPlaceholder", locale)}
                     value={linkedinUrl}
                     onChange={(e) => handleLinkedinChange(e.target.value)}
+                    onBlur={handleLinkedinBlur}
                     onClear={() => { setLinkedinUrl(""); setLinkedinError(null); }}
                     className="bg-white shadow-sm"
                     error={!!linkedinError}

@@ -137,7 +137,7 @@ export function useOnboarding(options: UseOnboardingOptions = {}) {
         if (!cancelled) setIsLoading(false);
       });
     return () => { cancelled = true; };
-  }, [loadInitialState, serverProgress?.step, serverProgress?.completed?.length, initialStepFromUrl]);
+  }, [loadInitialState, serverProgress, initialStepFromUrl]);
 
   const saveState = useCallback(async () => {
     const { pii, nonPii } = separatePII(formData);
@@ -263,7 +263,13 @@ export function useOnboarding(options: UseOnboardingOptions = {}) {
   const isLastStep = currentStep === currentSteps.length - 1;
   const progress = currentSteps.length > 0 ? ((currentStep + 1) / currentSteps.length) * 100 : 0;
 
+  // C2: Debounce rapid back/forward to avoid state thrashing
+  const lastNavRef = React.useRef(0);
+  const NAV_DEBOUNCE_MS = 150;
+
   const nextStep = useCallback(() => {
+    if (Date.now() - lastNavRef.current < NAV_DEBOUNCE_MS) return;
+    lastNavRef.current = Date.now();
     const totalSteps = currentSteps.length;
     if (import.meta.env.DEV) console.log('[useOnboarding] nextStep called, totalSteps:', totalSteps);
 
@@ -293,6 +299,8 @@ export function useOnboarding(options: UseOnboardingOptions = {}) {
   }, [currentSteps]);
 
   const prevStep = useCallback(() => {
+    if (Date.now() - lastNavRef.current < NAV_DEBOUNCE_MS) return;
+    lastNavRef.current = Date.now();
     if (!isFirstStep) {
       setCurrentStep((prev) => prev - 1);
     }
@@ -309,6 +317,15 @@ export function useOnboarding(options: UseOnboardingOptions = {}) {
   useEffect(() => {
     saveState();
   }, [currentStep, completedSteps, saveState, syncToServer]);
+
+  // OB-010: When syncToServer becomes available (profile loads), sync current progress
+  const prevSyncRef = React.useRef(syncToServer);
+  useEffect(() => {
+    if (syncToServer && !prevSyncRef.current) {
+      saveState();
+    }
+    prevSyncRef.current = syncToServer;
+  }, [syncToServer, saveState]);
   useEffect(() => {
     const t = setTimeout(() => saveState(), 400);
     return () => clearTimeout(t);
@@ -410,6 +427,7 @@ export function useOnboarding(options: UseOnboardingOptions = {}) {
     goToStep,
     updateFormData,
     resetOnboarding,
+    queueOfflineAction,
     isLoading,
   };
 }

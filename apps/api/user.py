@@ -1153,6 +1153,26 @@ class ProfileUpdate(BaseModel):
             raise ValueError(f"urgency must be one of {sorted(allowed_urgency)}")
         return value
 
+    @field_validator("contact")
+    @classmethod
+    def _validate_contact(cls, value: dict | None) -> dict | None:
+        """D3: Align with frontend - validate email and phone format when provided."""
+        if value is None:
+            return None
+        import re
+        email = value.get("email")
+        if email is not None and str(email).strip():
+            if not re.match(r"^[^\s@]+@[^\s@]+\.[^\s@]+$", str(email).strip()):
+                raise ValueError("Invalid email format")
+        phone = value.get("phone")
+        if phone is not None and str(phone).strip():
+            digits = re.sub(r"[^\d+]", "", str(phone))
+            if digits.startswith("+"):
+                digits = digits[1:]
+            if len(digits) < 10 or len(digits) > 15:
+                raise ValueError("Invalid phone number")
+        return value
+
     @field_validator("avatar_url")
     @classmethod
     def _validate_avatar(cls, value: str | None) -> str | None:

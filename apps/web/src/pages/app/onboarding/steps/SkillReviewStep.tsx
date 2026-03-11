@@ -179,8 +179,13 @@ function AddSkillForm({ onAdd, onCancel, locale }: AddSkillFormProps) {
                         placeholder={t("onboarding.contextPlaceholder", locale) || "Context (optional)"}
                         value={context}
                         onChange={(e) => setContext(e.target.value)}
+                        maxLength={200}
                         className="bg-white text-sm"
+                        aria-describedby="add-skill-context-hint"
                     />
+                    <p id="add-skill-context-hint" className="text-[10px] text-slate-500 mt-0.5">
+                        {t("onboarding.contextLengthHint", locale) || "Max 200 characters"}
+                    </p>
                 </div>
             </div>
             <div className="flex flex-col sm:flex-row justify-end gap-2">

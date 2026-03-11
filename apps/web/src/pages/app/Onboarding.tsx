@@ -57,7 +57,12 @@ export default function Onboarding() {
   const { profile, loading, uploadResume, savePreferences, completeOnboarding, updateProfile } = useProfile();
   const syncProgressToServer = React.useCallback(
     async (step: number, completed: string[]) => {
-      await api.patch("me/profile", { onboarding_step: step, onboarding_completed_steps: completed });
+      try {
+        await api.patch("me/profile", { onboarding_step: step, onboarding_completed_steps: completed });
+      } catch (err) {
+        if (import.meta.env.DEV) console.warn("[Onboarding] syncProgressToServer failed:", err);
+        throw err; // Re-throw so useOnboarding saveState can call onSyncError
+      }
     },
     []
   );
@@ -69,7 +74,7 @@ export default function Onboarding() {
     return Number.isFinite(n) && n >= 0 ? n : null;
   }, [searchParams]);
 
-  const { steps, currentStep, currentStepData, progress, isFirstStep, isLastStep, nextStep, prevStep, goToStep, resetOnboarding, formData, updateFormData } = useOnboarding({
+  const { steps, currentStep, currentStepData, completedSteps, progress, isFirstStep, isLastStep, nextStep, prevStep, goToStep, resetOnboarding, formData, updateFormData } = useOnboarding({
     serverProgress: profile && !profile.has_completed_onboarding && profile.onboarding_step != null
       ? { step: profile.onboarding_step, completed: profile.onboarding_completed_steps || [] }
       : null,
@@ -382,6 +387,7 @@ export default function Onboarding() {
     setSaveError(null);
     setIsSavingWorkStyle(true);
     try {
+      // A1: Work style is optional; advance without POST when user skips (no answers)
       const hasAnswers = Object.keys(workStyleAnswers).some((k) => workStyleAnswers[k]);
       if (hasAnswers) {
         const payload = mapWorkStyleForApi(workStyleAnswers);
@@ -1015,9 +1021,13 @@ export default function Onboarding() {
 
   const handleSaveCareerGoals = async () => {
     setSaveError(null);
+    // F5: Explicit validation before submit (e.g. Ctrl+Enter bypasses button disabled)
+    if (!careerGoals.experience_level?.trim() || !careerGoals.urgency?.trim()) {
+      setSaveError(t("onboarding.careerGoalsRequired", locale) || "Please select experience level and search urgency.");
+      return;
+    }
     try {
       setIsSavingCareerGoals(true);
-      // Save career goals to profile
       await updateProfile({
         career_goals: {
           experience_level: careerGoals.experience_level,
@@ -1228,6 +1238,27 @@ export default function Onboarding() {
                   transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
                 />
               </div>
+              {/* N2: Clickable step dots - jump to completed/current steps */}
+              <div className="flex gap-1 mt-2" role="group" aria-label={t("onboarding.step", locale) + " " + (currentStep + 1) + " " + (t("onboarding.of", locale) || "of") + " " + steps.length}>
+                {steps.map((s, idx) => {
+                  const isCompleted = completedSteps.includes(s.id) || idx < currentStep;
+                  const isCurrent = idx === currentStep;
+                  const canJump = isCompleted || isCurrent;
+                  return (
+                    <button
+                      key={s.id}
+                      type="button"
+                      aria-current={isCurrent ? "step" : undefined}
+                      aria-label={`${t("onboarding.step", locale) || "Step"} ${idx + 1}: ${s.title}`}
+                      onClick={() => canJump && goToStep(idx)}
+                      className={`h-2 w-2 rounded-full transition-all min-h-[44px] min-w-[44px] flex items-center justify-center p-[18px] -m-[18px] ${
+                        isCurrent ? "bg-[#455DD3] ring-2 ring-[#455DD3]/30" : isCompleted ? "bg-[#455DD3]/60 hover:bg-[#455DD3]/80" : "bg-[#E9E9E7] cursor-default"
+                      }`}
+                      disabled={!canJump}
+                    />
+                  );
+                })}
+              </div>
               <p className="mt-1 text-[9px] text-[#9B9A97] hidden sm:block" aria-hidden>
                 {t("onboarding.keyboardHint", locale) || "Ctrl+Enter to continue"}
               </p>
@@ -1315,9 +1346,9 @@ export default function Onboarding() {
                               type="button"
                               onClick={() => setSaveError(null)}
                               className="shrink-0 text-red-600 hover:underline text-xs font-medium"
-                              aria-label="Dismiss"
+                              aria-label={t("dashboard.dismiss", locale) || "Dismiss"}
                             >
-                              Dismiss
+                              {t("dashboard.dismiss", locale) || "Dismiss"}
                             </button>
                           </div>
                         )}

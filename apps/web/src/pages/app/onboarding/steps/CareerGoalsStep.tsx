@@ -24,36 +24,36 @@ interface CareerGoalsStepProps {
 }
 
 const EXPERIENCE_LEVELS = [
-    { value: "0-1", label: "Entry Level", sub: "0–1 years", gradient: "from-sky-400 to-blue-500" },
-    { value: "1-3", label: "Junior", sub: "1–3 years", gradient: "from-teal-400 to-emerald-500" },
-    { value: "3-5", label: "Mid-Level", sub: "3–5 years", gradient: "from-amber-400 to-orange-500" },
-    { value: "5-10", label: "Senior", sub: "5–10 years", gradient: "from-violet-400 to-purple-600" },
-    { value: "10+", label: "Staff+", sub: "10+ years", gradient: "from-rose-400 to-pink-600" },
+    { value: "0-1", labelKey: "onboarding.expLevelEntry", subKey: "onboarding.expLevelEntrySub", gradient: "from-sky-400 to-blue-500" },
+    { value: "1-3", labelKey: "onboarding.expLevelJunior", subKey: "onboarding.expLevelJuniorSub", gradient: "from-teal-400 to-emerald-500" },
+    { value: "3-5", labelKey: "onboarding.expLevelMid", subKey: "onboarding.expLevelMidSub", gradient: "from-amber-400 to-orange-500" },
+    { value: "5-10", labelKey: "onboarding.expLevelSenior", subKey: "onboarding.expLevelSeniorSub", gradient: "from-violet-400 to-purple-600" },
+    { value: "10+", labelKey: "onboarding.expLevelStaff", subKey: "onboarding.expLevelStaffSub", gradient: "from-rose-400 to-pink-600" },
 ];
 
 const URGENCY_OPTIONS = [
-    { value: "active", icon: Flame, label: "Actively Looking", desc: "Interviewing and ready to move", color: "border-red-200 bg-red-50/50 hover:border-red-300", iconColor: "text-red-500" },
-    { value: "open", icon: Eye, label: "Open to Offers", desc: "Happy but curious about opportunities", color: "border-amber-200 bg-amber-50/50 hover:border-amber-300", iconColor: "text-amber-500" },
-    { value: "exploring", icon: Sprout, label: "Just Exploring", desc: "No rush, seeing what's out there", color: "border-emerald-200 bg-emerald-50/50 hover:border-emerald-300", iconColor: "text-emerald-500" },
+    { value: "active", icon: Flame, labelKey: "onboarding.urgencyActive", descKey: "onboarding.urgencyActiveDesc", color: "border-red-200 bg-red-50/50 hover:border-red-300", iconColor: "text-red-500" },
+    { value: "open", icon: Eye, labelKey: "onboarding.urgencyOpen", descKey: "onboarding.urgencyOpenDesc", color: "border-amber-200 bg-amber-50/50 hover:border-amber-300", iconColor: "text-amber-500" },
+    { value: "exploring", icon: Sprout, labelKey: "onboarding.urgencyExploring", descKey: "onboarding.urgencyExploringDesc", color: "border-emerald-200 bg-emerald-50/50 hover:border-emerald-300", iconColor: "text-emerald-500" },
 ];
 
 const GOALS = [
-    { value: "senior_ic", label: "Senior IC Role", icon: TrendingUp },
-    { value: "management", label: "Management", icon: Briefcase },
-    { value: "career_change", label: "Career Change", icon: Target },
-    { value: "higher_comp", label: "Higher Comp", icon: DollarSign },
-    { value: "work_life", label: "Work-Life Balance", icon: Scale },
-    { value: "startup", label: "Startup Experience", icon: Flame },
+    { value: "senior_ic", labelKey: "onboarding.goalSeniorIc", icon: TrendingUp },
+    { value: "management", labelKey: "onboarding.goalManagement", icon: Briefcase },
+    { value: "career_change", labelKey: "onboarding.goalCareerChange", icon: Target },
+    { value: "higher_comp", labelKey: "onboarding.goalHigherComp", icon: DollarSign },
+    { value: "work_life", labelKey: "onboarding.goalWorkLife", icon: Scale },
+    { value: "startup", labelKey: "onboarding.goalStartup", icon: Flame },
 ];
 
 const REASONS = [
-    { value: "growth", label: "Career Growth" },
-    { value: "compensation", label: "Compensation" },
-    { value: "culture", label: "Company Culture" },
-    { value: "layoff", label: "Layoff / Restructuring" },
-    { value: "relocation", label: "Relocation" },
-    { value: "contract_ending", label: "Contract Ending" },
-    { value: "not_employed", label: "Not Currently Employed" },
+    { value: "growth", labelKey: "onboarding.reasonGrowth" },
+    { value: "compensation", labelKey: "onboarding.reasonCompensation" },
+    { value: "culture", labelKey: "onboarding.reasonCulture" },
+    { value: "layoff", labelKey: "onboarding.reasonLayoff" },
+    { value: "relocation", labelKey: "onboarding.reasonRelocation" },
+    { value: "contract_ending", labelKey: "onboarding.reasonContract" },
+    { value: "not_employed", labelKey: "onboarding.reasonNotEmployed" },
 ];
 
 export function CareerGoalsStep({
@@ -106,8 +106,8 @@ export function CareerGoalsStep({
                                     <div className={`mx-auto w-8 h-8 rounded-lg bg-gradient-to-br ${level.gradient} mb-2 flex items-center justify-center ${isSelected ? "shadow-lg" : ""}`}>
                                         <span className="text-white text-xs font-black">{level.value.replace("+", "")}</span>
                                     </div>
-                                    <p className="text-[10px] md:text-xs font-bold text-slate-900">{level.label}</p>
-                                    <p className="text-[8px] md:text-[10px] text-slate-400">{level.sub}</p>
+                                    <p className="text-[10px] md:text-xs font-bold text-slate-900">{t(level.labelKey, locale) || level.labelKey}</p>
+                                    <p className="text-[8px] md:text-[10px] text-slate-400">{t(level.subKey, locale) || level.subKey}</p>
                                 </button>
                             );
                         })}
@@ -139,8 +139,8 @@ export function CareerGoalsStep({
                                         <UrgencyIcon className={`w-5 h-5 ${isSelected ? 'text-primary-600' : option.iconColor}`} />
                                     </div>
                                     <div>
-                                        <p className="text-sm font-bold text-slate-900">{option.label}</p>
-                                        <p className="text-xs text-slate-500">{option.desc}</p>
+                                        <p className="text-sm font-bold text-slate-900">{t(option.labelKey, locale) || option.labelKey}</p>
+                                        <p className="text-xs text-slate-500">{t(option.descKey, locale) || option.descKey}</p>
                                     </div>
                                 </button>
                             );
@@ -173,7 +173,7 @@ export function CareerGoalsStep({
                                         }`}
                                 >
                                     <Icon className={`w-4 h-4 shrink-0 ${isSelected ? "text-primary-600" : "text-slate-400"}`} />
-                                    <span className="text-xs font-bold text-slate-700">{goal.label}</span>
+                                    <span className="text-xs font-bold text-slate-700">{t(goal.labelKey, locale) || goal.labelKey}</span>
                                 </button>
                             );
                         })}
@@ -203,7 +203,7 @@ export function CareerGoalsStep({
                                         : "border-slate-200 text-slate-600 hover:border-slate-300 active:scale-[0.97]"
                                         }`}
                                 >
-                                    {reason.label}
+                                    {t(reason.labelKey, locale) || reason.labelKey}
                                 </button>
                             );
                         })}
