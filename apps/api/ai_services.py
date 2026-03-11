@@ -33,7 +33,6 @@ class AIService:
     def __init__(self, db: asyncpg.Connection):
         self.db = db
         self.llm_client = LLMClient()
-        self.redis = get_redis()
         self.profile_repo = ProfileRepo(db)
         self.cache_repo = JobMatchCacheRepo(db)
 
@@ -345,12 +344,15 @@ class AIService:
                 "error": str(e),
             }
 
+    _AI_CACHE_PREFIX = "ai:cache:"
+
     def _generate_cache_key(self, *args) -> str:
-        """Generate a cache key from arguments."""
+        """Generate a cache key from arguments. Prefixed to avoid collisions."""
         import hashlib
 
         content = ":".join(str(arg) for arg in args)
-        return hashlib.md5(content.encode(), usedforsecurity=False).hexdigest()
+        digest = hashlib.md5(content.encode(), usedforsecurity=False).hexdigest()
+        return f"{self._AI_CACHE_PREFIX}{digest}"
 
     def _generate_role_cache_key(
         self,
@@ -423,8 +425,12 @@ class AIService:
     async def _get_cached_result(self, cache_key: str) -> str | None:
         """Get cached result from Redis."""
         try:
-            result = await self.redis.get(cache_key)
-            return result.decode() if result else None
+            r = await get_redis()
+            result = await r.get(cache_key)
+            if result is None:
+                return None
+            # Redis client uses decode_responses=True, so result is str
+            return result if isinstance(result, str) else result.decode("utf-8")
         except Exception as e:
             logger.warning(f"Error getting cached result for {cache_key}: {e}")
             return None
@@ -432,7 +438,8 @@ class AIService:
     async def _cache_result(self, cache_key: str, result: str, ttl: int) -> None:
         """Cache result in Redis."""
         try:
-            await self.redis.setex(cache_key, ttl, result)
+            r = await get_redis()
+            await r.setex(cache_key, ttl, result)
         except Exception as e:
             logger.warning(f"Error caching result for {cache_key}: {e}")
 

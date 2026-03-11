@@ -368,7 +368,7 @@ class RedisCache:
             full_key = f"{self.key_prefix}:{key}"
 
             try:
-                result = await self.client.expire(full_key, ttl_seconds)
+                result = await self._client.expire(full_key, ttl_seconds)
                 return result
 
             except redis.RedisError as e:

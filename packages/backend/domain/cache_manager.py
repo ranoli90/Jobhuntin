@@ -97,6 +97,8 @@ class CacheConfiguration:
 class CacheManager:
     """Advanced multi-level caching system."""
 
+    _REDIS_KEY_PREFIX = "sorce:stats:"
+
     def __init__(self, redis_url: Optional[str] = None):
         self.redis_url = redis_url
         self._memory_cache: Dict[str, CacheEntry] = {}
@@ -466,6 +468,10 @@ class CacheManager:
             logger.error(f"Failed to delete from memory cache: {e}")
             return False
 
+    def _redis_key(self, key: str) -> str:
+        """Apply Redis key prefix to avoid collisions with auth, idempotency, ai keys."""
+        return f"{self._REDIS_KEY_PREFIX}{key}" if not key.startswith(self._REDIS_KEY_PREFIX) else key
+
     async def _get_from_redis(self, key: str) -> Any:
         """Get value from Redis cache."""
         try:
@@ -473,7 +479,7 @@ class CacheManager:
                 return None
 
             # Get from Redis
-            data = await self._redis_client.get(key)
+            data = await self._redis_client.get(self._redis_key(key))
             if data is None:
                 return None
 
@@ -490,6 +496,8 @@ class CacheManager:
             logger.error(f"Failed to get from Redis cache: {e}")
             return None
 
+    _REDIS_DEFAULT_TTL_SECONDS = 3600
+
     async def _set_in_redis(
         self,
         key: str,
@@ -497,7 +505,7 @@ class CacheManager:
         ttl_seconds: Optional[int] = None,
         metadata: Optional[Dict[str, Any]] = None,
     ) -> bool:
-        """Set value in Redis cache."""
+        """Set value in Redis cache. Always sets TTL to prevent keys without expiry."""
         try:
             if not self._redis_client:
                 return False
@@ -509,11 +517,9 @@ class CacheManager:
                 # Fallback to JSON
                 data = json.dumps(value, default=str).encode("utf-8")
 
-            # Set in Redis
-            if ttl_seconds:
-                await self._redis_client.setex(key, ttl_seconds, data)
-            else:
-                await self._redis_client.set(key, data)
+            # Set in Redis - always use TTL to prevent unbounded key growth
+            ttl = ttl_seconds if ttl_seconds and ttl_seconds > 0 else self._REDIS_DEFAULT_TTL_SECONDS
+            await self._redis_client.setex(self._redis_key(key), ttl, data)
 
             return True
 
@@ -527,7 +533,7 @@ class CacheManager:
             if not self._redis_client:
                 return False
 
-            result = await self._redis_client.delete(key)
+            result = await self._redis_client.delete(self._redis_key(key))
             return result > 0
 
         except Exception as e:
@@ -560,13 +566,15 @@ class CacheManager:
                 return False
 
             if pattern:
-                # Delete keys matching pattern
-                keys = await self._redis_client.keys(f"*{pattern}*")
+                # Delete keys matching pattern (within our namespace)
+                keys = await self._redis_client.keys(f"{self._REDIS_KEY_PREFIX}*{pattern}*")
                 if keys:
                     await self._redis_client.delete(*keys)
             else:
-                # Clear all keys (be careful with this in production)
-                await self._redis_client.flushdb()
+                # Clear only our namespace keys (not auth, idempotency, ai)
+                keys = await self._redis_client.keys(f"{self._REDIS_KEY_PREFIX}*")
+                if keys:
+                    await self._redis_client.delete(*keys)
 
             return True
 
@@ -892,9 +900,9 @@ class CacheManager:
                 await self._delete_from_memory(key)
                 count += 1
 
-            # Invalidate from Redis
+            # Invalidate from Redis (within our namespace)
             if self._redis_client:
-                redis_keys = await self._redis_client.keys(f"*{pattern}*")
+                redis_keys = await self._redis_client.keys(f"{self._REDIS_KEY_PREFIX}*{pattern}*")
                 if redis_keys:
                     await self._redis_client.delete(*redis_keys)
                     count += len(redis_keys)
