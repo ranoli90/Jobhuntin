@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { getAuthToken } from "@/lib/api";
+import { apiGet, apiPost, apiPut, apiDelete } from "@/lib/api";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
@@ -86,22 +86,13 @@ const EmailPage: React.FC = () => {
 
   const fetchEmails = async () => {
     try {
-      const parameters = new URLSearchParams({
+      const params = new URLSearchParams({
         limit: "50",
         category: selectedCategory === "all" ? "" : selectedCategory,
       });
-
-      const response = await fetch(
-        `/api/communications/email/history?${parameters}`,
-        {
-          headers: {
-            Authorization: `Bearer ${getAuthToken()}`,
-          },
-        },
+      const data = await apiGet<{ emails?: EmailCommunication[] }>(
+        `communications/email/history?${params}`,
       );
-
-      if (!response.ok) throw new Error("Could not load your inbox");
-      const data = await response.json();
       setEmails(data.emails || []);
     } catch (error_) {
       setError(
@@ -114,14 +105,9 @@ const EmailPage: React.FC = () => {
 
   const fetchPreferences = async () => {
     try {
-      const response = await fetch("/api/communications/email/preferences", {
-        headers: {
-          Authorization: `Bearer ${getAuthToken()}`,
-        },
-      });
-
-      if (!response.ok) throw new Error("Could not load email preferences");
-      const data = await response.json();
+      const data = await apiGet<EmailPreferences>(
+        "communications/email/preferences",
+      );
       setPreferences(data);
       setPreferencesForm(data);
     } catch (error_) {
@@ -135,15 +121,7 @@ const EmailPage: React.FC = () => {
 
   const handleSendEmail = async () => {
     try {
-      const response = await fetch("/api/communications/email/send", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${getAuthToken()}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(composeForm),
-      });
-      if (!response.ok) throw new Error("Could not send email");
+      await apiPost("communications/email/send", composeForm);
       setShowCompose(false);
       setComposeForm({
         to_email: "",
@@ -161,17 +139,7 @@ const EmailPage: React.FC = () => {
 
   const handleMarkAsRead = async (emailId: string) => {
     try {
-      const response = await fetch(
-        `/api/communications/email/${emailId}/read`,
-        {
-          method: "PUT",
-          headers: {
-            Authorization: `Bearer ${getAuthToken()}`,
-          },
-        },
-      );
-
-      if (!response.ok) throw new Error("Could not mark as read");
+      await apiPut(`communications/email/${emailId}/read`, {});
 
       await fetchEmails();
       setError(null);
@@ -186,14 +154,7 @@ const EmailPage: React.FC = () => {
     if (!confirm("Are you sure you want to delete this email?")) return;
 
     try {
-      const response = await fetch(`/api/communications/email/${emailId}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${getAuthToken()}`,
-        },
-      });
-
-      if (!response.ok) throw new Error("Could not delete email");
+      await apiDelete(`communications/email/${emailId}`);
 
       await fetchEmails();
       setError(null);
@@ -207,16 +168,7 @@ const EmailPage: React.FC = () => {
   const handleUpdatePreferences = async () => {
     if (!preferencesForm) return;
     try {
-      const response = await fetch("/api/communications/email/preferences", {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${getAuthToken()}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(preferencesForm),
-      });
-
-      if (!response.ok) throw new Error("Could not update email preferences");
+      await apiPut("communications/email/preferences", preferencesForm);
 
       await fetchPreferences();
       setShowPreferences(false);

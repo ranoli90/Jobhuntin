@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { getAuthToken } from "@/lib/api";
+import { apiGet, apiPost } from "@/lib/api";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
@@ -72,14 +72,9 @@ const PerformanceMetrics: React.FC = () => {
       setLoading(true);
       setError(null);
 
-      const response = await fetch("/api/performance-metrics/list", {
-        headers: {
-          Authorization: `Bearer ${getAuthToken()}`,
-        },
-      });
-
-      if (!response.ok) throw new Error("Failed to fetch metrics");
-      const data = await response.json();
+      const data = await apiGet<{ metrics?: PerformanceMetric[] }>(
+        "performance-metrics/list",
+      );
       setMetrics(data.metrics || []);
     } catch (error_) {
       setError(
@@ -92,15 +87,17 @@ const PerformanceMetrics: React.FC = () => {
 
   const fetchStats = async () => {
     try {
-      const response = await fetch("/api/performance-metrics/stats", {
-        headers: {
-          Authorization: `Bearer ${getAuthToken()}`,
+      const data = await apiGet<{ stats?: PerformanceStats }>(
+        "performance-metrics/stats",
+      );
+      setStats(
+        data.stats ?? {
+          total_metrics: 0,
+          by_type: {},
+          average_values: {},
+          trends: {},
         },
-      });
-
-      if (!response.ok) throw new Error("Failed to fetch stats");
-      const data = await response.json();
-      setStats(data.stats || {});
+      );
     } catch (error_) {
       setError(
         error_ instanceof Error ? error_.message : "Failed to fetch stats",
@@ -114,20 +111,11 @@ const PerformanceMetrics: React.FC = () => {
     unit: string,
   ) => {
     try {
-      const response = await fetch("/api/performance-metrics/record", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${getAuthToken()}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          metric_type: metricType,
-          metric_value: value,
-          metric_unit: unit,
-        }),
+      await apiPost("performance-metrics/record", {
+        metric_type: metricType,
+        metric_value: value,
+        metric_unit: unit,
       });
-
-      if (!response.ok) throw new Error("Failed to record metric");
 
       await fetchMetrics();
       await fetchStats();

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { getAuthToken } from "@/lib/api";
+import { apiGet, apiPost } from "@/lib/api";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
@@ -137,18 +137,9 @@ const BatchProcessor: React.FC = () => {
 
   const fetchBatches = async () => {
     try {
-      const response = await fetch(
-        "/api/communications/batch/history?limit=50",
-        {
-          headers: {
-            "content-type": "application/json",
-            Authorization: `Bearer ${getAuthToken()}`,
-          },
-        },
+      const data = await apiGet<{ batches?: NotificationBatch[] }>(
+        "communications/batch/history?limit=50",
       );
-
-      if (!response.ok) throw new Error("Failed to fetch batches");
-      const data = await response.json();
       setBatches(data.batches || []);
     } catch (error_) {
       setError(
@@ -228,23 +219,14 @@ const BatchProcessor: React.FC = () => {
         (_, index) => `user_${index + 1}`,
       );
 
-      const response = await fetch("/api/communications/batch/create", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${getAuthToken()}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name: batchForm.name,
-          tenant_id: batchForm.tenant_id || "default",
-          user_ids: mockUserIds,
-          notification_template: batchForm.notification_template,
-          batch_size: batchForm.batch_size,
-          priority: batchForm.priority,
-        }),
+      await apiPost("communications/batch/create", {
+        name: batchForm.name,
+        tenant_id: batchForm.tenant_id || "default",
+        user_ids: mockUserIds,
+        notification_template: batchForm.notification_template,
+        batch_size: batchForm.batch_size,
+        priority: batchForm.priority,
       });
-
-      if (!response.ok) throw new Error("Failed to create batch");
 
       await fetchBatches();
       setShowCreateBatch(false);
@@ -273,18 +255,7 @@ const BatchProcessor: React.FC = () => {
 
   const handleProcessBatch = async (batchId: string) => {
     try {
-      const response = await fetch(
-        `/api/communications/batch/process/${batchId}`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `batch_id=${batchId}`,
-            "Content-Type": "application/json",
-          },
-        },
-      );
-
-      if (!response.ok) throw new Error("Failed to process batch");
+      await apiPost(`communications/batch/process/${batchId}`, undefined);
 
       await fetchBatches();
       await fetchBatchResults();
@@ -301,25 +272,15 @@ const BatchProcessor: React.FC = () => {
 
   const handleRetryFailed = async (batchId: string) => {
     try {
-      const response = await fetch(
-        `/api/communications/batch/retry/${batchId}`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${getAuthToken()}`,
-            "Content-Type": "application/json",
-          },
-        },
+      const data = await apiPost<{ successful?: number }>(
+        `communications/batch/retry/${batchId}`,
+        undefined,
       );
-
-      if (!response.ok) throw new Error("Failed to retry failed notifications");
 
       await fetchBatches();
       await fetchBatchResults();
 
-      const data = await response.json();
-
-      alert(`Retried ${data.successful} failed notifications`);
+      alert(`Retried ${data.successful ?? 0} failed notifications`);
       setShowRetryFailed(false);
     } catch (error_) {
       setError(
@@ -334,17 +295,7 @@ const BatchProcessor: React.FC = () => {
     try {
       if (!confirm("Are you sure you want to cancel this batch?")) return;
 
-      const response = await fetch(
-        `/api/communications/batch/cancel/${batchId}`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${getAuthToken()}`,
-          },
-        },
-      );
-
-      if (!response.ok) throw new Error("Failed to cancel batch");
+      await apiPost(`communications/batch/cancel/${batchId}`, undefined);
 
       await fetchBatches();
       alert(`Batch ${batchId} cancelled`);

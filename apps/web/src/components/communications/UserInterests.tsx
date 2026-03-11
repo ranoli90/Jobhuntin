@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { getAuthToken } from "@/lib/api";
+import { apiGet, apiPost } from "@/lib/api";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
@@ -111,14 +111,9 @@ const UserInterests: React.FC = () => {
 
   const fetchProfile = async () => {
     try {
-      const response = await fetch("/api/communications/interests", {
-        headers: {
-          Authorization: `Bearer ${getAuthToken()}`,
-        },
-      });
-
-      if (!response.ok) throw new Error("Failed to fetch profile");
-      const data = await response.json();
+      const data = await apiGet<UserInterestProfile>(
+        "communications/interests",
+      );
       setProfile(data);
     } catch (error_) {
       setError(
@@ -131,17 +126,9 @@ const UserInterests: React.FC = () => {
 
   const fetchTopInterests = async () => {
     try {
-      const response = await fetch(
-        "/api/communications/interests/top?limit=10&min_score=0.1",
-        {
-          headers: {
-            Authorization: `Bearer ${getAuthToken()}`,
-          },
-        },
-      );
-
-      if (!response.ok) throw new Error("Failed to fetch top interests");
-      const data = await response.json();
+      const data = await apiGet<{
+        top_interests: [string, number][];
+      }>("communications/interests/top?limit=10&min_score=0.1");
 
       const interests = data.top_interests.map(
         ([category, score]: [string, number]) => ({
@@ -225,29 +212,20 @@ const UserInterests: React.FC = () => {
         return;
       }
 
-      const response = await fetch("/api/communications/interests/update", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${getAuthToken()}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          interactions: [
-            {
-              type: "manual",
-              content:
-                typeof interestForm.keywords === "string"
-                  ? interestForm.keywords
-                  : (interestForm.keywords as string[]).join(", "),
-              category: interestForm.category,
-              timestamp: new Date().toISOString(),
-              metadata: {},
-            },
-          ],
-        }),
+      await apiPost("communications/interests/update", {
+        interactions: [
+          {
+            type: "manual",
+            content:
+              typeof interestForm.keywords === "string"
+                ? interestForm.keywords
+                : (interestForm.keywords as string[]).join(", "),
+            category: interestForm.category,
+            timestamp: new Date().toISOString(),
+            metadata: {},
+          },
+        ],
       });
-
-      if (!response.ok) throw new Error("Failed to add interest");
 
       await fetchProfile();
       await fetchTopInterests();
@@ -270,22 +248,10 @@ const UserInterests: React.FC = () => {
     scoreAdjustment: number,
   ) => {
     try {
-      const response = await fetch(
-        "/api/communications/interests/update-score",
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${getAuthToken()}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            category: category,
-            score_adjustment: scoreAdjustment,
-          }),
-        },
-      );
-
-      if (!response.ok) throw new Error("Failed to update interest score");
+      await apiPost("communications/interests/update-score", {
+        category: category,
+        score_adjustment: scoreAdjustment,
+      });
 
       await fetchProfile();
       await fetchTopInterests();

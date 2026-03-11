@@ -1,5 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { getAuthToken } from "@/lib/api";
+import {
+  apiGet,
+  apiFetch,
+  handleApiError,
+} from "@/lib/api";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
@@ -124,14 +128,9 @@ export const ApplicationExport: React.FC<ApplicationExportProperties> = ({
 
   const fetchApplications = async () => {
     try {
-      const response = await fetch("/api/applications", {
-        headers: {
-          Authorization: `Bearer ${getAuthToken()}`,
-        },
-      });
-
-      if (!response.ok) throw new Error("Failed to fetch applications");
-      const data = await response.json();
+      const data = await apiGet<{ applications?: Application[] }>(
+        "applications",
+      );
       setApplications(data.applications || []);
     } catch (error_) {
       setError(
@@ -144,14 +143,9 @@ export const ApplicationExport: React.FC<ApplicationExportProperties> = ({
 
   const fetchTemplates = async () => {
     try {
-      const response = await fetch("/api/ux/export/templates", {
-        headers: {
-          Authorization: `Bearer ${getAuthToken()}`,
-        },
-      });
-
-      if (!response.ok) throw new Error("Failed to fetch templates");
-      const data = await response.json();
+      const data = await apiGet<{ templates?: ExportTemplate[] }>(
+        "ux/export/templates",
+      );
       setTemplates(data.templates || []);
     } catch (error_) {
       setError(
@@ -167,19 +161,17 @@ export const ApplicationExport: React.FC<ApplicationExportProperties> = ({
       setSuccess(null);
       setExportProgress(0);
 
-      const response = await fetch("/api/ux/export/applications", {
+      const resp = await apiFetch("ux/export/applications", {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${getAuthToken()}`,
-          "Content-Type": "application/json",
-        },
         body: JSON.stringify(exportConfig),
       });
 
-      if (!response.ok) throw new Error("Export failed");
+      if (!resp.ok) {
+        const text = await resp.text();
+        handleApiError(resp, text);
+      }
 
-      // Get the blob for download
-      const blob = await response.blob();
+      const blob = await resp.blob();
       const url = window.URL.createObjectURL(blob);
 
       // Create download link

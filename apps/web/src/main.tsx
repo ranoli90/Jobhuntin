@@ -100,7 +100,24 @@ if ("serviceWorker" in navigator && import.meta.env.PROD) {
 }
 
 const configErrors = validateConfig();
-if (configErrors.length > 0 && import.meta.env.DEV) {
+if (configErrors.length > 0) {
+  if (import.meta.env.PROD) {
+    // Block render in production when config is invalid
+    const root = document.querySelector("#root");
+    if (root) {
+      root.innerHTML = `
+        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:2rem;font-family:system-ui,sans-serif;text-align:center;">
+          <h1 style="color:#dc2626;font-size:1.5rem;margin-bottom:1rem;">Configuration Error</h1>
+          <p style="color:#6b7280;margin-bottom:1rem;">The application cannot start due to configuration issues:</p>
+          <ul style="list-style:none;padding:0;color:#374151;">
+            ${configErrors.map((e) => `<li style="margin:0.5rem 0;">• ${e}</li>`).join("")}
+          </ul>
+          <p style="color:#9ca3af;font-size:0.875rem;margin-top:1rem;">Please contact support or check your deployment configuration.</p>
+        </div>
+      `;
+    }
+    throw new Error(`[Config] Validation failed: ${configErrors.join("; ")}`);
+  }
   console.warn("[Config] Validation issues:", configErrors);
 }
 

@@ -199,9 +199,9 @@ export default function Sessions() {
   }
 
   return (
-    <main
-      id="main-content"
+    <div
       className="max-w-4xl mx-auto p-6 space-y-6"
+      role="main"
       aria-label="Active Sessions"
     >
       <div className="flex items-center justify-between">
@@ -384,6 +384,6 @@ export default function Sessions() {
         variant="danger"
         isLoading={revokingAll}
       />
-    </main>
+    </div>
   );
 }

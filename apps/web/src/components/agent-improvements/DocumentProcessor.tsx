@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { getAuthToken } from "@/lib/api";
+import { apiGet, apiPostFormData, apiDelete } from "@/lib/api";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
@@ -75,14 +75,9 @@ const DocumentProcessor: React.FC = () => {
       setLoading(true);
       setError(null);
 
-      const response = await fetch("/api/document-tracking/list", {
-        headers: {
-          Authorization: `Bearer ${getAuthToken()}`,
-        },
-      });
-
-      if (!response.ok) throw new Error("Failed to fetch documents");
-      const data = await response.json();
+      const data = await apiGet<{ documents?: DocumentType[] }>(
+        "document-tracking/list",
+      );
       setDocuments(data.documents || []);
     } catch (error_) {
       setError(
@@ -95,15 +90,18 @@ const DocumentProcessor: React.FC = () => {
 
   const fetchStats = async () => {
     try {
-      const response = await fetch("/api/document-tracking/stats", {
-        headers: {
-          Authorization: `Bearer ${getAuthToken()}`,
+      const data = await apiGet<{ stats?: DocumentStats }>(
+        "document-tracking/stats",
+      );
+      setStats(
+        data.stats ?? {
+          total_documents: 0,
+          by_type: {},
+          average_confidence: 0,
+          total_size: 0,
+          by_category: {},
         },
-      });
-
-      if (!response.ok) throw new Error("Failed to fetch stats");
-      const data = await response.json();
-      setStats(data.stats || {});
+      );
     } catch (error_) {
       setError(
         error_ instanceof Error ? error_.message : "Failed to fetch stats",
@@ -165,15 +163,7 @@ const DocumentProcessor: React.FC = () => {
       const formData = new FormData();
       formData.append("file", file);
 
-      const response = await fetch("/api/document-tracking/track", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${getAuthToken()}`,
-        },
-        body: formData,
-      });
-
-      if (!response.ok) throw new Error("Failed to track document");
+      await apiPostFormData("document-tracking/track", formData);
 
       await fetchDocuments();
       await fetchStats();
@@ -193,14 +183,7 @@ const DocumentProcessor: React.FC = () => {
       return;
 
     try {
-      const response = await fetch(`/api/document-tracking/${trackingId}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${getAuthToken()}`,
-        },
-      });
-
-      if (!response.ok) throw new Error("Failed to delete document");
+      await apiDelete(`document-tracking/${trackingId}`);
 
       await fetchDocuments();
       await fetchStats();

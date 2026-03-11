@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { getAuthToken } from "@/lib/api";
+import { apiPost, apiPut } from "@/lib/api";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
@@ -91,27 +91,18 @@ export const PipelineView: React.FC<PipelineViewProperties> = ({
       setLoading(true);
       setError(null);
 
-      // Fetch pipeline view
-      const pipelineResponse = await fetch("/api/ux/pipeline", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${getAuthToken()}`,
-          "Content-Type": "application/json",
+      const pipelineData = await apiPost<{
+        applications?: Application[];
+        stages?: PipelineStage[];
+      }>("ux/pipeline", {
+        filters: {
+          search: searchTerm,
+          status: selectedStatus === "all" ? undefined : selectedStatus,
+          priority: selectedPriority === "all" ? undefined : selectedPriority,
         },
-        body: JSON.stringify({
-          filters: {
-            search: searchTerm,
-            status: selectedStatus === "all" ? undefined : selectedStatus,
-            priority: selectedPriority === "all" ? undefined : selectedPriority,
-          },
-          sort_by: sortBy,
-          sort_order: sortOrder,
-        }),
+        sort_by: sortBy,
+        sort_order: sortOrder,
       });
-
-      if (!pipelineResponse.ok)
-        throw new Error("Failed to fetch pipeline data");
-      const pipelineData = await pipelineResponse.json();
 
       setApplications(pipelineData.applications || []);
       setStages(pipelineData.stages || []);
@@ -124,21 +115,11 @@ export const PipelineView: React.FC<PipelineViewProperties> = ({
 
   const handleStageChange = async (applicationId: string, newStage: string) => {
     try {
-      const response = await fetch("/api/ux/pipeline/stage", {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${getAuthToken()}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          application_id: applicationId,
-          new_stage: newStage,
-        }),
+      await apiPut("ux/pipeline/stage", {
+        application_id: applicationId,
+        new_stage: newStage,
       });
 
-      if (!response.ok) throw new Error("Failed to update stage");
-
-      // Refresh data
       await fetchPipelineData();
     } catch (error_) {
       setError(
@@ -152,21 +133,11 @@ export const PipelineView: React.FC<PipelineViewProperties> = ({
     newStage: string,
   ) => {
     try {
-      const response = await fetch("/api/ux/pipeline/stage/bulk", {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${getAuthToken()}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          application_ids: applicationIds,
-          new_stage: newStage,
-        }),
+      await apiPut("ux/pipeline/stage/bulk", {
+        application_ids: applicationIds,
+        new_stage: newStage,
       });
 
-      if (!response.ok) throw new Error("Failed to bulk update stages");
-
-      // Refresh data
       await fetchPipelineData();
     } catch (error_) {
       setError(

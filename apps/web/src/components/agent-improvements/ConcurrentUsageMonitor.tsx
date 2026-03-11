@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { getAuthToken } from "@/lib/api";
+import { apiGet, apiPost } from "@/lib/api";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
@@ -75,14 +75,7 @@ const ConcurrentUsageMonitor: React.FC = () => {
 
   const fetchStats = async () => {
     try {
-      const response = await fetch("/api/concurrent-usage/stats", {
-        headers: {
-          Authorization: `Bearer ${getAuthToken()}`,
-        },
-      });
-
-      if (!response.ok) throw new Error("Failed to fetch stats");
-      const data = await response.json();
+      const data = await apiGet<ConcurrentStats>("concurrent-usage/stats");
       setStats(data);
     } catch (error_) {
       setError(
@@ -93,14 +86,9 @@ const ConcurrentUsageMonitor: React.FC = () => {
 
   const fetchSessions = async () => {
     try {
-      const response = await fetch("/api/concurrent-usage/sessions", {
-        headers: {
-          Authorization: `Bearer ${getAuthToken()}`,
-        },
-      });
-
-      if (!response.ok) throw new Error("Failed to fetch sessions");
-      const data = await response.json();
+      const data = await apiGet<{ sessions?: ConcurrentSession[] }>(
+        "concurrent-usage/sessions",
+      );
       setSessions(data.sessions || []);
     } catch (error_) {
       setError(
@@ -159,19 +147,10 @@ const ConcurrentUsageMonitor: React.FC = () => {
 
   const handleCompleteSession = async (sessionId: string) => {
     try {
-      const response = await fetch("/api/concurrent-usage/complete-session", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${getAuthToken()}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          session_id: sessionId,
-          status: "completed",
-        }),
+      await apiPost("concurrent-usage/complete-session", {
+        session_id: sessionId,
+        status: "completed",
       });
-
-      if (!response.ok) throw new Error("Failed to complete session");
 
       await fetchSessions();
       setError(null);
@@ -184,19 +163,10 @@ const ConcurrentUsageMonitor: React.FC = () => {
 
   const handleFailSession = async (sessionId: string) => {
     try {
-      const response = await fetch("/api/concurrent-usage/fail-session", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${getAuthToken()}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          session_id: sessionId,
-          error_count: 1,
-        }),
+      await apiPost("concurrent-usage/fail-session", {
+        session_id: sessionId,
+        error_count: 1,
       });
-
-      if (!response.ok) throw new Error("Failed to fail session");
 
       await fetchSessions();
       setError(null);

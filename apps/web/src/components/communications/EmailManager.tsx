@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { getAuthToken } from "@/lib/api";
+import { apiGet, apiPost, apiPut } from "@/lib/api";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
@@ -111,14 +111,9 @@ const EmailManager: React.FC = () => {
 
   const fetchEmails = async () => {
     try {
-      const response = await fetch("/api/communications/email/history", {
-        headers: {
-          Authorization: `Bearer ${getAuthToken()}`,
-        },
-      });
-
-      if (!response.ok) throw new Error("Failed to fetch emails");
-      const data = await response.json();
+      const data = await apiGet<{ emails?: EmailCommunication[] }>(
+        "communications/email/history",
+      );
       setEmails(data.emails || []);
     } catch (error_) {
       setError(
@@ -131,14 +126,9 @@ const EmailManager: React.FC = () => {
 
   const fetchPreferences = async () => {
     try {
-      const response = await fetch("/api/communications/email/preferences", {
-        headers: {
-          Authorization: `Bearer ${getAuthToken()}`,
-        },
-      });
-
-      if (!response.ok) throw new Error("Failed to fetch preferences");
-      const data = await response.json();
+      const data = await apiGet<EmailPreferences>(
+        "communications/email/preferences",
+      );
       setPreferences(data);
       setPreferencesForm({
         email_enabled: data.email_enabled,
@@ -159,14 +149,9 @@ const EmailManager: React.FC = () => {
 
   const fetchTemplates = async () => {
     try {
-      const response = await fetch("/api/communications/email/templates", {
-        headers: {
-          Authorization: `Bearer ${getAuthToken()}`,
-        },
-      });
-
-      if (!response.ok) throw new Error("Failed to fetch templates");
-      const data = await response.json();
+      const data = await apiGet<{ templates?: EmailTemplate[] }>(
+        "communications/email/templates",
+      );
       setTemplates(data.templates || []);
     } catch (error_) {
       setError(
@@ -177,16 +162,7 @@ const EmailManager: React.FC = () => {
 
   const handleSendEmail = async () => {
     try {
-      const response = await fetch("/api/communications/email/send", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${getAuthToken()}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(composeForm),
-      });
-
-      if (!response.ok) throw new Error("Failed to send email");
+      await apiPost("communications/email/send", composeForm);
 
       await fetchEmails();
       setShowCompose(false);
@@ -208,16 +184,7 @@ const EmailManager: React.FC = () => {
 
   const handleUpdatePreferences = async () => {
     try {
-      const response = await fetch("/api/communications/email/preferences", {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${getAuthToken()}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(preferencesForm),
-      });
-
-      if (!response.ok) throw new Error("Failed to update preferences");
+      await apiPut("communications/email/preferences", preferencesForm);
 
       await fetchPreferences();
       setShowPreferences(false);

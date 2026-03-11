@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { getAuthToken } from "@/lib/api";
+import { apiGet, apiPost } from "@/lib/api";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
@@ -110,14 +110,7 @@ const SemanticMatcher: React.FC = () => {
 
   const fetchProfile = async () => {
     try {
-      const response = await fetch("/api/communications/interests", {
-        headers: {
-          Authorization: `Bearer ${getAuthToken()}`,
-        },
-      });
-
-      if (!response.ok) throw new Error("Failed to fetch profile");
-      const data = await response.json();
+      const data = await apiGet<UserProfile>("communications/interests");
       setProfile(data);
       setProfileForm({
         interests: data.interests,
@@ -134,17 +127,9 @@ const SemanticMatcher: React.FC = () => {
 
   const fetchTopInterests = async () => {
     try {
-      const response = await fetch(
-        "/api/communications/interests/top?limit=10&min_score=0.1",
-        {
-          headers: {
-            Authorization: `Bearer ${getAuthToken()}`,
-          },
-        },
-      );
-
-      if (!response.ok) throw new Error("Failed to fetch top interests");
-      const data = await response.json();
+      const data = await apiGet<{
+        top_interests: [string, number][];
+      }>("communications/interests/top?limit=10&min_score=0.1");
 
       const interests = data.top_interests.map(
         ([category, score]: [string, number]) => ({
@@ -167,26 +152,17 @@ const SemanticMatcher: React.FC = () => {
 
   const handleUpdateProfile = async () => {
     try {
-      const response = await fetch("/api/communications/interests/update", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${getAuthToken()}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          interactions: [
-            {
-              type: "view",
-              content: analysisForm.content,
-              category: analysisForm.category,
-              timestamp: new Date().toISOString(),
-              metadata: {},
-            },
-          ],
-        }),
+      await apiPost("communications/interests/update", {
+        interactions: [
+          {
+            type: "view",
+            content: analysisForm.content,
+            category: analysisForm.category,
+            timestamp: new Date().toISOString(),
+            metadata: {},
+          },
+        ],
       });
-
-      if (!response.ok) throw new Error("Failed to update profile");
 
       await fetchProfile();
       await fetchTopInterests();
@@ -202,24 +178,14 @@ const SemanticMatcher: React.FC = () => {
 
   const handleCalculateMatch = async () => {
     try {
-      const parameters = new URLSearchParams({
+      const params = new URLSearchParams({
         content: analysisForm.content,
         category: analysisForm.category,
       });
-
-      const response = await fetch(
-        `/api/communications/semantic/match?${parameters}`,
-        {
-          headers: {
-            Authorization: `Bearer ${getAuthToken()}`,
-          },
-        },
+      const data = await apiGet<{ similarity_score: number }>(
+        `communications/semantic/match?${params}`,
       );
 
-      if (!response.ok) throw new Error("Failed to calculate match");
-      const data = await response.json();
-
-      // Show results in a modal or alert
       alert(
         `Semantic Match Score: ${(data.similarity_score * 100).toFixed(1)}%`,
       );

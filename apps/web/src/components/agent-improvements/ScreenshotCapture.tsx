@@ -1,5 +1,5 @@
 import React, { useState, useRef } from "react";
-import { getAuthToken } from "@/lib/api";
+import { apiPost } from "@/lib/api";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
@@ -64,30 +64,19 @@ export const ScreenshotCapture: React.FC<ScreenshotCaptureProperties> = ({
       setIsCapturing(true);
       setError(null);
 
-      const response = await fetch(
-        "/api/agent-improvements/capture-screenshot",
+      const screenshot = await apiPost<ScreenshotCapture>(
+        "agent-improvements/capture-screenshot",
         {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${getAuthToken()}`,
-            "Content-Type": "application/json",
+          application_id: applicationId,
+          step_number: currentStep,
+          step_description: stepDescription,
+          page_context: {
+            viewport: { width: 1920, height: 1080 },
           },
-          body: JSON.stringify({
-            application_id: applicationId,
-            step_number: currentStep,
-            step_description: stepDescription,
-            page_context: {
-              viewport: { width: 1920, height: 1080 },
-            },
-            full_page: fullPage,
-            highlight_elements: highlightElements,
-          }),
+          full_page: fullPage,
+          highlight_elements: highlightElements,
         },
       );
-
-      if (!response.ok) throw new Error("Failed to capture screenshot");
-
-      const screenshot: ScreenshotCapture = await response.json();
       setScreenshots([...screenshots, screenshot]);
       setCurrentStep(currentStep + 1);
       setStepDescription("");

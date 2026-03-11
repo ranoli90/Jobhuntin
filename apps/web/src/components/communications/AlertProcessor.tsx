@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { getAuthToken } from "@/lib/api";
+import { apiGet, apiPost, apiPut, apiDelete } from "@/lib/api";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
@@ -120,23 +120,14 @@ const AlertProcessor: React.FC = () => {
 
   const fetchAlerts = async () => {
     try {
-      const parameters = new URLSearchParams({
+      const params = new URLSearchParams({
         limit: "50",
         alert_type: selectedType === "all" ? "" : selectedType,
         status: selectedStatus === "all" ? "" : selectedStatus,
       });
-
-      const response = await fetch(
-        `/api/communications/alerts/history?${parameters}`,
-        {
-          headers: {
-            Authorization: `Bearer ${getAuthToken()}`,
-          },
-        },
+      const data = await apiGet<{ alerts?: Alert[] }>(
+        `communications/alerts/history?${params}`,
       );
-
-      if (!response.ok) throw new Error("Failed to fetch alerts");
-      const data = await response.json();
       setAlerts(data.alerts || []);
     } catch (error_) {
       setError(
@@ -149,14 +140,9 @@ const AlertProcessor: React.FC = () => {
 
   const fetchRules = async () => {
     try {
-      const response = await fetch("/api/communications/alerts/rules", {
-        headers: {
-          Authorization: `Bearer ${getAuthToken()}`,
-        },
-      });
-
-      if (!response.ok) throw new Error("Failed to fetch rules");
-      const data = await response.json();
+      const data = await apiGet<{ rules?: AlertRule[] }>(
+        "communications/alerts/rules",
+      );
       setRules(data.rules || []);
     } catch (error_) {
       setError(
@@ -167,15 +153,10 @@ const AlertProcessor: React.FC = () => {
 
   const fetchStats = async () => {
     try {
-      const response = await fetch("/api/communications/alerts/stats", {
-        headers: {
-          Authorization: `Bearer ${getAuthToken()}`,
-        },
-      });
-
-      if (!response.ok) throw new Error("Failed to fetch stats");
-      const data = await response.json();
-      setStats(data.stats);
+      const data = await apiGet<{ stats?: AlertStats }>(
+        "communications/alerts/stats",
+      );
+      setStats(data.stats ?? null);
     } catch (error_) {
       setError(
         error_ instanceof Error ? error_.message : "Failed to fetch stats",
@@ -185,16 +166,7 @@ const AlertProcessor: React.FC = () => {
 
   const handleCreateAlert = async () => {
     try {
-      const response = await fetch("/api/communications/alerts/process", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${getAuthToken()}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(alertForm),
-      });
-
-      if (!response.ok) throw new Error("Failed to create alert");
+      await apiPost("communications/alerts/process", alertForm);
 
       await fetchAlerts();
       await fetchStats();
@@ -217,16 +189,7 @@ const AlertProcessor: React.FC = () => {
 
   const handleCreateRule = async () => {
     try {
-      const response = await fetch("/api/communications/alerts/rules", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${getAuthToken()}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(ruleForm),
-      });
-
-      if (!response.ok) throw new Error("Failed to create rule");
+      await apiPost("communications/alerts/rules", ruleForm);
 
       await fetchRules();
       setShowCreateRule(false);
@@ -249,19 +212,7 @@ const AlertProcessor: React.FC = () => {
 
   const handleToggleRule = async (ruleId: string, enabled: boolean) => {
     try {
-      const response = await fetch(
-        `/api/communications/alerts/rules/${ruleId}`,
-        {
-          method: "PUT",
-          headers: {
-            Authorization: `Bearer ${getAuthToken()}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ enabled }),
-        },
-      );
-
-      if (!response.ok) throw new Error("Failed to update rule");
+      await apiPut(`communications/alerts/rules/${ruleId}`, { enabled });
 
       await fetchRules();
     } catch (error_) {
@@ -275,17 +226,7 @@ const AlertProcessor: React.FC = () => {
     if (!confirm("Are you sure you want to delete this alert rule?")) return;
 
     try {
-      const response = await fetch(
-        `/api/communications/alerts/rules/${ruleId}`,
-        {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${getAuthToken()}`,
-          },
-        },
-      );
-
-      if (!response.ok) throw new Error("Failed to delete rule");
+      await apiDelete(`communications/alerts/rules/${ruleId}`);
 
       await fetchRules();
     } catch (error_) {

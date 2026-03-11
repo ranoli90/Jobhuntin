@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { getAuthToken } from "@/lib/api";
+import { apiGet, apiPost, apiDelete } from "@/lib/api";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
@@ -72,51 +72,48 @@ export const DLQDashboard: React.FC<DLQDashboardProperties> = ({
       setLoading(true);
       setError(null);
 
-      // Fetch DLQ items
-      const dlqResponse = await fetch("/api/admin/dlq/items", {
-        headers: {
-          Authorization: `Bearer ${getAuthToken()}`,
-        },
-      });
-      if (!dlqResponse.ok) throw new Error("Failed to fetch DLQ items");
-      const dlqData = await dlqResponse.json();
-      setDLQItems(Array.isArray(dlqData) ? dlqData : (dlqData?.items ?? []));
-
-      // Fetch concurrent usage
-      const concurrentResponse = await fetch(
-        "/api/admin/dlq/concurrent-usage",
-        {
-          headers: {
-            Authorization: `Bearer ${getAuthToken()}`,
-          },
-        },
+      const dlqData = await apiGet<DLQItem[] | { items?: DLQItem[] }>(
+        "admin/dlq/items",
       );
-      if (!concurrentResponse.ok)
-        throw new Error("Failed to fetch concurrent usage");
-      const concurrentData = await concurrentResponse.json();
+      setDLQItems(
+        Array.isArray(dlqData) ? dlqData : (dlqData?.items ?? []),
+      );
+
+      const concurrentData = await apiGet<
+        | ConcurrentUsageSession[]
+        | {
+            sessions?: ConcurrentUsageSession[];
+            active_tasks?: ConcurrentUsageSession[];
+            total_active?: number;
+            max_concurrent?: number;
+          }
+      >("admin/dlq/concurrent-usage");
       const sessions = Array.isArray(concurrentData)
         ? concurrentData
         : (concurrentData?.sessions ?? concurrentData?.active_tasks ?? []);
       setConcurrentSessions(sessions);
+      const concurrentObj =
+        Array.isArray(concurrentData) ? null : concurrentData;
 
-      // Fetch stats
-      const statsResponse = await fetch("/api/admin/dlq/stats", {
-        headers: {
-          Authorization: `Bearer ${getAuthToken()}`,
-        },
-      });
-      if (!statsResponse.ok) throw new Error("Failed to fetch stats");
-      const statsData = await statsResponse.json();
+      const statsData = await apiGet<{
+        total_items?: number;
+        pending_count?: number;
+        retrying_count?: number;
+        failed_count?: number;
+        total_active?: number;
+        max_concurrent?: number;
+      }>("admin/dlq/stats");
 
       setStats({
         totalDLQItems: statsData?.total_items ?? 0,
         pendingItems: statsData?.pending_count ?? 0,
         retryingItems: statsData?.retrying_count ?? 0,
         failedItems: statsData?.failed_count ?? 0,
-        activeSessions: concurrentData?.total_active ?? sessions?.length ?? 0,
-        maxConcurrent: concurrentData?.max_concurrent ?? 10,
+        activeSessions:
+          concurrentObj?.total_active ?? sessions?.length ?? 0,
+        maxConcurrent: concurrentObj?.max_concurrent ?? 10,
         currentConcurrent:
-          concurrentData?.total_active ?? sessions?.length ?? 0,
+          concurrentObj?.total_active ?? sessions?.length ?? 0,
       });
       consecutiveErrorsReference.current = 0;
       return true;
@@ -152,19 +149,11 @@ export const DLQDashboard: React.FC<DLQDashboardProperties> = ({
 
   const handleRetryItem = async (itemId: string, force = false) => {
     try {
-      const response = await fetch(
-        `/api/admin/dlq/retry/${itemId}${force ? "?force=true" : ""}`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${getAuthToken()}`,
-          },
-        },
+      await apiPost(
+        `admin/dlq/retry/${itemId}${force ? "?force=true" : ""}`,
+        undefined,
       );
 
-      if (!response.ok) throw new Error("Failed to retry item");
-
-      // Refresh data
       await fetchData();
     } catch (error_) {
       setError(
@@ -175,21 +164,8 @@ export const DLQDashboard: React.FC<DLQDashboardProperties> = ({
 
   const handleBulkRetry = async (itemIds: string[], force = false) => {
     try {
-      const response = await fetch("/api/admin/dlq/retry", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${getAuthToken()}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          item_ids: itemIds,
-          force,
-        }),
-      });
+      await apiPost("admin/dlq/retry", { item_ids: itemIds, force });
 
-      if (!response.ok) throw new Error("Failed to bulk retry");
-
-      // Refresh data
       await fetchData();
     } catch (error_) {
       setError(
@@ -202,16 +178,8 @@ export const DLQDashboard: React.FC<DLQDashboardProperties> = ({
     if (!confirm("Are you sure you want to delete this DLQ item?")) return;
 
     try {
-      const response = await fetch(`/api/admin/dlq/items/${itemId}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${getAuthToken()}`,
-        },
-      });
+      await apiDelete(`admin/dlq/items/${itemId}`);
 
-      if (!response.ok) throw new Error("Failed to delete item");
-
-      // Refresh data
       await fetchData();
     } catch (error_) {
       setError(

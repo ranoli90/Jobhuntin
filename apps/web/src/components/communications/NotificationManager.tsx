@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { getAuthToken } from "@/lib/api";
+import { apiGet, apiPost, apiPut, apiDelete } from "@/lib/api";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
@@ -127,23 +127,14 @@ const NotificationManager: React.FC = () => {
 
   const fetchNotifications = async () => {
     try {
-      const parameters = new URLSearchParams({
+      const params = new URLSearchParams({
         limit: "50",
         category: selectedCategory === "all" ? "" : selectedCategory,
         unread_only: unreadOnly.toString(),
       });
-
-      const response = await fetch(
-        `/api/communications/notifications?${parameters}`,
-        {
-          headers: {
-            Authorization: `Bearer ${getAuthToken()}`,
-          },
-        },
+      const data = await apiGet<{ notifications?: Notification[] }>(
+        `communications/notifications?${params}`,
       );
-
-      if (!response.ok) throw new Error("Failed to fetch notifications");
-      const data = await response.json();
       setNotifications(data.notifications || []);
     } catch (error_) {
       setError(
@@ -158,14 +149,9 @@ const NotificationManager: React.FC = () => {
 
   const fetchPreferences = async () => {
     try {
-      const response = await fetch("/api/communications/preferences", {
-        headers: {
-          Authorization: `Bearer ${getAuthToken()}`,
-        },
-      });
-
-      if (!response.ok) throw new Error("Failed to fetch preferences");
-      const data = await response.json();
+      const data = await apiGet<NotificationPreferences>(
+        "communications/preferences",
+      );
       setPreferences(data);
       setPreferencesForm({
         in_app_enabled: data.in_app_enabled,
@@ -188,15 +174,10 @@ const NotificationManager: React.FC = () => {
 
   const fetchStats = async () => {
     try {
-      const response = await fetch("/api/communications/notifications/stats", {
-        headers: {
-          Authorization: `Bearer ${getAuthToken()}`,
-        },
-      });
-
-      if (!response.ok) throw new Error("Failed to fetch stats");
-      const data = await response.json();
-      setStats(data.stats);
+      const data = await apiGet<{ stats?: NotificationStats }>(
+        "communications/notifications/stats",
+      );
+      setStats(data.stats ?? null);
     } catch (error_) {
       setError(
         error_ instanceof Error ? error_.message : "Failed to fetch stats",
@@ -206,16 +187,7 @@ const NotificationManager: React.FC = () => {
 
   const handleSendNotification = async () => {
     try {
-      const response = await fetch("/api/communications/notifications/send", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${getAuthToken()}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(composeForm),
-      });
-
-      if (!response.ok) throw new Error("Failed to send notification");
+      await apiPost("communications/notifications/send", composeForm);
 
       await fetchNotifications();
       await fetchStats();
@@ -240,16 +212,7 @@ const NotificationManager: React.FC = () => {
 
   const handleUpdatePreferences = async () => {
     try {
-      const response = await fetch("/api/communications/preferences", {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${getAuthToken()}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(preferencesForm),
-      });
-
-      if (!response.ok) throw new Error("Failed to update preferences");
+      await apiPut("communications/preferences", preferencesForm);
 
       await fetchPreferences();
       setShowPreferences(false);
@@ -265,17 +228,10 @@ const NotificationManager: React.FC = () => {
 
   const handleMarkAsRead = async (notificationId: string) => {
     try {
-      const response = await fetch(
-        `/api/communications/notifications/${notificationId}/read`,
-        {
-          method: "PUT",
-          headers: {
-            Authorization: `Bearer ${getAuthToken()}`,
-          },
-        },
+      await apiPut(
+        `communications/notifications/${notificationId}/read`,
+        {},
       );
-
-      if (!response.ok) throw new Error("Failed to mark as read");
 
       await fetchNotifications();
       await fetchStats();
@@ -288,21 +244,13 @@ const NotificationManager: React.FC = () => {
 
   const handleMarkAllAsRead = async () => {
     try {
-      const parameters = new URLSearchParams({
+      const params = new URLSearchParams({
         category: selectedCategory === "all" ? "" : selectedCategory,
       });
-
-      const response = await fetch(
-        `/api/communications/notifications/read-all?${parameters}`,
-        {
-          method: "PUT",
-          headers: {
-            Authorization: `Bearer ${getAuthToken()}`,
-          },
-        },
+      await apiPut(
+        `communications/notifications/read-all?${params}`,
+        {},
       );
-
-      if (!response.ok) throw new Error("Failed to mark all as read");
 
       await fetchNotifications();
       await fetchStats();
@@ -317,17 +265,7 @@ const NotificationManager: React.FC = () => {
     if (!confirm("Are you sure you want to delete this notification?")) return;
 
     try {
-      const response = await fetch(
-        `/api/communications/notifications/${notificationId}`,
-        {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${getAuthToken()}`,
-          },
-        },
-      );
-
-      if (!response.ok) throw new Error("Failed to delete notification");
+      await apiDelete(`communications/notifications/${notificationId}`);
 
       await fetchNotifications();
       await fetchStats();
