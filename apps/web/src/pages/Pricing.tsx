@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Link } from 'react-router-dom';
+import { FocusTrap } from 'focus-trap-react';
 import { CheckCircle, Zap, ChevronDown, X, Sparkles, ArrowRight } from 'lucide-react';
 import { t, getLocale } from '../lib/i18n';
 import { motion, useReducedMotion, AnimatePresence } from 'framer-motion';
@@ -14,22 +15,6 @@ import { cn } from '../lib/utils';
 function ExitIntentPopup({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const contentRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (!isOpen) return;
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    document.addEventListener('keydown', handleEscape);
-    return () => document.removeEventListener('keydown', handleEscape);
-  }, [isOpen, onClose]);
-
-  useEffect(() => {
-    if (!isOpen) return;
-    const focusables = contentRef.current?.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
-    const first = focusables?.[0] as HTMLElement | undefined;
-    first?.focus();
-  }, [isOpen]);
-
   if (!isOpen) return null;
 
   return (
@@ -42,6 +27,16 @@ function ExitIntentPopup({ isOpen, onClose }: { isOpen: boolean; onClose: () => 
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
           onClick={onClose}
         >
+          <FocusTrap
+            active={isOpen}
+            focusTrapOptions={{
+              initialFocus: () => contentRef.current?.querySelector<HTMLElement>('a, button') ?? false,
+              allowOutsideClick: true,
+              escapeDeactivates: true,
+              returnFocusOnDeactivate: true,
+              onDeactivate: onClose,
+            }}
+          >
           <motion.div
             ref={contentRef}
             role="dialog"
@@ -56,11 +51,12 @@ function ExitIntentPopup({ isOpen, onClose }: { isOpen: boolean; onClose: () => 
             onClick={(e) => e.stopPropagation()}
           >
             <button
+              type="button"
               onClick={onClose}
               className="absolute top-4 right-4 min-h-[44px] min-w-[44px] p-2 flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 rounded-full transition-colors"
               aria-label="Close popup"
             >
-              <X className="w-5 h-5" />
+              <X className="w-5 h-5" aria-hidden />
             </button>
 
             <div className="relative z-10">
@@ -99,6 +95,7 @@ function ExitIntentPopup({ isOpen, onClose }: { isOpen: boolean; onClose: () => 
               </p>
             </div>
           </motion.div>
+          </FocusTrap>
         </motion.div>
       )}
     </AnimatePresence>

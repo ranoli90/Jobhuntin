@@ -5,6 +5,7 @@
  */
 
 import * as React from "react";
+import { FocusTrap } from "focus-trap-react";
 import { X, Keyboard } from "lucide-react";
 import { Button } from "./ui/Button";
 import { Card } from "./ui/Card";
@@ -16,18 +17,7 @@ interface KeyboardShortcutsHelpProps {
 }
 
 export function KeyboardShortcutsHelp({ isOpen, onClose }: KeyboardShortcutsHelpProps) {
-  React.useEffect(() => {
-    if (!isOpen) return;
-
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        onClose();
-      }
-    };
-
-    window.addEventListener("keydown", handleEscape);
-    return () => window.removeEventListener("keydown", handleEscape);
-  }, [isOpen, onClose]);
+  const cardRef = React.useRef<HTMLDivElement>(null);
 
   if (!isOpen) return null;
 
@@ -56,7 +46,18 @@ export function KeyboardShortcutsHelp({ isOpen, onClose }: KeyboardShortcutsHelp
       aria-modal="true"
       aria-labelledby="keyboard-shortcuts-title"
     >
+      <FocusTrap
+        active={isOpen}
+        focusTrapOptions={{
+          initialFocus: () => cardRef.current?.querySelector<HTMLElement>('button') ?? false,
+          allowOutsideClick: true,
+          escapeDeactivates: true,
+          returnFocusOnDeactivate: true,
+          onDeactivate: onClose,
+        }}
+      >
       <Card
+        ref={cardRef}
         className="w-full max-w-2xl max-h-[80vh] overflow-y-auto bg-white dark:bg-slate-800"
         onClick={(e) => e.stopPropagation()}
       >
@@ -108,6 +109,7 @@ export function KeyboardShortcutsHelp({ isOpen, onClose }: KeyboardShortcutsHelp
           </Button>
         </div>
       </Card>
+      </FocusTrap>
     </div>
   );
 }

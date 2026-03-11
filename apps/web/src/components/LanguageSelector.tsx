@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { Globe, ChevronDown } from 'lucide-react';
 import { cn } from "../lib/utils";
+import { setDocumentDirection } from "../lib/i18n";
 
 const LANGUAGE_KEY = 'jobhuntin-language';
 
@@ -40,7 +41,7 @@ export function LanguageSelector({ className }: { className?: string }) {
 
   useEffect(() => {
     localStorage.setItem(LANGUAGE_KEY, currentLang.code);
-    document.documentElement.lang = currentLang.code;
+    setDocumentDirection(currentLang.code);
     window.dispatchEvent(new CustomEvent('localechange', { detail: currentLang.code }));
   }, [currentLang]);
 

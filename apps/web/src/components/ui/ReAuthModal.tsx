@@ -1,4 +1,5 @@
 import * as React from "react";
+import { FocusTrap } from "focus-trap-react";
 import { Button } from "./Button";
 import { Input } from "./Input";
 import { cn } from "../../lib/utils";
@@ -44,25 +45,16 @@ export function ReAuthModal({
     }
   }, [password]);
 
-  // Close on escape key
-  React.useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen) {
-        onClose();
-      }
-    };
+  const formRef = React.useRef<HTMLFormElement>(null);
 
+  React.useEffect(() => {
     if (isOpen) {
-      document.addEventListener('keydown', handleEscape);
-      // Prevent body scroll
       document.body.style.overflow = 'hidden';
     }
-
     return () => {
-      document.removeEventListener('keydown', handleEscape);
       document.body.style.overflow = 'unset';
     };
-  }, [isOpen, onClose]);
+  }, [isOpen]);
 
   // Click outside to close
   const handleBackdropClick = (e: React.MouseEvent) => {
@@ -97,8 +89,18 @@ export function ReAuthModal({
       aria-labelledby="reauth-title"
       aria-describedby="reauth-description"
     >
+      <FocusTrap
+        active={isOpen}
+        focusTrapOptions={{
+          initialFocus: () => formRef.current?.querySelector<HTMLElement>('#reauth-password') ?? false,
+          allowOutsideClick: true,
+          escapeDeactivates: true,
+          returnFocusOnDeactivate: true,
+          onDeactivate: onClose,
+        }}
+      >
       <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2">
-        <form onSubmit={handleSubmit} className="p-6">
+        <form ref={formRef} onSubmit={handleSubmit} className="p-6">
           {/* Header */}
           <div className="mb-6">
             <h3 id="reauth-title" className="text-lg font-semibold text-gray-900 mb-2">
@@ -182,6 +184,7 @@ export function ReAuthModal({
           </div>
         </form>
       </div>
+      </FocusTrap>
     </div>
   );
 }

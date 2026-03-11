@@ -1,5 +1,6 @@
 import * as React from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { FocusTrap } from "focus-trap-react";
 import { useNavigate } from "react-router-dom";
 import { Gift, Copy, Check, Share2, Users, DollarSign, Sparkles, X } from "lucide-react";
 import { Button } from "./ui/Button";
@@ -55,7 +56,22 @@ export function ReferralModal({ isOpen, onClose, userName }: ReferralModalProps)
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="referral-modal-title"
+          aria-describedby="referral-modal-description"
+        >
+          <FocusTrap
+            active={isOpen}
+            focusTrapOptions={{
+              allowOutsideClick: true,
+              escapeDeactivates: true,
+              returnFocusOnDeactivate: true,
+              onDeactivate: onClose,
+            }}
+          >
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -73,10 +89,12 @@ export function ReferralModal({ isOpen, onClose, userName }: ReferralModalProps)
             {/* Header */}
             <div className="bg-gradient-to-br from-primary-600 to-primary-700 p-6 text-white">
               <button
+                type="button"
                 onClick={onClose}
                 className="absolute top-4 right-4 p-2 text-white/80 hover:text-white hover:bg-white/10 rounded-full transition-colors"
+                aria-label="Close referral modal"
               >
-                <X className="w-5 h-5" />
+                <X className="w-5 h-5" aria-hidden />
               </button>
               
               <div className="flex items-center gap-3 mb-3">
@@ -84,8 +102,8 @@ export function ReferralModal({ isOpen, onClose, userName }: ReferralModalProps)
                   <Gift className="w-6 h-6" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-black">Give 50%, Get 50%</h2>
-                  <p className="text-white/80 text-sm">Share the love</p>
+                  <h2 id="referral-modal-title" className="text-xl font-black">Give 50%, Get 50%</h2>
+                  <p id="referral-modal-description" className="text-white/80 text-sm">Share the love</p>
                 </div>
               </div>
             </div>
@@ -146,6 +164,7 @@ export function ReferralModal({ isOpen, onClose, userName }: ReferralModalProps)
               </p>
             </div>
           </motion.div>
+          </FocusTrap>
         </div>
       )}
     </AnimatePresence>
@@ -163,7 +182,9 @@ export function ReferralButton({ className }: ReferralButtonProps) {
   return (
     <>
       <button
+        type="button"
         onClick={() => setIsOpen(true)}
+        aria-label="Invite friends and share referral link"
         className={cn(
           "flex items-center gap-2 px-4 py-2 rounded-xl",
           "bg-gradient-to-r from-primary-600 to-primary-500",

@@ -1,4 +1,5 @@
 import * as React from "react";
+import { FocusTrap } from "focus-trap-react";
 import { Button } from "./Button";
 import { cn } from "../../lib/utils";
 
@@ -30,27 +31,14 @@ export function ConfirmModal({
 }: ConfirmModalProps) {
   const modalRef = React.useRef<HTMLDivElement>(null);
 
-  // Close on escape key
   React.useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen) {
-        onClose();
-      }
-    };
-
     if (isOpen) {
-      document.addEventListener('keydown', handleEscape);
-      // Focus management
-      modalRef.current?.focus();
-      // Prevent body scroll
       document.body.style.overflow = 'hidden';
     }
-
     return () => {
-      document.removeEventListener('keydown', handleEscape);
       document.body.style.overflow = 'unset';
     };
-  }, [isOpen, onClose]);
+  }, [isOpen]);
 
   // Click outside to close
   const handleBackdropClick = (e: React.MouseEvent) => {
@@ -90,6 +78,16 @@ export function ConfirmModal({
       aria-labelledby="modal-title"
       aria-describedby="modal-description"
     >
+      <FocusTrap
+        active={isOpen}
+        focusTrapOptions={{
+          initialFocus: () => modalRef.current ?? false,
+          allowOutsideClick: true,
+          escapeDeactivates: true,
+          returnFocusOnDeactivate: true,
+          onDeactivate: onClose,
+        }}
+      >
       <div
         ref={modalRef}
         className="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
@@ -154,6 +152,7 @@ export function ConfirmModal({
           </div>
         </div>
       </div>
+      </FocusTrap>
     </div>
   );
 }
