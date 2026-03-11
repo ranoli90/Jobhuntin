@@ -80,9 +80,9 @@ export default function DashboardPage() {
         </div>
       )}
 
-      <div className="bg-card border border-border rounded-lg p-5">
+      <div className="bg-card border border-border rounded-lg p-5 overflow-x-auto">
         <h2 className="font-semibold mb-3">Member Activity</h2>
-        <table className="w-full text-sm">
+        <table className="w-full text-sm min-w-[400px]">
           <thead>
             <tr className="text-muted-foreground text-left border-b border-border">
               <th className="pb-2">Member</th>

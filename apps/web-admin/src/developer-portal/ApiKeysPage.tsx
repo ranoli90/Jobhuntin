@@ -96,16 +96,16 @@ export default function ApiKeysPage() {
           </button>
         </div>
         {createdKey && (
-          <div className="p-3 bg-green-500/10 border border-green-500/30 rounded-md">
+          <div className="p-3 bg-green-500/10 border border-green-500/30 rounded-md overflow-x-auto min-w-0">
             <p className="text-xs text-green-400 font-semibold mb-1">Key created — copy it now (shown only once):</p>
-            <code className="text-sm text-green-300 select-all break-all">{createdKey}</code>
+            <code className="text-sm text-green-300 select-all break-all block">{createdKey}</code>
           </div>
         )}
       </div>
 
       {/* Key list */}
-      <div className="bg-card border border-border rounded-lg overflow-hidden">
-        <table className="w-full text-sm">
+      <div className="bg-card border border-border rounded-lg overflow-x-auto overflow-hidden">
+        <table className="w-full text-sm min-w-[600px]">
           <thead>
             <tr className="text-muted-foreground text-left border-b border-border bg-muted/30">
               <th className="px-4 py-3">Name</th>
@@ -149,7 +149,7 @@ export default function ApiKeysPage() {
       {/* Tier comparison */}
       <div className="bg-card border border-border rounded-lg p-5">
         <h2 className="font-semibold text-foreground mb-4">API Tiers</h2>
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {[
             { tier: "Free", price: "$0/mo", limit: "100 calls/mo", rpm: "60 RPM", features: ["Read & write", "Webhook callbacks"] },
             { tier: "Pro", price: "$99/mo", limit: "10,000 calls/mo", rpm: "300 RPM", features: ["Batch submissions", "Priority support", "Usage analytics"] },

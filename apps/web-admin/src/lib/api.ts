@@ -17,7 +17,7 @@ async function authHeaders(): Promise<Record<string, string>> {
 
 async function request<T>(method: string, path: string, body?: unknown): Promise<T> {
   const headers = await authHeaders();
-  const opts: RequestInit = { method, headers };
+  const opts: RequestInit = { method, headers, credentials: "include" };
   if (body) opts.body = JSON.stringify(body);
   const resp = await fetch(`${API_BASE}${path}`, opts);
   if (resp.status === 401) {

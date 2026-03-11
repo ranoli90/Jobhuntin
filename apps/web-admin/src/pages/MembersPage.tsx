@@ -37,8 +37,8 @@ export default function MembersPage() {
         <span className="text-sm text-muted-foreground">{members.length} member(s)</span>
       </div>
 
-      <div className="bg-card border border-border rounded-lg overflow-hidden">
-        <table className="w-full text-sm">
+      <div className="bg-card border border-border rounded-lg overflow-x-auto overflow-hidden">
+        <table className="w-full text-sm min-w-[500px]">
           <thead>
             <tr className="text-muted-foreground text-left border-b border-border bg-muted/30">
               <th className="px-4 py-3">Member</th>
@@ -69,7 +69,8 @@ export default function MembersPage() {
                     <button
                       onClick={() => handleRemove(m.user_id, m.email)}
                       disabled={removing === m.user_id}
-                      className="text-xs text-red-400 hover:text-red-300 disabled:opacity-50 transition-colors"
+                      className="min-h-[44px] min-w-[44px] px-3 text-xs text-red-400 hover:text-red-300 disabled:opacity-50 transition-colors focus-visible:ring-2 focus-visible:ring-primary rounded"
+                      aria-label={`Remove ${m.email}`}
                     >
                       {removing === m.user_id ? "Removing..." : "Remove"}
                     </button>
