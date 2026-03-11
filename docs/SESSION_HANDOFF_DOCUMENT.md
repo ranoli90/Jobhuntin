@@ -121,7 +121,7 @@ PYTHONPATH=apps:packages:. mypy apps/api/ apps/worker/ packages/backend/ shared/
 | ID | Description | Priority |
 |----|-------------|----------|
 | HTTP-first for Greenhouse/Lever | Try API apply before Playwright | High |
-| Integrate ATS handlers | `ats_handlers.py` defines handlers but not used; pre-fill, custom selectors | High |
+| ~~Integrate ATS handlers~~ | ✅ Done: pre-fill, custom selectors, skip selectors wired into agent | — |
 | Proxy rotation for agent | Add `agent_proxies`; rotate on 429/403 | Medium |
 | OAuth session persistence | Store cookies per (user, domain) | Medium |
 | Browserless as prod default | Remote browsers for scaling | Medium |

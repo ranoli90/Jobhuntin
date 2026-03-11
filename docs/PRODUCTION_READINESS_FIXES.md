@@ -91,6 +91,14 @@
 - **Web-admin**: sessionStorage try/catch, ErrorBoundary, 401 handling
 - **ErrorBoundary/Sentry**: RouteErrorBoundary on all routes; Sentry.captureException (Items 33–34)
 
+### 16. ATS Integration (Section 3.3 High)
+- **agent.py**: Wired `ats_handlers.py` into the agent flow
+  - `_detect_and_prepare_ats()`: detect ATS platform after navigation, run `pre_fill_hook` (e.g. Lever "Apply" click)
+  - `fill_form_from_mapping`: added `skip_selectors` for ATS-specific fields to skip (referral, source)
+  - `click_next_button`: custom next selectors from ATS handlers (Greenhouse, Lever, Workday, SmartRecruiters)
+  - `submit_form`: merge ATS submit selectors with blueprint selectors
+  - Greenhouse/Lever/Workday/SmartRecruiters handlers now used for pre-fill, custom selectors, skip selectors
+
 ## Environment Checklist for Production
 
 | Variable | Required |

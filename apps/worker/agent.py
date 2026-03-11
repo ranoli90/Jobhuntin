@@ -23,6 +23,11 @@ import asyncpg
 from playwright.async_api import BrowserContext, Page, async_playwright
 
 from packages.backend.blueprints.registry import get_blueprint, load_default_blueprints
+from packages.backend.domain.ats_handlers import (
+    detect_ats_platform,
+    get_handler,
+    ATSPlatform,
+)
 from packages.backend.domain.email_communications import get_email_communication_manager
 from packages.backend.domain.enhanced_notifications import (
     get_enhanced_notification_manager,
@@ -347,9 +352,11 @@ async def detect_next_button(page: Page) -> bool:
     return False
 
 
-async def click_next_button(page: Page) -> bool:
+async def click_next_button(
+    page: Page, custom_next_selectors: list[str] | None = None
+) -> bool:
     """Click the Next/Continue button and wait for the step transition."""
-    next_selectors = [
+    next_selectors = (custom_next_selectors or []) + [
         'button:has-text("Next")',
         'button:has-text("Continue")',
         'button:has-text("Continue to")',
@@ -1070,6 +1077,8 @@ class FormAgent:
 
             # Navigate & Extract
             await self._navigate_to_app(page, ctx)
+            # ATS detection: run pre_fill_hook (e.g. Lever "Apply" click) before extract
+            await self._detect_and_prepare_ats(page, ctx)
             form_fields = await self._extract_fields(page)
 
             # LLM Mapping
@@ -1232,6 +1241,34 @@ class FormAgent:
                         f"Page load failed for {ctx['application_url']} after {max_retries} attempts: {exc}"
                     ) from exc
 
+    async def _detect_and_prepare_ats(self, page: Page, ctx: dict) -> None:
+        """Detect ATS platform, run pre_fill_hook, and store handler in ctx."""
+        url = ctx.get("application_url", "")
+        page_content: str | None = None
+        try:
+            page_content = await page.content()
+        except Exception as e:
+            logger.debug("Could not get page content for ATS detection: %s", e)
+        result = detect_ats_platform(url, page_content)
+        if result.platform == ATSPlatform.UNKNOWN or result.confidence < 0.5:
+            ctx["ats_handler"] = None
+            return
+        handler = get_handler(result.platform)
+        if handler:
+            ctx["ats_handler"] = handler
+            logger.info(
+                "ATS detected: %s (confidence=%.2f), using %s",
+                result.platform.value,
+                result.confidence,
+                type(handler).__name__,
+            )
+            try:
+                await handler.pre_fill_hook(page, ctx)
+            except Exception as e:
+                logger.warning("ATS pre_fill_hook failed: %s", e)
+        else:
+            ctx["ats_handler"] = None
+
     async def _extract_fields(self, page: Page) -> list[FormField]:
         form_fields = await extract_all_form_fields(page)
         if not form_fields:
@@ -1287,6 +1324,7 @@ class FormAgent:
         )
 
         max_step = max((f["step_index"] for f in form_fields), default=0)
+        ats_handler = ctx.get("ats_handler")
         for step in range(max_step + 1):
             step_values = {
                 sel: val
@@ -1304,6 +1342,9 @@ class FormAgent:
                     HumanBehaviorSimulator,
                 )
 
+                skip_selectors = (
+                    ats_handler.get_skip_selectors() if ats_handler else None
+                )
                 behavior_sim = HumanBehaviorSimulator(HumanBehaviorConfig())
                 await fill_form_from_mapping(
                     page,
@@ -1314,10 +1355,14 @@ class FormAgent:
                     get_portfolio_path=self._get_portfolio_path,
                     get_document_path=self._get_document_path,
                     behavior_simulator=behavior_sim,
+                    skip_selectors=skip_selectors,
                 )
 
             if step < max_step:
-                advanced = await click_next_button(page)
+                custom_next = None
+                if ats_handler:
+                    custom_next = ats_handler.get_custom_selectors().get("next")
+                advanced = await click_next_button(page, custom_next)
                 if not advanced:
                     logger.warning(
                         "Could not advance from step %d to %d", step, step + 1
@@ -1845,7 +1890,14 @@ class FormAgent:
         # Capture screenshot before submission
         await self.capture_screenshot(page, ctx, "pre_submit", success=True)
 
-        submitted = await submit_form(page, ctx["blueprint"].submit_button_selectors())
+        base_selectors = ctx["blueprint"].submit_button_selectors()
+        ats_handler = ctx.get("ats_handler")
+        if ats_handler:
+            ats_submit = ats_handler.get_custom_selectors().get("submit", [])
+            submit_selectors = ats_submit + base_selectors
+        else:
+            submit_selectors = base_selectors
+        submitted = await submit_form(page, submit_selectors)
         if not submitted:
             raise RuntimeError("Could not locate a submit button on the form")
 
