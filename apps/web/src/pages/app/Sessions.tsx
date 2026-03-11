@@ -21,7 +21,7 @@ import { Card } from "../../components/ui/Card";
 import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
 import { ConfirmModal } from "../../components/ui/ConfirmModal";
 import { pushToast } from "../../lib/toast";
-import { getApiBase, getAuthHeaders } from "../../lib/api";
+import { apiGet, apiDelete } from "../../lib/api";
 import { telemetry } from "../../lib/telemetry";
 
 interface Session {
@@ -85,17 +85,7 @@ export default function Sessions() {
   const fetchSessions = React.useCallback(async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${getApiBase()}/sessions`, {
-        method: "GET",
-        headers: await getAuthHeaders(),
-        credentials: "include",
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch sessions: ${response.statusText}`);
-      }
-
-      const data: SessionsResponse = await response.json();
+      const data = await apiGet<SessionsResponse>("sessions");
       setSessions(data.sessions);
       telemetry.track("sessions_viewed", { total: data.total });
     } catch (error) {
@@ -116,18 +106,7 @@ export default function Sessions() {
   const handleRevokeSession = async (sessionId: string) => {
     try {
       setRevokingSessionId(sessionId);
-      const response = await fetch(`${getApiBase()}/sessions/${sessionId}`, {
-        method: "DELETE",
-        headers: await getAuthHeaders(),
-        credentials: "include",
-      });
-
-      if (!response.ok) {
-        const error = await response
-          .json()
-          .catch(() => ({ detail: "Could not sign out this session" }));
-        throw new Error(error.detail || "Could not sign out this session");
-      }
+      await apiDelete(`sessions/${sessionId}`);
 
       telemetry.track("session_revoked", { session_id: sessionId });
       pushToast({
@@ -152,20 +131,7 @@ export default function Sessions() {
   const handleRevokeAllOtherSessions = async () => {
     try {
       setRevokingAll(true);
-      const response = await fetch(`${getApiBase()}/sessions/all`, {
-        method: "DELETE",
-        headers: await getAuthHeaders(),
-        credentials: "include",
-      });
-
-      if (!response.ok) {
-        const error = await response
-          .json()
-          .catch(() => ({ detail: "Could not sign out other sessions" }));
-        throw new Error(error.detail || "Could not sign out other sessions");
-      }
-
-      const data = await response.json();
+      const data = await apiDelete<{ count: number }>("sessions/all");
       telemetry.track("sessions_revoked_all", { count: data.count });
       pushToast({
         title: "All other sessions revoked",

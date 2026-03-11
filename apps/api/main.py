@@ -1048,6 +1048,12 @@ def _mount_sub_routers() -> None:
     app.dependency_overrides[communication_mod.get_tenant_context] = get_tenant_context
     app.include_router(communication_mod.router)
 
+    # Phase 13.1 Communications (email history, preferences) — /email/history, /email/preferences
+    import api.communications_endpoints as communications_mod
+
+    app.dependency_overrides[communications_mod.get_tenant_context] = get_tenant_context
+    app.include_router(communications_mod.router)
+
     # Phase 14.1 User Experience System
     import api.user_experience_endpoints as ux_mod
 

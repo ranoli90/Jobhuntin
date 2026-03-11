@@ -50,7 +50,7 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { apiPost, apiGet, getApiBase, getAuthHeaders } from "../../lib/api";
+import { apiPost, apiGet } from "../../lib/api";
 import { pushToast } from "../../lib/toast";
 import { fireSuccessConfetti } from "../../lib/confetti";
 import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
