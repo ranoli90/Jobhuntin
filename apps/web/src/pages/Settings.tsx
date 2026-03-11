@@ -8,7 +8,7 @@ import { Card } from "../components/ui/Card";
 import { LoadingSpinner } from "../components/ui/LoadingSpinner";
 import { ConfirmModal } from "../components/ui/ConfirmModal";
 import { pushToast } from "../lib/toast";
-import { apiFetch, apiDelete, handleApiError } from "../lib/api";
+import { apiPost, apiDelete, downloadFile, handleApiError } from "../lib/api";
 import { telemetry } from "../lib/telemetry";
 import { ThemeToggle } from "../components/ThemeToggle";
 
@@ -241,18 +241,30 @@ export default function Settings() {
     setIsExporting(true);
     setShowExportConfirm(false);
     try {
-      const res = await apiFetch("me/export", { method: "GET" });
-      if (!res.ok) {
-        const text = await res.clone().text();
-        handleApiError(res, text);
+      // PRIV-008: Use GDPR export with secure download URL (no raw data in response)
+      const res = await apiPost<{
+        export_id: string;
+        download_url: string | null;
+        expires_at: string | null;
+      }>("gdpr/export", { format: "json", include_analytics: true });
+      const { download_url, export_id } = res;
+      if (!download_url) {
+        pushToast({ title: "Export failed", description: "No download URL returned", tone: "error" });
+        return;
       }
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `jobhuntin-data-export-${new Date().toISOString().slice(0, 10)}.ndjson`;
-      a.click();
-      URL.revokeObjectURL(url);
+      const filename = `gdpr_export_${export_id}.json`;
+      if (download_url.startsWith("http")) {
+        const a = document.createElement("a");
+        a.href = download_url;
+        a.download = filename;
+        a.rel = "noopener noreferrer";
+        a.target = "_blank";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      } else {
+        await downloadFile(download_url.replace(/^\//, ""), filename);
+      }
       telemetry.track("data_exported", {});
       pushToast({ title: "Data exported successfully", tone: "success" });
     } catch (error) {
