@@ -27,28 +27,44 @@ interface Session {
   user: User;
 }
 
+function getStoredToken(): string | null {
+  try {
+    return sessionStorage.getItem("auth_token");
+  } catch {
+    return null;
+  }
+}
+
+function clearStoredToken(): void {
+  try {
+    sessionStorage.removeItem("auth_token");
+  } catch {
+    // ignore - private browsing or quota
+  }
+}
+
 async function getSession(): Promise<Session | null> {
-  const token = sessionStorage.getItem("auth_token");
+  const token = getStoredToken();
   if (!token) return null;
   try {
     const resp = await fetch(`${API_BASE}/profile`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!resp.ok) {
-      sessionStorage.removeItem("auth_token");
+      clearStoredToken();
       return null;
     }
     const user = await resp.json();
     return { user };
   } catch {
-    sessionStorage.removeItem("auth_token");
+    clearStoredToken();
     return null;
   }
 }
 
 async function checkAdminAccess(user: User): Promise<boolean> {
   try {
-    const token = sessionStorage.getItem("auth_token");
+    const token = getStoredToken();
     if (!token) return false;
     const resp = await fetch(`${API_BASE}/profile`, {
       headers: { Authorization: `Bearer ${token}` },
@@ -86,7 +102,7 @@ function Sidebar({ open, onClose }: { open?: boolean; onClose?: () => void }) {
   let lastSection = "";
 
   const handleSignOut = () => {
-    sessionStorage.removeItem("auth_token");
+    clearStoredToken();
     window.location.reload();
   };
 
@@ -148,7 +164,7 @@ export default function App() {
     const resetTimeout = () => {
       clearTimeout(timeoutId);
       timeoutId = setTimeout(() => {
-        sessionStorage.removeItem('admin-token');
+        clearStoredToken();
         window.location.href = '/';
       }, TIMEOUT_MS);
     };
@@ -184,7 +200,7 @@ export default function App() {
   }, [session]);
 
   const handleSignOut = () => {
-    sessionStorage.removeItem("auth_token");
+    clearStoredToken();
     window.location.reload();
   };
 

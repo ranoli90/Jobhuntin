@@ -24,7 +24,12 @@ export default function LoginPage() {
         return;
       }
       const data = await resp.json();
-      sessionStorage.setItem("auth_token", data.token);
+      try {
+        sessionStorage.setItem("auth_token", data.token);
+      } catch {
+        setError("Could not save session. Try disabling private browsing.");
+        return;
+      }
       window.location.reload();
     } catch (err) {
       setError("Network error");
