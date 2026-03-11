@@ -62,6 +62,7 @@ export default function AdminMatchesPage() {
 
   const [loading, setLoading] = useState(true);
   const [matchesData, setMatchesData] = useState<MatchesData | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [tenantFilter, setTenantFilter] = useState("");
   const [scoreMin, setScoreMin] = useState("");
@@ -71,25 +72,27 @@ export default function AdminMatchesPage() {
 
   const page = Number.parseInt(searchParams.get("page") || "1", 10);
 
-  useEffect(() => {
-    async function fetchMatches() {
-      setLoading(true);
-      try {
-        const params = new URLSearchParams({
-          page: page.toString(),
-          ...(tenantFilter && { tenant: tenantFilter }),
-          ...(scoreMin && { score_min: scoreMin }),
-          ...(scoreMax && { score_max: scoreMax }),
-        });
-        const data = await apiGet<MatchesData>(`admin/matches?${params}`);
-        setMatchesData(data);
-      } catch {
-        setMatchesData(mockMatchesData);
-      } finally {
-        setLoading(false);
-      }
+  const fetchMatches = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const params = new URLSearchParams({
+        page: page.toString(),
+        ...(tenantFilter && { tenant: tenantFilter }),
+        ...(scoreMin && { score_min: scoreMin }),
+        ...(scoreMax && { score_max: scoreMax }),
+      });
+      const data = await apiGet<MatchesData>(`admin/matches?${params}`);
+      setMatchesData(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load matches");
+      setMatchesData(null);
+    } finally {
+      setLoading(false);
     }
+  };
 
+  useEffect(() => {
     fetchMatches();
   }, [page, tenantFilter, scoreMin, scoreMax]);
 
@@ -125,6 +128,19 @@ export default function AdminMatchesPage() {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <LoadingSpinner label="Loading matches..." />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="max-w-6xl mx-auto p-6">
+        <div className="flex flex-col items-center justify-center min-h-[40vh] gap-4 text-center">
+          <AlertTriangle className="w-12 h-12 text-red-500" />
+          <h2 className="text-lg font-semibold text-slate-900">Failed to load matches</h2>
+          <p className="text-sm text-slate-600">{error}</p>
+          <Button onClick={() => fetchMatches()}>Retry</Button>
+        </div>
       </div>
     );
   }

@@ -86,26 +86,29 @@ export default function AdminUsagePage() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [usageData, setUsageData] = useState<UsageData | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [dateRange, setDateRange] = useState({
     start: new Date(new Date().setDate(1)).toISOString().split("T")[0],
     end: new Date().toISOString().split("T")[0],
   });
 
-  useEffect(() => {
-    async function fetchUsage() {
-      setLoading(true);
-      try {
-        const data = await apiGet<UsageData>(
-          `admin/usage?start=${dateRange.start}&end=${dateRange.end}`
-        );
-        setUsageData(data);
-      } catch {
-        setUsageData(mockUsageData);
-      } finally {
-        setLoading(false);
-      }
+  const fetchUsage = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await apiGet<UsageData>(
+        `admin/usage?start=${dateRange.start}&end=${dateRange.end}`
+      );
+      setUsageData(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load usage");
+      setUsageData(null);
+    } finally {
+      setLoading(false);
     }
+  };
 
+  useEffect(() => {
     fetchUsage();
   }, [dateRange]);
 
@@ -138,6 +141,19 @@ export default function AdminUsagePage() {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <LoadingSpinner label="Loading usage data..." />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="max-w-4xl mx-auto p-6">
+        <div className="flex flex-col items-center justify-center min-h-[40vh] gap-4 text-center">
+          <AlertTriangle className="w-12 h-12 text-red-500" />
+          <h2 className="text-lg font-semibold text-slate-900">Failed to load usage</h2>
+          <p className="text-sm text-slate-600">{error}</p>
+          <Button onClick={() => fetchUsage()}>Retry</Button>
+        </div>
       </div>
     );
   }

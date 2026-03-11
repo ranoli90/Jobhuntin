@@ -195,26 +195,29 @@ export default function AdminAlertsPage() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [alertsData, setAlertsData] = useState<AlertsData | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [severityFilter, setSeverityFilter] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [tab, setTab] = useState<"active" | "historical">("active");
 
-  useEffect(() => {
-    async function fetchAlerts() {
-      setLoading(true);
-      try {
-        const params = new URLSearchParams();
-        if (severityFilter) params.append("severity", severityFilter);
-        if (statusFilter) params.append("status", statusFilter);
-        const data = await apiGet<AlertsData>(`admin/alerts?${params}`);
-        setAlertsData(data);
-      } catch {
-        setAlertsData(mockAlertsData);
-      } finally {
-        setLoading(false);
-      }
+  const fetchAlerts = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const params = new URLSearchParams();
+      if (severityFilter) params.append("severity", severityFilter);
+      if (statusFilter) params.append("status", statusFilter);
+      const data = await apiGet<AlertsData>(`admin/alerts?${params}`);
+      setAlertsData(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load alerts");
+      setAlertsData(null);
+    } finally {
+      setLoading(false);
     }
+  };
 
+  useEffect(() => {
     fetchAlerts();
   }, [severityFilter, statusFilter]);
 
@@ -266,6 +269,19 @@ export default function AdminAlertsPage() {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <LoadingSpinner label="Loading alerts..." />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="max-w-4xl mx-auto p-6">
+        <div className="flex flex-col items-center justify-center min-h-[40vh] gap-4 text-center">
+          <AlertTriangle className="w-12 h-12 text-red-500" />
+          <h2 className="text-lg font-semibold text-slate-900">Failed to load alerts</h2>
+          <p className="text-sm text-slate-600">{error}</p>
+          <Button onClick={() => fetchAlerts()}>Retry</Button>
+        </div>
       </div>
     );
   }
