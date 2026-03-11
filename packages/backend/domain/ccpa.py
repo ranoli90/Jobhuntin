@@ -31,6 +31,23 @@ DATA_INVENTORY = {
         "preferred_locations",
         "remote_only",
     ],
+    "answer_memory": [
+        "user_id",
+        "field_label",
+        "field_type",
+        "answer_value",
+        "use_count",
+        "created_at",
+    ],
+    "application_inputs": [
+        "application_id",
+        "selector",
+        "question",
+        "field_type",
+        "answer",
+        "resolved",
+        "created_at",
+    ],
 }
 
 
@@ -54,6 +71,8 @@ class CCPAComplianceManager:
         saved_jobs: list[dict] | None = None,
         cover_letters: list[dict] | None = None,
         user_preferences: dict | None = None,
+        answer_memory: list[dict] | None = None,
+        application_inputs: list[dict] | None = None,
     ):
         """Handles a data access request by returning all data associated with the user."""
         result: dict = {
@@ -79,6 +98,14 @@ class CCPAComplianceManager:
         if user_preferences:
             result["user_preferences"] = CCPAComplianceManager._filter_by_inventory(
                 user_preferences, DATA_INVENTORY["user_preferences"]
+            )
+        if answer_memory:
+            result["answer_memory"] = CCPAComplianceManager._filter_by_inventory(
+                answer_memory, DATA_INVENTORY["answer_memory"]
+            )
+        if application_inputs:
+            result["application_inputs"] = CCPAComplianceManager._filter_by_inventory(
+                application_inputs, DATA_INVENTORY["application_inputs"]
             )
         return result
 

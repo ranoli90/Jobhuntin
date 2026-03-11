@@ -1880,3 +1880,27 @@ async def trigger_job_sync(
     background_tasks.add_task(sync_service.sync_all_sources, None, 2)
 
     return {"status": "sync_started", "message": "Job sync triggered in background"}
+
+
+# ---------------------------------------------------------------------------
+# DELETE /user/delete-account — GDPR/CCPA account erasure
+# ---------------------------------------------------------------------------
+
+
+@router.delete("/user/delete-account")
+async def delete_account(
+    ctx: TenantContext = Depends(_get_tenant_ctx),
+    db: asyncpg.Pool = Depends(_get_pool),
+) -> dict[str, Any]:
+    """Permanently delete the current user's account and all associated data.
+
+    GDPR Article 17 / CCPA right to erasure. Settings UI requires typing "DELETE"
+    before calling this endpoint.
+    """
+    from backend.domain.ccpa import CCPAComplianceManager
+
+    result = await CCPAComplianceManager.handle_data_deletion_request(ctx.user_id, db)
+    return {
+        "status": result.get("status", "completed"),
+        "message": "Account deletion completed. You will receive a confirmation email shortly.",
+    }
