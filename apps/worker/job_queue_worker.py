@@ -36,11 +36,17 @@ def handle_shutdown(signum, _frame):
 
 
 async def create_db_pool() -> asyncpg.Pool:
+    import ssl
+
     settings = get_settings()
+    ctx = ssl.create_default_context(purpose=ssl.Purpose.SERVER_AUTH)
+    ctx.check_hostname = True
     return await asyncpg.create_pool(
         settings.database_url,
         min_size=1,
         max_size=3,
+        statement_cache_size=0,
+        ssl=ctx,
     )
 
 
