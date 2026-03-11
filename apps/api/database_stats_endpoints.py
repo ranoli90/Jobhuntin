@@ -37,18 +37,21 @@ async def get_database_tables(
         # Get database statistics
         db_stats = await db_manager.get_database_statistics()
 
-        # Get table list
+        # Get table list. Use pg_class.reltuples for row count (approximate but fast);
+        # dynamic "FROM tablename" cannot be parameterized and was invalid SQL.
         query = """
             SELECT
-                schemaname,
-                tablename,
-                table_type,
-                pg_size_pretty(pg_total_relation_size(schemaname||'.'||tablename)) as size,
-                pg_total_relation_size(schemaname||'.'||tablename) as size_bytes,
-                (SELECT COUNT(*) FROM " || schemaname || '.' || tablename || " WHERE 1=1) as row_count
-            FROM pg_tables
-            WHERE schemaname NOT IN ('information_schema', 'pg_catalog')
-            ORDER BY schemaname, tablename
+                t.schemaname,
+                t.tablename,
+                'table' as table_type,
+                pg_size_pretty(pg_total_relation_size(t.schemaname||'.'||t.tablename)) as size,
+                pg_total_relation_size(t.schemaname||'.'||t.tablename) as size_bytes,
+                COALESCE(c.reltuples::bigint, 0) as row_count
+            FROM pg_tables t
+            LEFT JOIN pg_namespace n ON n.nspname = t.schemaname
+            LEFT JOIN pg_class c ON c.relname = t.tablename AND c.relnamespace = n.oid AND c.relkind = 'r'
+            WHERE t.schemaname NOT IN ('information_schema', 'pg_catalog')
+            ORDER BY t.schemaname, t.tablename
         """
 
         async with db_pool.acquire() as conn:
@@ -90,6 +93,12 @@ async def get_table_details(
 ) -> Dict[str, any]:
     """Get detailed table information."""
     try:
+        # SECURITY: Validate table_name to prevent SQL injection
+        if not _TABLE_NAME_RE.match(table_name):
+            raise HTTPException(
+                status_code=400,
+                detail="Invalid table_name: must match ^[a-zA-Z_][a-zA-Z0-9_]*$",
+            )
         # Create database performance manager
         db_manager = create_database_performance_manager(db_pool)
 
@@ -382,17 +391,26 @@ async def get_table_size(
 ) -> Dict[str, Any]:
     """Get table size information."""
     try:
-        # Get table size
+        # SECURITY: Validate table_name to prevent SQL injection
+        if not _TABLE_NAME_RE.match(table_name):
+            raise HTTPException(
+                status_code=400,
+                detail="Invalid table_name: must match ^[a-zA-Z_][a-zA-Z0-9_]*$",
+            )
+        # Table names cannot be parameterized in FROM; use regclass for size and
+        # pg_class.reltuples for approximate row count (avoids dynamic SQL).
+        qualified = f"public.{table_name}"
         size_query = """
             SELECT
-                pg_size_pretty(pg_total_relation_size($1)) as size,
-                pg_total_relation_size($1) as size_bytes,
-                (SELECT COUNT(*) FROM $1 WHERE 1=1) as row_count
-            FROM $1
+                pg_size_pretty(pg_total_relation_size($1::regclass)) as size,
+                pg_total_relation_size($1::regclass) as size_bytes,
+                (SELECT reltuples::bigint FROM pg_class c
+                 JOIN pg_namespace n ON n.oid = c.relnamespace
+                 WHERE n.nspname = 'public' AND c.relname = $2 AND c.relkind = 'r') as row_count
         """
 
         async with db_pool.acquire() as conn:
-            result = await conn.fetchrow(size_query, table_name)
+            result = await conn.fetchrow(size_query, qualified, table_name)
 
             return {
                 "table_name": table_name,
@@ -817,6 +835,12 @@ async def get_table_indexes(
 ) -> Dict[str, Any]:
     """Get all indexes for a table."""
     try:
+        # SECURITY: Validate table_name to prevent SQL injection
+        if not _TABLE_NAME_RE.match(table_name):
+            raise HTTPException(
+                status_code=400,
+                detail="Invalid table_name: must match ^[a-zA-Z_][a-zA-Z0-9_]*$",
+            )
         # Create index analyzer
         analyzer = create_index_analyzer(db_pool)
 
