@@ -386,7 +386,8 @@ async def get_request_status(
     request_id: str,
     user_id: str = Depends(_get_user_id),
 ) -> dict[str, Any]:
-    """Get the status of a GDPR request. TODO: verify request_id belongs to user_id via gdpr_requests table."""
+    """Get the status of a GDPR request.
+    Note: request_id verification blocked until gdpr_requests table exists (PRIV-001)."""
     from shared.validators import validate_uuid
 
     try:
