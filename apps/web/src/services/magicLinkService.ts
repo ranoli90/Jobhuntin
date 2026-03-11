@@ -384,8 +384,19 @@ class MagicLinkService {
     if (allowedPaths.has(pathOnly)) {
       return pathOnly;
     }
+    // Allow subpaths (e.g. /app/onboarding/complete) to match backend whitelist
+    for (const allowed of allowedPaths) {
+      if (pathOnly.startsWith(allowed + '/')) {
+        return pathOnly;
+      }
+    }
 
     return '/app/onboarding';
+  }
+
+  /** Sanitize returnTo for redirects. Use for Login and any URL param handling. */
+  getSafeReturnTo(returnTo: string | null | undefined): string {
+    return this.sanitizeReturnTo(returnTo ?? '/app/onboarding');
   }
 
   /**

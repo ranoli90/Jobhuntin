@@ -31,15 +31,12 @@ export default function Login() {
   const returnTo = searchParams.get("returnTo");
 
   const safeReturnTo = useMemo(() => {
-    if (returnTo && returnTo.startsWith("/") && !returnTo.startsWith("//")) {
-      return returnTo;
-    }
+    const fromUrl = magicLinkService.getSafeReturnTo(returnTo ?? undefined);
+    if (fromUrl !== '/app/onboarding') return fromUrl;
     const storedReturnTo = sessionStorage.getItem('magicLinkReturnTo');
     if (storedReturnTo) {
       sessionStorage.removeItem('magicLinkReturnTo');
-      if (storedReturnTo.startsWith("/") && !storedReturnTo.startsWith("//")) {
-        return storedReturnTo;
-      }
+      return magicLinkService.getSafeReturnTo(storedReturnTo);
     }
     return "/app/onboarding";
   }, [returnTo]);

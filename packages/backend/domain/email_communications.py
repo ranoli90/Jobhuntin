@@ -503,6 +503,11 @@ class EmailCommunicationManager:
                             "to": [to_email],
                             "subject": subject,
                             "html": html,
+                            "headers": {
+                                "Precedence": "auto",
+                                "Auto-Submitted": "auto-generated",
+                                "X-Auto-Response-Suppress": "OOF, AutoReply",
+                            },
                         },
                     )
 

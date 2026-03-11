@@ -6,6 +6,7 @@ Uses Resend API for email delivery.
 
 from __future__ import annotations
 
+import html
 import json
 from datetime import datetime, timedelta, timezone
 from typing import Any
@@ -91,11 +92,13 @@ async def build_digest_for_user(
 
 
 def render_digest_html(user_name: str | None, stats: dict[str, Any]) -> str:
-    """Render the weekly digest as HTML email."""
-    greeting = f"Hi {user_name}," if user_name else "Hi there,"
+    """Render the weekly digest as HTML email. Escapes user data to prevent template injection."""
+    safe_name = html.escape(user_name) if user_name else ""
+    greeting = f"Hi {safe_name}," if safe_name else "Hi there,"
     companies_html = ""
     for c in stats.get("top_companies", []):
-        companies_html += f"<li>{c['company']} ({c['count']} apps)</li>"
+        safe_company = html.escape(str(c.get("company", "")))
+        companies_html += f"<li>{safe_company} ({c['count']} apps)</li>"
 
     return f"""
     <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #1E293B;">
@@ -188,6 +191,11 @@ async def send_digest_email(
                         "to": [to_email],
                         "subject": subject,
                         "html": html,
+                        "headers": {
+                            "Precedence": "auto",
+                            "Auto-Submitted": "auto-generated",
+                            "X-Auto-Response-Suppress": "OOF, AutoReply",
+                        },
                     },
                 )
                 if resp.status_code in (200, 201):

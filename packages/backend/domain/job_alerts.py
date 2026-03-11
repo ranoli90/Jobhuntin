@@ -10,6 +10,7 @@ Users can configure alerts with:
 
 from __future__ import annotations
 
+import html
 import json
 from datetime import datetime
 from enum import StrEnum
@@ -407,6 +408,11 @@ class JobAlertService:
                             "to": [to_email],
                             "subject": subject,
                             "html": html,
+                            "headers": {
+                                "Precedence": "auto",
+                                "Auto-Submitted": "auto-generated",
+                                "X-Auto-Response-Suppress": "OOF, AutoReply",
+                            },
                         },
                     )
                     return resp.status_code in (200, 201)
@@ -418,6 +424,14 @@ class JobAlertService:
             return False
 
     def _render_alert_email(self, alert: JobAlert, matches: list[JobAlertMatch]) -> str:
+        def _safe_url(url: str | None) -> str:
+            if not url:
+                return "#"
+            u = (url or "").strip().lower()
+            if u.startswith("http://") or u.startswith("https://"):
+                return html.escape(url)
+            return "#"
+
         jobs_html = ""
         for m in matches[:10]:
             salary_str = ""
@@ -429,13 +443,18 @@ class JobAlertService:
                 else:
                     salary_str = f"From ${int(m.salary_min):,}"
 
+            safe_title = html.escape(str(m.title or ""))
+            safe_company = html.escape(str(m.company or ""))
+            safe_location = html.escape(str(m.location or "")) if m.location else ""
+            safe_url = _safe_url(m.application_url)
+
             jobs_html += f"""
             <div style="border: 1px solid #E2E8F0; border-radius: 8px; padding: 16px; margin: 12px 0;">
-                <h3 style="margin: 0 0 8px; font-size: 16px;">{m.title}</h3>
-                <p style="margin: 0 0 4px; color: #64748B;">{m.company}</p>
-                {f'<p style="margin: 0 0 4px; color: #64748B;">{m.location}</p>' if m.location else ""}
+                <h3 style="margin: 0 0 8px; font-size: 16px;">{safe_title}</h3>
+                <p style="margin: 0 0 4px; color: #64748B;">{safe_company}</p>
+                {f'<p style="margin: 0 0 4px; color: #64748B;">{safe_location}</p>' if safe_location else ""}
                 {f'<p style="margin: 0 0 8px; color: #10B981; font-weight: 600;">{salary_str}</p>' if salary_str else ""}
-                <a href="{m.application_url}" style="color: #3B82F6; text-decoration: none; font-weight: 600;">View Job →</a>
+                <a href="{safe_url}" style="color: #3B82F6; text-decoration: none; font-weight: 600;">View Job →</a>
             </div>
             """
 
@@ -446,6 +465,8 @@ class JobAlertService:
             else ""
         )
 
+        safe_alert_name = html.escape(str(alert.name or ""))
+
         return f"""
         <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #1E293B;">
             <div style="text-align: center; margin-bottom: 24px;">
@@ -454,7 +475,7 @@ class JobAlertService:
             </div>
 
             <div style="background: #F1F5F9; border-radius: 12px; padding: 16px; margin: 20px 0; text-align: center;">
-                <p style="margin: 0; font-size: 18px;"><strong>{alert.name}</strong></p>
+                <p style="margin: 0; font-size: 18px;"><strong>{safe_alert_name}</strong></p>
                 <p style="margin: 4px 0 0; color: #64748B;">{len(matches)} new matching jobs</p>
             </div>
 

@@ -273,6 +273,11 @@ Labels: {json.dumps(alert.labels, indent=2)}
                         "to": self.recipients,
                         "subject": subject,
                         "text": body,
+                        "headers": {
+                            "Precedence": "auto",
+                            "Auto-Submitted": "auto-generated",
+                            "X-Auto-Response-Suppress": "OOF, AutoReply",
+                        },
                     },
                 ) as resp:
                     if resp.status == 200:
