@@ -66,6 +66,31 @@
 - **job_sync_service.py**: Cleanup: log on failure, don't abort sync; log parse errors instead of swallowing
 - **localStorage QuotaExceededError**: safeSetStorage/safeGetStorage in utils.ts; useOnboarding, useFeatureFlags use it; sessionStorage fallback
 
+### 15. Session Fixes (Production Readiness Branch)
+- **Redis**: Key collisions, TTL gaps, serialization fixes
+- **Security**: CORS, CSP hardening; setup_security_headers in middleware
+- **Communication**: Notification preferences get/update; support ticket, service suspension TODOs
+- **DLQ**: oldest_item_age_hours from oldest_item in health check
+- **Scripts**: Maintenance audit — hardcoded values, error handling, shell safety
+- **Tests**: Flaky tests, missing cleanup, env leaks
+- **Migrations**: FK gaps, missing indexes, migration order
+- **Web**: Routing, 401 handling, returnTo whitelist
+- **Worker**: SSL, statement_cache_size=0 for DB pools; asyncio.Lock for sync_all_sources; jobspy_timeout_seconds
+- **Tenant/RBAC**: Multi-tenant isolation, require_admin_user_id
+- **Job search**: ILIKE injection, sort injection, filter bypass fixed
+- **Config**: Remove hardcoded secrets, validation, reject dev defaults in prod
+- **DLQ/feedback/agent**: IDOR, auth, error handling
+- **AI**: Prompt injection, input validation, cost controls
+- **Resume**: Upload, storage, file handling hardening
+- **Magic link/Resend**: Template injection, redirects, headers
+- **Onboarding/settings/export**: PII, 401, validation, state
+- **Auth**: Token handling, session revocation, replay hardening
+- **Billing**: Exponential backoff polling (Item 21); return_url validation
+- **Concurrent tracker**: Deadlock fix; ctx.user_id for tenant ownership
+- **VACUUM**: table_name validation before database_stats, index_analyzer
+- **Web-admin**: sessionStorage try/catch, ErrorBoundary, 401 handling
+- **ErrorBoundary/Sentry**: RouteErrorBoundary on all routes; Sentry.captureException (Items 33–34)
+
 ## Environment Checklist for Production
 
 | Variable | Required |

@@ -67,7 +67,31 @@ PYTHONPATH=apps:packages:. mypy apps/api/ apps/worker/ packages/backend/ shared/
 - **Agent:** OAuth warn when credentials missing; submit_form checks success indicators before returning True
 - **Job search/repo:** COALESCE for legacy + JobSpy schema; JobRepo.get_by_id simplified
 
-### 2.4 Audit Fixes (from prior audits)
+### 2.4 Session Fixes (this branch)
+- **Redis:** Key collisions, TTL gaps, serialization fixes
+- **Security:** CORS, CSP hardening; setup_security_headers in middleware
+- **Communication:** Notification preferences get/update; support ticket, service suspension TODOs
+- **DLQ:** oldest_item_age_hours from oldest_item in health check
+- **Scripts:** Maintenance audit — hardcoded values, error handling, shell safety
+- **Tests:** Flaky tests, missing cleanup, env leaks
+- **Migrations:** FK gaps, missing indexes, migration order
+- **Web:** Routing, 401 handling, returnTo whitelist
+- **Worker:** SSL, statement_cache_size=0 for DB pools; asyncio.Lock for sync_all_sources; jobspy_timeout_seconds
+- **Tenant/RBAC:** Multi-tenant isolation, require_admin_user_id
+- **Job search:** ILIKE injection, sort injection, filter bypass fixed
+- **Config:** Remove hardcoded secrets, validation, reject dev defaults in prod
+- **DLQ/feedback/agent:** IDOR, auth, error handling
+- **AI:** Prompt injection, input validation, cost controls
+- **Resume:** Upload, storage, file handling hardening
+- **Magic link/Resend:** Template injection, redirects, headers
+- **Onboarding/settings/export:** PII, 401, validation, state
+- **Auth:** Token handling, session revocation, replay hardening
+- **Billing:** Exponential backoff polling; return_url validation
+- **Concurrent tracker:** Deadlock fix; ctx.user_id for tenant ownership
+- **VACUUM:** table_name validation before database_stats, index_analyzer
+- **Web-admin:** sessionStorage try/catch, ErrorBoundary, 401 handling
+
+### 2.5 Audit Fixes (from prior audits)
 - Email/Job/Privacy: COM-001–004, F001–009, PRIV-001–004, F006, F008
 - Onboarding: OB-001, OB-003–OB-007, OB-009–OB-016, A4, F1, etc.
 - Dashboard/API: C1, C2, H1–H3, API-3–6, FE-1, FE-2, M1–M6, L1–L4
@@ -81,17 +105,18 @@ PYTHONPATH=apps:packages:. mypy apps/api/ apps/worker/ packages/backend/ shared/
 ### 3.1 Privacy (Email/Job/Privacy Audit)
 | ID | File | Description | Priority |
 |----|------|-------------|----------|
-| PRIV-005 | gdpr.py | GDPR export vs deletion table mismatch (e.g. `input_answers` vs `application_inputs`/`answer_memory`) | fixed |
+| PRIV-005 | gdpr.py | GDPR export vs deletion table mismatch | fixed |
+| PRIV-006 | gdpr.py | request_id verification blocked until gdpr_requests table exists | Medium |
 | PRIV-007 | data_retention.py | Applications hard-deleted, not archived; needs archive table | Deferred |
 | PRIV-008 | gdpr.py | GDPR export returns raw data in response; needs secure download URLs | Deferred |
-| F004 | match_score_precompute.py | Pre-computed scores never read (was deferred; may be fixed) | fixed (job_search uses precomputed) |
+| F004 | match_score_precompute.py | Pre-computed scores never read | fixed (job_search uses precomputed) |
 
 ### 3.2 JobSpy / Job Sync
 | ID | Description | Priority |
 |----|-------------|----------|
 | No JobSpy rate limiting | Only circuit breaker; no proactive throttling between fetches | Medium |
 | Proxy rotation | Per-source proxy rotation; currently one proxy per fetch | Medium |
-| Concurrent sync | `_running` not persisted; multiple workers could sync simultaneously | Medium |
+| Concurrent sync | asyncio.Lock added (single-process); _running not persisted across workers | Medium |
 | Job schema gaps | `emails`, `skills`, `benefits` not stored; `_normalize_job` exception handler may reference undefined `k` | Low |
 
 ### 3.3 Job Application (Agent)
@@ -118,7 +143,7 @@ PYTHONPATH=apps:packages:. mypy apps/api/ apps/worker/ packages/backend/ shared/
 ### 3.5 Production Readiness (Sprint Plan)
 | # | Description | Priority |
 |---|-------------|----------|
-| 21 | Billing upgrade/portal: aggressive polling, no backoff | Medium |
+| 21 | Billing upgrade/portal: aggressive polling, no backoff | fixed (exponential backoff) |
 | 22 | Admin sources: polls every 5s, no error boundary | Medium |
 | 23 | Admin pages lack RBAC; any user can access | fixed |
 | 24 | Admin sync "Trigger Sync" no confirmation modal | Medium |
@@ -130,8 +155,8 @@ PYTHONPATH=apps:packages:. mypy apps/api/ apps/worker/ packages/backend/ shared/
 | 30 | Magic link: no List-Unsubscribe, no plain-text fallback | Medium |
 | 31 | Email typo: whitelist too small | Medium |
 | 32 | No email analytics/open tracking | Medium |
-| 33 | ErrorBoundary not wired at route level | done (RouteErrorBoundary on all routes) |
-| 34 | ErrorBoundary reporting is console.log; no Sentry | done (Sentry.captureException in ErrorBoundary) |
+| 33 | ErrorBoundary not wired at route level | fixed (RouteErrorBoundary on all routes) |
+| 34 | ErrorBoundary reporting is console.log; no Sentry | fixed (Sentry.captureException in ErrorBoundary) |
 | 35 | No global loading skeleton for route transitions | Medium |
 | 36 | PWA manifest/service worker (may exist) | Medium |
 | 37 | robots.txt conflicts | Low |
@@ -139,9 +164,9 @@ PYTHONPATH=apps:packages:. mypy apps/api/ apps/worker/ packages/backend/ shared/
 | 39 | i18n: only en/fr; no locale detection | Medium |
 | 40 | No lang/dir attributes on HTML | Medium |
 | 41 | French translations incomplete | Medium |
-| 42 | No CSP or security headers | done (setup_security_headers in middleware) |
-| 43 | No rate limiting on public endpoints | done (rate_limiting_middleware) |
-| 44 | No input sanitization libraries (XSS) | done (sanitize_text_input; added headline/bio) |
+| 42 | No CSP or security headers | fixed (setup_security_headers in middleware) |
+| 43 | No rate limiting on public endpoints | fixed (rate_limiting_middleware) |
+| 44 | No input sanitization libraries (XSS) | fixed (sanitize_text_input; headline/bio) |
 
 ### 3.6 Audit Findings (from subagent)
 | Area | File | Issue | Priority |
@@ -264,7 +289,7 @@ Worker/cron → JobSyncService.sync_all_sources()
 Read docs/SESSION_HANDOFF_DOCUMENT.md in full. Then:
 
 1. Prioritize and fix the highest-impact remaining items from Section 3 (REMAINING).
-2. Start with PRIV-005 (GDPR export vs deletion mismatch), then Admin RBAC (item 23), then ErrorBoundary/Sentry (33–34), then CSP/security (42–44).
+2. Start with Admin alerts mock fallback (item 25), then PRIV-006 (gdpr_requests table), then items 22, 24–32.
 3. Use the coding standards in Section 4. Run tests after each fix.
 4. Document what you fix in docs/PRODUCTION_READINESS_FIXES.md or create a new audit doc.
 5. Commit and push when done.
