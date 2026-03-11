@@ -10,7 +10,7 @@ FRESH_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxZGRmOTc3YS1hNmM2
 
 async def authenticate_and_complete():
     # Step 1: Authenticate via verify-magic to get session cookie
-    async with httpx.AsyncClient(follow_redirects=False) as client:
+    async with httpx.AsyncClient(follow_redirects=False, timeout=10.0) as client:
         resp = await client.get(
             f"http://localhost:8000/api/auth/verify-magic?token={FRESH_TOKEN}&returnTo=/app/onboarding"
         )

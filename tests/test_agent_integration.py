@@ -345,14 +345,14 @@ async def test_agent_claim_navigate_fill_submit(form_server, db_pool, clean_db):
     # For now, verify the form server responds correctly
     import httpx
 
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(timeout=10.0) as client:
         resp = await client.get(form_url)
         assert resp.status_code == 200
         assert "full_name" in resp.text
         assert "email" in resp.text
 
     # Verify form submission works
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(timeout=10.0) as client:
         resp = await client.post(
             f"{form_url}/submit",
             data={"full_name": "Test", "email": "test@example.com"},
@@ -373,7 +373,7 @@ async def test_agent_hold_form_has_unmappable_field(hold_form_server):
 
     import httpx
 
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(timeout=10.0) as client:
         resp = await client.get(form_url)
         assert resp.status_code == 200
         assert "security_clearance" in resp.text

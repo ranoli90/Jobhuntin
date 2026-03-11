@@ -64,7 +64,7 @@ def audit_missing_components():
                 content = f.read()
                 if table in content:
                     found = True
-        except:
+        except OSError:
             pass
 
         if not found:
