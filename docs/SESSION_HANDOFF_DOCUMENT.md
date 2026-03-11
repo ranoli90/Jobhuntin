@@ -105,11 +105,9 @@ PYTHONPATH=apps:packages:. mypy apps/api/ apps/worker/ packages/backend/ shared/
 ### 3.1 Privacy (Email/Job/Privacy Audit)
 | ID | File | Description | Priority |
 |----|------|-------------|----------|
-| PRIV-005 | gdpr.py | GDPR export vs deletion table mismatch | fixed |
 | PRIV-006 | gdpr.py | request_id verification blocked until gdpr_requests table exists | Medium |
 | PRIV-007 | data_retention.py | Applications hard-deleted, not archived; needs archive table | Deferred |
 | PRIV-008 | gdpr.py | GDPR export returns raw data in response; needs secure download URLs | Deferred |
-| F004 | match_score_precompute.py | Pre-computed scores never read | fixed (job_search uses precomputed) |
 
 ### 3.2 JobSpy / Job Sync
 | ID | Description | Priority |
@@ -122,10 +120,8 @@ PYTHONPATH=apps:packages:. mypy apps/api/ apps/worker/ packages/backend/ shared/
 ### 3.3 Job Application (Agent)
 | ID | Description | Priority |
 |----|-------------|----------|
-| Wire ExecutionEngine | Use `HumanBehaviorSimulator` and `AntiDetection` in agent | fixed |
 | HTTP-first for Greenhouse/Lever | Try API apply before Playwright | High |
 | Integrate ATS handlers | `ats_handlers.py` defines handlers but not used; pre-fill, custom selectors | High |
-| CAPTCHA failure → REQUIRES_INPUT | Don't silently continue; escalate to user | fixed |
 | Proxy rotation for agent | Add `agent_proxies`; rotate on 429/403 | Medium |
 | OAuth session persistence | Store cookies per (user, domain) | Medium |
 | Browserless as prod default | Remote browsers for scaling | Medium |
@@ -143,11 +139,8 @@ PYTHONPATH=apps:packages:. mypy apps/api/ apps/worker/ packages/backend/ shared/
 ### 3.5 Production Readiness (Sprint Plan)
 | # | Description | Priority |
 |---|-------------|----------|
-| 21 | Billing upgrade/portal: aggressive polling, no backoff | fixed (exponential backoff) |
 | 22 | Admin sources: polls every 5s, no error boundary | Medium |
-| 23 | Admin pages lack RBAC; any user can access | fixed |
 | 24 | Admin sync "Trigger Sync" no confirmation modal | Medium |
-| 25 | Admin alerts: mock fallback masks outages | fixed |
 | 26 | Admin alerts acknowledge: optimistic update, no rollback | Medium |
 | 27 | AI Tailor: no file size validation | Medium |
 | 28 | ATS scoring runs twice per tailor (no dedup) | Medium |
@@ -155,8 +148,6 @@ PYTHONPATH=apps:packages:. mypy apps/api/ apps/worker/ packages/backend/ shared/
 | 30 | Magic link: no List-Unsubscribe, no plain-text fallback | Medium |
 | 31 | Email typo: whitelist too small | Medium |
 | 32 | No email analytics/open tracking | Medium |
-| 33 | ErrorBoundary not wired at route level | fixed (RouteErrorBoundary on all routes) |
-| 34 | ErrorBoundary reporting is console.log; no Sentry | fixed (Sentry.captureException in ErrorBoundary) |
 | 35 | No global loading skeleton for route transitions | Medium |
 | 36 | PWA manifest/service worker (may exist) | Medium |
 | 37 | robots.txt conflicts | Low |
@@ -164,21 +155,8 @@ PYTHONPATH=apps:packages:. mypy apps/api/ apps/worker/ packages/backend/ shared/
 | 39 | i18n: only en/fr; no locale detection | Medium |
 | 40 | No lang/dir attributes on HTML | Medium |
 | 41 | French translations incomplete | Medium |
-| 42 | No CSP or security headers | fixed (setup_security_headers in middleware) |
-| 43 | No rate limiting on public endpoints | fixed (rate_limiting_middleware) |
-| 44 | No input sanitization libraries (XSS) | fixed (sanitize_text_input; headline/bio) |
 
-### 3.6 Audit Findings (from subagent)
-| Area | File | Issue | Priority |
-|------|------|-------|----------|
-| Admin | dashboard.py | get_overview, get_metrics, get_config lacked auth | fixed |
-| API | application_pipeline.py | sort_order SQL injection; company ILIKE escape | fixed |
-| Auth | user.py | is_system_admin except pass → log | fixed |
-| Auth | test_ionos_api.py | Hardcoded IONOS_SECRET | fixed (env vars) |
-| Worker | job_sync_service.py | Swallowed exceptions in cleanup | fixed |
-| Frontend | localStorage | QuotaExceededError handling | fixed |
-
-### 3.7 Other
+### 3.6 Other
 | Area | Description |
 |------|-------------|
 | Mypy | ~351 errors remaining (pre-existing) |
@@ -289,7 +267,7 @@ Worker/cron → JobSyncService.sync_all_sources()
 Read docs/SESSION_HANDOFF_DOCUMENT.md in full. Then:
 
 1. Prioritize and fix the highest-impact remaining items from Section 3 (REMAINING).
-2. Start with Admin alerts mock fallback (item 25), then PRIV-006 (gdpr_requests table), then items 22, 24–32.
+2. Start with PRIV-006 (gdpr_requests table), then items 22, 24–32.
 3. Use the coding standards in Section 4. Run tests after each fix.
 4. Document what you fix in docs/PRODUCTION_READINESS_FIXES.md or create a new audit doc.
 5. Commit and push when done.
