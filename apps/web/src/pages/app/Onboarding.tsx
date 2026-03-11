@@ -107,19 +107,38 @@ export default function Onboarding() {
   } = useProfile();
   const syncProgressToServer = React.useCallback(
     async (step: number, completed: string[]) => {
-      try {
-        await api.patch("me/profile", {
+      const doPatch = () =>
+        api.patch("me/profile", {
           onboarding_step: step,
           onboarding_completed_steps: completed,
         });
+      try {
+        await doPatch();
       } catch (error) {
         if (import.meta.env.DEV)
           console.warn("[Onboarding] syncProgressToServer failed:", error);
+        // Retry once on network/5xx errors (e.g. transient middleware issues)
+        const err = error as Error & { status?: number };
+        const isRetryable =
+          !err.status || err.status >= 500 || err.status === 429;
+        if (isRetryable) {
+          try {
+            await new Promise((r) => setTimeout(r, 500));
+            await doPatch();
+            return;
+          } catch (retryErr) {
+            if (import.meta.env.DEV)
+              console.warn("[Onboarding] syncProgressToServer retry failed:", retryErr);
+            throw retryErr;
+          }
+        }
         throw error; // Re-throw so useOnboarding saveState can call onSyncError
       }
     },
     [],
   );
+  // Toast debounce: useRef so lastShown persists across renders (max 1 toast per 5s)
+  const syncToastLastShownRef = React.useRef(0);
   const [searchParameters, setSearchParameters] = useSearchParams();
   const urlStep = React.useMemo(() => {
     const s = searchParameters.get("step");
@@ -154,15 +173,22 @@ export default function Onboarding() {
         : null,
     syncToServer: profile ? syncProgressToServer : undefined,
     initialStepFromUrl: urlStep,
-    onSyncError: (error) => {
-      if (import.meta.env.DEV)
-        console.warn("[Onboarding] Progress sync failed:", error);
-      pushToast({
-        title: "Could not save progress",
-        description: "Your progress is saved locally. Check your connection.",
-        tone: "warning",
-      });
-    },
+    onSyncError: React.useCallback(
+      (error: unknown) => {
+        if (import.meta.env.DEV)
+          console.warn("[Onboarding] Progress sync failed:", error);
+        const now = Date.now();
+        const DEBOUNCE_MS = 5000;
+        if (now - syncToastLastShownRef.current < DEBOUNCE_MS) return;
+        syncToastLastShownRef.current = now;
+        pushToast({
+          title: "Could not save progress",
+          description: "Your progress is saved locally. Check your connection.",
+          tone: "warning",
+        });
+      },
+      [],
+    ),
   });
   const aiSuggestions = useAISuggestions();
   const locale = getLocale();

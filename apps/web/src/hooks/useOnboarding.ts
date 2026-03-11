@@ -214,14 +214,15 @@ export function useOnboarding(options: UseOnboardingOptions = {}) {
           "[useOnboarding] Could not persist state; progress may be lost on refresh",
         );
 
+      // Fire-and-forget: never block step advancement on sync. User progress is primary.
       if (syncToServer) {
-        try {
-          await syncToServer(currentStep, completedSteps);
-        } catch (error) {
-          if (import.meta.env.DEV)
-            console.warn("[useOnboarding] Server sync failed:", error);
-          onSyncError?.(error);
-        }
+        Promise.resolve(syncToServer(currentStep, completedSteps)).catch(
+          (error: unknown) => {
+            if (import.meta.env.DEV)
+              console.warn("[useOnboarding] Server sync failed:", error);
+            onSyncError?.(error);
+          },
+        );
       }
 
       if (Object.keys(pii).length > 0) {
@@ -330,40 +331,24 @@ export function useOnboarding(options: UseOnboardingOptions = {}) {
     if (import.meta.env.DEV)
       console.log("[useOnboarding] nextStep called, totalSteps:", totalSteps);
 
-    setCurrentStep((previous) => {
-      if (previous < totalSteps - 1) {
-        if (import.meta.env.DEV)
-          console.log(
-            "[useOnboarding] Advancing from step",
-            previous,
-            "to",
-            previous + 1,
-          );
-
-        const completedStepId = currentSteps[previous]?.id;
-        if (completedStepId) {
-          telemetry.track("onboarding_step_completed", {
-            step_id: completedStepId,
-            step_number: previous + 1,
-            total_steps: totalSteps,
-          });
-          setCompletedSteps((previousCompleted) => {
-            const newCompleted = new Set(previousCompleted);
-            newCompleted.add(completedStepId);
-            return [...newCompleted];
-          });
-        }
-
-        return previous + 1;
-      }
+    // Advance step immediately - never nest setState (causes advancement bugs)
+    if (currentStep >= totalSteps - 1) {
       if (import.meta.env.DEV)
-        console.log(
-          "[useOnboarding] Already at last step, staying at",
-          previous,
-        );
-      return previous;
-    });
-  }, [currentSteps]);
+        console.log("[useOnboarding] Already at last step, staying at", currentStep);
+      return;
+    }
+
+    const completedStepId = currentSteps[currentStep]?.id;
+    if (completedStepId) {
+      telemetry.track("onboarding_step_completed", {
+        step_id: completedStepId,
+        step_number: currentStep + 1,
+        total_steps: totalSteps,
+      });
+      setCompletedSteps((prev) => [...new Set([...prev, completedStepId])]);
+    }
+    setCurrentStep((prev) => prev + 1);
+  }, [currentSteps, currentStep]);
 
   const previousStep = useCallback(() => {
     if (Date.now() - lastNavReference.current < NAV_DEBOUNCE_MS) return;
