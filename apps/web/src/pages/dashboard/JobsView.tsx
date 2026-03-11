@@ -490,10 +490,11 @@ export default function JobsView() {
               } else if (undoStack.length > 0) {
                 const lastRejected = undoStack.at(-1);
                 if (!lastRejected) return;
+                const id = lastRejected;
                 setUndoStack((previous) => previous.slice(0, -1));
                 setSwipedJobs((previous) => {
                   const next = new Map(previous);
-                  next.delete(lastRejected);
+                  next.delete(id);
                   return next;
                 });
               }

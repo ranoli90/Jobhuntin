@@ -223,7 +223,7 @@ class EnhancedErrorBoundary extends Component<
 
   private handleReset = () => {
     // Clear all timeouts
-    for (const timeoutId of this.retryTimeouts) clearTimeout(timeoutId);
+    for (const timeoutId of this.retryTimeouts.values()) clearTimeout(timeoutId);
     this.retryTimeouts.clear();
 
     this.setState({
@@ -256,7 +256,7 @@ class EnhancedErrorBoundary extends Component<
 
   componentWillUnmount() {
     // Clear all timeouts
-    for (const timeoutId of this.retryTimeouts) clearTimeout(timeoutId);
+    for (const timeoutId of this.retryTimeouts.values()) clearTimeout(timeoutId);
     this.retryTimeouts.clear();
   }
 
