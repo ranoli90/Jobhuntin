@@ -2,7 +2,7 @@
 with connection pooling, read replicas, and enterprise-dedicated pools.
 
 Usage:
-    python -m worker.scaling --instances 10
+    python -m apps.worker.scaling --instances 10
 """
 
 from __future__ import annotations

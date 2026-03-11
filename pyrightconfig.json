@@ -3,13 +3,13 @@
     "apps/api",
     "apps/worker",
     "apps/api_v2",
-    "packages/shared",
+    "shared",
     "packages/backend",
     "packages/blueprints",
     "packages/partners"
   ],
   "extraPaths": [
-    "packages/shared",
+    "shared",
     "packages/backend",
     "packages/blueprints",
     "packages/partners",

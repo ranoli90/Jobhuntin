@@ -34,8 +34,8 @@ From repo root:
 # Install Python audit tools first (once)
 pip install -r requirements-dev.txt
 
-# Install web deps (once; use --legacy-peer-deps if needed)
-cd apps/web && npm install --legacy-peer-deps && cd ../..
+# Install web deps (once; from repo root for workspace)
+npm install
 
 # Run all audits and write report
 npm run audit:full

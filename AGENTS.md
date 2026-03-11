@@ -13,12 +13,12 @@
 
 ### Key Gotchas
 
-- **PYTHONPATH**: The backend needs `PYTHONPATH=apps:packages:.` (note the `.` for the root-level `shared/` package). The Makefile only sets `apps:packages` which misses `shared/`.
+- **PYTHONPATH**: The backend needs `PYTHONPATH=apps:packages:.` (note the `.` for the root-level `shared/` package). All Python commands (uvicorn, workers, pytest, mypy) must use this.
 - **Docker socket permissions**: After starting Docker daemon, run `sudo chmod 666 /var/run/docker.sock` to allow non-root Docker access.
 - **Docker daemon**: Start with `sudo dockerd > /tmp/dockerd.log 2>&1 &` (do NOT pass `--storage-driver=fuse-overlayfs` as a flag since it's already in `/etc/docker/daemon.json`).
 - **DB schema files**: The `docker-compose.yml` expects `infra/postgres/schema.sql` and `infra/postgres/migrations.sql`, which must be assembled from `migrations/001_initial_schema.sql`, `migrations/002_onboarding_tables.sql`, and `supabase/migrations/20260211_seo_engine_progress.sql`. The schema.sql must only include the "Up" migration parts (exclude `-- +migrate Down` section). Database is Render PostgreSQL (no Supabase).
 - **`.env` file**: Copy `.env.example` to `.env` and set `DATABASE_URL=postgresql://postgres:postgres@localhost:5432/sorce` for local Docker Postgres. Generate dev secrets for `CSRF_SECRET`, `JWT_SECRET`, etc.
-- **JWT auth for API testing**: Create tokens with `jwt.encode({'sub': '<user-uuid>', 'aud': 'authenticated'}, '<JWT_SECRET>', algorithm='HS256')`. CSRF middleware blocks non-GET mutations without a valid CSRF cookie; use GET endpoints or browser-based testing for write operations.
+- **JWT auth for API testing**: Create tokens with `jwt.encode({'sub': '<user-uuid>', 'aud': 'authenticated', 'jti': str(uuid.uuid4())}, '<JWT_SECRET>', algorithm='HS256')`. Bearer-only requests skip CSRF (see docs/PRODUCTION_AUTH_CSRF.md); cookie-based auth requires CSRF.
 - **Pre-existing lint/type errors**: `ruff check` reports ~838 errors and `mypy` reports ~351 errors — these are pre-existing in the codebase.
 
 ### Lint / Test / Build Commands

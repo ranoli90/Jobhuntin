@@ -64,8 +64,11 @@ services:
     region: oregon
     plan: free
     branch: main
-    buildCommand: cd apps/web && npm install && npx playwright install chromium && npm run build
+    buildCommand: npm ci && cd apps/web && npx playwright install chromium && npm run build && cp dist/index.html dist/200.html
     staticPublishPath: apps/web/dist
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
     routes:
       - type: rewrite
         source: /*
@@ -116,18 +119,20 @@ services:
         value: /opt/render/project/data/storage
 
   # ─────────────────────────────────────────────────────────────────────────
-  # SEO Worker (Background)
+  # SEO Worker (Background) — Node/TypeScript, not Docker
   # ─────────────────────────────────────────────────────────────────────────
   - type: worker
     name: jobhuntin-seo-engine
-    env: docker
+    env: node
     region: oregon
     plan: starter
-    dockerfilePath: ./Dockerfile
-    dockerContext: .
     branch: main
+    buildCommand: npm ci && cd apps/web && npm ls tsx && npx playwright install chromium
+    startCommand: cd apps/web && node --import tsx scripts/seo/modern-seo-engine.ts
     numInstances: 1
     envVars:
+      - key: NODE_VERSION
+        value: "20"
       - key: ENV
         value: prod
       - key: DATABASE_URL
@@ -139,6 +144,12 @@ services:
           name: jobhuntin-redis
           type: keyvalue
           property: internalConnectionString
+      - key: LLM_API_KEY
+        sync: false
+      - key: GOOGLE_SERVICE_ACCOUNT_KEY
+        sync: false
+      - key: GOOGLE_SEARCH_CONSOLE_SITE
+        value: [REDACTED]
 
 # ───────────────────────────────────────────────────────────────────────────
 # Databases

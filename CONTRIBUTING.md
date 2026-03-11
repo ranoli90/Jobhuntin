@@ -2,7 +2,7 @@
 
 This repo powers live job application automation, AI-powered SEO generation, and customer-facing UI. Every change must uphold two guardrails:
 
-1. **Zero-Defect Standard** – No regressions in automation accuracy, Supabase data integrity, or SEO throughput. Ship with exhaustive tests, telemetry, and roll-back plans.
+1. **Zero-Defect Standard** – No regressions in automation accuracy, database integrity, or SEO throughput. Ship with exhaustive tests, telemetry, and roll-back plans.
 2. **No-Scroll UI Standard** – Any user-facing surface (web, mobile, extension) must keep critical CTAs above the fold. Avoid shipping components that require manual scrolling to reach the primary action unless UX explicitly approves.
 
 ## Code of Conduct
@@ -63,9 +63,9 @@ Telemetry hooks (metrics, logs) must be updated when adding new workflows so the
 
 ## Release Checklist
 
-1. Verify `render.yaml` + Supabase migrations are up to date.
+1. Verify `render.yaml` + database migrations are up to date.
 2. Confirm SEO scripts run successfully via `npm run seo:monitor`.
 3. Ensure worker scaling scripts (`python -m apps.worker.scaling`) start cleanly.
-4. Tag release in Git and update `docs/reports` if this is a major feature.
+4. Tag release in Git and update release notes if this is a major feature.
 
 Thank you for helping us keep JobHuntin operational-grade.

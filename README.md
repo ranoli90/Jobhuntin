@@ -14,19 +14,19 @@ AI-powered job application automation. Upload your resume once — JobHuntin mat
 git clone <repo-url> && cd jobhuntin
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt && npm install
-cp .env.example .env   # Configure DATABASE_URL, JWT_SECRET, etc.
+cp .env.example .env   # Configure DATABASE_URL, JWT_SECRET, CSRF_SECRET, etc.
 docker compose up db -d
-PYTHONPATH=apps:packages:. uvicorn api.main:app --reload --port 8000
-cd apps/web && npx vite --port 5173
+PYTHONPATH=apps:packages:. uvicorn api.main:app --reload --host 0.0.0.0 --port 8000
+cd apps/web && npx vite --host 0.0.0.0 --port 5173
 ```
 
 ### Key Commands
 
 | Command | Purpose |
 |---------|---------|
-| `make dev-api` | Run FastAPI backend |
+| `make dev-backend` | Run FastAPI backend |
 | `make dev-web` | Run web app |
-| `pytest tests/` | Run Python tests |
+| `make test-backend` | Run Python tests |
 | `cd apps/web && npm run build` | Build web app |
 
 ## For Investors
@@ -46,8 +46,8 @@ cd apps/web && npx vite --port 5173
 │   └── worker/       Playwright automation (FormAgent)
 ├── packages/
 │   ├── backend/      Domain, repositories, LLM
-│   ├── shared/       Config, logging, telemetry
 │   └── blueprints/   Job board adapters
+├── shared/           Config, logging, telemetry
 ├── infra/            Database schema, migrations
 ├── docs/             Documentation
 └── scripts/          Maintenance, migrations, load tests

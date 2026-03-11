@@ -31,7 +31,7 @@ JobHuntin is a monorepo that powers AI-driven job application automation. The sy
 | `apps/api` | FastAPI v1 (tenants, applications, webhooks) |
 | `apps/worker` | Playwright FormAgent, job application automation |
 | `packages/backend` | Domain models, repositories, LLM orchestration |
-| `packages/shared` | Config, logging, Redis, telemetry |
+| `shared` | Config, logging, Redis, telemetry |
 | `packages/blueprints` | Job board adapters (auto-loaded by worker) |
 | `infra/` | Database schema, migrations, Render manifests |
 

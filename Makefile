@@ -1,7 +1,7 @@
 # Sorce MVP – Development Commands
 # Usage: make <target>
 
-.PHONY: dev-backend dev-mobile test-backend test-mobile lint-backend lint-mobile lint test docker-up docker-down
+.PHONY: dev-backend dev-web dev-worker dev-mobile test-backend test-mobile lint-backend lint-mobile lint test docker-up docker-down
 
 # ---------------------------------------------------------------------------
 # Backend
@@ -10,15 +10,18 @@
 dev-backend:
 	PYTHONPATH=apps:packages:. uvicorn api.main:app --reload --host 0.0.0.0 --port 8000
 
+dev-web:
+	cd apps/web && npx vite --host 0.0.0.0 --port 5173
+
 dev-worker:
-	PYTHONPATH=apps:packages:. python -m worker.agent
+	PYTHONPATH=apps:packages:. python -m apps.worker.agent
 
 test-backend:
-	pytest tests/ -v -s --tb=short
+	PYTHONPATH=apps:packages:. pytest tests/ -v -s --tb=short
 
 lint-backend:
 	ruff check . --select E,W,F,I
-	PYTHONPATH=apps:packages:. mypy apps/api/ apps/worker/ packages/backend/ packages/shared/ --ignore-missing-imports
+	PYTHONPATH=apps:packages:. mypy apps/api/ apps/worker/ packages/backend/ shared/ --ignore-missing-imports
 
 fmt-backend:
 	ruff format .

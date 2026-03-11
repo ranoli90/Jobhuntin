@@ -6,7 +6,7 @@ services:
   - type: web
     name: jobhuntin-web
     env: static
-    buildCommand: cd apps/web && npm ci && npx playwright install chromium && npm run build && cp dist/index.html dist/200.html
+    buildCommand: npm ci && cd apps/web && npx playwright install chromium && npm run build && cp dist/index.html dist/200.html
     staticPublishPath: apps/web/dist
     headers:
       - path: /*
@@ -33,8 +33,10 @@ services:
     name: jobhuntin-api
     env: python
     buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn api.main:app --host 0.0.0.0 --port $PORT --workers 2 --log-level info
+    startCommand: PYTHONPATH=apps:packages:. uvicorn api.main:app --host 0.0.0.0 --port $PORT --workers 2 --log-level info
     envVars:
+      - key: PYTHONPATH
+        value: apps:packages:.
       - key: DATABASE_URL
         sync: false  # Set in Render dashboard - NEVER hardcode credentials
       - key: DATABASE_READ_URL
@@ -82,7 +84,7 @@ services:
   - type: worker
     name: jobhuntin-seo-engine
     env: node
-    buildCommand: cd apps/web && npm ci && npm ls tsx
+    buildCommand: npm ci && cd apps/web && npm ls tsx
     startCommand: cd apps/web && node --import tsx scripts/seo/modern-seo-engine.ts
     envVars:
       - key: GOOGLE_SERVICE_ACCOUNT_KEY
@@ -175,8 +177,10 @@ services:
     name: sorce-auto-apply-agent
     env: python
     buildCommand: pip install -r requirements.txt && playwright install chromium
-    startCommand: python -m apps.worker.scaling --instances 2
+    startCommand: PYTHONPATH=apps:packages:. python -m apps.worker.scaling --instances 2
     envVars:
+      - key: PYTHONPATH
+        value: apps:packages:.
       - key: DATABASE_URL
         sync: false  # Set in Render dashboard - NEVER hardcode credentials
       - key: DATABASE_READ_URL
@@ -189,8 +193,8 @@ services:
         value: google/gemini-2.0-flash
       - key: AGENT_ENABLED
         value: true
-      - key: ENV
-        value: production
+      - key: env
+        value: prod
       - key: STORAGE_TYPE
         value: render_disk
       - key: APP_BASE_URL
@@ -221,6 +225,10 @@ services:
         value: apps:packages:.
       - key: ALERT_FREQUENCY
         value: daily
+      - key: RESEND_API_KEY
+        sync: false
+      - key: EMAIL_FROM
+        value: [REDACTED]
 
   # Cron: Job Alerts (weekly)
   - type: cron
@@ -238,6 +246,10 @@ services:
         value: apps:packages:.
       - key: ALERT_FREQUENCY
         value: weekly
+      - key: RESEND_API_KEY
+        sync: false
+      - key: EMAIL_FROM
+        value: [REDACTED]
 
   # Cron: Weekly Email Digest (Mondays 9am UTC)
   - type: cron
@@ -262,16 +274,13 @@ services:
 # 1. Go to your Render dashboard
 # 2. Add these environment variables to each service:
 #
-# For Web Service:
-# - GOOGLE_SERVICE_ACCOUNT_KEY: Paste your entire service account JSON
-# - GOOGLE_SEARCH_CONSOLE_SITE: https://jobhuntin.com
+# For jobhuntin-api: DATABASE_URL, REDIS_URL, JWT_SECRET, CSRF_SECRET, WEBHOOK_SIGNING_SECRET,
+#   LLM_API_KEY, RESEND_API_KEY, EMAIL_FROM, STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, etc.
 #
-# For API Service:
-# - DATABASE_URL: Your PostgreSQL connection string
+# For jobhuntin-seo-engine: GOOGLE_SERVICE_ACCOUNT_KEY (JSON), GOOGLE_SEARCH_CONSOLE_SITE,
+#   DATABASE_URL, REDIS_URL, LLM_API_KEY.
 #
-# For SEO Worker:
-# - GOOGLE_SERVICE_ACCOUNT_KEY: Same as web service
-# - GOOGLE_SEARCH_CONSOLE_SITE: Same as web service
+# For job-alerts crons: RESEND_API_KEY, EMAIL_FROM (in addition to DATABASE_URL).
 
 # Deployment Commands:
 # Install Render CLI: curl https://render.com/docs/install.sh | sh

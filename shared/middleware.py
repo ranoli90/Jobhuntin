@@ -19,6 +19,10 @@ from starlette.responses import JSONResponse, Response
 from shared.config import get_settings
 from shared.logging_config import get_logger
 
+# Cookie used for httpOnly session auth (magic link flow). CSRF is only enforced
+# when this cookie is present. Bearer-only requests skip CSRF per OWASP.
+AUTH_COOKIE_NAME = "jobhuntin_auth"
+
 try:
     from starlette_csrf.middleware import CSRFMiddleware as StarletteCSRF
 except ImportError:
@@ -94,6 +98,49 @@ class CSRFMiddleware:
         return list(cls.EXEMPT_PATHS)
 
 
+def _get_csrf_cookie_domain(
+    *,
+    is_prod: bool,
+    api_host: str,
+    app_host: str,
+    api_url: str,
+    app_url: str,
+) -> str | None:
+    """Derive cookie domain for CSRF so frontend and API can share the cookie.
+
+    - Local (localhost/127.0.0.1): use "localhost" for cross-port (5173/8000).
+    - Prod cross-origin (app.jobhuntin.com + api.jobhuntin.com): use parent "jobhuntin.com".
+    - Same host or *.onrender.com: no shared parent, return None.
+    """
+    if not is_prod and api_host in ("localhost", "127.0.0.1") and app_host in ("localhost", "127.0.0.1"):
+        return "localhost" if api_host == "localhost" else None
+
+    if not is_prod or api_host == app_host:
+        return None
+
+    # Cross-origin production: derive parent domain from api or app URL
+    for url in (api_url, app_url):
+        if not url or "[REDACTED]" in url:
+            continue
+        try:
+            parsed = urlparse(url)
+            host = (parsed.netloc or parsed.path).split(":")[0] or ""
+            if not host:
+                continue
+            # Skip IPs and single-label (e.g. "localhost")
+            if "." not in host or host.replace(".", "").isdigit():
+                continue
+            # Skip *.onrender.com (no shared parent we control)
+            if host.endswith(".onrender.com") or host == "onrender.com":
+                continue
+            parts = host.split(".")
+            if len(parts) >= 2:
+                return ".".join(parts[-2:])
+        except Exception:
+            continue
+    return None
+
+
 def setup_csrf_middleware(app, secret: str) -> None:
     """Configure CSRF middleware on the FastAPI app.
 
@@ -144,11 +191,20 @@ def setup_csrf_middleware(app, secret: str) -> None:
     # Secure=True is ONLY allowed over HTTPS. In local dev, it must be False.
     cookie_secure = is_prod or (s.app_base_url and s.app_base_url.startswith("https"))
 
-    # cookie_domain: For local dev with frontend (5173) and API (8000) on different ports,
-    # set domain="localhost" so the cookie is readable by JS on both origins.
-    cookie_domain = None
-    if not is_prod and api_host in ("localhost", "127.0.0.1") and app_host in ("localhost", "127.0.0.1"):
-        cookie_domain = "localhost" if api_host == "localhost" else None
+    # sensitive_cookies: Only enforce CSRF when cookie-based auth is present.
+    # Bearer-only requests skip CSRF per OWASP (browser cannot auto-send Authorization header).
+    # Scales to 1 or 500 users: stateless, no server-side session lookup.
+    sensitive_cookies: frozenset[str] = frozenset({AUTH_COOKIE_NAME})
+
+    # cookie_domain: Enables cross-subdomain CSRF cookie when app and API differ.
+    # Local: localhost for ports 5173/8000. Prod: parent domain (e.g. .jobhuntin.com).
+    cookie_domain = _get_csrf_cookie_domain(
+        is_prod=is_prod,
+        api_host=api_host,
+        app_host=app_host,
+        api_url=s.api_public_url or "",
+        app_url=s.app_base_url or "",
+    )
 
     # cookie_httponly=False: double-submit pattern requires JS to read token for header
     app.add_middleware(
@@ -160,10 +216,12 @@ def setup_csrf_middleware(app, secret: str) -> None:
         cookie_samesite="none" if is_cross_origin else "lax",
         cookie_path="/",
         cookie_domain=cookie_domain,
+        sensitive_cookies=sensitive_cookies,
         exempt_urls=exempt_patterns,
     )
     logger.info(
-        f"CSRF protection enabled (SameSite={'none' if is_cross_origin else 'lax'})"
+        f"CSRF protection enabled (SameSite={'none' if is_cross_origin else 'lax'}, "
+        f"sensitive_cookies={list(sensitive_cookies)})"
     )
 
 

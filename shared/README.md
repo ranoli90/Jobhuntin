@@ -1,4 +1,4 @@
-# packages/shared
+# shared
 
 Infrastructure glue consumed by every Python process (APIs, workers, scripts). These modules expose environment settings, logging, metrics, telemetry, cache helpers, and middleware so each runtime behaves consistently across Render, Supabase, and local dev.
 

@@ -63,7 +63,7 @@ RUN pip install --no-cache-dir "playwright>=1.43,<2" \
 
 USER sorce
 
-CMD ["python", "-m", "worker.agent"]
+CMD ["python", "-m", "apps.worker.agent"]
 
 # ============================================================
 # Stage: api – FastAPI service (no Playwright)
