@@ -110,6 +110,18 @@ async def export_user_data(
     )
     data["sections"]["job_alerts"] = [dict(a) for a in alerts]
 
+    # PRIV-005: answer_memory (smart pre-fill) keyed by user_id
+    answer_memory = await conn.fetch(
+        """
+        SELECT field_label, field_type, answer_value, use_count, last_used_at, created_at
+        FROM public.answer_memory
+        WHERE user_id = $1
+        ORDER BY last_used_at DESC
+        """,
+        user_id,
+    )
+    data["sections"]["answer_memory"] = [dict(r) for r in answer_memory]
+
     incr("gdpr.export_completed")
     logger.info("GDPR export completed for user %s", user_id)
 
@@ -156,6 +168,13 @@ async def delete_user_data(
         deleted["application_inputs"] = _count_from_result(
             deleted["application_inputs"]
         )
+
+        # PRIV-005: answer_memory keyed by user_id
+        deleted["answer_memory"] = await conn.execute(
+            "DELETE FROM public.answer_memory WHERE user_id = $1",
+            user_id,
+        )
+        deleted["answer_memory"] = _count_from_result(deleted["answer_memory"])
 
         deleted["application_events"] = await conn.execute(
             """

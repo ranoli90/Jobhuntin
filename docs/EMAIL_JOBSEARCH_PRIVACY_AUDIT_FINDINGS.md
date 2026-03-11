@@ -34,7 +34,7 @@
 | F009 | Job | job_search.py:146-155 | recently_matched sort same as match_score | fixed |
 | F004 | Job | match_score_precompute.py | Pre-computed scores never read | fixed |
 | PRIV-004 | Privacy | ccpa.py | CCPA data access returns limited fields | fixed |
-| PRIV-005 | Privacy | gdpr.py | GDPR export vs deletion table mismatch | pending |
+| PRIV-005 | Privacy | gdpr.py | GDPR export vs deletion table mismatch | fixed |
 | PRIV-006 | Privacy | ccpa.py, main.py | CCPA router has no prefix | fixed |
 | PRIV-007 | Privacy | data_retention.py:96-106 | Applications hard-deleted, not archived | deferred |
 | PRIV-008 | Privacy | gdpr.py:181-212 | GDPR export returns raw data in response | deferred |

@@ -93,10 +93,19 @@ class CCPAComplianceManager:
             async with db_pool.acquire() as conn:
                 # Begin transaction for atomic deletion
                 async with conn.transaction():
-                    # Delete from tables in order of dependency (child tables first)
+                    # PRIV-005: Use application_inputs and answer_memory, not input_answers.
+                    # Custom deletes (application_inputs has application_id, not user_id)
+                    custom_deletes = [
+                        (
+                            "public.application_inputs",
+                            "DELETE FROM public.application_inputs WHERE "
+                            "application_id IN (SELECT id FROM public.applications "
+                            "WHERE user_id = $1)",
+                        ),
+                    ]
                     tables_to_delete = [
                         ("public.analytics_events", "user_id"),
-                        ("public.input_answers", "user_id"),
+                        ("public.answer_memory", "user_id"),
                         ("public.cover_letters", "user_id"),
                         ("public.saved_jobs", "user_id"),
                         ("public.profile_embeddings", "user_id"),
@@ -107,6 +116,14 @@ class CCPAComplianceManager:
                         ("public.tenant_members", "user_id"),
                         ("public.users", "id"),
                     ]
+
+                    for table, query in custom_deletes:
+                        try:
+                            result = await conn.execute(query, user_id)
+                            deleted_count = int(result.split()[-1]) if result else 0
+                            deleted_tables[table] = deleted_count
+                        except Exception as e:
+                            errors.append(f"{table}: {str(e)}")
 
                     for table, user_col in tables_to_delete:
                         try:

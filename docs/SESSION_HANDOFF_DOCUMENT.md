@@ -81,7 +81,7 @@ PYTHONPATH=apps:packages:. mypy apps/api/ apps/worker/ packages/backend/ shared/
 ### 3.1 Privacy (Email/Job/Privacy Audit)
 | ID | File | Description | Priority |
 |----|------|-------------|----------|
-| PRIV-005 | gdpr.py | GDPR export vs deletion table mismatch (e.g. `input_answers` vs `application_inputs`/`answer_memory`) | High |
+| PRIV-005 | gdpr.py | GDPR export vs deletion table mismatch (e.g. `input_answers` vs `application_inputs`/`answer_memory`) | fixed |
 | PRIV-007 | data_retention.py | Applications hard-deleted, not archived; needs archive table | Deferred |
 | PRIV-008 | gdpr.py | GDPR export returns raw data in response; needs secure download URLs | Deferred |
 | F004 | match_score_precompute.py | Pre-computed scores never read (was deferred; may be fixed) | Check |

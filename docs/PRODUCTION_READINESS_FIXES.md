@@ -42,7 +42,12 @@
 ### 9. Resume (OB-001)
 - **resume.py**: Compensating delete of orphaned file on DB upsert failure (already present)
 
-### 10. Security
+### 10. GDPR/Privacy (PRIV-005)
+- **apps/api/gdpr.py**: Replaced legacy `input_answers` with `application_inputs` (export via application_id, delete via subquery) and `answer_memory` (user_id). Export and deletion now align with actual schema.
+- **packages/backend/domain/ccpa.py**: Same alignment; custom delete for application_inputs before applications.
+- **packages/backend/domain/gdpr.py**: Added answer_memory to export and deletion.
+
+### 11. Security
 - **update-render-env.sh**: Stripe keys loaded from env; no hardcoding
 - **sync_render_env_from_dotenv.py**: Fixed get_env_vars for Render API response formats
 

@@ -80,6 +80,9 @@ async def _get_tenant_id() -> str:
     return ctx.tenant_id
 
 
+# PRIV-005: Use application_inputs (hold questions) and answer_memory (smart pre-fill),
+# not legacy input_answers which may not exist. application_inputs is keyed by
+# application_id; answer_memory by user_id.
 TABLES_WITH_USER_DATA = [
     ("public.profiles", "user_id", ["profile_data", "resume_url", "preferences"]),
     (
@@ -88,7 +91,11 @@ TABLES_WITH_USER_DATA = [
         ["application_url", "status", "created_at", "updated_at"],
     ),
     ("public.saved_jobs", "user_id", ["job_id", "saved_at"]),
-    ("public.input_answers", "user_id", ["question", "answer", "created_at"]),
+    (
+        "public.answer_memory",
+        "user_id",
+        ["field_label", "field_type", "answer_value", "use_count", "created_at"],
+    ),
     ("public.cover_letters", "user_id", ["content", "job_id", "created_at"]),
     ("public.profile_embeddings", "user_id", ["embedding", "text_hash", "created_at"]),
     (
@@ -99,10 +106,19 @@ TABLES_WITH_USER_DATA = [
     ("public.analytics_events", "user_id", ["event_type", "properties", "created_at"]),
 ]
 
+# application_inputs: delete via application_id (child of applications)
+CUSTOM_DELETION_QUERIES = [
+    (
+        "public.application_inputs",
+        "DELETE FROM public.application_inputs WHERE application_id IN "
+        "(SELECT id FROM public.applications WHERE user_id = $1)",
+    ),
+]
+
 TABLES_FOR_DELETION = [
     ("public.profile_embeddings", "user_id"),
     ("public.user_preferences", "user_id"),
-    ("public.input_answers", "user_id"),
+    ("public.answer_memory", "user_id"),
     ("public.cover_letters", "user_id"),
     ("public.saved_jobs", "user_id"),
     ("public.analytics_events", "user_id"),
@@ -117,11 +133,12 @@ TABLES_FOR_DELETION = [
 # This prevents SQL injection by validating table names before use
 ALLOWED_TABLES = {table for table, _, _ in TABLES_WITH_USER_DATA}
 ALLOWED_TABLES.update({table for table, _ in TABLES_FOR_DELETION})
+ALLOWED_TABLES.update({t for t, _ in CUSTOM_DELETION_QUERIES})
 ALLOWED_USER_COLUMNS = {
     "public.profiles": "user_id",
     "public.applications": "user_id",
     "public.saved_jobs": "user_id",
-    "public.input_answers": "user_id",
+    "public.answer_memory": "user_id",
     "public.cover_letters": "user_id",
     "public.profile_embeddings": "user_id",
     "public.user_preferences": "user_id",
@@ -198,6 +215,31 @@ async def export_user_data(
                     extra={"table": table, "error": str(e)},
                 )
 
+        # PRIV-005: application_inputs is keyed by application_id; export via user's apps
+        try:
+            app_ids = [r["id"] for r in export_data["data"].get("public.applications", [])]
+            if app_ids:
+                rows = await conn.fetch(
+                    """
+                    SELECT application_id, selector, question, field_type, answer,
+                           resolved, created_at
+                    FROM public.application_inputs
+                    WHERE application_id = ANY($1::uuid[])
+                    ORDER BY created_at DESC
+                    """,
+                    app_ids,
+                )
+                if rows:
+                    export_data["data"]["public.application_inputs"] = [
+                        dict(row) for row in rows
+                    ]
+                    data_categories.append("public.application_inputs")
+        except Exception as e:
+            logger.warning(
+                "Failed to export application_inputs",
+                extra={"error": str(e)},
+            )
+
     # Generate JSON export and include in response
     json_export = json.dumps(export_data, indent=2, default=str)
     export_data["json_export"] = json_export
@@ -247,6 +289,18 @@ async def delete_user_data(
 
     try:
         async with db_transaction(pool) as conn:
+            # PRIV-005: Custom deletions (application_inputs before applications)
+            for table, query in CUSTOM_DELETION_QUERIES:
+                try:
+                    result = await conn.execute(query, user_id)
+                    deleted_counts[table] = int(result.split()[-1]) if result else 0
+                except Exception as e:
+                    logger.warning(
+                        "Failed to delete from table",
+                        extra={"table": table, "error": str(e)},
+                    )
+                    retention_exceptions.append(f"{table}: {str(e)}")
+
             for table, user_col in TABLES_FOR_DELETION:
                 try:
                     # PRIV-003: Remove profile from vector DB before deleting profile_embeddings
