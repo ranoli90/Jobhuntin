@@ -19,6 +19,7 @@ Usage:
 from __future__ import annotations
 
 import asyncio
+import threading
 import time
 from collections import defaultdict, deque
 from dataclasses import dataclass, field
@@ -165,6 +166,7 @@ class AuthMiddleware:
         self._cleanup_task: Optional[asyncio.Task] = None
 
         self._lock = asyncio.Lock()
+        self._stats_lock = threading.Lock()
 
     async def authenticate_request(
         self,
@@ -176,8 +178,9 @@ class AuthMiddleware:
         start_time = time.time()
 
         try:
-            # Update statistics
-            self.auth_stats["total_requests"] += 1
+            # Update statistics (lock protects shared mutable state)
+            with self._stats_lock:
+                self.auth_stats["total_requests"] += 1
 
             # Check IP whitelist if enabled
             if self.config.enable_ip_whitelist:
@@ -211,7 +214,8 @@ class AuthMiddleware:
             # Check rate limiting
             client_ip = self._get_client_ip(request)
             if await self._is_rate_limited(client_ip):
-                self.auth_stats["rate_limited"] += 1
+                with self._stats_lock:
+                    self.auth_stats["rate_limited"] += 1
                 return AuthResult(
                     status=AuthStatus.RATE_LIMITED,
                     error_message="Rate limit exceeded",
@@ -244,14 +248,14 @@ class AuthMiddleware:
                     result.status = AuthStatus.FORBIDDEN
                     result.error_message = "Insufficient permissions"
 
-            # Update statistics
-            if result.status == AuthStatus.AUTHENTICATED:
-                self.auth_stats["successful_auths"] += 1
-            else:
-                self.auth_stats["failed_auths"] += 1
-
-            if result.auth_type:
-                self.auth_stats["auth_by_type"][result.auth_type.value] += 1
+            # Update statistics (lock protects shared mutable state)
+            with self._stats_lock:
+                if result.status == AuthStatus.AUTHENTICATED:
+                    self.auth_stats["successful_auths"] += 1
+                else:
+                    self.auth_stats["failed_auths"] += 1
+                if result.auth_type:
+                    self.auth_stats["auth_by_type"][result.auth_type.value] += 1
 
             # Update last access for sessions
             if result.status == AuthStatus.AUTHENTICATED and result.user_id:
@@ -261,7 +265,8 @@ class AuthMiddleware:
 
         except Exception as e:
             logger.error(f"Authentication error: {e}")
-            self.auth_stats["failed_auths"] += 1
+            with self._stats_lock:
+                self.auth_stats["failed_auths"] += 1
 
             return AuthResult(
                 status=AuthStatus.INVALID,
@@ -628,11 +633,12 @@ class AuthMiddleware:
             extra={"ip_hash": mask_ip(client_ip), "reason": reason},
         )
 
-        # Update statistics
-        if "IP" in reason:
-            self.auth_stats["blocked_ips"] += 1
-        elif "User agent" in reason:
-            self.auth_stats["blocked_user_agents"] += 1
+        # Update statistics (lock protects shared mutable state)
+        with self._stats_lock:
+            if "IP" in reason:
+                self.auth_stats["blocked_ips"] += 1
+            elif "User agent" in reason:
+                self.auth_stats["blocked_user_agents"] += 1
 
         # Trigger alert for security monitoring
         await self.alert_manager.trigger_alert(
@@ -868,7 +874,8 @@ class AuthMiddleware:
 
     def get_auth_stats(self) -> Dict[str, Any]:
         """Get authentication statistics."""
-        return dict(self.auth_stats)
+        with self._stats_lock:
+            return dict(self.auth_stats)
 
     def get_active_sessions_count(self) -> int:
         """Get count of active sessions."""

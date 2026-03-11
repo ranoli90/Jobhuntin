@@ -98,6 +98,7 @@ class TenantRateLimiter:
     def __init__(self) -> None:
         self._redis_client: Any = None
         self._lock = threading.Lock()
+        self._concurrent_locks_lock = threading.Lock()
         self._memory_windows: dict[str, list[float]] = defaultdict(list)
         self._concurrent_counts: dict[str, int] = defaultdict(int)
         self._concurrent_locks: dict[str, asyncio.Lock] = {}
@@ -208,10 +209,12 @@ class TenantRateLimiter:
         limits = get_tier_limits(tier)
         key = f"{tenant_id}:{operation}"
 
-        if key not in self._concurrent_locks:
-            self._concurrent_locks[key] = asyncio.Lock()
+        with self._concurrent_locks_lock:
+            if key not in self._concurrent_locks:
+                self._concurrent_locks[key] = asyncio.Lock()
+            lock = self._concurrent_locks[key]
 
-        async with self._concurrent_locks[key]:
+        async with lock:
             current = self._concurrent_counts.get(key, 0)
 
             if current >= limits.concurrent_requests:
@@ -236,8 +239,11 @@ class TenantRateLimiter:
         """Release a concurrent request slot."""
         key = f"{tenant_id}:{operation}"
 
-        if key in self._concurrent_locks:
-            async with self._concurrent_locks[key]:
+        with self._concurrent_locks_lock:
+            lock = self._concurrent_locks.get(key)
+
+        if lock is not None:
+            async with lock:
                 current = self._concurrent_counts.get(key, 0)
                 if current > 0:
                     self._concurrent_counts[key] = current - 1

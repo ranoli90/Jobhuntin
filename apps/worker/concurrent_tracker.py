@@ -7,6 +7,7 @@ overloading of resources and maintain system stability.
 from __future__ import annotations
 
 import asyncio
+import threading
 import time
 from dataclasses import dataclass
 from typing import Dict, Optional, Set
@@ -167,17 +168,19 @@ class ConcurrentUsageTracker:
 
 # Global instance
 _concurrent_tracker: Optional[ConcurrentUsageTracker] = None
+_tracker_lock = threading.Lock()
 
 
 def get_concurrent_tracker() -> ConcurrentUsageTracker:
     """Get or create the global concurrent usage tracker."""
     global _concurrent_tracker
-    if _concurrent_tracker is None:
-        from shared.config import get_settings
+    with _tracker_lock:
+        if _concurrent_tracker is None:
+            from shared.config import get_settings
 
-        settings = get_settings()
-        _concurrent_tracker = ConcurrentUsageTracker(
-            max_concurrent=getattr(settings, "max_concurrent_applications", 10),
-            max_per_tenant=getattr(settings, "max_concurrent_per_tenant", 3),
-        )
-    return _concurrent_tracker
+            settings = get_settings()
+            _concurrent_tracker = ConcurrentUsageTracker(
+                max_concurrent=getattr(settings, "max_concurrent_applications", 10),
+                max_per_tenant=getattr(settings, "max_concurrent_per_tenant", 3),
+            )
+        return _concurrent_tracker
