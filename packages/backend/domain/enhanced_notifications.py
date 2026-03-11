@@ -540,14 +540,27 @@ class AlertProcessor:
     async def _create_support_ticket(
         self, alert_data: Dict[str, Any], user_id: str, tenant_id: Optional[str]
     ) -> None:
-        """Create support ticket for critical issues."""
-        # TODO: Implement support ticket creation
-        logger.info("Support ticket created for user %s: %s", user_id, alert_data)
+        """Create support ticket for critical issues.
+        Logs structured data for support triage; full integration requires external ticketing system."""
+        logger.info(
+            "Support ticket requested for user %s",
+            user_id,
+            extra={
+                "tenant_id": tenant_id,
+                "alert_data": alert_data,
+                "support_ticket_pending": True,
+            },
+        )
 
     async def _suspend_service(self, user_id: str, tenant_id: Optional[str]) -> None:
-        """Suspend service for rule violations."""
-        # TODO: Implement service suspension
-        logger.warning("Service suspended for user %s", user_id)
+        """Suspend service for rule violations.
+        Logs for ops; full implementation requires persisted suspension state (e.g. tenant flag)."""
+        logger.warning(
+            "Service suspension triggered for user %s (tenant %s)",
+            user_id,
+            tenant_id,
+            extra={"user_id": user_id, "tenant_id": tenant_id, "suspension_triggered": True},
+        )
 
     async def _log_security_event(
         self, alert_data: Dict[str, Any], user_id: str, tenant_id: Optional[str]
