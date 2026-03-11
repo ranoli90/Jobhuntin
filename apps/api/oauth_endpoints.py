@@ -7,10 +7,11 @@ from __future__ import annotations
 import uuid
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, Header, HTTPException
 from pydantic import BaseModel, Field
 
 from packages.backend.domain.oauth_handler import OAuthHandler, create_oauth_handler
+from shared.redirect_validation import validate_oauth_redirect_uri
 from packages.backend.domain.tenant import TenantContext
 from shared.logging_config import get_logger
 
@@ -91,6 +92,7 @@ async def initiate_oauth_flow(
                 status_code=400,
                 detail=f"Unsupported OAuth provider: {request.provider}",
             )
+        validate_oauth_redirect_uri(request.redirect_uri)
 
         # Initiate OAuth flow
         auth_url = await oauth_handler.initiate_flow(
@@ -121,6 +123,7 @@ async def handle_oauth_callback(
     oauth_handler: OAuthHandler = Depends(get_oauth_handler),
 ) -> Dict[str, Any]:
     """Handle OAuth callback and exchange code for tokens."""
+    validate_oauth_redirect_uri(request.redirect_uri)
     try:
         # Exchange authorization code for tokens
         token_response = await oauth_handler.exchange_code_for_tokens(
@@ -167,6 +170,7 @@ async def exchange_code_for_token(
     oauth_handler: OAuthHandler = Depends(get_oauth_handler),
 ) -> Dict[str, Any]:
     """Exchange authorization code for access token."""
+    validate_oauth_redirect_uri(request.redirect_uri)
     try:
         token_response = await oauth_handler.exchange_code_for_tokens(
             provider=request.provider,
@@ -225,6 +229,7 @@ async def store_oauth_credentials(
     oauth_handler: OAuthHandler = Depends(get_oauth_handler),
 ) -> Dict[str, str]:
     """Store OAuth credentials for a provider."""
+    validate_oauth_redirect_uri(request.redirect_uri)
     try:
         credentials = await oauth_handler.store_credentials(
             provider=request.provider,
@@ -326,11 +331,19 @@ async def get_supported_providers() -> Dict[str, Any]:
 @router.get("/user-info")
 async def get_oauth_user_info(
     provider: str,
-    access_token: str,
+    authorization: str | None = Header(None, alias="Authorization"),
     ctx: TenantContext = Depends(get_tenant_context),
     oauth_handler: OAuthHandler = Depends(get_oauth_handler),
 ) -> Dict[str, Any]:
-    """Get user information from OAuth provider."""
+    """Get user information from OAuth provider. Token via Authorization header."""
+    access_token = None
+    if authorization and authorization.startswith("Bearer "):
+        access_token = authorization[7:].strip()
+    if not access_token:
+        raise HTTPException(
+            status_code=401,
+            detail="Missing Authorization header with Bearer token",
+        )
     try:
         user_info = await oauth_handler.get_user_info(provider, access_token)
 

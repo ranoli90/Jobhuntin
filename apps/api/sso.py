@@ -14,6 +14,7 @@ from pydantic import BaseModel
 from backend.domain.audit import record_audit_event
 from backend.domain.tenant import TenantContext, TenantScopeError, require_role
 from shared.logging_config import get_logger
+from shared.validators import validate_uuid
 
 try:
     from backend.sso.saml import (
@@ -120,7 +121,9 @@ async def saml_acs(
         raise HTTPException(status_code=400, detail="Missing SAMLResponse")
 
     # We need to find the tenant — try RelayState first (contains tenant_id)
-    tenant_id = relay_state if relay_state else None
+    tenant_id = (relay_state or "").strip() or None
+    if tenant_id:
+        validate_uuid(tenant_id, "RelayState")
 
     async with db.acquire() as conn:
         # If no tenant from RelayState, do a soft parse to discover domain then re-parse with cert

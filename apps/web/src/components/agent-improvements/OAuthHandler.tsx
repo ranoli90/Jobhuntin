@@ -59,9 +59,8 @@ const OAuthHandler: React.FC = () => {
   const fetchProviders = async () => {
     try {
       const response = await fetch('/api/oauth/providers', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
       });
 
       if (!response.ok) throw new Error('Failed to fetch providers');
@@ -77,9 +76,8 @@ const OAuthHandler: React.FC = () => {
   const fetchCredentials = async () => {
     try {
       const response = await fetch('/api/oauth/credentials', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
       });
 
       if (!response.ok) throw new Error('Failed to fetch credentials');
@@ -94,10 +92,8 @@ const OAuthHandler: React.FC = () => {
     try {
       const response = await fetch('/api/oauth/store-credentials', {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          'Content-Type': 'application/json',
-        },
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           provider: selectedProvider,
           client_id: clientId,
@@ -126,10 +122,8 @@ const OAuthHandler: React.FC = () => {
     try {
       const response = await fetch('/api/oauth/initiate', {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          'Content-Type': 'application/json',
-        },
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           provider: provider,
           client_id: clientId,
@@ -154,10 +148,8 @@ const OAuthHandler: React.FC = () => {
     try {
       const response = await fetch('/api/oauth/credentials', {
         method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          'Content-Type': 'application/json',
-        },
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           provider: provider,
         }),

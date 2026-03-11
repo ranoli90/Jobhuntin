@@ -19,6 +19,7 @@ from backend.domain.notion_integration import (
 from backend.domain.slack_integration import SlackIntegrationManager, SlackMessageType
 from backend.domain.zapier_integration import ZapierIntegrationManager
 from shared.logging_config import get_logger
+from shared.redirect_validation import validate_webhook_url
 
 logger = get_logger("sorce.api.integrations")
 
@@ -435,6 +436,7 @@ async def create_zapier_hook(
     user_id: str = Depends(_get_user_id),
     tenant_id: str = Depends(_get_tenant_id),
 ) -> dict[str, Any]:
+    validate_webhook_url(body.webhook_url, "webhook_url")
     manager = ZapierIntegrationManager(db)
 
     hook = await manager.subscribe(

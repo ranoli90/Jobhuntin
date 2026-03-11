@@ -24,6 +24,7 @@ from packages.backend.domain.agent_improvements import (
 )
 from packages.backend.domain.tenant import TenantContext
 from shared.logging_config import get_logger
+from shared.redirect_validation import validate_redirect_url
 
 logger = get_logger("sorce.agent_improvements_api")
 
@@ -175,6 +176,7 @@ async def start_oauth_flow(
     agent_manager: AgentImprovementsManager = Depends(get_agent_improvements_manager),
 ) -> Dict[str, Any]:
     """Start OAuth/SSO flow for external service integration."""
+    validate_redirect_url(request.redirect_url, "redirect_url")
     try:
         result = await agent_manager.handle_oauth_flow(
             provider=request.provider,
