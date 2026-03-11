@@ -462,7 +462,8 @@ async def get_activity_log(
 ) -> Dict[str, Any]:
     """Get database activity log."""
     try:
-        # Get recent activity from pg_stat_activity
+        # Get recent activity from pg_stat_activity.
+        # Use make_interval for parameterized interval; pg_stat_activity has no "timestamp" column.
         query = """
             SELECT
                 pid,
@@ -482,13 +483,13 @@ async def get_activity_log(
                 query_plan,
                 state_change
             FROM pg_stat_activity
-            WHERE state_change > NOW() - INTERVAL '$1 hour'
-            ORDER BY timestamp DESC
-            LIMIT $1
+            WHERE state_change > NOW() - make_interval(hours => $1::int)
+            ORDER BY state_change DESC NULLS LAST
+            LIMIT $2
         """
 
         async with db_pool.acquire() as conn:
-            results = await conn.fetch(query, f"{time_period_hours}")
+            results = await conn.fetch(query, time_period_hours, limit)
 
             activities = []
             for row in results:
@@ -665,7 +666,7 @@ async def get_resource_usage(
 ) -> Dict[str, Any]:
     """Get database resource usage."""
     try:
-        # Get resource usage from pg_stat_database
+        # Get resource usage from pg_stat_database (only columns that exist in this view)
         query = """
             SELECT
                 xact_commit,
@@ -675,15 +676,12 @@ async def get_resource_usage(
                 deadlocks,
                 conflicts,
                 temp_files,
-                checksum_failures,
+                temp_bytes,
                 blk_read_time,
-                wal_write_time,
-                bgwriter_count,
-                checkpoint_bytes,
-                checkpoint_timestamp,
-                backup_bytes,
-                timestamp
+                blk_write_time,
+                stats_reset
             FROM pg_stat_database
+            WHERE datname = current_database()
         """
 
         async with db_pool.acquire() as conn:
@@ -697,14 +695,10 @@ async def get_resource_usage(
                 "deadlocks": result[4],
                 "conflicts": result[5],
                 "temp_files": result[6],
-                "checksum_failures": result[7],
+                "temp_bytes": result[7],
                 "blk_read_time": result[8],
-                "wal_write_time": result[9],
-                "bgwriter_count": result[10],
-                "checkpoint_bytes": result[11],
-                "checkpoint_timestamp": result[12],
-                "backup_bytes": result[13],
-                "timestamp": result[14].isoformat(),
+                "blk_write_time": result[9],
+                "stats_reset": result[10].isoformat() if result[10] else None,
             }
 
         return resource_usage

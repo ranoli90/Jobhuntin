@@ -181,6 +181,43 @@ class TestUsageTracking:
         assert result["api_calls"] == 150
 
 
+class TestInputRepoUpdateAnswers:
+    """Tests for InputRepo.update_answers IDOR prevention."""
+
+    @pytest.mark.asyncio
+    async def test_update_answers_requires_application_id(self):
+        """update_answers must receive application_id to prevent IDOR."""
+        from backend.domain.repositories import InputRepo
+
+        mock_conn = MagicMock()
+        mock_conn.execute = AsyncMock(return_value="UPDATE 1")
+
+        with pytest.raises(ValueError, match="application_id is required"):
+            await InputRepo.update_answers(
+                mock_conn,
+                [{"input_id": "inp_123", "answer": "test"}],
+                application_id=None,
+            )
+
+    @pytest.mark.asyncio
+    async def test_update_answers_with_application_id(self):
+        """update_answers with application_id scopes update correctly."""
+        from backend.domain.repositories import InputRepo
+
+        mock_conn = MagicMock()
+        mock_conn.execute = AsyncMock(return_value="UPDATE 1")
+
+        await InputRepo.update_answers(
+            mock_conn,
+            [{"input_id": "inp_123", "answer": "test"}],
+            application_id="app_456",
+        )
+
+        mock_conn.execute.assert_called_once()
+        call_args = mock_conn.execute.call_args
+        assert "app_456" in str(call_args)
+
+
 class TestTierLimits:
     """Tests for tier-based limits."""
 

@@ -4,6 +4,7 @@ Concurrent Usage Tracker for Phase 12.1 Agent Improvements
 
 from __future__ import annotations
 
+import threading
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 from typing import Dict, List, Optional
@@ -11,6 +12,8 @@ from typing import Dict, List, Optional
 from shared.logging_config import get_logger
 
 logger = get_logger("sorce.concurrent_tracker")
+
+_concurrent_tracker_lock = threading.Lock()
 
 
 @dataclass
@@ -196,7 +199,8 @@ class ConcurrentTracker:
 
 # Factory function
 def get_concurrent_tracker() -> ConcurrentTracker:
-    """Get concurrent tracker instance."""
-    if not hasattr(get_concurrent_tracker, "_instance"):
-        get_concurrent_tracker._instance = ConcurrentTracker()  # type: ignore[attr-defined]
-    return get_concurrent_tracker._instance  # type: ignore[no-any-return, attr-defined]
+    """Get concurrent tracker instance. Thread-safe singleton."""
+    with _concurrent_tracker_lock:
+        if not hasattr(get_concurrent_tracker, "_instance"):
+            get_concurrent_tracker._instance = ConcurrentTracker()  # type: ignore[attr-defined]
+        return get_concurrent_tracker._instance  # type: ignore[no-any-return, attr-defined]
