@@ -135,7 +135,7 @@ async def search_and_list_jobs(
                 precomputed_rows = await conn.fetch(
                     """
                     SELECT job_id, score FROM public.match_scores
-                    WHERE user_id = $1 AND job_id = ANY($2::uuid[])
+                    WHERE user_id = $1::uuid AND job_id = ANY($2::uuid[])
                     """,
                     user_id,
                     job_ids,

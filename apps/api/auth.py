@@ -1559,3 +1559,100 @@ async def resend_webhook(
         logger.info(f"Unknown Resend event type: {event_type}")
 
     return JSONResponse({"status": "ok"})
+
+
+# DEV-ONLY: Quick auth bypass for testing
+class DevLoginRequest(BaseModel):
+    email: EmailStr
+
+
+@router.post("/dev-login")
+async def dev_login(
+    request: Request,
+    body: DevLoginRequest,
+    pool=Depends(get_pool),
+    settings: Settings = Depends(settings_dependency),
+):
+    """
+    DEV-ONLY endpoint: Create or get a test user and return a valid JWT session token.
+    Only works when ENV=local or ENV=dev.
+    """
+    if settings.env.value not in ("local", "dev"):
+        raise HTTPException(status_code=404, detail="Not found")
+    
+    email = body.email
+    logger.info(f"[DEV] Dev login requested for {_mask_email(email)}")
+    
+    try:
+        # Dev-only: minimal flow - create user, issue JWT (skip session table for simplicity)
+        import uuid as _uuid_mod
+        from datetime import datetime as _dt
+        from datetime import timedelta as _td
+
+        import jwt as _jwt
+
+        async with pool.acquire() as conn:
+            # Ensure user_sessions exists (for future session-based flows)
+            from backend.domain.session_manager import init_session_table
+
+            await init_session_table(conn)
+
+            # Get or create user
+            row = await conn.fetchrow(
+                """
+                INSERT INTO users (id, email, full_name, created_at, updated_at)
+                VALUES (gen_random_uuid(), $1, 'Test User', NOW(), NOW())
+                ON CONFLICT (email) DO UPDATE SET updated_at = NOW()
+                RETURNING id
+                """,
+                email,
+            )
+            if not row:
+                raise HTTPException(status_code=500, detail="Failed to create user")
+            user_id = str(row["id"])
+
+        SESSION_TTL_SECONDS = 7 * 24 * 3600  # 7 days
+        _now = _dt.now(timezone.utc)
+        jti = str(_uuid_mod.uuid4())
+        session_id = f"dev-{jti[:8]}"
+        session_payload = {
+            "sub": str(user_id),
+            "email": email,
+            "aud": "authenticated",
+            "jti": jti,
+            "session_id": session_id,
+            "iat": _now,
+            "nbf": _now,
+            "exp": _now + _td(seconds=SESSION_TTL_SECONDS),
+        }
+        session_token = _jwt.encode(
+            session_payload, settings.jwt_secret, algorithm="HS256"
+        )
+        
+        logger.info(f"[DEV] Created session for user {user_id}")
+        
+        response = JSONResponse({
+            "user_id": user_id,
+            "email": email,
+            "access_token": session_token,
+            "message": "Dev login successful - cookie set"
+        })
+        
+        # Set httpOnly cookie (use jobhuntin_auth to match API expectations)
+        response.set_cookie(
+            key=AUTH_COOKIE_NAME,
+            value=session_token,
+            httponly=True,
+            secure=False,
+            samesite="lax",
+            max_age=SESSION_TTL_SECONDS,
+            path="/",
+        )
+        
+        return response
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"[DEV] Dev login failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+

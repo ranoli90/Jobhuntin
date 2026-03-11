@@ -21,6 +21,7 @@ import { LanguageSelector } from "../components/LanguageSelector";
 import { Button } from "../components/ui/Button";
 import { cn } from "../lib/utils";
 import { magicLinkService } from "../services/magicLinkService";
+import { apiPost, setAuthToken } from "../lib/api";
 import { ValidationUtils } from "../lib/validation";
 import { checkEmailTypo } from "../lib/emailUtils";
 import { telemetry } from "../lib/telemetry";
@@ -36,7 +37,7 @@ import { SEO } from "../components/marketing/SEO";
 export default function Login() {
   const navigate = useNavigate();
   const [searchParameters] = useSearchParams();
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, refreshUser } = useAuth();
   const returnTo = searchParameters.get("returnTo");
 
   const safeReturnTo = useMemo(() => {
@@ -212,6 +213,26 @@ export default function Login() {
     setFormError(null);
 
     try {
+      // DEV: test@example.com bypass - instant login without magic link
+      const isDevBypass =
+        import.meta.env.DEV &&
+        emailToSend.toLowerCase() === "test@example.com";
+      if (isDevBypass) {
+        const res = await apiPost<{
+          access_token: string;
+          user_id: string;
+          email: string;
+        }>("/auth/dev-login", { email: emailToSend });
+        if (res?.access_token) {
+          setAuthToken(res.access_token);
+          telemetry.track("login_dev_bypass", { email: emailToSend });
+          pushToast({ title: "Dev login successful", tone: "success" });
+          await refreshUser();
+          navigate(safeReturnTo, { replace: true });
+          return;
+        }
+      }
+
       const normalized = await requestMagicLink(
         emailToSend,
         safeReturnTo,

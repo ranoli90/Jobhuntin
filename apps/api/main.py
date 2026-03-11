@@ -2133,6 +2133,7 @@ async def get_application_detail(
 
 
 @app.get("/health")
+@app.get("/api/health")  # Proxy-friendly: Vite may forward /api/health without rewrite
 async def health() -> dict[str, str]:
     return {"status": "ok"}
 
