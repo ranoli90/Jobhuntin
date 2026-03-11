@@ -20,7 +20,7 @@ from typing import Any
 
 import asyncpg
 from fastapi import APIRouter, Depends, HTTPException, Request
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 
 from shared.config import get_settings
 from shared.logging_config import get_logger
@@ -73,6 +73,39 @@ class StaffingBulkRequest(BaseModel):
     priority: str = "normal"
 
 
+ALLOWED_WEBHOOK_EVENTS = frozenset({
+    "application.completed",
+    "application.failed",
+    "application.hold",
+    "application.queued",
+    "staffing.batch_completed",
+})
+
+
+def _validate_webhook_url(url: str) -> str:
+    """Prevent SSRF: only allow HTTPS URLs to public addresses."""
+    import ipaddress
+    import socket
+    from urllib.parse import urlparse
+
+    if len(url) > 2048:
+        raise ValueError("Webhook URL must be at most 2048 characters")
+    parsed = urlparse(url)
+    if parsed.scheme != "https":
+        raise ValueError("Webhook URL must use HTTPS")
+    if not parsed.hostname:
+        raise ValueError("Invalid URL")
+    try:
+        ip = ipaddress.ip_address(socket.gethostbyname(parsed.hostname))
+        if ip.is_private or ip.is_loopback or ip.is_reserved or ip.is_link_local:
+            raise ValueError("Webhook URL must point to a public address")
+    except socket.gaierror:
+        raise ValueError("Webhook URL hostname could not be resolved")
+    except ValueError:
+        raise ValueError("Webhook URL must point to a valid public address")
+    return url
+
+
 class WebhookCreateRequest(BaseModel):
     url: str
     events: list[str] = [
@@ -80,6 +113,23 @@ class WebhookCreateRequest(BaseModel):
         "application.failed",
         "application.hold",
     ]
+
+    @field_validator("url")
+    @classmethod
+    def validate_url(cls, v: str) -> str:
+        return _validate_webhook_url(v)
+
+    @field_validator("events")
+    @classmethod
+    def validate_events(cls, v: list[str]) -> list[str]:
+        if not v or len(v) > 20:
+            raise ValueError("Events list must have 1-20 items")
+        invalid = [e for e in v if e not in ALLOWED_WEBHOOK_EVENTS]
+        if invalid:
+            raise ValueError(
+                f"Invalid events: {invalid}. Allowed: {sorted(ALLOWED_WEBHOOK_EVENTS)}"
+            )
+        return list(dict.fromkeys(v))
 
 
 # ---------------------------------------------------------------------------
@@ -374,11 +424,13 @@ async def delete_webhook(
 
     validate_uuid(webhook_id, "webhook_id")
     async with db.acquire() as conn:
-        await conn.execute(
+        result = await conn.execute(
             "DELETE FROM public.webhook_endpoints WHERE id = $1 AND tenant_id = $2",
             webhook_id,
             api_key["tenant_id"],
         )
+    if result and result.split()[-1] == "0":
+        raise HTTPException(status_code=404, detail="Webhook not found")
     return {"status": "deleted"}
 
 

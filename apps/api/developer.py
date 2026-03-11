@@ -37,9 +37,32 @@ TIER_LIMITS = {
 }
 
 
+ALLOWED_WEBHOOK_EVENTS = frozenset({
+    "application.completed",
+    "application.failed",
+    "application.hold",
+    "application.queued",
+    "staffing.batch_completed",
+})
+
+
 class CreateKeyRequest(BaseModel):
     name: str = "Default"
     tier: str = "free"
+
+    @field_validator("name")
+    @classmethod
+    def validate_name(cls, v: str) -> str:
+        if not v or len(v) > 100:
+            raise ValueError("Key name must be 1-100 characters")
+        return v.strip()
+
+    @field_validator("tier")
+    @classmethod
+    def validate_tier(cls, v: str) -> str:
+        if v not in TIER_LIMITS:
+            raise ValueError(f"Invalid tier. Allowed: {list(TIER_LIMITS)}")
+        return v
 
 
 class CreateWebhookRequest(BaseModel):
@@ -60,20 +83,33 @@ class CreateWebhookRequest(BaseModel):
         import socket
         from urllib.parse import urlparse
 
+        if len(v) > 2048:
+            raise ValueError("Webhook URL must be at most 2048 characters")
         parsed = urlparse(v)
         if parsed.scheme != "https":
             raise ValueError("Webhook URL must use HTTPS")
         if not parsed.hostname:
             raise ValueError("Invalid URL")
-        # Block private/reserved IPs
+        # Block private/reserved IPs - reject on resolve failure to prevent SSRF
         try:
             ip = ipaddress.ip_address(socket.gethostbyname(parsed.hostname))
             if ip.is_private or ip.is_loopback or ip.is_reserved or ip.is_link_local:
                 raise ValueError("Webhook URL must point to a public address")
-        except (socket.gaierror, ValueError) as e:
-            logger.warning("Webhook URL hostname check skipped (resolve failed): %s", e)
-            # Allow; will fail at webhook delivery if unreachable
+        except socket.gaierror:
+            raise ValueError("Webhook URL hostname could not be resolved")
+        except ValueError:
+            raise ValueError("Webhook URL must point to a valid public address")
         return v
+
+    @field_validator("events")
+    @classmethod
+    def validate_events(cls, v: list[str]) -> list[str]:
+        if not v or len(v) > 20:
+            raise ValueError("Events list must have 1-20 items")
+        invalid = [e for e in v if e not in ALLOWED_WEBHOOK_EVENTS]
+        if invalid:
+            raise ValueError(f"Invalid events: {invalid}. Allowed: {sorted(ALLOWED_WEBHOOK_EVENTS)}")
+        return list(dict.fromkeys(v))  # dedupe preserving order
 
 
 # ---------------------------------------------------------------------------
@@ -177,11 +213,13 @@ async def revoke_api_key(
         raise HTTPException(status_code=403, detail="Only admins can revoke keys")
 
     async with db.acquire() as conn:
-        await conn.execute(
+        result = await conn.execute(
             "UPDATE public.api_keys SET is_active = false WHERE id = $1 AND tenant_id = $2",
             key_id,
             ctx.tenant_id,
         )
+    if result and result.split()[-1] == "0":
+        raise HTTPException(status_code=404, detail="API key not found")
     return {"status": "revoked"}
 
 
@@ -211,6 +249,11 @@ async def create_webhook(
     db: asyncpg.Pool = Depends(_get_pool),
 ) -> dict[str, Any]:
     import secrets
+
+    try:
+        require_role(ctx, "OWNER", "ADMIN")
+    except TenantScopeError:
+        raise HTTPException(status_code=403, detail="Only admins can create webhooks")
 
     secret = "whsec_" + secrets.token_hex(24)  # pragma: allowlist secret
 
@@ -245,12 +288,19 @@ async def delete_webhook(
     from shared.validators import validate_uuid
 
     validate_uuid(webhook_id, "webhook_id")
+    try:
+        require_role(ctx, "OWNER", "ADMIN")
+    except TenantScopeError:
+        raise HTTPException(status_code=403, detail="Only admins can delete webhooks")
+
     async with db.acquire() as conn:
-        await conn.execute(
+        result = await conn.execute(
             "DELETE FROM public.webhook_endpoints WHERE id = $1 AND tenant_id = $2",
             webhook_id,
             ctx.tenant_id,
         )
+    if result and result.split()[-1] == "0":
+        raise HTTPException(status_code=404, detail="Webhook not found")
     return {"status": "deleted"}
 
 
