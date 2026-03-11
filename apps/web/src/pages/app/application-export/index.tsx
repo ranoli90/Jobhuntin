@@ -430,9 +430,9 @@ const ApplicationExportPage: React.FC = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="company-filter">Company</Label>
+                <Label htmlFor="page-company-filter">Company</Label>
                 <Input
-                  id="company-filter"
+                  id="page-company-filter"
                   placeholder="Filter by company..."
                   value={exportConfig.filters.company || ""}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
@@ -448,9 +448,9 @@ const ApplicationExportPage: React.FC = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="location-filter">Location</Label>
+                <Label htmlFor="page-location-filter">Location</Label>
                 <Input
-                  id="location-filter"
+                  id="page-location-filter"
                   placeholder="Filter by location..."
                   value={exportConfig.filters.location || ""}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) =>

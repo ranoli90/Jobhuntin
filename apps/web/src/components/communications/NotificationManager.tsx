@@ -638,7 +638,7 @@ const NotificationManager: React.FC = () => {
                   <div className="flex items-center space-x-2">
                     <Mail className="h-4 w-4" />
                     <Switch
-                      id="email-enabled"
+                      id="notification-email-enabled"
                       checked={preferencesForm.email_enabled}
                       onCheckedChange={(checked) =>
                         setPreferencesForm({
@@ -647,7 +647,7 @@ const NotificationManager: React.FC = () => {
                         })
                       }
                     />
-                    <Label htmlFor="email-enabled">Email Notifications</Label>
+                    <Label htmlFor="notification-email-enabled">Email Notifications</Label>
                   </div>
                   <div className="flex items-center space-x-2">
                     <Smartphone className="h-4 w-4" />

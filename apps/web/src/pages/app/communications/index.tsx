@@ -115,7 +115,7 @@ const CommunicationsPage: React.FC = () => {
                     <div className="flex items-center space-x-2">
                       <Shield className="h-8 w-8 text-red-600" />
                       <div>
-                        <h3 className="alert-lg font-medium">
+                        <h3 className="text-lg font-medium">
                           Alert Processing
                         </h3>
                         <p className="text-sm text-gray-500">

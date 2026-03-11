@@ -442,7 +442,7 @@ const EmailManager: React.FC = () => {
             <div className="space-y-6">
               <div className="flex items-center space-x-2">
                 <Switch
-                  id="email-enabled"
+                  id="email-manager-enabled"
                   checked={preferencesForm.email_enabled}
                   onCheckedChange={(checked) =>
                     setPreferencesForm({
@@ -451,7 +451,7 @@ const EmailManager: React.FC = () => {
                     })
                   }
                 />
-                <Label htmlFor="email-enabled">
+                <Label htmlFor="email-manager-enabled">
                   Enable Email Communications
                 </Label>
               </div>

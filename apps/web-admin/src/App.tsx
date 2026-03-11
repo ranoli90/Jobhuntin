@@ -45,10 +45,12 @@ function clearStoredToken(): void {
 
 async function getSession(): Promise<Session | null> {
   const token = getStoredToken();
-  if (!token) return null;
   try {
-    const resp = await fetch(`${API_BASE}/profile`, {
-      headers: { Authorization: `Bearer ${token}` },
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (token) headers.Authorization = `Bearer ${token}`;
+    const resp = await fetch(`${API_BASE}/me/profile`, {
+      headers,
+      credentials: "include",
     });
     if (!resp.ok) {
       clearStoredToken();
@@ -62,12 +64,14 @@ async function getSession(): Promise<Session | null> {
   }
 }
 
-async function checkAdminAccess(user: User): Promise<boolean> {
+async function checkAdminAccess(_user: User): Promise<boolean> {
   try {
     const token = getStoredToken();
-    if (!token) return false;
-    const resp = await fetch(`${API_BASE}/profile`, {
-      headers: { Authorization: `Bearer ${token}` },
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (token) headers.Authorization = `Bearer ${token}`;
+    const resp = await fetch(`${API_BASE}/me/profile`, {
+      headers,
+      credentials: "include",
     });
     if (!resp.ok) return false;
     const data = await resp.json();

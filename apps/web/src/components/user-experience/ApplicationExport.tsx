@@ -434,9 +434,9 @@ export const ApplicationExport: React.FC<ApplicationExportProperties> = ({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="company-filter">Company</Label>
+                <Label htmlFor="export-company-filter">Company</Label>
                 <Input
-                  id="company-filter"
+                  id="export-company-filter"
                   placeholder="Filter by company..."
                   value={exportConfig.filters.company || ""}
                   onChange={(e) =>
@@ -452,9 +452,9 @@ export const ApplicationExport: React.FC<ApplicationExportProperties> = ({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="location-filter">Location</Label>
+                <Label htmlFor="export-location-filter">Location</Label>
                 <Input
-                  id="location-filter"
+                  id="export-location-filter"
                   placeholder="Filter by location..."
                   value={exportConfig.filters.location || ""}
                   onChange={(e) =>
