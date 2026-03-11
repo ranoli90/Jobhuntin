@@ -431,6 +431,10 @@ async def team_checkout(
                 },
             )
         )
+        if not session or not session.url:
+            raise HTTPException(
+                status_code=503, detail="Payment service temporarily unavailable"
+            )
         return {"checkout_url": session.url}
     except HTTPException:
         raise
@@ -570,6 +574,13 @@ async def handle_subscription_cancelled(conn: asyncpg.Connection, subscription: 
         logger.warning("Subscription cancelled event missing customer_id")
         return
     await update_subscription_state(conn, customer_id, "canceled")
+    # BILL-001: Downgrade tenant plan to FREE when subscription ends
+    await conn.execute(
+        """UPDATE public.tenants SET plan = 'FREE'
+           WHERE id = (SELECT tenant_id FROM public.billing_customers
+                       WHERE provider_customer_id = $1 AND tenant_id IS NOT NULL)""",
+        customer_id,
+    )
     logger.info("Subscription cancelled for customer %s", customer_id)
 
 
@@ -583,4 +594,12 @@ async def handle_subscription_updated(conn: asyncpg.Connection, subscription: di
         logger.warning("Subscription updated event missing customer_id")
         return
     await update_subscription_state(conn, customer_id, status, subscription_id)
+    # BILL-001: Downgrade tenant plan to FREE when subscription is canceled/ended
+    if status in ("canceled", "unpaid", "incomplete_expired"):
+        await conn.execute(
+            """UPDATE public.tenants SET plan = 'FREE'
+               WHERE id = (SELECT tenant_id FROM public.billing_customers
+                           WHERE provider_customer_id = $1 AND tenant_id IS NOT NULL)""",
+            customer_id,
+        )
     logger.info("Subscription updated for customer %s: %s", customer_id, status)

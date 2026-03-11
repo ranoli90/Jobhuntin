@@ -54,19 +54,22 @@ async def run_reminders_loop() -> None:
 
     while not _shutdown:
         try:
-            pending = await manager.get_pending_reminders(limit=50)
-            if pending:
-                logger.info("Processing %d pending reminders", len(pending))
-                sent = 0
-                for reminder in pending:
-                    try:
-                        ok = await manager.send_reminder(reminder.id)
-                        if ok:
-                            sent += 1
-                    except Exception as e:
-                        logger.error("Failed to send reminder %s: %s", reminder.id, e)
-                if sent:
-                    logger.info("Sent %d reminders", sent)
+            async with db_pool.acquire() as conn:
+                async with conn.transaction():
+                    # WORK-001: Atomic claim with FOR UPDATE SKIP LOCKED
+                    pending = await manager.claim_pending_reminders(conn, limit=50)
+                    if pending:
+                        logger.info("Processing %d pending reminders", len(pending))
+                        sent = 0
+                        for reminder in pending:
+                            try:
+                                ok = await manager.send_reminder(reminder.id, conn=conn)
+                                if ok:
+                                    sent += 1
+                            except Exception as e:
+                                logger.error("Failed to send reminder %s: %s", reminder.id, e)
+                        if sent:
+                            logger.info("Sent %d reminders", sent)
         except Exception as e:
             logger.error("Reminders loop error: %s", e)
 

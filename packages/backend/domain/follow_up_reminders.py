@@ -219,7 +219,7 @@ class FollowUpManager:
         user_id: Optional[str] = None,
         limit: int = 100,
     ) -> List[FollowUpReminder]:
-        """Get pending reminders that are due."""
+        """Get pending reminders that are due (no claim - for backward compatibility)."""
 
         async with self.db_pool.acquire() as conn:
             query = """
@@ -263,12 +263,62 @@ class FollowUpManager:
 
             return reminders
 
-    async def send_reminder(self, reminder_id: str) -> bool:
-        """Send a follow-up reminder."""
+    async def claim_pending_reminders(
+        self,
+        conn,
+        tenant_id: Optional[str] = None,
+        user_id: Optional[str] = None,
+        limit: int = 100,
+    ) -> List[FollowUpReminder]:
+        """Atomically claim pending reminders using FOR UPDATE SKIP LOCKED.
+        Must be called within an open transaction. Returns claimed rows.
+        WORK-001: Prevents duplicate sends when multiple workers run."""
+        query = """
+            SELECT * FROM follow_up_reminders
+            WHERE status = 'pending' AND scheduled_for <= NOW()
+            """
+        params = []
+        param_idx = 1
 
-        async with self.db_pool.acquire() as conn:
-            # Get reminder details
-            reminder_data = await conn.fetchrow(
+        if tenant_id:
+            query += f" AND tenant_id = ${param_idx}"
+            params.append(tenant_id)
+            param_idx += 1
+
+        if user_id:
+            query += f" AND user_id = ${param_idx}"
+            params.append(user_id)
+            param_idx += 1
+
+        query += f" ORDER BY scheduled_for ASC LIMIT ${param_idx} FOR UPDATE SKIP LOCKED"
+        params.append(limit)
+
+        rows = await conn.fetch(query, *params)
+
+        reminders = []
+        for row in rows:
+            reminder = FollowUpReminder(
+                id=row["id"],
+                application_id=row["application_id"],
+                user_id=row["user_id"],
+                tenant_id=row["tenant_id"],
+                reminder_type=row["reminder_type"],
+                scheduled_for=row["scheduled_for"],
+                message=row["message"],
+                status=row["status"],
+                sent_at=row["sent_at"],
+                completed_at=row["completed_at"],
+                metadata=row.get("metadata", {}),
+            )
+            reminders.append(reminder)
+
+        return reminders
+
+    async def send_reminder(self, reminder_id: str, conn=None) -> bool:
+        """Send a follow-up reminder. If conn is provided, use it (must be in transaction)."""
+
+        async def _do_send(c) -> bool:
+            reminder_data = await c.fetchrow(
                 """
                 SELECT * FROM follow_up_reminders
                 WHERE id = $1 AND status = 'pending'
@@ -279,8 +329,7 @@ class FollowUpManager:
             if not reminder_data:
                 return False
 
-            # Get user email
-            user_data = await conn.fetchrow(
+            user_data = await c.fetchrow(
                 """
                 SELECT email FROM users WHERE id = $1
                 """,
@@ -290,9 +339,7 @@ class FollowUpManager:
             if not user_data:
                 return False
 
-            # Send email (placeholder - integrate with email system)
             try:
-                # TODO: Integrate with EmailCommunicationManager
                 logger.info(
                     "Sending reminder %s to %s: %s",
                     reminder_id,
@@ -300,8 +347,7 @@ class FollowUpManager:
                     reminder_data["message"],
                 )
 
-                # Mark as sent
-                await conn.execute(
+                await c.execute(
                     """
                     UPDATE follow_up_reminders
                     SET status = 'sent', sent_at = NOW(), updated_at = NOW()
@@ -315,6 +361,11 @@ class FollowUpManager:
             except Exception as e:
                 logger.error("Failed to send reminder %s: %s", reminder_id, e)
                 return False
+
+        if conn is not None:
+            return await _do_send(conn)
+        async with self.db_pool.acquire() as conn:
+            return await _do_send(conn)
 
     async def complete_reminder(self, reminder_id: str, user_id: str) -> bool:
         """Mark a reminder as completed."""

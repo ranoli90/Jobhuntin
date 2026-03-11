@@ -11,7 +11,9 @@ from pydantic import BaseModel, field_validator
 
 from apps.api.dependencies import get_current_user, get_db_pool, get_tenant_id
 from packages.backend.domain.feedback_manager import create_feedback_manager
+from shared.logging_config import get_logger
 
+logger = get_logger("sorce.feedback")
 router = APIRouter(prefix="/feedback", tags=["feedback"])
 
 
@@ -85,9 +87,10 @@ async def collect_feedback(
             "created_at": feedback_response.created_at.isoformat(),
         }
 
-    except Exception as e:
+    except Exception:
+        logger.exception("Failed to collect feedback")
         raise HTTPException(
-            status_code=500, detail=f"Failed to collect feedback: {str(e)}"
+            status_code=500, detail="Failed to collect feedback. Please try again."
         )
 
 
@@ -125,9 +128,10 @@ async def collect_nps_feedback(
             "created_at": nps_response.created_at.isoformat(),
         }
 
-    except Exception as e:
+    except Exception:
+        logger.exception("Failed to collect NPS feedback")
         raise HTTPException(
-            status_code=500, detail=f"Failed to collect NPS feedback: {str(e)}"
+            status_code=500, detail="Failed to collect NPS feedback. Please try again."
         )
 
 
@@ -165,9 +169,10 @@ async def get_feedback_summary(
 
         return summary
 
-    except Exception as e:
+    except Exception:
+        logger.exception("Failed to get feedback summary")
         raise HTTPException(
-            status_code=500, detail=f"Failed to get feedback summary: {str(e)}"
+            status_code=500, detail="Failed to get feedback summary. Please try again."
         )
 
 
@@ -205,9 +210,10 @@ async def analyze_feedback_trends(
             "created_at": analysis.created_at.isoformat(),
         }
 
-    except Exception as e:
+    except Exception:
+        logger.exception("Failed to analyze feedback trends")
         raise HTTPException(
-            status_code=500, detail=f"Failed to analyze feedback trends: {str(e)}"
+            status_code=500, detail="Failed to analyze feedback trends. Please try again."
         )
 
 
@@ -243,9 +249,10 @@ async def get_feedback_categories(
             ]
         }
 
-    except Exception as e:
+    except Exception:
+        logger.exception("Failed to get feedback categories")
         raise HTTPException(
-            status_code=500, detail=f"Failed to get feedback categories: {str(e)}"
+            status_code=500, detail="Failed to get feedback categories. Please try again."
         )
 
 
@@ -283,9 +290,10 @@ async def create_feedback_category(
             },
         }
 
-    except Exception as e:
+    except Exception:
+        logger.exception("Failed to create feedback category")
         raise HTTPException(
-            status_code=500, detail=f"Failed to create feedback category: {str(e)}"
+            status_code=500, detail="Failed to create feedback category. Please try again."
         )
 
 
@@ -326,9 +334,10 @@ async def update_feedback_status(
             "updated_at": datetime.now(timezone.utc).isoformat(),
         }
 
-    except Exception as e:
+    except Exception:
+        logger.exception("Failed to update feedback status")
         raise HTTPException(
-            status_code=500, detail=f"Failed to update feedback status: {str(e)}"
+            status_code=500, detail="Failed to update feedback status. Please try again."
         )
 
 
@@ -370,8 +379,9 @@ async def get_feedback_by_id(
             "updated_at": feedback.updated_at.isoformat(),
         }
 
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to get feedback: {str(e)}")
+    except Exception:
+        logger.exception("Failed to get feedback")
+        raise HTTPException(status_code=500, detail="Failed to get feedback. Please try again.")
 
 
 @router.get("/recent")
@@ -408,9 +418,10 @@ async def get_recent_feedback(
             },
         }
 
-    except Exception as e:
+    except Exception:
+        logger.exception("Failed to get recent feedback")
         raise HTTPException(
-            status_code=500, detail=f"Failed to get recent feedback: {str(e)}"
+            status_code=500, detail="Failed to get recent feedback. Please try again."
         )
 
 
@@ -442,9 +453,10 @@ async def get_nps_statistics(
             "generated_at": summary.get("generated_at"),
         }
 
-    except Exception as e:
+    except Exception:
+        logger.exception("Failed to get NPS statistics")
         raise HTTPException(
-            status_code=500, detail=f"Failed to get NPS statistics: {str(e)}"
+            status_code=500, detail="Failed to get NPS statistics. Please try again."
         )
 
 
@@ -478,9 +490,10 @@ async def get_sentiment_analysis(
             "generated_at": summary.get("generated_at"),
         }
 
-    except Exception as e:
+    except Exception:
+        logger.exception("Failed to get sentiment analysis")
         raise HTTPException(
-            status_code=500, detail=f"Failed to get sentiment analysis: {str(e)}"
+            status_code=500, detail="Failed to get sentiment analysis. Please try again."
         )
 
 
@@ -539,9 +552,10 @@ async def get_feedback_dashboard(
             "generated_at": datetime.now(timezone.utc).isoformat(),
         }
 
-    except Exception as e:
+    except Exception:
+        logger.exception("Failed to get feedback dashboard")
         raise HTTPException(
-            status_code=500, detail=f"Failed to get feedback dashboard: {str(e)}"
+            status_code=500, detail="Failed to get feedback dashboard. Please try again."
         )
 
 
@@ -589,9 +603,10 @@ async def export_feedback(
                 },
             )
 
-    except Exception as e:
+    except Exception:
+        logger.exception("Failed to export feedback")
         raise HTTPException(
-            status_code=500, detail=f"Failed to export feedback: {str(e)}"
+            status_code=500, detail="Failed to export feedback. Please try again."
         )
 
 

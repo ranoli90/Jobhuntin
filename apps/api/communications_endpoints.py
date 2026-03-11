@@ -24,7 +24,9 @@ from packages.backend.domain.semantic_notification_matcher import (
 )
 from packages.backend.domain.tenant import TenantContext
 from packages.backend.domain.user_interest_profiler import create_user_interest_profiler
+from shared.logging_config import get_logger
 
+logger = get_logger("sorce.communications")
 router = APIRouter(prefix="/communications", tags=["communications"])
 
 
@@ -180,8 +182,9 @@ async def send_email(
             "message": "Email sent successfully",
         }
 
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to send email: {str(e)}")
+    except Exception:
+        logger.exception("Failed to send email")
+        raise HTTPException(status_code=500, detail="Failed to send email. Please try again.")
 
 
 @router.post("/email/send-template")
@@ -209,9 +212,10 @@ async def send_template_email(
             "message": "Template email sent successfully",
         }
 
-    except Exception as e:
+    except Exception:
+        logger.exception("Failed to send template email")
         raise HTTPException(
-            status_code=500, detail=f"Failed to send template email: {str(e)}"
+            status_code=500, detail="Failed to send template email. Please try again."
         )
 
 
@@ -238,9 +242,10 @@ async def get_email_preferences(
             "updated_at": preferences.updated_at.isoformat(),
         }
 
-    except Exception as e:
+    except Exception:
+        logger.exception("Failed to get email preferences")
         raise HTTPException(
-            status_code=500, detail=f"Failed to get email preferences: {str(e)}"
+            status_code=500, detail="Failed to get email preferences. Please try again."
         )
 
 
@@ -276,9 +281,10 @@ async def update_email_preferences(
             "message": "Email preferences updated successfully",
         }
 
-    except Exception as e:
+    except Exception:
+        logger.exception("Failed to update email preferences")
         raise HTTPException(
-            status_code=500, detail=f"Failed to update email preferences: {str(e)}"
+            status_code=500, detail="Failed to update email preferences. Please try again."
         )
 
 
@@ -319,9 +325,10 @@ async def get_email_history(
             "offset": offset,
         }
 
-    except Exception as e:
+    except Exception:
+        logger.exception("Failed to get email history")
         raise HTTPException(
-            status_code=500, detail=f"Failed to get email history: {str(e)}"
+            status_code=500, detail="Failed to get email history. Please try again."
         )
 
 
@@ -353,9 +360,10 @@ async def send_notification(
             "message": "Notification sent successfully",
         }
 
-    except Exception as e:
+    except Exception:
+        logger.exception("Failed to send notification")
         raise HTTPException(
-            status_code=500, detail=f"Failed to send notification: {str(e)}"
+            status_code=500, detail="Failed to send notification. Please try again."
         )
 
 
@@ -397,9 +405,10 @@ async def send_batch_notifications(
             "message": f"Batch processing completed: {result['successful']}/{result['total']} successful",
         }
 
-    except Exception as e:
+    except Exception:
+        logger.exception("Failed to send batch notifications")
         raise HTTPException(
-            status_code=500, detail=f"Failed to send batch notifications: {str(e)}"
+            status_code=500, detail="Failed to send batch notifications. Please try again."
         )
 
 
@@ -448,9 +457,10 @@ async def get_notifications(
             "offset": offset,
         }
 
-    except Exception as e:
+    except Exception:
+        logger.exception("Failed to get notifications")
         raise HTTPException(
-            status_code=500, detail=f"Failed to get notifications: {str(e)}"
+            status_code=500, detail="Failed to get notifications. Please try again."
         )
 
 
@@ -477,9 +487,10 @@ async def mark_notification_read(
 
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception:
+        logger.exception("Failed to mark notification as read")
         raise HTTPException(
-            status_code=500, detail=f"Failed to mark notification as read: {str(e)}"
+            status_code=500, detail="Failed to mark notification as read. Please try again."
         )
 
 
@@ -503,10 +514,11 @@ async def mark_all_notifications_read(
             "message": f"Marked {count} notifications as read",
         }
 
-    except Exception as e:
+    except Exception:
+        logger.exception("Failed to mark all notifications as read")
         raise HTTPException(
             status_code=500,
-            detail=f"Failed to mark all notifications as read: {str(e)}",
+            detail="Failed to mark all notifications as read. Please try again.",
         )
 
 
@@ -532,9 +544,10 @@ async def delete_notification(
 
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception:
+        logger.exception("Failed to delete notification")
         raise HTTPException(
-            status_code=500, detail=f"Failed to delete notification: {str(e)}"
+            status_code=500, detail="Failed to delete notification. Please try again."
         )
 
 
@@ -554,9 +567,10 @@ async def get_notification_stats(
             "message": "Notification statistics retrieved successfully",
         }
 
-    except Exception as e:
+    except Exception:
+        logger.exception("Failed to get notification stats")
         raise HTTPException(
-            status_code=500, detail=f"Failed to get notification stats: {str(e)}"
+            status_code=500, detail="Failed to get notification stats. Please try again."
         )
 
 
@@ -585,9 +599,10 @@ async def get_notification_preferences(
             "updated_at": preferences.updated_at.isoformat(),
         }
 
-    except Exception as e:
+    except Exception:
+        logger.exception("Failed to get notification preferences")
         raise HTTPException(
-            status_code=500, detail=f"Failed to get notification preferences: {str(e)}"
+            status_code=500, detail="Failed to get notification preferences. Please try again."
         )
 
 
@@ -634,10 +649,11 @@ async def update_notification_preferences(
             "message": "Notification preferences updated successfully",
         }
 
-    except Exception as e:
+    except Exception:
+        logger.exception("Failed to update notification preferences")
         raise HTTPException(
             status_code=500,
-            detail=f"Failed to update notification preferences: {str(e)}",
+            detail="Failed to update notification preferences. Please try again.",
         )
 
 
@@ -659,9 +675,10 @@ async def get_user_interests(
             "created_at": profile.created_at.isoformat(),
         }
 
-    except Exception as e:
+    except Exception:
+        logger.exception("Failed to get user interests")
         raise HTTPException(
-            status_code=500, detail=f"Failed to get user interests: {str(e)}"
+            status_code=500, detail="Failed to get user interests. Please try again."
         )
 
 
@@ -688,9 +705,10 @@ async def update_user_interests(
             "message": "User interests updated successfully",
         }
 
-    except Exception as e:
+    except Exception:
+        logger.exception("Failed to update user interests")
         raise HTTPException(
-            status_code=500, detail=f"Failed to update user interests: {str(e)}"
+            status_code=500, detail="Failed to update user interests. Please try again."
         )
 
 
@@ -721,9 +739,10 @@ async def get_top_interests(
             "min_score": min_score,
         }
 
-    except Exception as e:
+    except Exception:
+        logger.exception("Failed to get top interests")
         raise HTTPException(
-            status_code=500, detail=f"Failed to get top interests: {str(e)}"
+            status_code=500, detail="Failed to get top interests. Please try again."
         )
 
 
@@ -755,9 +774,10 @@ async def calculate_semantic_match(
             "calculated_at": similarity.calculated_at.isoformat(),
         }
 
-    except Exception as e:
+    except Exception:
+        logger.exception("Failed to calculate semantic match")
         raise HTTPException(
-            status_code=500, detail=f"Failed to calculate semantic match: {str(e)}"
+            status_code=500, detail="Failed to calculate semantic match. Please try again."
         )
 
 
@@ -793,9 +813,10 @@ async def process_alert(
             "message": "Alert processed successfully",
         }
 
-    except Exception as e:
+    except Exception:
+        logger.exception("Failed to process alert")
         raise HTTPException(
-            status_code=500, detail=f"Failed to process alert: {str(e)}"
+            status_code=500, detail="Failed to process alert. Please try again."
         )
 
 
@@ -845,9 +866,10 @@ async def get_alert_history(
             "offset": offset,
         }
 
-    except Exception as e:
+    except Exception:
+        logger.exception("Failed to get alert history")
         raise HTTPException(
-            status_code=500, detail=f"Failed to get alert history: {str(e)}"
+            status_code=500, detail="Failed to get alert history. Please try again."
         )
 
 
@@ -865,9 +887,10 @@ async def get_alert_stats(
             "message": "Alert statistics retrieved successfully",
         }
 
-    except Exception as e:
+    except Exception:
+        logger.exception("Failed to get alert stats")
         raise HTTPException(
-            status_code=500, detail=f"Failed to get alert stats: {str(e)}"
+            status_code=500, detail="Failed to get alert stats. Please try again."
         )
 
 

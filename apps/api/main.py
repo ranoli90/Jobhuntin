@@ -2041,7 +2041,8 @@ async def serve_storage_file(
     except FileNotFoundError:
         raise HTTPException(status_code=404, detail="File not found")
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error retrieving file: {str(e)}")
+        logger.exception("Storage download failed for %s", storage_path)
+        raise HTTPException(status_code=500, detail="Failed to retrieve file")
 
     # Determine content type based on file extension
     content_type = mimetypes.guess_type(path)[0] or "application/octet-stream"

@@ -11,7 +11,7 @@
 |----|---------|------|--------|
 | C1 | Unsanitized `notes` in UpdateApplicationStatusBody — XSS risk | apps/api/user.py:826 | fixed |
 | C2 | `app.job_title` null dereference in ApplicationsView search | Dashboard.tsx:1630 | fixed |
-| API-1 | Error leakage in production (detail=str(e)) | multiple | deferred |
+| API-1 | Error leakage in production (detail=str(e)) | multiple | fixed (oauth, feedback, communications) |
 
 ---
 
@@ -53,7 +53,7 @@
 | L1 | ApplicationsView/HoldsView no error UI | ApplicationsView, HoldsView | fixed |
 | L2 | Sort select missing aria-label | Dashboard.tsx | fixed |
 | L3 | JobAlerts search input missing aria-label | JobAlerts.tsx | fixed |
-| L4 | JobsView filters not in URL | Dashboard.tsx | deferred |
+| L4 | JobsView filters not in URL | Dashboard.tsx | fixed |
 
 ---
 

@@ -12,7 +12,9 @@ from pydantic import BaseModel, Field
 
 from packages.backend.domain.oauth_handler import OAuthHandler, create_oauth_handler
 from packages.backend.domain.tenant import TenantContext
+from shared.logging_config import get_logger
 
+logger = get_logger("sorce.oauth")
 router = APIRouter(prefix="/oauth", tags=["oauth"])
 
 
@@ -105,9 +107,10 @@ async def initiate_oauth_flow(
             "state": str(uuid.uuid4()),  # In real implementation, this would be stored
         }
 
-    except Exception as e:
+    except Exception:
+        logger.exception("Failed to initiate OAuth flow")
         raise HTTPException(
-            status_code=500, detail=f"Failed to initiate OAuth flow: {str(e)}"
+            status_code=500, detail="Failed to initiate OAuth flow. Please try again."
         )
 
 
@@ -150,9 +153,10 @@ async def handle_oauth_callback(
             },
         }
 
-    except Exception as e:
+    except Exception:
+        logger.exception("Failed to handle OAuth callback")
         raise HTTPException(
-            status_code=500, detail=f"Failed to handle OAuth callback: {str(e)}"
+            status_code=500, detail="Failed to complete sign-in. Please try again."
         )
 
 
@@ -181,9 +185,10 @@ async def exchange_code_for_token(
             "scope": token_response.scope,
         }
 
-    except Exception as e:
+    except Exception:
+        logger.exception("Failed to exchange code for token")
         raise HTTPException(
-            status_code=500, detail=f"Failed to exchange code for token: {str(e)}"
+            status_code=500, detail="Failed to exchange code for token. Please try again."
         )
 
 
@@ -206,9 +211,10 @@ async def refresh_access_token(
             "scope": token_response.scope,
         }
 
-    except Exception as e:
+    except Exception:
+        logger.exception("Failed to refresh token")
         raise HTTPException(
-            status_code=500, detail=f"Failed to refresh token: {str(e)}"
+            status_code=500, detail="Failed to refresh token. Please try again."
         )
 
 
@@ -235,9 +241,10 @@ async def store_oauth_credentials(
             "created_at": credentials.created_at.isoformat(),
         }
 
-    except Exception as e:
+    except Exception:
+        logger.exception("Failed to store OAuth credentials")
         raise HTTPException(
-            status_code=500, detail=f"Failed to store OAuth credentials: {str(e)}"
+            status_code=500, detail="Failed to store credentials. Please try again."
         )
 
 
@@ -269,9 +276,10 @@ async def get_oauth_credentials(
 
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception:
+        logger.exception("Failed to get OAuth credentials")
         raise HTTPException(
-            status_code=500, detail=f"Failed to get OAuth credentials: {str(e)}"
+            status_code=500, detail="Failed to get credentials. Please try again."
         )
 
 
@@ -334,9 +342,10 @@ async def get_oauth_user_info(
             "provider": user_info.provider,
         }
 
-    except Exception as e:
+    except Exception:
+        logger.exception("Failed to get OAuth user info")
         raise HTTPException(
-            status_code=500, detail=f"Failed to get user info: {str(e)}"
+            status_code=500, detail="Failed to get user info. Please try again."
         )
 
 
@@ -357,9 +366,10 @@ async def delete_oauth_credentials(
             "message": "OAuth credentials deleted successfully",
         }
 
-    except Exception as e:
+    except Exception:
+        logger.exception("Failed to delete OAuth credentials")
         raise HTTPException(
-            status_code=500, detail=f"Failed to delete OAuth credentials: {str(e)}"
+            status_code=500, detail="Failed to delete credentials. Please try again."
         )
 
 

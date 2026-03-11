@@ -5,7 +5,7 @@ import { Badge } from "../components/ui/Badge";
 import { Button } from "../components/ui/Button";
 import { useBilling } from "../hooks/useBilling";
 import { useApplications, type ApplicationRecord } from "../hooks/useApplications";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence, useMotionValue, useTransform, useReducedMotion } from "framer-motion";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -762,22 +762,59 @@ export function JobsView() {
   });
 
   // Sync filters when profile loads (useState initial only runs once; profile may load async)
+  const [searchParams, setSearchParams] = useSearchParams();
   const hasSyncedPrefs = useRef(false);
+  const hasInitializedFromUrl = useRef(false);
+
   useEffect(() => {
     if (userPrefs && !hasSyncedPrefs.current) {
       hasSyncedPrefs.current = true;
-      setLocalLocation(userPrefs.location || "");
-      setLocalKeywords(userPrefs.role_type || "");
-      setLocalSalaryMin(userPrefs.salary_min ? String(userPrefs.salary_min) : "");
+      const loc = searchParams.get("location") ?? userPrefs.location ?? "";
+      const kw = searchParams.get("keywords") ?? userPrefs.role_type ?? "";
+      const sal = searchParams.get("min_salary");
+      const salNum = sal ? Number.parseInt(sal) : (userPrefs.salary_min ?? undefined);
+      setLocalLocation(loc);
+      setLocalKeywords(kw);
+      setLocalSalaryMin(sal ?? (userPrefs.salary_min ? String(userPrefs.salary_min) : ""));
       setFilters((prev) => ({
         ...prev,
-        location: userPrefs.location || "",
-        keywords: userPrefs.role_type || "",
-        minSalary: userPrefs.salary_min ?? undefined,
-        isRemote: userPrefs.remote_only ?? false,
+        location: loc,
+        keywords: kw,
+        minSalary: salNum,
+        isRemote: searchParams.get("remote") === "true" || (userPrefs.remote_only ?? false),
+        sortBy: (searchParams.get("sort") as "match_score" | "recently_matched" | "salary") || prev.sortBy || "match_score",
       }));
+      const sortVal = searchParams.get("sort");
+      if (sortVal === "match_score" || sortVal === "recently_matched" || sortVal === "salary") {
+        setSortBy(sortVal);
+      }
     }
-  }, [userPrefs]);
+  }, [userPrefs, searchParams]);
+
+  useEffect(() => {
+    if (!hasInitializedFromUrl.current && !userPrefs && searchParams.toString()) {
+      hasInitializedFromUrl.current = true;
+      const loc = searchParams.get("location") ?? "";
+      const kw = searchParams.get("keywords") ?? "";
+      const sal = searchParams.get("min_salary");
+      setLocalLocation(loc);
+      setLocalKeywords(kw);
+      setLocalSalaryMin(sal ?? "");
+      setFilters((prev) => ({
+        ...prev,
+        location: loc,
+        keywords: kw,
+        minSalary: sal ? Number.parseInt(sal) : undefined,
+        isRemote: searchParams.get("remote") === "true",
+        sortBy: (searchParams.get("sort") as "match_score" | "recently_matched" | "salary") || "match_score",
+      }));
+      const sortVal = searchParams.get("sort");
+      if (sortVal === "match_score" || sortVal === "recently_matched" || sortVal === "salary") {
+        setSortBy(sortVal);
+      }
+    }
+  }, [searchParams, userPrefs]);
+
   const [sortBy, setSortBy] = useState<"match_score" | "recently_matched" | "salary">("match_score");
   const [showFilters, setShowFilters] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -790,8 +827,17 @@ export function JobsView() {
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
       updateFilters(newFilters);
+      setSearchParams((prev) => {
+        const next = new URLSearchParams(prev);
+        if (newFilters.location != null) newFilters.location ? next.set("location", newFilters.location) : next.delete("location");
+        if (newFilters.keywords != null) newFilters.keywords ? next.set("keywords", newFilters.keywords) : next.delete("keywords");
+        if (newFilters.minSalary != null) newFilters.minSalary ? next.set("min_salary", String(newFilters.minSalary)) : next.delete("min_salary");
+        if (newFilters.isRemote != null) newFilters.isRemote ? next.set("remote", "true") : next.delete("remote");
+        if (newFilters.sortBy) next.set("sort", newFilters.sortBy);
+        return next;
+      }, { replace: true });
     }, 400);
-  }, [updateFilters]);
+  }, [updateFilters, setSearchParams]);
 
   // Cleanup debounce timer on unmount
   useEffect(() => {
@@ -836,7 +882,8 @@ export function JobsView() {
       jobType: undefined
     });
     setSortBy("match_score");
-  }, []);
+    setSearchParams({}, { replace: true });
+  }, [setSearchParams]);
 
   const { jobs, isLoading, isFetching, hasNextPage, fetchNextPage, isFetchingNextPage } = useJobs(filters);
   const [currentIndex, setCurrentIndex] = useState(0);
