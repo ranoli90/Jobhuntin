@@ -209,11 +209,22 @@ async def get_oauth_credentials(
     tenant_id: str,
     ctx: TenantContext = Depends(get_tenant_context),
     agent_manager: AgentImprovementsManager = Depends(get_agent_improvements_manager),
+    pool=Depends(_get_pool),
 ) -> List[OAuthCredentials]:
     """Get OAuth credentials for a tenant (admin only)."""
-    # Require admin access
     if not ctx.is_admin:
         raise HTTPException(status_code=403, detail="Admin access required")
+
+    from backend.domain.tenant import TenantScopeError, require_system_admin
+
+    async with pool.acquire() as conn:
+        try:
+            await require_system_admin(conn, ctx.user_id)
+        except TenantScopeError:
+            if ctx.tenant_id != tenant_id:
+                raise HTTPException(
+                    status_code=403, detail="Access denied to this tenant"
+                )
 
     try:
         credentials = await agent_manager._get_tenant_oauth_credentials(tenant_id)

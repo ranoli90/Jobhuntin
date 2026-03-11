@@ -121,6 +121,22 @@ class ConcurrentUsageResponse(BaseModel):
     max_per_tenant: int
 
 
+async def _require_tenant_scope_or_system_admin(
+    pool, user_id: str, ctx: TenantContext, requested_tenant_id: str
+) -> None:
+    """Tenant admin can only access own tenant; system admin can access any."""
+    from backend.domain.tenant import TenantScopeError, require_system_admin
+
+    async with pool.acquire() as conn:
+        try:
+            await require_system_admin(conn, user_id)
+            return
+        except TenantScopeError:
+            pass
+    if ctx.tenant_id != requested_tenant_id:
+        raise HTTPException(status_code=403, detail="Access denied to this tenant")
+
+
 # Dependency to get DLQ manager
 async def get_dlq_manager_dep(pool=Depends(_get_pool)):
     """Get DLQ manager instance. Uses real implementation when available."""
@@ -144,14 +160,27 @@ async def get_dlq_items(
     date_to: Optional[datetime] = Query(None, description="Filter items to this date"),
     ctx: TenantContext = Depends(get_tenant_context),
     dlq_manager: get_dlq_manager = Depends(get_dlq_manager_dep),
+    pool=Depends(_get_pool),
 ):
     """Get items from the dead letter queue."""
-    # Require admin access
     if not ctx.is_admin:
         raise HTTPException(status_code=403, detail="Admin access required")
+    effective_tenant_id = tenant_id
+    if tenant_id is not None:
+        await _require_tenant_scope_or_system_admin(
+            pool, ctx.user_id, ctx, tenant_id
+        )
+    else:
+        from backend.domain.tenant import TenantScopeError, require_system_admin
+
+        async with pool.acquire() as conn:
+            try:
+                await require_system_admin(conn, ctx.user_id)
+            except TenantScopeError:
+                effective_tenant_id = ctx.tenant_id
     try:
         items = await dlq_manager.get_dlq_items(
-            tenant_id=tenant_id,
+            tenant_id=effective_tenant_id,
             limit=limit,
             offset=offset,
             failure_reason=failure_reason,
@@ -174,6 +203,7 @@ async def get_dlq_item(
     item_id: str,
     ctx: TenantContext = Depends(get_tenant_context),
     dlq_manager: get_dlq_manager = Depends(get_dlq_manager_dep),
+    pool=Depends(_get_pool),
 ):
     """Get a specific DLQ item by ID."""
     if not ctx.is_admin:
@@ -182,6 +212,10 @@ async def get_dlq_item(
         item = await dlq_manager.get_dlq_item(item_id)
         if not item:
             raise HTTPException(status_code=404, detail="DLQ item not found")
+        if item.tenant_id:
+            await _require_tenant_scope_or_system_admin(
+                pool, ctx.user_id, ctx, item.tenant_id
+            )
         return DLQItemResponse.from_dlq_item(item)
     except NotImplementedError:
         return JSONResponse(
@@ -200,13 +234,26 @@ async def get_dlq_stats(
     tenant_id: Optional[str] = Query(None, description="Filter by tenant ID"),
     ctx: TenantContext = Depends(get_tenant_context),
     dlq_manager: get_dlq_manager = Depends(get_dlq_manager_dep),
+    pool=Depends(_get_pool),
 ):
     """Get statistics about the dead letter queue."""
-    # Require admin access
     if not ctx.is_admin:
         raise HTTPException(status_code=403, detail="Admin access required")
+    effective_tenant_id = tenant_id
+    if tenant_id is not None:
+        await _require_tenant_scope_or_system_admin(
+            pool, ctx.user_id, ctx, tenant_id
+        )
+    else:
+        from backend.domain.tenant import TenantScopeError, require_system_admin
+
+        async with pool.acquire() as conn:
+            try:
+                await require_system_admin(conn, ctx.user_id)
+            except TenantScopeError:
+                effective_tenant_id = ctx.tenant_id
     try:
-        stats = await dlq_manager.get_dlq_stats(tenant_id)
+        stats = await dlq_manager.get_dlq_stats(effective_tenant_id)
         return stats
     except NotImplementedError:
         return JSONResponse(
@@ -223,11 +270,23 @@ async def retry_applications(
     request: RetryRequest,
     ctx: TenantContext = Depends(get_tenant_context),
     dlq_manager: get_dlq_manager = Depends(get_dlq_manager_dep),
+    pool=Depends(_get_pool),
 ):
     """Retry failed applications from the DLQ."""
-    # Require admin access
     if not ctx.is_admin:
         raise HTTPException(status_code=403, detail="Admin access required")
+    from backend.domain.tenant import TenantScopeError, require_system_admin
+
+    async with pool.acquire() as conn:
+        try:
+            await require_system_admin(conn, ctx.user_id)
+        except TenantScopeError:
+            for item_id in request.item_ids:
+                item = await dlq_manager.get_dlq_item(item_id)
+                if item and item.tenant_id and item.tenant_id != ctx.tenant_id:
+                    raise HTTPException(
+                        status_code=403, detail="Access denied to this tenant"
+                    )
     try:
         results = await dlq_manager.batch_retry_applications(
             item_ids=request.item_ids, force=request.force
@@ -257,10 +316,18 @@ async def retry_single_application(
     ),
     ctx: TenantContext = Depends(get_tenant_context),
     dlq_manager: get_dlq_manager = Depends(get_dlq_manager_dep),
+    pool=Depends(_get_pool),
 ):
     """Retry a single failed application from the DLQ."""
     if not ctx.is_admin:
         raise HTTPException(status_code=403, detail="Admin access required")
+    item = await dlq_manager.get_dlq_item(item_id)
+    if not item:
+        raise HTTPException(status_code=404, detail="DLQ item not found")
+    if item.tenant_id:
+        await _require_tenant_scope_or_system_admin(
+            pool, ctx.user_id, ctx, item.tenant_id
+        )
     try:
         result = await dlq_manager.retry_application(item_id, force=force)
         return result
@@ -279,10 +346,18 @@ async def delete_dlq_item(
     item_id: str,
     ctx: TenantContext = Depends(get_tenant_context),
     dlq_manager: get_dlq_manager = Depends(get_dlq_manager_dep),
+    pool=Depends(_get_pool),
 ):
     """Delete an item from the DLQ without retrying."""
     if not ctx.is_admin:
         raise HTTPException(status_code=403, detail="Admin access required")
+    item = await dlq_manager.get_dlq_item(item_id)
+    if not item:
+        raise HTTPException(status_code=404, detail="DLQ item not found")
+    if item.tenant_id:
+        await _require_tenant_scope_or_system_admin(
+            pool, ctx.user_id, ctx, item.tenant_id
+        )
     try:
         success = await dlq_manager.delete_dlq_item(item_id)
         if not success:
@@ -305,13 +380,27 @@ async def bulk_delete_dlq_items(
     request: BulkDeleteRequest,
     ctx: TenantContext = Depends(get_tenant_context),
     dlq_manager: get_dlq_manager = Depends(get_dlq_manager_dep),
+    pool=Depends(_get_pool),
 ):
     """Bulk delete DLQ items based on criteria."""
     if not ctx.is_admin:
         raise HTTPException(status_code=403, detail="Admin access required")
+    effective_tenant_id = request.tenant_id
+    if request.tenant_id is not None:
+        await _require_tenant_scope_or_system_admin(
+            pool, ctx.user_id, ctx, request.tenant_id
+        )
+    else:
+        from backend.domain.tenant import TenantScopeError, require_system_admin
+
+        async with pool.acquire() as conn:
+            try:
+                await require_system_admin(conn, ctx.user_id)
+            except TenantScopeError:
+                effective_tenant_id = ctx.tenant_id
     try:
         deleted_count = await dlq_manager.bulk_delete_dlq_items(
-            tenant_id=request.tenant_id,
+            tenant_id=effective_tenant_id,
             failure_reason=request.failure_reason,
             older_than_days=request.older_than_days,
         )
@@ -354,10 +443,12 @@ async def get_tenant_dlq_summary(
     tenant_id: str,
     ctx: TenantContext = Depends(get_tenant_context),
     dlq_manager: get_dlq_manager = Depends(get_dlq_manager_dep),
+    pool=Depends(_get_pool),
 ):
     """Get DLQ summary for a specific tenant."""
     if not ctx.is_admin:
         raise HTTPException(status_code=403, detail="Admin access required")
+    await _require_tenant_scope_or_system_admin(pool, ctx.user_id, ctx, tenant_id)
     try:
         summary = await dlq_manager.get_tenant_dlq_summary(tenant_id)
         return summary
@@ -377,6 +468,7 @@ async def get_tenant_dlq_summary(
 @router.get("/concurrent-usage", response_model=ConcurrentUsageResponse)
 async def get_concurrent_usage(
     ctx: TenantContext = Depends(get_tenant_context),
+    pool=Depends(_get_pool),
 ):
     """Get current concurrent usage statistics."""
     if not ctx.is_admin:
@@ -390,11 +482,24 @@ async def get_concurrent_usage(
             )
         stats = await tracker.get_stats()
 
+        from backend.domain.tenant import TenantScopeError, require_system_admin
+
+        active_by_tenant = stats.active_by_tenant
+        async with pool.acquire() as conn:
+            try:
+                await require_system_admin(conn, ctx.user_id)
+            except TenantScopeError:
+                active_by_tenant = {
+                    k: v
+                    for k, v in stats.active_by_tenant.items()
+                    if k == ctx.tenant_id
+                }
+
         settings = get_settings()
 
         return ConcurrentUsageResponse(
             total_active=stats.total_active,
-            active_by_tenant=stats.active_by_tenant,
+            active_by_tenant=active_by_tenant,
             peak_usage=stats.peak_usage,
             peak_timestamp=datetime.fromtimestamp(
                 stats.peak_timestamp, tz=timezone.utc
