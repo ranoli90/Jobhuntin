@@ -2124,13 +2124,15 @@ async def serve_storage_file(
     if not tenant_id:
         raise HTTPException(status_code=401, detail="Authentication required")
 
-    # Validate path components - check raw path first (normpath removes "..")
-    if ".." in path:
+    # Validate path components - prevent path traversal (incl. encoded variants)
+    from urllib.parse import unquote
+
+    decoded_path = unquote(path)
+    if ".." in decoded_path or ".." in path:
         raise HTTPException(status_code=400, detail="Invalid path")
-    decoded_path = path.replace("%2e%2e", "..").replace("%2E%2E", "..")
-    if ".." in decoded_path:
+    if "%2e" in path.lower() or "%252e" in path.lower():
         raise HTTPException(status_code=400, detail="Invalid path")
-    normalized_path = os.path.normpath(path)
+    normalized_path = os.path.normpath(decoded_path)
     if normalized_path.startswith("/") or normalized_path.startswith("\\"):
         raise HTTPException(status_code=400, detail="Invalid path")
 
@@ -2151,7 +2153,7 @@ async def serve_storage_file(
         raise HTTPException(status_code=500, detail="Failed to retrieve file")
 
     # Determine content type based on file extension
-    content_type = mimetypes.guess_type(path)[0] or "application/octet-stream"
+    content_type = mimetypes.guess_type(normalized_path)[0] or "application/octet-stream"
 
     return Response(content=data, media_type=content_type)
 
