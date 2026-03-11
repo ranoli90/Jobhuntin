@@ -36,62 +36,6 @@ interface UsageData {
   tenants: TenantUsage[];
 }
 
-// TODO: Replace with real API when admin/usage or tenant-aggregated usage exists.
-// billing/usage is tenant-scoped; admin needs cross-tenant aggregation.
-const mockUsageData: UsageData = {
-  total_matches: 15_420,
-  total_api_calls: 89_340,
-  period_start: "2026-01-01",
-  period_end: "2026-01-31",
-  tenants: [
-    {
-      tenant_id: "1",
-      tenant_name: "Acme Corp",
-      matches_used: 4500,
-      matches_limit: 10_000,
-      api_calls: 25_000,
-      api_limit: 50_000,
-      quota_percentage: 45,
-    },
-    {
-      tenant_id: "2",
-      tenant_name: "TechStart Inc",
-      matches_used: 3200,
-      matches_limit: 5000,
-      api_calls: 18_000,
-      api_limit: 30_000,
-      quota_percentage: 64,
-    },
-    {
-      tenant_id: "3",
-      tenant_name: "Global Systems",
-      matches_used: 8920,
-      matches_limit: 10_000,
-      api_calls: 42_000,
-      api_limit: 50_000,
-      quota_percentage: 89,
-    },
-    {
-      tenant_id: "4",
-      tenant_name: "StartupXYZ",
-      matches_used: 1500,
-      matches_limit: 5000,
-      api_calls: 8000,
-      api_limit: 25_000,
-      quota_percentage: 30,
-    },
-    {
-      tenant_id: "5",
-      tenant_name: "Enterprise Solutions",
-      matches_used: 4800,
-      matches_limit: 5000,
-      api_calls: 22_000,
-      api_limit: 25_000,
-      quota_percentage: 96,
-    },
-  ],
-};
-
 function QuotaBar({
   used,
   limit,
@@ -141,7 +85,6 @@ export default function AdminUsagePage() {
   const [loading, setLoading] = useState(true);
   const [usageData, setUsageData] = useState<UsageData | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [isDemoData, setIsDemoData] = useState(false);
   const [dateRange, setDateRange] = useState({
     start: new Date(new Date().setDate(1)).toISOString().split("T")[0],
     end: new Date().toISOString().split("T")[0],
@@ -150,15 +93,16 @@ export default function AdminUsagePage() {
   const fetchUsage = async () => {
     setLoading(true);
     setError(null);
+    setUsageData(null);
     try {
       const data = await apiGet<UsageData>(
         `admin/usage?start=${dateRange.start}&end=${dateRange.end}`,
       );
       setUsageData(data);
-      setIsDemoData(false);
-    } catch {
-      setUsageData(mockUsageData);
-      setIsDemoData(true);
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Failed to load usage data. Admin usage API not implemented.",
+      );
     } finally {
       setLoading(false);
     }
@@ -252,11 +196,6 @@ export default function AdminUsagePage() {
                 Tenant Usage Analytics
               </h1>
             </div>
-            {isDemoData && (
-              <Badge variant="outline" size="sm" className="self-center">
-                Demo data
-              </Badge>
-            )}
           </div>
         </div>
         <div className="flex items-center gap-3">

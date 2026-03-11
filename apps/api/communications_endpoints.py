@@ -760,6 +760,90 @@ async def get_top_interests(
         )
 
 
+@router.get("/recommendations")
+async def get_recommendations(
+    ctx: TenantContext = Depends(get_tenant_context),
+    user_profiler=Depends(get_user_profiler),
+    pool=Depends(get_pool),
+) -> Dict[str, Any]:
+    """Get personalized content recommendations based on user interests.
+
+    Uses jobs from the content pool, scored by the user interest profiler.
+    Returns empty list if no content pool or profiler fails.
+    """
+    try:
+        # Fetch content pool: recent jobs with title, company, description
+        async with pool.acquire() as conn:
+            rows = await conn.fetch(
+                """
+                SELECT id, title, company, description, job_type
+                FROM public.jobs
+                WHERE (is_scam IS NULL OR is_scam = FALSE)
+                  AND (description IS NOT NULL OR title IS NOT NULL)
+                ORDER BY COALESCE(last_synced_at, created_at) DESC
+                LIMIT 50
+                """
+            )
+
+        if not rows:
+            return {"recommendations": []}
+
+        # Build content pool for profiler (id, content, category required)
+        content_pool = []
+        for r in rows:
+            job_id = str(r["id"])
+            title = r["title"] or ""
+            company = r["company"] or ""
+            description = (r["description"] or "")[:500]
+            job_type = r["job_type"] or "jobs"
+            content = f"{company}. {description}" if description else f"{company}. {title}"
+            content_pool.append(
+                {
+                    "id": job_id,
+                    "title": title,
+                    "content": content,
+                    "category": job_type,
+                    "metadata": {"company": company, "job_type": job_type},
+                }
+            )
+
+        # Call profiler
+        raw = await user_profiler.recommend_content(
+            user_id=ctx.user_id,
+            tenant_id=ctx.tenant_id,
+            content_pool=content_pool,
+            limit=10,
+        )
+
+        # Map to ContentRecommendation shape
+        recommendations = []
+        for item in raw:
+            job_id = item.get("id", "")
+            title = item.get("title", "")
+            company = item.get("metadata", {}).get("company", "")
+            snippet = (item.get("content", "") or "")[:200]
+            content = f"{company}. {snippet}" if company else snippet
+            category = item.get("category") or "jobs"
+            similarity_score = item.get("similarity_score", 0.0)
+            metadata = item.get("metadata") or {}
+            recommendations.append(
+                {
+                    "id": job_id,
+                    "title": title,
+                    "content": content,
+                    "category": category,
+                    "similarity_score": similarity_score,
+                    "metadata": metadata,
+                }
+            )
+
+        return {"recommendations": recommendations}
+
+    except Exception:
+        logger.exception("Failed to get recommendations")
+        return {"recommendations": []}
+
+
 @router.get("/semantic/match")
 async def calculate_semantic_match(
     content: str = Query(..., description="Content to match"),

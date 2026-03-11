@@ -42,83 +42,6 @@ interface MatchesData {
   success_rate: number;
 }
 
-// TODO: Replace with real API when admin/matches or match-scoring list endpoint exists.
-// Search apps/api for matches/scoring APIs - match_weights/analytics and match_calibration
-// return aggregate metrics, not per-match records.
-const mockMatchesData: MatchesData = {
-  matches: [
-    {
-      id: "1",
-      job_id: "j1",
-      job_title: "Retail Associate",
-      company: "Walmart",
-      tenant_id: "t1",
-      tenant_name: "Walmart",
-      user_id: "u1",
-      score: 92,
-      passed_dealbreakers: true,
-      status: "completed",
-      created_at: "2026-02-12T10:30:00Z",
-    },
-    {
-      id: "2",
-      job_id: "j2",
-      job_title: "Cashier",
-      company: "Target",
-      tenant_id: "t2",
-      tenant_name: "Target Inc",
-      user_id: "u2",
-      score: 78,
-      passed_dealbreakers: true,
-      status: "completed",
-      created_at: "2026-02-12T09:45:00Z",
-    },
-    {
-      id: "3",
-      job_id: "j3",
-      job_title: "Sales Associate",
-      company: "Best Buy",
-      tenant_id: "t3",
-      tenant_name: "Best Buy",
-      user_id: "u3",
-      score: 45,
-      passed_dealbreakers: false,
-      status: "completed",
-      created_at: "2026-02-12T09:30:00Z",
-    },
-    {
-      id: "4",
-      job_id: "j4",
-      job_title: "Customer Service",
-      company: "Amazon",
-      tenant_id: "t4",
-      tenant_name: "Amazon",
-      user_id: "u4",
-      score: 0,
-      passed_dealbreakers: false,
-      status: "failed",
-      created_at: "2026-02-12T09:15:00Z",
-    },
-    {
-      id: "5",
-      job_id: "j5",
-      job_title: "Warehouse Worker",
-      company: "Costco",
-      tenant_id: "t1",
-      tenant_name: "Costco",
-      user_id: "u1",
-      score: 85,
-      passed_dealbreakers: true,
-      status: "completed",
-      created_at: "2026-02-12T08:00:00Z",
-    },
-  ],
-  total: 1250,
-  page: 1,
-  per_page: 20,
-  success_rate: 94.5,
-};
-
 export default function AdminMatchesPage() {
   const navigate = useNavigate();
   const [searchParameters, setSearchParameters] = useSearchParams();
@@ -126,7 +49,6 @@ export default function AdminMatchesPage() {
   const [loading, setLoading] = useState(true);
   const [matchesData, setMatchesData] = useState<MatchesData | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [isDemoData, setIsDemoData] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [tenantFilter, setTenantFilter] = useState("");
   const [scoreMin, setScoreMin] = useState("");
@@ -148,11 +70,13 @@ export default function AdminMatchesPage() {
     apiGet<MatchesData>(`admin/matches?${parameters}`)
       .then((data) => {
         setMatchesData(data);
-        setIsDemoData(false);
+        setError(null);
       })
-      .catch(() => {
-        setMatchesData(mockMatchesData);
-        setIsDemoData(true);
+      .catch((err) => {
+        setMatchesData(null);
+        setError(
+          err instanceof Error ? err.message : "Admin matches API not implemented.",
+        );
       })
       .finally(() => setLoading(false));
   }, [page, tenantFilter, scoreMin, scoreMax]);
@@ -236,11 +160,6 @@ export default function AdminMatchesPage() {
                 Match Monitoring
               </h1>
             </div>
-            {isDemoData && (
-              <Badge variant="outline" size="sm" className="self-center">
-                Demo data
-              </Badge>
-            )}
           </div>
         </div>
       </div>

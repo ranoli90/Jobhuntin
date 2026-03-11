@@ -197,48 +197,22 @@ const SemanticMatcher: React.FC = () => {
   };
 
   const handleGetRecommendations = async () => {
+    setError(null);
     try {
-      // TODO: Wire to real API when GET /communications/recommendations or similar exists.
-      // The user_interest_profiler.recommend_content() requires a content_pool; no public
-      // endpoint exposes content recommendations yet.
-      const demoRecommendations: ContentRecommendation[] = [
-        {
-          id: "1",
-          title: "Software Engineer Position",
-          content:
-            "Looking for experienced software engineer with React and Node.js skills...",
-          category: "technology",
-          similarity_score: 0.85,
-          metadata: {},
-        },
-        {
-          id: "2",
-          title: "Data Science Course",
-          content:
-            "Comprehensive data science course covering Python, machine learning, and statistics...",
-          category: "education",
-          similarity_score: 0.72,
-          metadata: {},
-        },
-        {
-          id: "3",
-          title: "Marketing Campaign",
-          content:
-            "Digital marketing campaign focused on social media and content strategy...",
-          category: "marketing",
-          similarity_score: 0.65,
-          metadata: {},
-        },
-      ];
-
-      setRecommendations(demoRecommendations);
-      setShowRecommendations(true);
-    } catch (error_) {
-      setError(
-        error_ instanceof Error
-          ? error_.message
-          : "Failed to get recommendations",
+      const data = await apiGet<{ recommendations?: ContentRecommendation[] }>(
+        "communications/recommendations",
       );
+      const recs = data?.recommendations ?? [];
+      setRecommendations(recs);
+      setShowRecommendations(true);
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Content recommendations API not available.",
+      );
+      setRecommendations([]);
+      setShowRecommendations(true);
     }
   };
 
@@ -531,12 +505,7 @@ const SemanticMatcher: React.FC = () => {
       {showRecommendations && (
         <Card className="p-6">
           <CardHeader>
-            <div className="flex items-center gap-2">
-              <CardTitle>Content Recommendations</CardTitle>
-              <Badge variant="secondary" className="text-xs">
-                Demo data
-              </Badge>
-            </div>
+            <CardTitle>Content Recommendations</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
