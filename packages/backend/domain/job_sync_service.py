@@ -74,7 +74,7 @@ class JobSyncService:
         location: str | None = None,
     ) -> SyncResult:
         """Sync jobs from Adzuna API into the database."""
-        from backend.domain.job_boards import AdzunaClient
+        from packages.backend.domain.job_boards import AdzunaClient
 
         start_time = time.time()
         client = AdzunaClient(self.settings)
