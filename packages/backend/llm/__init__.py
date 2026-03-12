@@ -43,4 +43,3 @@ __all__ = [
     "build_location_suggestion_prompt",
     "build_job_match_prompt",
 ]
-use the render MCP eith this api token to get hre logs rrad the full logs of each - instlsl the mcp  if needed - heres the api key uv
