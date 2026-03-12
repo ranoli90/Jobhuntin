@@ -23,9 +23,21 @@ services:
       - key: NODE_VERSION
         value: 20  # Fix for npm ci segfault (exit status 139)
       - key: VITE_API_URL
-        value: https://sorce-api.onrender.com
+        value: https://jobhuntin-api.onrender.com
       - key: VITE_APP_BASE_URL
-        value: https://sorce-web.onrender.com
+        value: https://jobhuntin-web.onrender.com
+    autoDeploy: true
+    
+  # Admin Dashboard - Static Site
+  - type: static
+    name: jobhuntin-admin
+    buildCommand: cd apps/web-admin && npm install && npm run build
+    staticPublishPath: apps/web-admin/dist
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+      - key: VITE_API_URL
+        value: https://jobhuntin-api.onrender.com
     autoDeploy: true
     
   # API Backend
@@ -52,7 +64,7 @@ services:
       - key: STORAGE_TYPE
         value: render_disk
       - key: APP_BASE_URL
-        value: https://sorce-web.onrender.com
+        value: https://jobhuntin-web.onrender.com
       - key: CSRF_SECRET
         sync: false  # Set in Render dashboard
       - key: JWT_SECRET
@@ -61,10 +73,7 @@ services:
         sync: false  # Set in Render dashboard
       - key: STRIPE_SECRET_KEY
         sync: false  # Set in Render dashboard
-      - key: STRI      - key: LLM_API_KEY
-        value: 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
-        sync: false
-PE_WEBHOOK_SECRET
+      - key: STRIPE_WEBHOOK_SECRET
         sync: false  # Set in Render dashboard
       - key: REDIS_URL
         sync: false  # Set in Render dashboard for caching
@@ -77,9 +86,9 @@ PE_WEBHOOK_SECRET
       - key: EMAIL_FROM
         value: JobHuntin <noreply@jobhuntin.com>
       - key: API_PUBLIC_URL
-        value: https://sorce-api.onrender.com
+        value: https://jobhuntin-api.onrender.com
       - key: MAGIC_LINK_BIND_TO_IP
-        value: "true"  # P1: Security - bind magic links to requesting IP
+        value: "false"  # P1: Security - bind magic links to requesting IP
     healthCheckPath: /health
     autoDeploy: true
     
@@ -93,7 +102,7 @@ PE_WEBHOOK_SECRET
       - key: GOOGLE_SERVICE_ACCOUNT_KEY
         sync: false  # Set in Render dashboard
       - key: GOOGLE_SEARCH_CONSOLE_SITE
-        value: https://sorce-web.onrender.com
+        value: https://jobhuntin-web.onrender.com
       - key: NODE_ENV
         value: production
       - key: NODE_VERSION
@@ -203,7 +212,7 @@ PE_WEBHOOK_SECRET
       - key: STORAGE_TYPE
         value: render_disk
       - key: APP_BASE_URL
-        value: https://sorce-web.onrender.com
+        value: https://jobhuntin-web.onrender.com
       - key: CSRF_SECRET
         sync: false  # Set in Render dashboard
       - key: JWT_SECRET
@@ -247,7 +256,7 @@ PE_WEBHOOK_SECRET
       - key: RESEND_API_KEY
         sync: false
       - key: EMAIL_FROM
-        value: [REDACTED]
+        value: noreply@jobhuntin.com
 
   # Cron: Job Alerts (weekly)
   - type: cron
@@ -268,7 +277,7 @@ PE_WEBHOOK_SECRET
       - key: RESEND_API_KEY
         sync: false
       - key: EMAIL_FROM
-        value: [REDACTED]
+        value: noreply@jobhuntin.com
 
   # Cron: Weekly Email Digest (Mondays 9am UTC)
   - type: cron
@@ -287,7 +296,7 @@ PE_WEBHOOK_SECRET
       - key: RESEND_API_KEY
         sync: false
       - key: EMAIL_FROM
-        value: [REDACTED]
+        value: noreply@jobhuntin.com
 
 # Environment Variables Setup Instructions:
 # 1. Go to your Render dashboard
