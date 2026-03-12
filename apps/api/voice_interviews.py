@@ -27,7 +27,10 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
 from packages.backend.domain.tenant import TenantContext
-from packages.backend.domain.voice_interview_simulator import get_voice_interview_simulator
+from packages.backend.domain.voice_interview_simulator import (
+    get_voice_interview_simulator,
+)
+from shared.config import get_settings
 from shared.logging_config import get_logger
 
 logger = get_logger("sorce.voice_interviews")
@@ -43,10 +46,18 @@ class CreateVoiceSessionRequest(BaseModel):
     company: str = Field(..., max_length=200, description="Company name")
     job_title: str = Field(..., max_length=200, description="Job title")
     job_description: str = Field(..., max_length=50000, description="Job description")
-    user_profile: Dict[str, Any] = Field(..., max_length=100, description="User profile data")
-    interview_type: str = Field(default="general", max_length=50, description="Interview type")
-    difficulty: str = Field(default="medium", max_length=50, description="Question difficulty")
-    question_count: int = Field(default=10, ge=1, le=100, description="Number of questions")
+    user_profile: Dict[str, Any] = Field(
+        ..., max_length=100, description="User profile data"
+    )
+    interview_type: str = Field(
+        default="general", max_length=50, description="Interview type"
+    )
+    difficulty: str = Field(
+        default="medium", max_length=50, description="Question difficulty"
+    )
+    question_count: int = Field(
+        default=10, ge=1, le=100, description="Number of questions"
+    )
     voice_settings: Optional[Dict[str, Any]] = Field(
         default=None, max_length=50, description="Voice configuration settings"
     )
@@ -92,7 +103,9 @@ class TranscribeVoiceRequest(BaseModel):
     """Request for voice transcription."""
 
     session_id: str = Field(..., max_length=36, description="Session identifier")
-    audio_data: bytes = Field(..., max_length=10_000_000, description="Audio data bytes")
+    audio_data: bytes = Field(
+        ..., max_length=10_000_000, description="Audio data bytes"
+    )
     audio_format: str = Field(default="mp3", max_length=20, description="Audio format")
 
 
@@ -141,7 +154,9 @@ class VoiceSettingsUpdateRequest(BaseModel):
     """Request for updating voice settings."""
 
     session_id: str = Field(..., max_length=36, description="Session identifier")
-    voice_settings: Dict[str, Any] = Field(..., max_length=50, description="New voice settings")
+    voice_settings: Dict[str, Any] = Field(
+        ..., max_length=50, description="New voice settings"
+    )
 
 
 class VoiceSettingsResponse(BaseModel):
@@ -328,7 +343,10 @@ async def create_voice_session(
         difficulty = difficulty_map.get(request.difficulty.lower(), "MEDIUM")
 
         # Import enum types
-        from packages.backend.domain.interview_simulator import InterviewType, QuestionDifficulty
+        from packages.backend.domain.interview_simulator import (
+            InterviewType,
+            QuestionDifficulty,
+        )
 
         interview_type_enum = InterviewType(interview_type)
         difficulty_enum = QuestionDifficulty(difficulty)
@@ -379,6 +397,7 @@ async def start_voice_question(
         Voice question start response
     """
     try:
+
         class TempSession:
             def __init__(self, d):
                 self.session_id = d.get("session_id", "")
@@ -390,9 +409,7 @@ async def start_voice_question(
 
         data: Optional[Dict[str, Any]] = None
         async with db.acquire() as conn:
-            data = await _get_session_from_db(
-                conn, request.session_id, ctx.user_id
-            )
+            data = await _get_session_from_db(conn, request.session_id, ctx.user_id)
 
         if not data:
             raise HTTPException(
@@ -435,6 +452,7 @@ async def transcribe_voice_response(
         Transcription result with analytics
     """
     try:
+
         class TempSession:
             def __init__(self, d):
                 self.session_id = d.get("session_id", "")
@@ -448,9 +466,7 @@ async def transcribe_voice_response(
 
         data: Optional[Dict[str, Any]] = None
         async with db.acquire() as conn:
-            data = await _get_session_from_db(
-                conn, request.session_id, ctx.user_id
-            )
+            data = await _get_session_from_db(conn, request.session_id, ctx.user_id)
 
         if not data:
             raise HTTPException(
@@ -507,11 +523,14 @@ async def get_voice_session(
         questions = data.get("questions") or []
         started_at = data.get("started_at")
         started_at_str = (
-            started_at.isoformat() if hasattr(started_at, "isoformat") else str(started_at or "")
+            started_at.isoformat()
+            if hasattr(started_at, "isoformat")
+            else str(started_at or "")
         )
 
         voice_settings = data.get("voice_settings") or {}
         if not voice_settings:
+            settings = get_settings()
             voice_settings = {
                 "text_to_speech": {
                     "provider": "openai_tts",
@@ -524,7 +543,7 @@ async def get_voice_session(
                     "provider": "openai_whisper",
                     "language": "en-US",
                     "model": "whisper-1",
-                    "timeout": 30,
+                    "timeout": settings.voice_interview_timeout_seconds,
                 },
                 "voice_analytics": {
                     "enable_clarity_detection": True,
@@ -683,13 +702,14 @@ async def get_voice_settings(
         Available voice settings
     """
     try:
+        settings = get_settings()
         # Return available voice settings
         return VoiceSettingsResponse(
             speech_to_text={
                 "provider": "openai_whisper",
                 "language": "en-US",
                 "model": "whisper-1",
-                "timeout": 30,
+                "timeout": settings.voice_interview_timeout_seconds,
                 "supported_languages": [
                     "en-US",
                     "en-GB",
@@ -774,7 +794,7 @@ async def get_voice_settings(
                     "provider": "openai_whisper",
                     "language": "en-US",
                     "model": "whisper-1",
-                    "timeout": 30,
+                    "timeout": settings.voice_interview_timeout_seconds,
                 },
                 "text_to_speech": {
                     "provider": "openai_tts",
@@ -876,6 +896,7 @@ async def generate_voice_question(
         Generated voice question
     """
     try:
+        settings = get_settings()
         # TODO: Implement session retrieval from database
         # For now, return placeholder data
 
@@ -907,7 +928,7 @@ async def generate_voice_question(
                         "provider": "openai_whisper",
                         "language": "en-US",
                         "model": "whisper-1",
-                        "timeout": 30,
+                        "timeout": settings.voice_interview_timeout_seconds,
                     },
                 }
 

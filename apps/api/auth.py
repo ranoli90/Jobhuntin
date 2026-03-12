@@ -754,7 +754,9 @@ async def _send_magic_link_email(
             email_breaker = get_email_breaker()
 
             async def _send_email():
-                async with httpx.AsyncClient(timeout=10) as client:
+                async with httpx.AsyncClient(
+                    timeout=settings.email_timeout_seconds
+                ) as client:
                     resp = await client.post(
                         "https://api.resend.com/emails", headers=headers, json=payload
                     )
@@ -1223,7 +1225,9 @@ async def _verify_captcha(settings: Settings, token: str, client_ip: str) -> boo
     max_retries = 2
     for attempt in range(max_retries + 1):
         try:
-            async with httpx.AsyncClient(timeout=10.0) as client:
+            async with httpx.AsyncClient(
+                timeout=settings.api_client_timeout_seconds
+            ) as client:
                 response = await client.post(
                     "https://www.google.com/recaptcha/api/siteverify",
                     data={

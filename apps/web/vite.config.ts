@@ -62,6 +62,11 @@ export default defineConfig(({ mode }) => {
           rewrite: (path) => (path.startsWith("/api") ? path.slice(4) || "/" : path),
         },
       },
+      headers: {
+        "Cache-Control": "no-cache, no-store, must-revalidate",
+        "Pragma": "no-cache",
+        "Expires": "0",
+      },
     },
     build: {
       rollupOptions: {

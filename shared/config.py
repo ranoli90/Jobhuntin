@@ -112,6 +112,11 @@ class Settings(BaseSettings):
     # This prevents token theft attacks. #9: Default True in prod (override with MAGIC_LINK_BIND_TO_IP=false to disable).
     magic_link_bind_to_ip: bool = False
 
+    # ── Timeout configuration ─────────────────────────────────────
+    email_timeout_seconds: int = 10
+    api_client_timeout_seconds: int = 30
+    voice_interview_timeout_seconds: int = 30
+
     # ── Blueprints ────────────────────────────────────────────────
     default_blueprint_key: str = "job-app"
     enabled_blueprints: str = "job-app,grant,staffing-agency"  # comma-separated list
@@ -171,8 +176,12 @@ class Settings(BaseSettings):
     jobspy_results_per_source: int = 50
     jobspy_proxies: str = ""  # Comma-separated: "http://user:pass@host:port"
     jobspy_proxy_rotation: bool = True
-    jobspy_use_free_proxies: bool = False  # When no proxies configured, fetch from GimmeProxy/PubProxy
-    jobspy_validate_proxies: bool = False  # Validate free proxies with httpbin before use (slower)
+    jobspy_use_free_proxies: bool = (
+        False  # When no proxies configured, fetch from GimmeProxy/PubProxy
+    )
+    jobspy_validate_proxies: bool = (
+        False  # Validate free proxies with httpbin before use (slower)
+    )
     jobspy_linkedin_fetch_description: bool = True
     jobspy_hours_old: int = 168  # Only fetch jobs from last 7 days
     jobspy_job_ttl_days: int = 7
@@ -181,8 +190,12 @@ class Settings(BaseSettings):
     jobspy_timeout_seconds: int = 120
     jobspy_description_max_length: int = 50000
     jobspy_quality_min_desc_length: int = 50
-    jobspy_retry_count: int = 2  # Retries with exponential backoff on transient failures
-    jobspy_rate_limit_per_minute: int = 12  # Proactive throttling between fetches (1 per ~5s)
+    jobspy_retry_count: int = (
+        2  # Retries with exponential backoff on transient failures
+    )
+    jobspy_rate_limit_per_minute: int = (
+        12  # Proactive throttling between fetches (1 per ~5s)
+    )
 
     # ── Stripe / Billing ─────────────────────────────────────────
     stripe_secret_key: str = ""
@@ -377,10 +390,14 @@ class Settings(BaseSettings):
             if not self.app_base_url or self.app_base_url.strip() == "[REDACTED]":
                 missing.append("APP_BASE_URL (must be set, not placeholder)")
             if not self.api_public_url or self.api_public_url.strip() == "[REDACTED]":
-                missing.append("API_PUBLIC_URL (required for magic-link redirect in prod)")
+                missing.append(
+                    "API_PUBLIC_URL (required for magic-link redirect in prod)"
+                )
             if not self.csrf_secret:
                 missing.append("CSRF_SECRET")
-            elif "dev-" in self.csrf_secret or "change-in-production" in self.csrf_secret:
+            elif (
+                "dev-" in self.csrf_secret or "change-in-production" in self.csrf_secret
+            ):
                 missing.append("CSRF_SECRET (dev default not allowed in prod)")
             if not self.jwt_secret:
                 missing.append("JWT_SECRET (required for JWT token signing/validation)")

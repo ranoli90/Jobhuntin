@@ -98,6 +98,7 @@ class VoiceInterviewSimulator:
         self._llm_client = llm_client
         self._settings = get_settings()
         self._base_simulator = get_interview_simulator()
+        settings = get_settings()
 
         # Voice service configuration
         self._voice_service_config = {
@@ -105,7 +106,7 @@ class VoiceInterviewSimulator:
                 "provider": "openai_whisper",  # or "azure_speech", "google_speech"
                 "language": "en-US",
                 "model": "whisper-1",
-                "timeout": 30,
+                "timeout": settings.voice_interview_timeout_seconds,
             },
             "text_to_speech": {
                 "provider": "openai_tts",  # or "azure_tts", "google_tts"

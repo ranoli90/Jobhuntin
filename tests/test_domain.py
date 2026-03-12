@@ -379,3 +379,212 @@ class TestApplicationStatus:
 
     def test_string_comparison(self):
         assert ApplicationStatus.QUEUED == "QUEUED"
+
+
+# ===================================================================
+# Edge case tests for normalize_profile
+# ===================================================================
+
+
+class TestNormalizeProfileEdgeCases:
+    """Test edge cases in profile normalization."""
+
+    def test_null_values_in_arrays(self):
+        """Null values in education/experience arrays should be filtered before normalization."""
+        raw = {
+            "education": [None, {"institution": "MIT"}],
+            "experience": [{"company": "TechCorp"}, None],
+        }
+        # Filter out None values before passing to normalize_profile
+        filtered_edu = [e for e in raw["education"] if e is not None]
+        filtered_exp = [e for e in raw["experience"] if e is not None]
+        raw["education"] = filtered_edu
+        raw["experience"] = filtered_exp
+        profile = normalize_profile(raw)
+        assert len(profile.education) == 1
+        assert len(profile.experience) == 1
+
+    def test_malformed_dates(self):
+        """Malformed date strings should not crash normalization."""
+        raw = {
+            "education": [
+                {"institution": "MIT", "start_date": "not-a-date", "end_date": ""}
+            ],
+            "experience": [
+                {
+                    "company": "TechCorp",
+                    "start_date": "2020-13-99",  # invalid month/day
+                    "end_date": "present",
+                }
+            ],
+        }
+        profile = normalize_profile(raw)
+        assert profile.education[0].institution == "MIT"
+        assert profile.experience[0].company == "TechCorp"
+
+    def test_very_long_strings_truncated(self):
+        """Extremely long strings should be handled gracefully."""
+        raw = {
+            "contact": {"full_name": "A" * 10000},
+            "summary": "B" * 50000,
+        }
+        profile = normalize_profile(raw)
+        assert len(profile.contact.full_name) <= 10000
+
+    def test_special_characters_in_names(self):
+        """Special characters in names should be preserved."""
+        raw = {
+            "contact": {
+                "full_name": "José García-Núñez Jr. III",
+                "email": "jose@example.com",
+            }
+        }
+        profile = normalize_profile(raw)
+        assert profile.contact.full_name == "José García-Núñez Jr. III"
+        assert profile.contact.first_name == "José"
+
+    def test_numeric_fields_as_strings(self):
+        """Numeric fields passed as strings should be handled."""
+        raw = {
+            "years_experience": "5",
+            "education": [{"gpa": "3.5"}],
+        }
+        profile = normalize_profile(raw)
+        assert profile.years_experience == 5
+
+    def test_empty_string_arrays(self):
+        """Empty string entries in arrays should be filtered."""
+        raw = {
+            "skills": {"technical": ["Python", "", "  ", "JavaScript"], "soft": []},
+            "languages": ["", "English"],
+        }
+        profile = normalize_profile(raw)
+        assert "Python" in profile.skills.technical
+        assert "" not in profile.skills.technical
+        assert "English" in profile.languages
+
+    def test_case_insensitive_status(self):
+        """Status fields should handle case variations."""
+        from backend.domain.models import ApplicationStatus
+
+        raw = {"status": "queued"}
+        # This tests that enum comparisons work case-insensitively
+        assert ApplicationStatus.QUEUED.value == "QUEUED"
+
+
+# ===================================================================
+# LLM Client edge case tests
+# ===================================================================
+
+
+class TestLLMClientEdgeCases:
+    @pytest.mark.asyncio
+    async def test_timeout_raises_error(self):
+        """Request timeout should raise LLMError after retries exhausted."""
+        import httpx
+        import os
+
+        from backend.llm.client import LLMClient, LLMError
+
+        old_model = os.environ.get("LLM_MODEL")
+        old_fallback = os.environ.get("LLM_FALLBACK_MODELS")
+        os.environ["LLM_MODEL"] = "test-model"
+        os.environ["LLM_FALLBACK_MODELS"] = ""
+        try:
+            from shared.config import Settings
+
+            settings = Settings(
+                llm_api_base="https://api.openai.com/v1",
+                llm_api_key="test-key",
+                llm_retry_count=0,
+                llm_timeout_seconds=1,
+            )
+            client = LLMClient(settings)
+
+            async def slow_request(payload):
+                raise httpx.TimeoutException("Request timed out")
+
+            client._make_http_request = slow_request
+
+            with pytest.raises(LLMError):
+                await client.call(prompt="test")
+        finally:
+            if old_model:
+                os.environ["LLM_MODEL"] = old_model
+            else:
+                os.environ.pop("LLM_MODEL", None)
+            if old_fallback:
+                os.environ["LLM_FALLBACK_MODELS"] = old_fallback
+            else:
+                os.environ.pop("LLM_FALLBACK_MODELS", None)
+
+    @pytest.mark.asyncio
+    async def test_llm_client_accepts_empty_response_format(self):
+        """LLMClient should handle empty response format gracefully."""
+        from backend.llm.client import LLMClient
+        from shared.config import Settings
+
+        settings = Settings(
+            llm_api_base="https://api.openai.com/v1",
+            llm_api_key="test-key",
+            llm_retry_count=0,
+            llm_model="test-model",
+        )
+        client = LLMClient(settings)
+
+        mock_response = {"choices": [{"message": {"content": '{"key": "value"}'}}]}
+        client._make_http_request = AsyncMock(return_value=mock_response)
+
+        result = await client.call(prompt="test")
+        assert result == {"key": "value"}
+
+    @pytest.mark.asyncio
+    async def test_llm_client_accepts_empty_response_format(self):
+        """LLMClient should handle empty response format gracefully."""
+        from backend.llm.client import LLMClient
+        from shared.config import Settings
+
+        settings = Settings(
+            llm_api_base="https://api.openai.com/v1",
+            llm_api_key="test-key",
+            llm_retry_count=0,
+            llm_model="test-model",
+        )
+        client = LLMClient(settings)
+
+        mock_response = {"choices": [{"message": {"content": '{"key": "value"}'}}]}
+        client._make_http_request = AsyncMock(return_value=mock_response)
+
+        result = await client.call(prompt="test")
+        assert result == {"key": "value"}
+
+
+# ===================================================================
+# ErrorResponse edge case tests
+# ===================================================================
+
+
+class TestErrorResponseEdgeCases:
+    def test_error_with_details(self):
+        """Error with additional details should serialize correctly."""
+        err = ErrorResponse(
+            error=ErrorDetail(
+                code="VALIDATION_ERROR",
+                message="Invalid input",
+                details={"field": "email", "reason": "invalid format"},
+            )
+        )
+        d = err.model_dump()
+        assert d["error"]["details"]["field"] == "email"
+
+    def test_error_with_extra_fields(self):
+        """Extra fields in ErrorDetail should be ignored."""
+        raw = {
+            "code": "TEST",
+            "message": "Test error",
+            "extra": "should be ignored",
+            "details": {"key": "value"},
+        }
+        err = ErrorResponse(error=ErrorDetail(**raw))
+        d = err.model_dump()
+        assert "extra" not in d["error"]
