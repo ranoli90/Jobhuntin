@@ -1,177 +1,84 @@
 [
   {
-    "note": "NEW RENDER ACCOUNT SERVICES (tea-d6p1rv6a2pns73f4sucg - Dalton's workspace)",
+    "note": "Render account - team tea-d6p1rv6a2pns73f4sucg (Dalton's workspace) - API KEY: rnd_UiMNNzGNDphD0fyZsatrlHwM5QfF",
     "postgres": {
-      "createdAt": "2026-03-12T05:40:18.380273Z",
-      "dashboardUrl": "https://dashboard.render.com/d/dpg-d6p53ghr0fns73e4da20-a",
-      "databaseName": "jobhuntin_db_ghef",
-      "databaseUser": "jobhuntin_db_ghef_user",
-      "diskAutoscalingEnabled": false,
-      "highAvailabilityEnabled": false,
       "id": "dpg-d6p53ghr0fns73e4da20-a",
       "name": "jobhuntin-db",
-      "owner": {
-        "email": "coremugshot@gmail.com",
-        "id": "tea-d6p1rv6a2pns73f4sucg",
-        "name": "Dalton's workspace",
-        "type": "team"
-      },
-      "plan": "free",
-      "region": "oregon",
-      "role": "primary",
-      "status": "available",
-      "updatedAt": "2026-03-12T05:40:18.380273Z",
-      "version": "16"
+      "databaseName": "jobhuntin_db_ghef",
+      "databaseUser": "jobhuntin_db_ghef_user",
+      "status": "available"
     }
   },
   {
-    "note": "Redis on new account",
-    "keyValue": {
-      "createdAt": "2026-03-12T05:40:38.853975Z",
+    "redis": {
       "id": "red-d6p53ln5gffc738u7o9g",
       "name": "jobhuntin-redis",
-      "options": {
-        "maxmemoryPolicy": "allkeys_lru"
-      },
-      "owner": {
-        "email": "coremugshot@gmail.com",
-        "id": "tea-d6p1rv6a2pns73f4sucg",
-        "name": "Dalton's workspace",
-        "type": "team"
-      },
-      "plan": "free",
-      "region": "oregon",
-      "status": "available",
-      "updatedAt": "2026-03-12T05:40:38.853975Z",
-      "version": "8.1.4"
+      "status": "available"
     }
   },
   {
-    "note": "API on new account",
     "service": {
-      "autoDeploy": "yes",
-      "autoDeployTrigger": "commit",
-      "branch": "main",
-      "createdAt": "2026-03-12T05:09:22.238476Z",
-      "dashboardUrl": "https://dashboard.render.com/web/srv-d6p4l03h46gs73ftvuj0",
       "id": "srv-d6p4l03h46gs73ftvuj0",
       "name": "jobhuntin-api",
-      "notifyOnFail": "default",
-      "ownerId": "tea-d6p1rv6a2pns73f4sucg",
-      "repo": "https://github.com/ranoli90/sorce",
-      "rootDir": "",
-      "serviceDetails": {
-        "buildPlan": "starter",
-        "env": "docker",
-        "envSpecificDetails": {
-          "dockerCommand": "",
-          "dockerContext": ".",
-          "dockerfilePath": "./Dockerfile"
-        },
-        "healthCheckPath": "/health",
-        "ipAllowList": [
-          {
-            "cidrBlock": "0.0.0.0/0",
-            "description": "everywhere"
-          }
-        ],
-        "numInstances": 1,
-        "openPorts": [
-          {
-            "port": 10000,
-            "protocol": "TCP"
-          }
-        ],
-        "plan": "standard",
-        "previews": {
-          "generation": "off"
-        },
-        "pullRequestPreviewsEnabled": "no",
-        "region": "oregon",
-        "runtime": "docker",
-        "sshAddress": "srv-d6p4l03h46gs73ftvuj0@ssh.oregon.render.com",
-        "url": "https://jobhuntin-api.onrender.com"
-      },
-      "slug": "jobhuntin-api",
-      "suspended": "not_suspended",
-      "suspenders": [],
       "type": "web_service",
-      "updatedAt": "2026-03-12T05:09:22.238476Z"
+      "url": "https://jobhuntin-api.onrender.com",
+      "suspended": "not_suspended",
+      "envVars": 13
     }
   },
   {
-    "note": "Web on new account",
     "service": {
-      "autoDeploy": "yes",
-      "autoDeployTrigger": "commit",
-      "branch": "main",
-      "createdAt": "2026-03-12T06:19:46.826298Z",
-      "dashboardUrl": "https://dashboard.render.com/static/srv-d6p5m0fafjfc739ij050",
       "id": "srv-d6p5m0fafjfc739ij050",
       "name": "jobhuntin-web",
-      "notifyOnFail": "default",
-      "ownerId": "tea-d6p1rv6a2pns73f4sucg",
-      "repo": "https://github.com/ranoli90/sorce",
-      "rootDir": "apps/web",
-      "serviceDetails": {
-        "buildCommand": "npm ci && npx vite build",
-        "buildPlan": "starter",
-        "ipAllowList": [
-          {
-            "cidrBlock": "0.0.0.0/0",
-            "description": "everywhere"
-          }
-        ],
-        "previews": {
-          "generation": "off"
-        },
-        "publishPath": "dist",
-        "pullRequestPreviewsEnabled": "no",
-        "url": "https://jobhuntin-web.onrender.com"
-      },
-      "slug": "jobhuntin-web",
-      "suspended": "not_suspended",
-      "suspenders": [],
       "type": "static_site",
-      "updatedAt": "2026-03-12T06:19:46.826298Z"
+      "url": "https://jobhuntin-web.onrender.com",
+      "suspended": "not_suspended",
+      "envVars": 2
     }
   },
   {
-    "note": "SEO Engine Worker on new account",
     "service": {
-      "autoDeploy": "yes",
-      "autoDeployTrigger": "commit",
-      "branch": "main",
-      "createdAt": "2026-03-12T06:22:16.725325Z",
-      "dashboardUrl": "https://dashboard.render.com/worker/srv-d6p5n5vkijhs73fikui0",
       "id": "srv-d6p5n5vkijhs73fikui0",
       "name": "jobhuntin-seo-engine",
-      "notifyOnFail": "default",
-      "ownerId": "tea-d6p1rv6a2pns73f4sucg",
-      "repo": "https://github.com/ranoli90/sorce",
-      "rootDir": "apps/web",
-      "serviceDetails": {
-        "buildPlan": "starter",
-        "env": "node",
-        "envSpecificDetails": {
-          "buildCommand": "npm install",
-          "startCommand": "npm run seo:engine"
-        },
-        "numInstances": 1,
-        "plan": "standard",
-        "previews": {
-          "generation": "off"
-        },
-        "pullRequestPreviewsEnabled": "no",
-        "region": "oregon",
-        "runtime": "node",
-        "sshAddress": "srv-d6p5n5vkijhs73fikui0@ssh.oregon.render.com"
-      },
-      "slug": "jobhuntin-seo-engine-2hak",
-      "suspended": "not_suspended",
-      "suspenders": [],
       "type": "background_worker",
-      "updatedAt": "2026-03-12T06:22:16.725325Z"
+      "suspended": "not_suspended",
+      "envVars": 5
+    }
+  },
+  {
+    "service": {
+      "id": "srv-d6pd9gh5pdvs73ara9og",
+      "name": "jobhuntin-job-sync",
+      "type": "background_worker",
+      "suspended": "not_suspended",
+      "envVars": 5
+    }
+  },
+  {
+    "service": {
+      "id": "srv-d6pd9k24d50c73a8gvp0",
+      "name": "jobhuntin-job-queue",
+      "type": "background_worker",
+      "suspended": "not_suspended",
+      "envVars": 5
+    }
+  },
+  {
+    "service": {
+      "id": "srv-d6pd9np4tr6s73aks17g",
+      "name": "jobhuntin-follow-up-reminders",
+      "type": "background_worker",
+      "suspended": "not_suspended",
+      "envVars": 5
+    }
+  },
+  {
+    "service": {
+      "id": "srv-d6pdaeh5pdvs73arak1g",
+      "name": "sorce-auto-apply-agent",
+      "type": "background_worker",
+      "suspended": "not_suspended",
+      "envVars": 5
     }
   }
 ]

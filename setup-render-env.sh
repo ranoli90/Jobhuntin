@@ -10,8 +10,8 @@ if [ -z "$RENDER_API_TOKEN" ]; then
   echo "❌ RENDER_API_TOKEN not set. Export it: export RENDER_API_TOKEN=your-key"
   exit 1
 fi
-WEB_SERVICE_ID="srv-cqdq7bg8fa8c73c1qgr0"
-SEO_SERVICE_ID="srv-cqdq7t68fa8c73c1qgs0"
+WEB_SERVICE_ID="srv-d6p4l03h46gs73ftvuj0"
+SEO_SERVICE_ID="srv-d6p5n5vkijhs73fikui0"
 
 echo "🔧 Setting up Render environment variables for SEO Ranking Engine..."
 

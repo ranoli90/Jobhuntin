@@ -1,0 +1,34 @@
+{
+  "name": "sorce-auto-apply-agent",
+  "type": "background_worker",
+  "ownerId": "tea-d6p1rv6a2pns73f4sucg",
+  "repo": "https://github.com/ranoli90/sorce",
+  "branch": "main",
+  "rootDir": "",
+  "buildCommand": "pip install -r requirements.txt && playwright install chromium",
+  "startCommand": "python -m apps.worker.scaling --instances 2",
+  "serviceDetails": {
+    "env": "python",
+    "envSpecificDetails": "",
+    "numInstances": 2,
+    "plan": "standard",
+    "region": "oregon",
+    "runtime": "python"
+  },
+  "envVars": [
+    {"key": "PYTHONPATH", "value": "apps:packages:."},
+    {"key": "env", "value": "prod"},
+    {"key": "AGENT_ENABLED", "value": "true"},
+    {"key": "PYTHONUNBUFFERED", "value": "1"},
+    {"key": "WORKER_CONCURRENCY", "value": "50"},
+    {"key": "MAX_INSTANCES", "value": "20"},
+    {"key": "DATABASE_URL", "sync": false},
+    {"key": "DATABASE_READ_URL", "sync": false},
+    {"key": "LLM_API_KEY", "sync": false},
+    {"key": "LLM_API_BASE", "value": "https://openrouter.ai/api/v1"},
+    {"key": "LLM_MODEL", "value": "google/gemini-2.0-flash"},
+    {"key": "REDIS_URL", "sync": false},
+    {"key": "STORAGE_TYPE", "value": "render_disk"},
+    {"key": "APP_BASE_URL", "value": "https://sorce-web.onrender.com"}
+  ]
+}
