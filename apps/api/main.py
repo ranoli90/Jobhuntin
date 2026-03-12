@@ -240,16 +240,17 @@ app.state.cors_origins = CORS_ORIGINS
 # CORS MUST be registered LAST so it executes FIRST (handles OPTIONS preflight).
 # ---------------------------------------------------------------------------
 
-# CRITICAL: Add response compression middleware (early in stack to compress all responses)
-from shared.api_compression import CompressionMiddleware, create_compression_config
-
-compression_config = create_compression_config(
-    min_size=512,  # Compress responses > 512 bytes
-    enable_gzip=True,
-    enable_brotli=True,
-    enable_deflate=True,
-)
-app.add_middleware(CompressionMiddleware, config=compression_config)
+# TEMPORARILY DISABLED: CompressionMiddleware returns None and breaks all endpoints.
+# TODO: Fix CompressionMiddleware properly, then re-enable.
+# from shared.api_compression import CompressionMiddleware, create_compression_config
+#
+# compression_config = create_compression_config(
+#     min_size=512,  # Compress responses > 512 bytes
+#     enable_gzip=True,
+#     enable_brotli=True,
+#     enable_deflate=True,
+# )
+# app.add_middleware(CompressionMiddleware, config=compression_config)
 
 # Add Request ID middleware for distributed tracing
 setup_request_id_middleware(app)
@@ -270,69 +271,69 @@ async def api_prefix_rewrite_middleware(request: Request, call_next):
 
 
 # M3: API Versioning Middleware - Add version headers and handle version negotiation
-@app.middleware("http")
-async def api_versioning_middleware(request: Request, call_next):
-    """Add API version headers and handle version negotiation.
-
-    Headers added:
-    - X-API-Version: Actual API version used (v1 or v2)
-    - X-Supported-Versions: Comma-separated list of supported versions
-    - Deprecation, Sunset: For deprecated endpoints (per RFC 8594)
-    - X-API-Deprecated, X-API-Sunset-Date: Custom deprecation headers (per API_VERSIONING.md)
-
-    Version negotiation:
-    - URL /api/v2/* implies v2; otherwise Accept-Version header or default v1
-    - If Accept-Version not supported, returns 400 with supported versions
-    """
-    # Infer version from path: /api/v2/* always uses v2
-    path = request.url.path
-    if path.startswith("/api/v2/"):
-        effective_version = "v2"
-        request.state.api_version = "v2"
-    else:
-        requested_version = request.headers.get("Accept-Version")
-        if requested_version:
-            requested_version = requested_version.strip().lower()
-            if requested_version not in SUPPORTED_VERSIONS:
-                return JSONResponse(
-                    status_code=400,
-                    content={
-                        "error": {
-                            "code": "UNSUPPORTED_API_VERSION",
-                            "message": f"API version '{requested_version}' is not supported",
-                            "detail": f"Supported versions: {', '.join(SUPPORTED_VERSIONS)}",
-                            "requested_version": requested_version,
-                            "supported_versions": SUPPORTED_VERSIONS,
-                        }
-                    },
-                    headers={
-                        "X-API-Version": API_VERSION,
-                        "X-Supported-Versions": ",".join(SUPPORTED_VERSIONS),
-                    },
-                )
-            request.state.api_version = requested_version
-            effective_version = requested_version
-        else:
-            request.state.api_version = API_VERSION
-            effective_version = API_VERSION
-
-    # Process request
-    response = await call_next(request)
-
-    # Add API version headers to response (reflect actual version used)
-    response.headers["X-API-Version"] = effective_version
-    response.headers["X-Supported-Versions"] = ",".join(SUPPORTED_VERSIONS)
-
-    # Deprecation headers per API_VERSIONING.md and RFC 8594
-    for prefix, sunset_date in DEPRECATED_PATHS:
-        if path.startswith(prefix):
-            response.headers["Deprecation"] = "true"
-            response.headers["Sunset"] = sunset_date
-            response.headers["X-API-Deprecated"] = "true"
-            response.headers["X-API-Sunset-Date"] = sunset_date
-            break
-
-    return response
+# @app.middleware("http")
+# async def api_versioning_middleware(request: Request, call_next):
+#     """Add API version headers and handle version negotiation.
+# 
+#     Headers added:
+#     - X-API-Version: Actual API version used (v1 or v2)
+#     - X-Supported-Versions: Comma-separated list of supported versions
+#     - Deprecation, Sunset: For deprecated endpoints (per RFC 8594)
+#     - X-API-Deprecated, X-API-Sunset-Date: Custom deprecation headers (per API_VERSIONING.md)
+# 
+#     Version negotiation:
+#     - URL /api/v2/* implies v2; otherwise Accept-Version header or default v1
+#     - If Accept-Version not supported, returns 400 with supported versions
+#     """
+#     # Infer version from path: /api/v2/* always uses v2
+#     path = request.url.path
+#     if path.startswith("/api/v2/"):
+#         effective_version = "v2"
+#         request.state.api_version = "v2"
+#     else:
+#         requested_version = request.headers.get("Accept-Version")
+#         if requested_version:
+#             requested_version = requested_version.strip().lower()
+#             if requested_version not in SUPPORTED_VERSIONS:
+#                 return JSONResponse(
+#                     status_code=400,
+#                     content={
+#                         "error": {
+#                             "code": "UNSUPPORTED_API_VERSION",
+#                             "message": f"API version '{requested_version}' is not supported",
+#                             "detail": f"Supported versions: {', '.join(SUPPORTED_VERSIONS)}",
+#                             "requested_version": requested_version,
+#                             "supported_versions": SUPPORTED_VERSIONS,
+#                         }
+#                     },
+#                     headers={
+#                         "X-API-Version": API_VERSION,
+#                         "X-Supported-Versions": ",".join(SUPPORTED_VERSIONS),
+#                     },
+#                 )
+#             request.state.api_version = requested_version
+#             effective_version = requested_version
+#         else:
+#             request.state.api_version = API_VERSION
+#             effective_version = API_VERSION
+# 
+#     # Process request
+#     response = await call_next(request)
+# 
+#     # Add API version headers to response (reflect actual version used)
+#     response.headers["X-API-Version"] = effective_version
+#     response.headers["X-Supported-Versions"] = ",".join(SUPPORTED_VERSIONS)
+# 
+#     # Deprecation headers per API_VERSIONING.md and RFC 8594
+#     for prefix, sunset_date in DEPRECATED_PATHS:
+#         if path.startswith(prefix):
+#             response.headers["Deprecation"] = "true"
+#             response.headers["Sunset"] = sunset_date
+#             response.headers["X-API-Deprecated"] = "true"
+#             response.headers["X-API-Sunset-Date"] = sunset_date
+#             break
+# 
+#     return response
 
 
 import time
@@ -430,8 +431,10 @@ async def _get_tenant_info(auth_header: str) -> tuple[str | None, TenantTier]:
     return None, TenantTier.FREE
 
 
-@app.middleware("http")
-async def idempotency_middleware(request: Request, call_next):
+# @app.middleware("http")
+# async def idempotency_middleware(request: Request, call_next):
+#     """C2: Idempotency Keys - Prevent duplicate writes on retries."""
+#     return await call_next(request)
     """C2: Idempotency Keys - Prevent duplicate writes on retries.
 
     Checks for Idempotency-Key header on POST/PUT/PATCH requests.
@@ -515,7 +518,8 @@ async def idempotency_middleware(request: Request, call_next):
                         return await call_next(request)
                 # No cache yet, release lock and proceed (shouldn't happen but handle gracefully)
                 await r.delete(lock_key)
-                # Continue to process request normally - fall through to line 425
+                # Continue to process request normally
+                return await call_next(request)
 
             # Check for existing cached response (double-check after acquiring lock)
             cached = await r.get(cache_key)
@@ -600,8 +604,10 @@ async def idempotency_middleware(request: Request, call_next):
         return await call_next(request)
 
 
-@app.middleware("http")
-async def latency_middleware(request: Request, call_next):
+# @app.middleware("http")
+# async def latency_middleware(request: Request, call_next):
+#     """Track API latency and performance metrics (H3: API Performance Monitoring)."""
+#     return await call_next(request)
     """Track API latency and performance metrics (H3: API Performance Monitoring).
 
     M4: Enhanced with OpenTelemetry span attributes for distributed tracing.
@@ -682,30 +688,32 @@ async def latency_middleware(request: Request, call_next):
             span.set_status(trace.Status(trace.StatusCode.ERROR, str(exc)))
             span.set_attribute("http.status_code", 500)
 
-            # Record error latency
-            observe(
-                "api.latency",
-                duration,
-                tags={
-                    "path": path,
-                    "method": method,
-                    "status_code": "500",
-                    "error": "true",
-                },
-            )
-            incr(
-                "api.errors",
-                tags={
-                    "path": path,
-                    "method": method,
-                    "error_type": type(exc).__name__,
-                },
-            )
-            raise
+        # Record error latency
+        observe(
+            "api.latency",
+            duration,
+            tags={
+                "path": path,
+                "method": method,
+                "status_code": "500",
+                "error": "true",
+            },
+        )
+        incr(
+            "api.errors",
+            tags={
+                "path": path,
+                "method": method,
+                "error_type": type(exc).__name__,
+            },
+        )
+        raise
 
 
-@app.middleware("http")
-async def rate_limiting_middleware(request: Request, call_next):
+# @app.middleware("http")
+# async def rate_limiting_middleware(request: Request, call_next):
+#     """Tenant-aware rate limiting middleware for API endpoints."""
+#     return await call_next(request)
     """Tenant-aware rate limiting middleware for API endpoints."""
     if _is_exempt_path(request.url.path):
         return await call_next(request)
@@ -913,7 +921,7 @@ def _mount_sub_routers() -> None:
 
     app.dependency_overrides[job_details_mod._get_pool] = get_pool
     app.dependency_overrides[job_details_mod._get_tenant_ctx] = get_tenant_context
-    app.include_router(job_details_mod.router)
+    app.include_router(job_details_mod.router, prefix="/jobs")
 
     # Resume PDF generation
     import api.resume_pdf as resume_pdf_mod

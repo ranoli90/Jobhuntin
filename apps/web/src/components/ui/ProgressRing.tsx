@@ -21,23 +21,24 @@ export function ProgressRing({
   className = "",
 }: ProgressRingProperties) {
   const shouldReduceMotion = useReducedMotion();
+  const safeProgress = Number.isFinite(progress) ? Math.max(0, Math.min(100, progress)) : 0;
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
-  const offset = circumference - (progress / 100) * circumference;
+  const offset = circumference - (safeProgress / 100) * circumference;
   const center = size / 2;
 
   // Milestone glow at 25%, 50%, 75%, 100%
-  const isMilestone = [25, 50, 75, 100].includes(Math.round(progress));
+  const isMilestone = [25, 50, 75, 100].includes(Math.round(safeProgress));
 
   return (
     <div
       className={`relative inline-flex items-center justify-center ${className}`}
       style={{ width: size, height: size }}
       role="progressbar"
-      aria-valuenow={Math.round(progress)}
+      aria-valuenow={Math.round(safeProgress)}
       aria-valuemin={0}
       aria-valuemax={100}
-      aria-label={`Profile ${Math.round(progress)}% complete`}
+      aria-label={`Profile ${Math.round(safeProgress)}% complete`}
     >
       <svg width={size} height={size} className="transform -rotate-90">
         {/* Gradient definition */}
@@ -98,13 +99,13 @@ export function ProgressRing({
       {/* Center content */}
       <div className="absolute inset-0 flex flex-col items-center justify-center">
         <motion.span
-          key={Math.round(progress)}
+          key={Math.round(safeProgress)}
           initial={shouldReduceMotion ? undefined : { scale: 1.3, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ duration: 0.3 }}
           className="text-2xl font-black text-slate-900 dark:text-white tabular-nums"
         >
-          {Math.round(progress)}%
+          {Math.round(safeProgress)}%
         </motion.span>
         {stepLabel && (
           <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">

@@ -30,8 +30,9 @@ export default function JobsView() {
     }),
     [profile?.preferences],
   );
-  const { jobs, isLoading, refetch } = useJobs(filters);
+  const { jobs, isLoading, refetch, error } = useJobs(filters);
   const shouldReduceMotion = useReducedMotion();
+  const hasError = Boolean(error);
 
   // Local swipe state — tracks which jobs have been swiped and in which direction
   const [swipedJobs, setSwipedJobs] = useState<Map<string, SwipeRecord>>(
@@ -46,6 +47,11 @@ export default function JobsView() {
   } | null>(null);
 
   const skipLinkRef = useRef<HTMLAnchorElement | null>(null);
+
+  // CRITICAL: All hooks must be called unconditionally before any early returns
+  const [swipeAnnouncement, setSwipeAnnouncement] = useState<string>("");
+  const focusTimeoutReference = useRef<NodeJS.Timeout | null>(null);
+  const navigationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const appliedCount = useMemo(
     () =>
@@ -192,10 +198,83 @@ export default function JobsView() {
     [swipedJobs, submittingSet, jobs],
   );
 
-  if (isLoading) {
+  const topJob = jobsToRender[0];
+
+  // All effects must run before early returns (hooks rule)
+  React.useEffect(() => {
+    if (!topJob || submittingSet.has(topJob.id)) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLTextAreaElement
+      ) {
+        return;
+      }
+      if (e.key === "ArrowRight" || e.key === "d" || e.key === "D") {
+        e.preventDefault();
+        handleSwipe(topJob.id, "accept");
+      } else if (e.key === "ArrowLeft" || e.key === "a" || e.key === "A") {
+        e.preventDefault();
+        handleSwipe(topJob.id, "reject");
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [topJob, handleSwipe, submittingSet]);
+
+  React.useEffect(() => {
+    if (!lastAppliedForUndo || lastAppliedForUndo.until <= Date.now()) return;
+    const t = setTimeout(
+      () => setLastAppliedForUndo(null),
+      lastAppliedForUndo.until - Date.now(),
+    );
+    return () => clearTimeout(t);
+  }, [lastAppliedForUndo]);
+
+  React.useEffect(() => {
+    return () => {
+      setSwipedJobs(new Map());
+      setSubmittingSet(new Set());
+      setUndoStack([]);
+      setLastAppliedForUndo(null);
+      if (focusTimeoutReference.current)
+        clearTimeout(focusTimeoutReference.current);
+      if (navigationTimeoutRef.current)
+        clearTimeout(navigationTimeoutRef.current);
+    };
+  }, []);
+
+  if (isLoading && !hasError) {
     return (
       <div className="flex items-center justify-center h-64">
         <LoadingSpinner />
+      </div>
+    );
+  }
+
+  if (hasError) {
+    return (
+      <div className="flex flex-col items-center justify-center py-24 px-6">
+        <div className="w-12 h-12 rounded-full border-2 border-red-200 flex items-center justify-center mb-6">
+          <span className="text-red-500 text-xl" aria-hidden>!</span>
+        </div>
+        <h3 className="text-lg font-semibold text-brand-text mb-1">
+          Could not load jobs
+        </h3>
+        <p className="text-sm text-brand-muted text-center max-w-xs mb-6">
+          {(error as Error)?.message ||
+            "Please check your connection and try again."}
+        </p>
+        <Button
+          variant="outline"
+          className="text-sm font-medium rounded-xl px-5 py-2.5 border-brand-border text-brand-text hover:bg-brand-gray transition-colors"
+          onClick={() => refetch()}
+          aria-label="Retry loading jobs"
+        >
+          Retry
+        </Button>
       </div>
     );
   }
@@ -230,67 +309,6 @@ export default function JobsView() {
       </div>
     );
   }
-
-  const topJob = jobsToRender[0];
-
-  // HIGH: Add keyboard navigation for swiping (accessibility)
-  React.useEffect(() => {
-    if (!topJob || submittingSet.has(topJob.id)) return;
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // Only handle if focus is on the page (not in input fields)
-      if (
-        e.target instanceof HTMLInputElement ||
-        e.target instanceof HTMLTextAreaElement
-      ) {
-        return;
-      }
-
-      // Arrow Right or 'D' key = Accept/Apply
-      if (e.key === "ArrowRight" || e.key === "d" || e.key === "D") {
-        e.preventDefault();
-        handleSwipe(topJob.id, "accept");
-      }
-      // Arrow Left or 'A' key = Reject/Skip
-      else if (e.key === "ArrowLeft" || e.key === "a" || e.key === "A") {
-        e.preventDefault();
-        handleSwipe(topJob.id, "reject");
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [topJob, handleSwipe, submittingSet]);
-
-  // MEDIUM: Add live region for screen reader announcements
-  const [swipeAnnouncement, setSwipeAnnouncement] = React.useState<string>("");
-
-  // MEDIUM: Refs for timeout cleanup
-  const focusTimeoutReference = React.useRef<NodeJS.Timeout | null>(null);
-  const navigationTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
-
-  // MEDIUM: Cleanup state and timeouts on unmount to prevent memory leaks
-  React.useEffect(() => {
-    if (!lastAppliedForUndo || lastAppliedForUndo.until <= Date.now()) return;
-    const t = setTimeout(
-      () => setLastAppliedForUndo(null),
-      lastAppliedForUndo.until - Date.now(),
-    );
-    return () => clearTimeout(t);
-  }, [lastAppliedForUndo]);
-
-  React.useEffect(() => {
-    return () => {
-      setSwipedJobs(new Map());
-      setSubmittingSet(new Set());
-      setUndoStack([]);
-      setLastAppliedForUndo(null);
-      if (focusTimeoutReference.current)
-        clearTimeout(focusTimeoutReference.current);
-      if (navigationTimeoutRef.current)
-        clearTimeout(navigationTimeoutRef.current);
-    };
-  }, []);
 
   return (
     <main className="space-y-6" aria-label="Job applications">

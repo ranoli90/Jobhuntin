@@ -341,44 +341,43 @@ async def get_queue_stats(
     """Return queue position and estimated wait for user's APPLYING applications.
     #36: Queue position/ETA for users.
     """
-    async with db.acquire() as conn:
-        # Count QUEUED applications ahead of user's (by priority_score DESC, created_at ASC)
-        user_applying = await conn.fetch(
-            """
-            SELECT id, priority_score, created_at
-            FROM public.applications
-            WHERE user_id = $1 AND (tenant_id = $2 OR tenant_id IS NULL)
-              AND status = 'QUEUED'
-            ORDER BY priority_score DESC, created_at ASC
-            """,
-            ctx.user_id,
-            ctx.tenant_id,
-        )
-        if not user_applying:
-            return {"applications": [], "queue_ahead": 0, "eta_minutes": 0}
+    safe_fallback = {"applications": [], "queue_ahead": 0, "eta_minutes": 0}
 
-        # For each user app, count how many QUEUED apps are ahead (same tenant only)
-        first = user_applying[0]
-        ahead = await conn.fetchval(
-            """
-            SELECT COUNT(*) FROM public.applications
-            WHERE status = 'QUEUED'
-              AND tenant_id = $3
-              AND (priority_score > $1 OR (priority_score = $1 AND created_at < $2))
-            """,
-            first["priority_score"],
-            first["created_at"],
-            ctx.tenant_id,
-        )
-        # Avg ~2 min per application (worker + LLM)
+    async with db.acquire() as conn:
+        try:
+            # Minimal query - only user_id, status, created_at (no priority_score/tenant_id)
+            user_applying = await conn.fetch(
+                """
+                SELECT id, created_at
+                FROM public.applications
+                WHERE user_id = $1::uuid AND status = 'QUEUED'
+                ORDER BY created_at ASC
+                """,
+                str(ctx.user_id),
+            )
+            if not user_applying:
+                return safe_fallback
+
+            first = user_applying[0]
+            ahead = await conn.fetchval(
+                """
+                SELECT COUNT(*) FROM public.applications
+                WHERE status = 'QUEUED' AND created_at < $1
+                """,
+                first["created_at"],
+            )
+            applications_out = [
+                {"id": str(r["id"]), "priority_score": 0} for r in user_applying
+            ]
+        except Exception as e:
+            logger.warning("queue-stats error: %s", e, exc_info=True)
+            return safe_fallback
+
         avg_min_per_app = 2
         eta_minutes = max(0, int(ahead or 0) * avg_min_per_app)
 
         return {
-            "applications": [
-                {"id": str(r["id"]), "priority_score": r["priority_score"]}
-                for r in user_applying
-            ],
+            "applications": applications_out,
             "queue_ahead": ahead or 0,
             "eta_minutes": eta_minutes,
         }

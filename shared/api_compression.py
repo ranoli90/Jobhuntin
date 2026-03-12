@@ -182,9 +182,11 @@ class CompressionMiddleware(BaseHTTPMiddleware):
         if compression_type == CompressionType.IDENTITY:
             return response
 
-        # Compress response
+        # Compress response - NEVER return None (causes "NoneType object is not callable" in ASGI)
         compressed_response = await self._compress_response(response, compression_type)
-
+        if compressed_response is None:
+            logger.warning("_compress_response returned None, returning uncompressed response")
+            return response
         return compressed_response
 
     def _should_compress_request(self, request: Request) -> bool:

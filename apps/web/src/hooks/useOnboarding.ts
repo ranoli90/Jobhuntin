@@ -148,19 +148,10 @@ export function useOnboarding(options: UseOnboardingOptions = {}) {
   const [completedSteps, setCompletedSteps] = useState<string[]>([]);
   const [formData, setFormData] = useState<OnboardingFormData>({});
 
-  // DEBUG: Trace step changes
-  useEffect(() => {
-    console.log("[DEBUG] currentStep CHANGED to", currentStep);
-  }, [currentStep]);
-
   // Initialize async state loading; use server progress when no localStorage (cross-device)
   // N1: URL ?step=N takes precedence for deep-linking
   useEffect(() => {
     let cancelled = false;
-    console.log("[DEBUG] loadInitialState effect RUN", {
-      serverProgress: serverProgress ? { step: serverProgress.step } : null,
-      initialStepFromUrl,
-    });
     loadInitialState()
       .then((initialState) => {
         if (cancelled) return;
@@ -169,7 +160,6 @@ export function useOnboarding(options: UseOnboardingOptions = {}) {
         if (initialState) {
           step = initialState.currentStep;
           completed = initialState.completedSteps || [];
-          console.log("[DEBUG] loadInitialState from storage", { step, completed });
         }
         if (
           serverProgress &&
@@ -178,33 +168,18 @@ export function useOnboarding(options: UseOnboardingOptions = {}) {
         ) {
           step = serverProgress.step;
           completed = serverProgress.completed || [];
-          console.log("[DEBUG] loadInitialState using server", { step, completed });
         }
         // N1: Only apply URL step when it would advance us - never go backwards
-        // (URL may be stale when profile loads after we've already advanced)
         if (
           initialStepFromUrl != undefined &&
           initialStepFromUrl >= 0 &&
           initialStepFromUrl >= step
         ) {
           step = Math.min(initialStepFromUrl, 7);
-          console.log("[DEBUG] loadInitialState using URL", {
-            initialStepFromUrl,
-            step,
-          });
-        } else if (
-          initialStepFromUrl != undefined &&
-          initialStepFromUrl >= 0 &&
-          initialStepFromUrl < step
-        ) {
-          console.log("[DEBUG] loadInitialState IGNORING URL (would go backwards)", {
-            initialStepFromUrl,
-            step,
-          });
         }
-        console.log("[DEBUG] loadInitialState FINAL setState", { step });
-        setCurrentStep(step);
-        setCompletedSteps(completed);
+        // Never overwrite with a lower step (race: user advanced before this effect completed)
+        setCurrentStep((prev) => (step > prev ? step : prev));
+        setCompletedSteps((prev) => [...new Set([...prev, ...completed])]);
         if (initialState) setFormData(initialState.formData);
         setIsLoading(false);
       })
@@ -340,23 +315,10 @@ export function useOnboarding(options: UseOnboardingOptions = {}) {
   const NAV_DEBOUNCE_MS = 150;
 
   const nextStep = useCallback(() => {
-    console.log("[DEBUG] nextStep ENTRY", {
-      currentStep,
-      totalSteps: currentSteps.length,
-      lastNav: lastNavReference.current,
-      debounceSkip: Date.now() - lastNavReference.current < NAV_DEBOUNCE_MS,
-    });
-    if (Date.now() - lastNavReference.current < NAV_DEBOUNCE_MS) {
-      console.log("[DEBUG] nextStep SKIPPED (debounce)");
-      return;
-    }
+    if (Date.now() - lastNavReference.current < NAV_DEBOUNCE_MS) return;
     lastNavReference.current = Date.now();
     const totalSteps = currentSteps.length;
-
-    if (currentStep >= totalSteps - 1) {
-      console.log("[DEBUG] nextStep SKIPPED (already at last step)");
-      return;
-    }
+    if (currentStep >= totalSteps - 1) return;
 
     const completedStepId = currentSteps[currentStep]?.id;
     if (completedStepId) {
@@ -367,12 +329,7 @@ export function useOnboarding(options: UseOnboardingOptions = {}) {
       });
       setCompletedSteps((prev) => [...new Set([...prev, completedStepId])]);
     }
-    console.log("[DEBUG] nextStep calling setCurrentStep", {
-      from: currentStep,
-      to: currentStep + 1,
-    });
     setCurrentStep((prev) => prev + 1);
-    console.log("[DEBUG] nextStep EXIT");
   }, [currentSteps, currentStep]);
 
   const previousStep = useCallback(() => {
@@ -394,11 +351,23 @@ export function useOnboarding(options: UseOnboardingOptions = {}) {
   );
 
   // S1: Save immediately on step/completed; debounce on formData (rapid typing)
+  // Guard: throttle + skip when step/completed unchanged to prevent infinite loops
+  const lastSavedStepCompletedRef = React.useRef<string>("");
+  const saveThrottleRef = React.useRef(0);
   useEffect(() => {
+    const key = `${currentStep}|${completedSteps.join(",")}`;
+    if (lastSavedStepCompletedRef.current === key) return;
+    lastSavedStepCompletedRef.current = key;
+    const now = Date.now();
+    if (now - saveThrottleRef.current < 300) return;
+    saveThrottleRef.current = now;
     saveState();
   }, [currentStep, completedSteps, saveState]);
   useEffect(() => {
-    const t = setTimeout(() => saveState(), 400);
+    const t = setTimeout(() => {
+      saveThrottleRef.current = Date.now();
+      saveState();
+    }, 400);
     return () => clearTimeout(t);
   }, [formData, saveState]);
 

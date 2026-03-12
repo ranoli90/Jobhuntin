@@ -253,6 +253,41 @@ class TestApplicationsAPI:
         # Should succeed (503 if pool unavailable in test env)
         assert response.status_code in [200, 404, 503]
 
+    @pytest.mark.asyncio
+    async def test_queue_stats_returns_200(
+        self, authenticated_client_with_db, clean_db, db_pool, auth_token
+    ):
+        """Test GET /me/applications/queue-stats returns 200 with valid auth."""
+        _, user_id = auth_token
+
+        async with db_pool.acquire() as conn:
+            await conn.execute(
+                "INSERT INTO public.users (id, email) VALUES ($1, $2) ON CONFLICT (id) DO UPDATE SET email = $2",
+                user_id,
+                "test@example.com",
+            )
+            tenant_id = await conn.fetchval(
+                """INSERT INTO public.tenants (id, name, slug, plan)
+                   VALUES (gen_random_uuid(), 'Test Tenant', 'test-tenant', 'FREE')
+                   RETURNING id"""
+            )
+            await conn.execute(
+                "INSERT INTO public.tenant_members (tenant_id, user_id, role) VALUES ($1, $2, 'OWNER') ON CONFLICT (tenant_id, user_id) DO NOTHING",
+                tenant_id,
+                user_id,
+            )
+
+        response = await authenticated_client_with_db.get("/me/applications/queue-stats")
+
+        assert response.status_code == 200
+        data = response.json()
+        assert "applications" in data
+        assert "queue_ahead" in data
+        assert "eta_minutes" in data
+        assert isinstance(data["applications"], list)
+        assert isinstance(data["queue_ahead"], int)
+        assert isinstance(data["eta_minutes"], int)
+
 
 class TestJobsAPI:
     """Tests for jobs API endpoint."""

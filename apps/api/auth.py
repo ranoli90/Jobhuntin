@@ -900,6 +900,15 @@ async def verify_magic_link(
                     _mask_email(email),
                 )
                 incr("auth.magic_link.new_user_created", tags={})
+                # Provision FREE tenant so first API request doesn't need auto-provision
+                try:
+                    from packages.backend.domain.tenant import resolve_tenant_context
+                    await resolve_tenant_context(conn, str(user_id))
+                except Exception as e:
+                    logger.warning(
+                        "[MAGIC_LINK] Tenant provisioning failed (will retry on first request): %s",
+                        e,
+                    )
             else:
                 # User was created between request and verification
                 logger.info(
