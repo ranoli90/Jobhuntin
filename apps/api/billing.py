@@ -257,17 +257,17 @@ async def billing_usage(
         )
         plan = tenant_row["plan"] if tenant_row else "FREE"
 
-        # Count applications this month
+        # Count applications this month (via tenant_members: works even if applications.tenant_id missing)
         usage_row = await conn.fetchrow(
             """
-            SELECT COUNT(*) as count
-            FROM public.applications
-            WHERE tenant_id = $1::uuid
-            AND created_at >= date_trunc('month', now())
+            SELECT COUNT(*)::bigint AS count
+            FROM public.applications a
+            JOIN public.tenant_members tm ON tm.user_id = a.user_id AND tm.tenant_id = $1::uuid
+            WHERE a.created_at >= date_trunc('month', now())
             """,
             tenant_ctx.tenant_id,
         )
-        monthly_used = usage_row["count"] if usage_row else 0
+        monthly_used = int(usage_row["count"]) if usage_row else 0
 
         # Set limits based on plan - using canonical values from plans.py
         if plan == "FREE":

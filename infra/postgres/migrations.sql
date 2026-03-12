@@ -54,6 +54,9 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_jobs_external_id ON public.jobs(external_i
 ALTER TABLE public.applications ADD COLUMN IF NOT EXISTS attempt_count INTEGER NOT NULL DEFAULT 0;
 ALTER TABLE public.applications ADD COLUMN IF NOT EXISTS locked_at TIMESTAMPTZ;
 ALTER TABLE public.applications ADD COLUMN IF NOT EXISTS available_at TIMESTAMPTZ;
+ALTER TABLE public.applications ADD COLUMN IF NOT EXISTS tenant_id UUID REFERENCES public.tenants(id);
+ALTER TABLE public.applications ADD COLUMN IF NOT EXISTS snoozed_until TIMESTAMPTZ;
+CREATE INDEX IF NOT EXISTS idx_applications_tenant_id ON public.applications(tenant_id) WHERE tenant_id IS NOT NULL;
 
 -- Worker claim function (claim_next_prioritized)
 CREATE OR REPLACE FUNCTION public.claim_next_prioritized(p_max_attempts int DEFAULT 3)

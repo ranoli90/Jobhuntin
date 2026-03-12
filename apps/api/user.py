@@ -220,25 +220,16 @@ async def list_applications(
     offset = max(0, offset)
 
     async with db.acquire() as conn:
-        # Get total count for pagination
-        count_result = await conn.fetchrow(
-            """
-            SELECT COUNT(*) as total
+        # Query with tenant filter (works when applications.tenant_id exists)
+        count_sql = """
+            SELECT COUNT(*)::bigint AS total
             FROM   public.applications a
             JOIN   public.jobs j ON j.id = a.job_id
             WHERE  a.user_id = $1 AND (a.tenant_id = $2 OR a.tenant_id IS NULL)
               AND a.status != 'REJECTED'
               AND (a.snoozed_until IS NULL OR a.snoozed_until < now())
-            """,
-            ctx.user_id,
-            ctx.tenant_id,
-        )
-
-        total_count = count_result["total"]
-
-        # Get paginated results
-        rows = await conn.fetch(
             """
+        rows_sql = """
             SELECT a.id, a.status::text, a.updated_at, a.snoozed_until,
                    j.title AS job_title, j.company,
                    (
@@ -253,12 +244,53 @@ async def list_applications(
               AND (a.snoozed_until IS NULL OR a.snoozed_until < now())
             ORDER  BY a.updated_at DESC
             LIMIT $3 OFFSET $4
-            """,
-            ctx.user_id,
-            ctx.tenant_id,
-            limit,
-            offset,
-        )
+            """
+        try:
+            count_result = await conn.fetchrow(
+                count_sql,
+                ctx.user_id,
+                ctx.tenant_id,
+            )
+            rows = await conn.fetch(
+                rows_sql,
+                ctx.user_id,
+                ctx.tenant_id,
+                limit,
+                offset,
+            )
+        except asyncpg.UndefinedColumnError:
+            # applications.tenant_id or snoozed_until may not exist in older schemas
+            count_sql_fallback = """
+                SELECT COUNT(*)::bigint AS total
+                FROM   public.applications a
+                JOIN   public.jobs j ON j.id = a.job_id
+                WHERE  a.user_id = $1
+                  AND a.status != 'REJECTED'
+                """
+            rows_sql_fallback = """
+                SELECT a.id, a.status::text, a.updated_at, NULL::timestamptz AS snoozed_until,
+                       j.title AS job_title, j.company,
+                       (
+                           SELECT question FROM public.application_inputs
+                           WHERE application_id = a.id AND resolved = false
+                           ORDER BY created_at LIMIT 1
+                       ) AS hold_question
+                FROM   public.applications a
+                JOIN   public.jobs j ON j.id = a.job_id
+                WHERE  a.user_id = $1
+                  AND a.status != 'REJECTED'
+                ORDER  BY a.updated_at DESC
+                LIMIT $2 OFFSET $3
+                """
+            count_result = await conn.fetchrow(count_sql_fallback, ctx.user_id)
+            rows = await conn.fetch(
+                rows_sql_fallback,
+                ctx.user_id,
+                limit,
+                offset,
+            )
+
+        total_count = int(count_result["total"]) if count_result else 0
 
     out: list[dict[str, Any]] = []
     for r in rows:
