@@ -176,11 +176,13 @@ PE_WEBHOOK_SECRET
     autoDeploy: true
 
   # Background Worker (Auto-Apply Agent)
-  - type: worker
+  - type: background_worker
     name: sorce-auto-apply-agent
     env: python
     buildCommand: pip install -r requirements.txt && playwright install chromium
     startCommand: python -m apps.worker.scaling --instances 2
+    plan: standard  # Production-ready plan for 1000+ users
+    numInstances: 2  # Start with 2 instances, can scale to 20
     envVars:
       - key: PYTHONPATH
         value: apps:packages:.
@@ -210,6 +212,20 @@ PE_WEBHOOK_SECRET
         sync: false  # Set in Render dashboard
       - key: REDIS_URL
         sync: false  # For caching worker results
+      - key: WORKER_CONCURRENCY
+        value: "50"  # 50 concurrent tasks per instance
+      - key: MAX_INSTANCES
+        value: "20"  # Auto-scale up to 20 instances
+      - key: DATABASE_POOL_MIN
+        value: "10"  # Min DB connections per instance
+      - key: DATABASE_POOL_MAX
+        value: "50"  # Max DB connections per instance
+      - key: PYTHONUNBUFFERED
+        value: "1"  # Better logging for production
+      - key: BROWSER_CONTEXT_MAX_USES
+        value: "10"  # Recycle browser contexts
+      - key: POLL_INTERVAL_SECONDS
+        value: "2"  # Faster polling for high throughput
     autoDeploy: true
 
   # Cron: Job Alerts (daily)
