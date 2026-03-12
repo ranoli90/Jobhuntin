@@ -3,6 +3,7 @@ import { Badge } from "../ui/Badge";
 import { Button } from "../ui/Button";
 import type { ApplicationRecord } from "../../hooks/useApplications";
 import { cn } from "../../lib/utils";
+import { formatDate } from "../../lib/format";
 
 const STATUS_LABEL: Record<ApplicationRecord["status"], string> = {
   APPLYING: "Applying",
@@ -75,9 +76,7 @@ export function AppCard({
       <div className="mt-4 text-xs uppercase tracking-[0.3em] text-brand-ink/50">
         Updated{" "}
         {application.last_activity
-          ? new Date(application.last_activity).toLocaleDateString(
-              navigator.language || "en-US",
-            )
+          ? formatDate(application.last_activity)
           : "today"}
       </div>
     </div>

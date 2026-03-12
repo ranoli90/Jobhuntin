@@ -10,7 +10,7 @@ import { Button } from "../../components/ui/Button";
 import { Card } from "../../components/ui/Card";
 import { Badge } from "../../components/ui/Badge";
 import { useSavedJobs, type SavedJob } from "../../hooks/useSavedJobs";
-import { formatCurrency } from "../../lib/format";
+import { formatCurrency, formatDate } from "../../lib/format";
 import {
   Briefcase,
   MapPin,
@@ -66,14 +66,6 @@ export default function SavedJobsPage() {
       }
     });
   }, [savedJobs, searchTerm, sortBy]);
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString(locale, {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
-  };
 
   if (isLoading) {
     return (
