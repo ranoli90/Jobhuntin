@@ -33,7 +33,7 @@ services:
     name: jobhuntin-api
     env: python
     buildCommand: pip install -r requirements.txt
-    startCommand: PYTHONPATH=apps:packages:. uvicorn api.main:app --host 0.0.0.0 --port $PORT --workers 2 --log-level info
+    startCommand: uvicorn api.main:app --host 0.0.0.0 --port $PORT --workers 2 --log-level info
     envVars:
       - key: PYTHONPATH
         value: apps:packages:.
@@ -132,7 +132,7 @@ services:
     name: jobhuntin-job-sync
     env: python
     buildCommand: pip install -r requirements.txt
-    startCommand: PYTHONPATH=apps:packages:. python apps/worker/job_sync_worker.py
+    startCommand: . python apps/worker/job_sync_worker.py
     envVars:
       - key: DATABASE_URL
         sync: false  # Set in Render dashboard - NEVER hardcode credentials
@@ -147,7 +147,7 @@ services:
     name: jobhuntin-job-queue
     env: python
     buildCommand: pip install -r requirements.txt
-    startCommand: PYTHONPATH=apps:packages:. python apps/worker/job_queue_worker.py
+    startCommand: . python apps/worker/job_queue_worker.py
     envVars:
       - key: DATABASE_URL
         sync: false
@@ -162,7 +162,7 @@ services:
     name: jobhuntin-follow-up-reminders
     env: python
     buildCommand: pip install -r requirements.txt
-    startCommand: PYTHONPATH=apps:packages:. python apps/worker/follow_up_reminders_worker.py
+    startCommand: . python apps/worker/follow_up_reminders_worker.py
     envVars:
       - key: DATABASE_URL
         sync: false
@@ -177,7 +177,7 @@ services:
     name: sorce-auto-apply-agent
     env: python
     buildCommand: pip install -r requirements.txt && playwright install chromium
-    startCommand: PYTHONPATH=apps:packages:. python -m apps.worker.scaling --instances 2
+    startCommand: python -m apps.worker.scaling --instances 2
     envVars:
       - key: PYTHONPATH
         value: apps:packages:.
@@ -215,7 +215,7 @@ services:
     env: python
     schedule: "0 14 * * *"
     buildCommand: pip install -r requirements.txt
-    startCommand: PYTHONPATH=apps:packages:. ALERT_FREQUENCY=daily python scripts/cron/process_job_alerts.py
+    startCommand: . ALERT_FREQUENCY=daily python scripts/cron/process_job_alerts.py
     envVars:
       - key: DATABASE_URL
         sync: false
@@ -236,7 +236,7 @@ services:
     env: python
     schedule: "0 15 * * 1"
     buildCommand: pip install -r requirements.txt
-    startCommand: PYTHONPATH=apps:packages:. ALERT_FREQUENCY=weekly python scripts/cron/process_job_alerts.py
+    startCommand: . ALERT_FREQUENCY=weekly python scripts/cron/process_job_alerts.py
     envVars:
       - key: DATABASE_URL
         sync: false
@@ -257,7 +257,7 @@ services:
     env: python
     schedule: "0 9 * * 1"
     buildCommand: pip install -r requirements.txt
-    startCommand: PYTHONPATH=apps:packages:. python scripts/cron/run_weekly_digest.py
+    startCommand: . python scripts/cron/run_weekly_digest.py
     envVars:
       - key: DATABASE_URL
         sync: false
