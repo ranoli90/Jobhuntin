@@ -367,6 +367,16 @@ CREATE INDEX IF NOT EXISTS idx_applications_locked_at
     ON applications(status, locked_at) 
     WHERE status = 'PROCESSING' AND locked_at IS NOT NULL;
 
+-- Additional performance indexes (M4: Missing Index Fix)
+-- Index for frequently queried updated_at column for sorting and filtering
+CREATE INDEX IF NOT EXISTS idx_applications_updated_at ON applications(updated_at DESC);
+
+-- Index for tenant-based queries with status filtering
+CREATE INDEX IF NOT EXISTS idx_applications_tenant_status ON applications(tenant_id, status);
+
+-- Index for user applications sorted by date
+CREATE INDEX IF NOT EXISTS idx_applications_user_updated ON applications(user_id, updated_at DESC);
+
 -- ============================================================
 -- P0-3: NOTIFY job_queue on applications INSERT/UPDATE (status=QUEUED)
 -- Ensures mobile Supabase inserts wake the worker immediately, same as web API.

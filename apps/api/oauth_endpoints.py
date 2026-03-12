@@ -7,16 +7,23 @@ from __future__ import annotations
 import uuid
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, Depends, Header, HTTPException
+from fastapi import APIRouter, Depends, Header, HTTPException, Request
 from pydantic import BaseModel, Field
 
 from packages.backend.domain.oauth_handler import OAuthHandler, create_oauth_handler
 from packages.backend.domain.tenant import TenantContext
 from shared.logging_config import get_logger
+from shared.metrics import RateLimiter, get_rate_limiter
 from shared.redirect_validation import validate_oauth_redirect_uri
 
 logger = get_logger("sorce.oauth")
 router = APIRouter(prefix="/oauth", tags=["oauth"])
+
+
+def _get_oauth_rate_limiter(request: Request) -> RateLimiter:
+    """Get rate limiter for OAuth endpoints based on IP address."""
+    client_ip = request.client.host if request.client else "unknown"
+    return get_rate_limiter(f"oauth:{client_ip}", max_requests=10, window_seconds=60)
 
 
 async def get_tenant_context() -> TenantContext:
@@ -29,7 +36,9 @@ class OAuthInitiateRequest(BaseModel):
     """OAuth initiate request."""
 
     provider: str = Field(
-        ..., max_length=50, description="OAuth provider (google, linkedin, microsoft, github)"
+        ...,
+        max_length=50,
+        description="OAuth provider (google, linkedin, microsoft, github)",
     )
     client_id: str = Field(..., max_length=512, description="OAuth client ID")
     redirect_uri: str = Field(..., max_length=2048, description="OAuth redirect URI")
@@ -47,7 +56,9 @@ class OAuthCallbackRequest(BaseModel):
     client_secret: str = Field(..., max_length=512, description="OAuth client secret")
     redirect_uri: str = Field(..., max_length=2048, description="OAuth redirect URI")
     scopes: List[str] = Field(default=[], max_length=20, description="OAuth scopes")
-    authorization_code: str = Field(..., max_length=2000, description="OAuth authorization code")
+    authorization_code: str = Field(
+        ..., max_length=2000, description="OAuth authorization code"
+    )
 
 
 class OAuthTokenRequest(BaseModel):
@@ -58,7 +69,9 @@ class OAuthTokenRequest(BaseModel):
     client_secret: str = Field(..., max_length=512, description="OAuth client secret")
     redirect_uri: str = Field(..., max_length=2048, description="OAuth redirect URI")
     scopes: List[str] = Field(default=[], max_length=20, description="OAuth scopes")
-    authorization_code: str = Field(..., max_length=2000, description="OAuth authorization code")
+    authorization_code: str = Field(
+        ..., max_length=2000, description="OAuth authorization code"
+    )
 
 
 class OAuthCredentialsRequest(BaseModel):
@@ -80,10 +93,19 @@ def get_oauth_handler() -> OAuthHandler:
 @router.post("/initiate")
 async def initiate_oauth_flow(
     request: OAuthInitiateRequest,
+    http_request: Request,
     ctx: TenantContext = Depends(get_tenant_context),
     oauth_handler: OAuthHandler = Depends(get_oauth_handler),
+    rate_limiter: RateLimiter = Depends(_get_oauth_rate_limiter),
 ) -> Dict[str, str]:
     """Initiate OAuth flow."""
+    # Apply rate limiting
+    if not await rate_limiter.acquire():
+        raise HTTPException(
+            status_code=429,
+            detail="Too many OAuth requests. Please try again later.",
+        )
+
     try:
         # Validate provider
         supported_providers = ["google", "linkedin", "microsoft", "github"]
@@ -119,10 +141,19 @@ async def initiate_oauth_flow(
 @router.post("/callback")
 async def handle_oauth_callback(
     request: OAuthCallbackRequest,
+    http_request: Request,
     ctx: TenantContext = Depends(get_tenant_context),
     oauth_handler: OAuthHandler = Depends(get_oauth_handler),
+    rate_limiter: RateLimiter = Depends(_get_oauth_rate_limiter),
 ) -> Dict[str, Any]:
     """Handle OAuth callback and exchange code for tokens."""
+    # Apply rate limiting
+    if not await rate_limiter.acquire():
+        raise HTTPException(
+            status_code=429,
+            detail="Too many OAuth requests. Please try again later.",
+        )
+
     validate_oauth_redirect_uri(request.redirect_uri)
     try:
         # Exchange authorization code for tokens
@@ -192,7 +223,8 @@ async def exchange_code_for_token(
     except Exception:
         logger.exception("Failed to exchange code for token")
         raise HTTPException(
-            status_code=500, detail="Failed to exchange code for token. Please try again."
+            status_code=500,
+            detail="Failed to exchange code for token. Please try again.",
         )
 
 

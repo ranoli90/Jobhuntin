@@ -114,14 +114,28 @@ async def _mark_token_consumed(jti: str, settings: Settings) -> bool:
 
     # AUTH-008: In-memory fallback unsafe for multi-instance — require Redis in prod/staging
     if settings.env.value in ("prod", "staging"):
-        logger.critical(
-            "Redis not available - magic link token replay protection disabled. "
-            "Set REDIS_URL for multi-instance deployments. This is a security risk."
-        )
-        raise RuntimeError(
-            "Redis required for token replay protection in prod/staging. "
-            "Set REDIS_URL environment variable."
-        )
+        if not settings.redis_url:
+            logger.critical(
+                "Redis not available - magic link token replay protection disabled. "
+                "Set REDIS_URL for multi-instance deployments. This is a security risk."
+            )
+            raise RuntimeError(
+                "Redis required for token replay protection in prod/staging. "
+                "Set REDIS_URL environment variable."
+            )
+        else:
+            # Redis is available, proceed normally
+            pass
+    elif settings.env.value == "dev":
+        # In development, allow fallback but warn
+        if not settings.redis_url and not hasattr(
+            _mark_token_consumed, "_warned_no_redis"
+        ):
+            logger.warning(
+                "Redis not available - magic link token replay prevention uses in-memory store. "
+                "Set REDIS_URL for multi-instance deployments."
+            )
+            _mark_token_consumed._warned_no_redis = True  # type: ignore
 
     if not hasattr(_mark_token_consumed, "_warned_no_redis"):
         logger.warning(
@@ -151,9 +165,15 @@ async def _revoke_session_token(jti: str, settings: Settings) -> None:
 
 class MagicLinkRequest(BaseModel):
     email: EmailStr
-    return_to: str | None = Field(None, max_length=512, description="Path to redirect after login")
-    captcha_token: str | None = Field(None, max_length=2000, description="reCAPTCHA token")
-    admin_redirect: bool = Field(False, description="If true, redirect to admin app after login")
+    return_to: str | None = Field(
+        None, max_length=512, description="Path to redirect after login"
+    )
+    captcha_token: str | None = Field(
+        None, max_length=2000, description="reCAPTCHA token"
+    )
+    admin_redirect: bool = Field(
+        False, description="If true, redirect to admin app after login"
+    )
 
 
 class MagicLinkResponse(BaseModel):
@@ -383,7 +403,9 @@ async def _find_or_create_user_by_email(
             _mask_email(email),
         )
     else:
-        logger.info("[MAGIC_LINK] Existing user found (race) for email: %s", _mask_email(email))
+        logger.info(
+            "[MAGIC_LINK] Existing user found (race) for email: %s", _mask_email(email)
+        )
 
     return str(user_id), inserted
 
@@ -903,6 +925,7 @@ async def verify_magic_link(
                 # Provision FREE tenant so first API request doesn't need auto-provision
                 try:
                     from packages.backend.domain.tenant import resolve_tenant_context
+
                     await resolve_tenant_context(conn, str(user_id))
                 except Exception as e:
                     logger.warning(
@@ -1018,6 +1041,7 @@ async def verify_magic_link(
             )
             if attempt == 0:
                 import asyncio
+
                 await asyncio.sleep(0.5)
             else:
                 logger.exception("[MAGIC_LINK] Session creation failed after retry")
@@ -1083,9 +1107,14 @@ async def verify_magic_link(
             await session_manager.update_session_jti(session_info.session_id, jti)
             break
         except Exception as e:
-            logger.warning("Failed to store jti in session metadata (attempt %d): %s", attempt + 1, e)
+            logger.warning(
+                "Failed to store jti in session metadata (attempt %d): %s",
+                attempt + 1,
+                e,
+            )
             if attempt == 0:
                 import asyncio
+
                 await asyncio.sleep(0.3)
             else:
                 logger.error("JTI not stored — logout may not fully revoke this token")
@@ -1107,6 +1136,7 @@ async def verify_magic_link(
                 logger.warning("[LOGIN] Per-user job sync failed: %s", e)
 
         import asyncio
+
         asyncio.create_task(_sync_jobs_on_login())
     except Exception as e:
         logger.debug("[LOGIN] Could not enqueue job sync: %s", e)
@@ -1419,8 +1449,12 @@ async def resend_webhook(
                 ts = int(svix_timestamp)
                 now = int(time.time())
                 if abs(now - ts) > 300:
-                    logger.warning("Resend webhook rejected: timestamp outside 5-minute window")
-                    raise HTTPException(status_code=401, detail="Webhook timestamp expired")
+                    logger.warning(
+                        "Resend webhook rejected: timestamp outside 5-minute window"
+                    )
+                    raise HTTPException(
+                        status_code=401, detail="Webhook timestamp expired"
+                    )
             except ValueError:
                 logger.warning("Resend webhook: invalid svix-timestamp")
                 raise HTTPException(status_code=401, detail="Invalid timestamp")
@@ -1459,6 +1493,7 @@ async def resend_webhook(
                 raise HTTPException(status_code=401, detail="Missing signature")
             import hashlib
             import hmac
+
             expected = hmac.new(
                 webhook_secret.encode(), body, hashlib.sha256
             ).hexdigest()
@@ -1588,10 +1623,10 @@ async def dev_login(
     """
     if settings.env.value not in ("local", "dev"):
         raise HTTPException(status_code=404, detail="Not found")
-    
+
     email = body.email
     logger.info(f"[DEV] Dev login requested for {_mask_email(email)}")
-    
+
     try:
         # Dev-only: minimal flow - create user, issue JWT (skip session table for simplicity)
         import uuid as _uuid_mod
@@ -1637,31 +1672,34 @@ async def dev_login(
         session_token = _jwt.encode(
             session_payload, settings.jwt_secret, algorithm="HS256"
         )
-        
+
         logger.info(f"[DEV] Created session for user {user_id}")
-        
-        response = JSONResponse({
-            "user_id": user_id,
-            "email": email,
-            "access_token": session_token,
-            "message": "Dev login successful - cookie set"
-        })
-        
+
+        response = JSONResponse(
+            {
+                "user_id": user_id,
+                "email": email,
+                "access_token": session_token,
+                "message": "Dev login successful - cookie set",
+            }
+        )
+
         # Set httpOnly cookie (use jobhuntin_auth to match API expectations)
+        # M5: Use consistent cookie security settings based on environment
+        is_prod = settings.env.value in ("prod", "staging")
         response.set_cookie(
             key=AUTH_COOKIE_NAME,
             value=session_token,
             httponly=True,
-            secure=False,
-            samesite="lax",
+            secure=is_prod,
+            samesite="none" if is_prod else "lax",
             max_age=SESSION_TTL_SECONDS,
             path="/",
         )
-        
+
         return response
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"[DEV] Dev login failed: {e}")
         raise HTTPException(status_code=500, detail=str(e))
-

@@ -223,26 +223,52 @@ async def list_jobs(
     try:
         from packages.backend.domain.repositories import get_pool
 
-        # Build filters
+        # Build filters with validation
         filters = {}
+
+        # Validate and sanitize string filters to prevent excessive resource consumption
+        MAX_FILTER_LENGTH = 100
+
         if location:
-            filters["location"] = location
+            if len(location) > MAX_FILTER_LENGTH:
+                raise HTTPException(status_code=400, detail="Location filter too long")
+            filters["location"] = location.strip()
         if remote is not None:
-            filters["remote"] = remote
+            filters["remote"] = bool(remote)
         if job_type:
-            filters["job_type"] = job_type
+            if len(job_type) > MAX_FILTER_LENGTH:
+                raise HTTPException(status_code=400, detail="Job type filter too long")
+            filters["job_type"] = job_type.strip()
         if company_size:
-            filters["company_size"] = company_size
+            if len(company_size) > MAX_FILTER_LENGTH:
+                raise HTTPException(
+                    status_code=400, detail="Company size filter too long"
+                )
+            filters["company_size"] = company_size.strip()
         if industry:
-            filters["industry"] = industry
+            if len(industry) > MAX_FILTER_LENGTH:
+                raise HTTPException(status_code=400, detail="Industry filter too long")
+            filters["industry"] = industry.strip()
         if salary_min is not None:
-            filters["salary_min"] = salary_min
+            # Validate salary is reasonable
+            if salary_min < 0 or salary_min > 1000000:  # $0 to $1M
+                raise HTTPException(status_code=400, detail="Invalid minimum salary")
+            filters["salary_min"] = int(salary_min)
         if salary_max is not None:
-            filters["salary_max"] = salary_max
+            # Validate salary is reasonable
+            if salary_max < 0 or salary_max > 1000000:  # $0 to $1M
+                raise HTTPException(status_code=400, detail="Invalid maximum salary")
+            filters["salary_max"] = int(salary_max)
         if keywords:
-            filters["keywords"] = keywords
+            if len(keywords) > MAX_FILTER_LENGTH:
+                raise HTTPException(status_code=400, detail="Keywords filter too long")
+            filters["keywords"] = keywords.strip()
         if company_name:
-            filters["company_name"] = company_name
+            if len(company_name) > MAX_FILTER_LENGTH:
+                raise HTTPException(
+                    status_code=400, detail="Company name filter too long"
+                )
+            filters["company_name"] = company_name.strip()
 
         async with get_pool().acquire() as conn:
             jobs = await JobRepo.list_jobs(
@@ -418,7 +444,9 @@ async def get_company_jobs(
                 FROM public.jobs
                 WHERE is_active = true AND company ILIKE $1
             """
-            total_result = await conn.fetchrow(count_query, f"%{escape_ilike(company_name)}%")
+            total_result = await conn.fetchrow(
+                count_query, f"%{escape_ilike(company_name)}%"
+            )
             total_count = total_result["total"]
 
             logger.info(

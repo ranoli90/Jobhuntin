@@ -201,6 +201,7 @@ All endpoints require Bearer token authentication via the Authorization header.
 # OpenTelemetry instrumentation
 setup_telemetry("sorce-api", app)
 
+
 def _build_cors_origins() -> list[str]:
     """Build CORS allow list. Restrict localhost in prod; filter invalid entries."""
     base = {
@@ -225,6 +226,7 @@ def _build_cors_origins() -> list[str]:
             o = o.strip()
             if o:
                 base.add(o)
+
     def _valid(o: str) -> bool:
         return bool(o) and "REDACTED" not in o and o.startswith(("http://", "https://"))
 
@@ -274,13 +276,13 @@ async def api_prefix_rewrite_middleware(request: Request, call_next):
 # @app.middleware("http")
 # async def api_versioning_middleware(request: Request, call_next):
 #     """Add API version headers and handle version negotiation.
-# 
+#
 #     Headers added:
 #     - X-API-Version: Actual API version used (v1 or v2)
 #     - X-Supported-Versions: Comma-separated list of supported versions
 #     - Deprecation, Sunset: For deprecated endpoints (per RFC 8594)
 #     - X-API-Deprecated, X-API-Sunset-Date: Custom deprecation headers (per API_VERSIONING.md)
-# 
+#
 #     Version negotiation:
 #     - URL /api/v2/* implies v2; otherwise Accept-Version header or default v1
 #     - If Accept-Version not supported, returns 400 with supported versions
@@ -316,14 +318,14 @@ async def api_prefix_rewrite_middleware(request: Request, call_next):
 #         else:
 #             request.state.api_version = API_VERSION
 #             effective_version = API_VERSION
-# 
+#
 #     # Process request
 #     response = await call_next(request)
-# 
+#
 #     # Add API version headers to response (reflect actual version used)
 #     response.headers["X-API-Version"] = effective_version
 #     response.headers["X-Supported-Versions"] = ",".join(SUPPORTED_VERSIONS)
-# 
+#
 #     # Deprecation headers per API_VERSIONING.md and RFC 8594
 #     for prefix, sunset_date in DEPRECATED_PATHS:
 #         if path.startswith(prefix):
@@ -332,7 +334,7 @@ async def api_prefix_rewrite_middleware(request: Request, call_next):
 #             response.headers["X-API-Deprecated"] = "true"
 #             response.headers["X-API-Sunset-Date"] = sunset_date
 #             break
-# 
+#
 #     return response
 
 
@@ -430,11 +432,10 @@ async def _get_tenant_info(auth_header: str) -> tuple[str | None, TenantTier]:
 
     return None, TenantTier.FREE
 
-
-# @app.middleware("http")
-# async def idempotency_middleware(request: Request, call_next):
-#     """C2: Idempotency Keys - Prevent duplicate writes on retries."""
-#     return await call_next(request)
+    # @app.middleware("http")
+    # async def idempotency_middleware(request: Request, call_next):
+    #     """C2: Idempotency Keys - Prevent duplicate writes on retries."""
+    #     return await call_next(request)
     """C2: Idempotency Keys - Prevent duplicate writes on retries.
 
     Checks for Idempotency-Key header on POST/PUT/PATCH requests.
@@ -473,11 +474,18 @@ async def _get_tenant_info(auth_header: str) -> tuple[str | None, TenantTier]:
             # Scope by method+path+user to prevent cross-user/cross-endpoint collisions
             user_scope = "anon"
             auth_header = request.headers.get("Authorization")
-            if auth_header and auth_header.startswith("Bearer ") and _settings.jwt_secret:
+            if (
+                auth_header
+                and auth_header.startswith("Bearer ")
+                and _settings.jwt_secret
+            ):
                 try:
                     token = auth_header.replace("Bearer ", "").strip()
                     payload = pyjwt.decode(
-                        token, _settings.jwt_secret, algorithms=["HS256"], audience="authenticated"
+                        token,
+                        _settings.jwt_secret,
+                        algorithms=["HS256"],
+                        audience="authenticated",
                     )
                     user_scope = payload.get("sub") or "anon"
                 except Exception:
@@ -603,11 +611,10 @@ async def _get_tenant_info(auth_header: str) -> tuple[str | None, TenantTier]:
             )
         return await call_next(request)
 
-
-# @app.middleware("http")
-# async def latency_middleware(request: Request, call_next):
-#     """Track API latency and performance metrics (H3: API Performance Monitoring)."""
-#     return await call_next(request)
+    # @app.middleware("http")
+    # async def latency_middleware(request: Request, call_next):
+    #     """Track API latency and performance metrics (H3: API Performance Monitoring)."""
+    #     return await call_next(request)
     """Track API latency and performance metrics (H3: API Performance Monitoring).
 
     M4: Enhanced with OpenTelemetry span attributes for distributed tracing.
@@ -709,11 +716,10 @@ async def _get_tenant_info(auth_header: str) -> tuple[str | None, TenantTier]:
         )
         raise
 
-
-# @app.middleware("http")
-# async def rate_limiting_middleware(request: Request, call_next):
-#     """Tenant-aware rate limiting middleware for API endpoints."""
-#     return await call_next(request)
+    # @app.middleware("http")
+    # async def rate_limiting_middleware(request: Request, call_next):
+    #     """Tenant-aware rate limiting middleware for API endpoints."""
+    #     return await call_next(request)
     """Tenant-aware rate limiting middleware for API endpoints."""
     if _is_exempt_path(request.url.path):
         return await call_next(request)
@@ -764,7 +770,9 @@ async def _get_tenant_info(auth_header: str) -> tuple[str | None, TenantTier]:
     if response is None:
         return JSONResponse(
             status_code=500,
-            content={"error": {"code": "INTERNAL_SERVER_ERROR", "message": "No response"}},
+            content={
+                "error": {"code": "INTERNAL_SERVER_ERROR", "message": "No response"}
+            },
         )
     return response
 
@@ -1259,8 +1267,13 @@ async def global_exception_handler(request: Request, exc: Exception) -> JSONResp
     request_id = request.headers.get("X-Request-ID", "unknown")
     # B1: DB pool exhausted - return 503
     exc_name = type(exc).__name__
-    if "TooManyConnections" in exc_name or "PoolTimeout" in exc_name or (
-        isinstance(exc, (TimeoutError, ConnectionError)) and "pool" in str(exc).lower()
+    if (
+        "TooManyConnections" in exc_name
+        or "PoolTimeout" in exc_name
+        or (
+            isinstance(exc, (TimeoutError, ConnectionError))
+            and "pool" in str(exc).lower()
+        )
     ):
         logger.warning("Database pool exhausted or timeout: %s", exc)
         return JSONResponse(
@@ -1380,7 +1393,9 @@ class AnswerItem(BaseModel):
 
 
 class ResumeTaskRequest(BaseModel):
-    application_id: str = Field(..., min_length=36, max_length=36, description="Application identifier")
+    application_id: str = Field(
+        ..., min_length=36, max_length=36, description="Application identifier"
+    )
     answers: list[AnswerItem] = Field(
         ...,
         max_length=100,  # HIGH: Limit to prevent DoS
@@ -1429,18 +1444,21 @@ class SaveAnswerRequest(BaseModel):
     @classmethod
     def sanitize_field_label(cls, v: str) -> str:
         from packages.backend.domain.sanitization import sanitize_text_input
+
         return sanitize_text_input(v, max_length=200)
 
     @field_validator("field_type")
     @classmethod
     def sanitize_field_type(cls, v: str) -> str:
         from packages.backend.domain.sanitization import sanitize_text_input
+
         return sanitize_text_input(v, max_length=50)
 
     @field_validator("answer_value")
     @classmethod
     def sanitize_answer(cls, v: str) -> str:
         from packages.backend.domain.sanitization import sanitize_text_input
+
         return sanitize_text_input(v, max_length=5000)
 
 
@@ -1510,6 +1528,7 @@ class RichSkillRequest(BaseModel):
         if v is None:
             return None
         from packages.backend.domain.sanitization import sanitize_text_input
+
         return sanitize_text_input(v, max_length=500)
 
     @field_validator("related_to")
@@ -1517,6 +1536,7 @@ class RichSkillRequest(BaseModel):
     def sanitize_related_to(cls, v: list[str]) -> list[str]:
         """BC4: Sanitize related skill names."""
         from packages.backend.domain.sanitization import sanitize_text_input
+
         return [sanitize_text_input(x, max_length=100) for x in (v or [])[:20]]
 
 
@@ -2114,8 +2134,51 @@ async def get_application_detail(
 
 @app.get("/health")
 @app.get("/api/health")  # Proxy-friendly: Vite may forward /api/health without rewrite
-async def health() -> dict[str, str]:
-    return {"status": "ok"}
+async def health(
+    db: asyncpg.Pool = Depends(get_pool),
+) -> dict[str, Any]:
+    """Basic health check with dependency validation.
+
+    M8: Include database and Redis health checks to ensure all critical
+    dependencies are available before reporting healthy status.
+    """
+    s = get_settings()
+    checks = {
+        "database": "unknown",
+        "redis": "unknown",
+    }
+
+    # Check database connection
+    try:
+        async with db.acquire() as conn:
+            await conn.fetchval("SELECT 1")
+        checks["database"] = "healthy"
+    except Exception as e:
+        checks["database"] = f"unhealthy: {str(e)[:50]}"
+
+    # Check Redis if configured
+    if s.redis_url:
+        try:
+            from shared.redis_client import get_redis
+
+            r = await get_redis()
+            await r.ping()
+            checks["redis"] = "healthy"
+        except Exception as e:
+            checks["redis"] = f"unhealthy: {str(e)[:50]}"
+    else:
+        checks["redis"] = "not_configured"
+
+    # Determine overall status
+    db_healthy = checks["database"] == "healthy"
+    redis_healthy = checks["redis"] in ("healthy", "not_configured")
+
+    if db_healthy and redis_healthy:
+        return {"status": "ok", "checks": checks}
+    else:
+        return JSONResponse(
+            status_code=503, content={"status": "degraded", "checks": checks}
+        )
 
 
 @app.get("/agent-improvements/health")
@@ -2279,7 +2342,9 @@ async def serve_storage_file(
         raise HTTPException(status_code=500, detail="Failed to retrieve file")
 
     # Determine content type based on file extension
-    content_type = mimetypes.guess_type(normalized_path)[0] or "application/octet-stream"
+    content_type = (
+        mimetypes.guess_type(normalized_path)[0] or "application/octet-stream"
+    )
 
     return Response(content=data, media_type=content_type)
 

@@ -30,7 +30,9 @@ router = APIRouter(prefix="/gdpr", tags=["GDPR Compliance"])
 class DataExportRequest(BaseModel):
     """Request for GDPR data export."""
 
-    format: str = Field(default="json", max_length=20, description="Export format: json or csv")
+    format: str = Field(
+        default="json", max_length=20, description="Export format: json or csv"
+    )
     include_analytics: bool = Field(
         default=True, description="Include analytics events"
     )
@@ -58,7 +60,9 @@ class DeletionRequest(BaseModel):
     """Request for GDPR data deletion."""
 
     confirm: bool = Field(..., description="User must confirm deletion")
-    reason: str | None = Field(default=None, max_length=500, description="Optional reason for deletion")
+    reason: str | None = Field(
+        default=None, max_length=500, description="Optional reason for deletion"
+    )
 
 
 class DeletionResponse(BaseModel):
@@ -211,8 +215,27 @@ async def export_user_data(
                 continue
 
             try:
-                rows = await conn.fetch(  # nosec
-                    f"SELECT * FROM {table} WHERE {user_col} = $1",  # nosec
+                # Validate table and column against allowed list to prevent SQL injection
+                allowed_tables = {table_info[0] for table_info in TABLES_WITH_USER_DATA}
+                if table not in allowed_tables:
+                    logger.warning(f"Invalid table requested for GDPR export: {table}")
+                    continue
+
+                # For user_col, we need to validate it's one of the allowed columns for this table
+                table_columns = {}
+                for table_info in TABLES_WITH_USER_DATA:
+                    if table_info[0] == table:
+                        table_columns = {col for col in table_info[2]}
+                        break
+
+                if user_col not in table_columns:
+                    logger.warning(
+                        f"Invalid column requested for GDPR export: {user_col} on table {table}"
+                    )
+                    continue
+
+                rows = await conn.fetch(
+                    f"SELECT * FROM {table} WHERE {user_col} = $1",
                     user_id,
                 )
                 if rows:
@@ -226,7 +249,9 @@ async def export_user_data(
 
         # PRIV-005: application_inputs is keyed by application_id; export via user's apps
         try:
-            app_ids = [r["id"] for r in export_data["data"].get("public.applications", [])]
+            app_ids = [
+                r["id"] for r in export_data["data"].get("public.applications", [])
+            ]
             if app_ids:
                 rows = await conn.fetch(
                     """
@@ -400,9 +425,7 @@ async def delete_user_data(
 
                                 storage = get_storage_service()
                                 await storage.delete_file(row["resume_url"])
-                                logger.info(
-                                    "Deleted resume file for user %s", user_id
-                                )
+                                logger.info("Deleted resume file for user %s", user_id)
                         except Exception as se:
                             logger.warning(
                                 "Failed to delete resume file from storage: %s", se
@@ -483,7 +506,9 @@ async def download_export(
         return Response(
             content=data,
             media_type="application/json",
-            headers={"Content-Disposition": f'attachment; filename="gdpr_export_{export_id}.json"'},
+            headers={
+                "Content-Disposition": f'attachment; filename="gdpr_export_{export_id}.json"'
+            },
         )
     except FileNotFoundError:
         pass
@@ -504,7 +529,9 @@ async def download_export(
             return Response(
                 content=content,
                 media_type="application/json",
-                headers={"Content-Disposition": f'attachment; filename="gdpr_export_{export_id}.json"'},
+                headers={
+                    "Content-Disposition": f'attachment; filename="gdpr_export_{export_id}.json"'
+                },
             )
 
     raise HTTPException(status_code=404, detail="Export not found or expired")
@@ -532,14 +559,18 @@ async def get_request_status(
         user_id,
     )
     if not row:
-        raise HTTPException(status_code=404, detail="Request not found or access denied")
+        raise HTTPException(
+            status_code=404, detail="Request not found or access denied"
+        )
 
     return {
         "request_id": str(row["id"]),
         "request_type": row["request_type"],
         "status": row["status"],
         "created_at": row["created_at"].isoformat() if row["created_at"] else None,
-        "completed_at": row["completed_at"].isoformat() if row["completed_at"] else None,
+        "completed_at": row["completed_at"].isoformat()
+        if row["completed_at"]
+        else None,
     }
 
 

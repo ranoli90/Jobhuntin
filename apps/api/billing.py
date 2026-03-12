@@ -13,7 +13,10 @@ from fastapi.responses import StreamingResponse
 from api.dependencies import get_pool
 from api.main import get_tenant_context
 from packages.backend.domain.audit import export_audit_log_csv
-from packages.backend.domain.billing import ensure_stripe_customer, update_subscription_state
+from packages.backend.domain.billing import (
+    ensure_stripe_customer,
+    update_subscription_state,
+)
 from packages.backend.domain.stripe_client import get_stripe, protected_stripe_call
 from packages.backend.domain.tenant import TenantContext, TenantScopeError, require_role
 from shared.config import Settings, settings_dependency
@@ -332,7 +335,11 @@ def _validate_redirect_url(url: str, param_name: str, settings: Settings) -> Non
         if url == origin:
             valid = True
             break
-        if url.startswith(origin) and len(url) > len(origin) and url[len(origin)] in ("/", "?"):
+        if (
+            url.startswith(origin)
+            and len(url) > len(origin)
+            and url[len(origin)] in ("/", "?")
+        ):
             valid = True
             break
     if not valid:
@@ -345,7 +352,11 @@ def _handle_stripe_error(e: Exception) -> None:
     if hasattr(stripe_mod, "error") and isinstance(e, stripe_mod.error.StripeError):
         status = getattr(e, "http_status", 400)
         if 400 <= status < 500:
-            msg = "Your card was declined. Please try a different payment method." if status == 402 else (getattr(e, "user_message", None) or str(e))[:200]
+            msg = (
+                "Your card was declined. Please try a different payment method."
+                if status == 402
+                else (getattr(e, "user_message", None) or str(e))[:200]
+            )
             raise HTTPException(status_code=status, detail=msg)
 
 
@@ -454,7 +465,9 @@ async def create_checkout(
     except Exception as e:
         _handle_stripe_error(e)
         logger.error("Checkout creation failed: %s", e)
-        raise HTTPException(status_code=503, detail="Payment service temporarily unavailable")
+        raise HTTPException(
+            status_code=503, detail="Payment service temporarily unavailable"
+        )
 
 
 @router.post("/portal")
@@ -762,7 +775,9 @@ async def stripe_webhook(
 
             data_obj = (event.get("data") or {}).get("object")
             if not isinstance(data_obj, dict):
-                logger.warning("Stripe event missing data.object: type=%s", event.get("type"))
+                logger.warning(
+                    "Stripe event missing data.object: type=%s", event.get("type")
+                )
                 return {"status": "ok"}
 
             if event["type"] == "checkout.session.completed":
@@ -775,6 +790,9 @@ async def stripe_webhook(
                 await handle_subscription_cancelled(conn, data_obj)
             elif event["type"] == "customer.subscription.updated":
                 await handle_subscription_updated(conn, data_obj)
+            else:
+                # Handle unknown event types gracefully to prevent webhook failures
+                logger.info(f"Unhandled Stripe event type: {event.get('type')}")
             # BILL-005: Both handlers run in same transaction; idempotent and order-independent
 
     return {"status": "ok"}
@@ -856,7 +874,11 @@ async def handle_subscription_updated(conn: asyncpg.Connection, subscription: di
     customer_id = _extract_id(subscription, "customer")
     status = subscription.get("status")
     sub_id = subscription.get("id")
-    subscription_id = sub_id if isinstance(sub_id, str) else (sub_id.get("id") if isinstance(sub_id, dict) else None)
+    subscription_id = (
+        sub_id
+        if isinstance(sub_id, str)
+        else (sub_id.get("id") if isinstance(sub_id, dict) else None)
+    )
     if not customer_id:
         logger.warning("Subscription updated event missing customer_id")
         return

@@ -33,7 +33,10 @@ from pydantic import BaseModel, Field, field_validator, model_validator
 
 from packages.backend.domain.document_processor import create_document_processor
 from packages.backend.domain.masking import mask_email
-from packages.backend.domain.quotas import QuotaExceededError, check_can_create_application
+from packages.backend.domain.quotas import (
+    QuotaExceededError,
+    check_can_create_application,
+)
 from packages.backend.domain.repositories import (
     ApplicationRepo,
     EventRepo,
@@ -75,7 +78,9 @@ def _get_job_refresh_limiter(user_id: str) -> RateLimiter:
     if entry and now - entry[1] < _LIMITER_TTL:
         _job_refresh_limiters[user_id] = (entry[0], now)
         return entry[0]
-    expired = [k for k, (_, ts) in _job_refresh_limiters.items() if now - ts > _LIMITER_TTL]
+    expired = [
+        k for k, (_, ts) in _job_refresh_limiters.items() if now - ts > _LIMITER_TTL
+    ]
     for k in expired:
         _job_refresh_limiters.pop(k, None)
     limiter = RateLimiter(
@@ -453,13 +458,16 @@ async def create_application(
     if body.decision != "ACCEPT":
         # H-3: Persist rejection with REJECTED status (not FAILED) to avoid
         # inflating failure metrics while still preventing job resurfacing.
+        # CRITICAL: Use transaction to prevent race conditions in concurrent swipes
         async with db_transaction(db) as conn:
-            # Check for existing application first
+            # CRITICAL: Use SELECT FOR UPDATE to lock the row and prevent race conditions
+            # This ensures only one request can check and insert for the same user_id + job_id
             existing_app = await conn.fetchrow(
                 """
                 SELECT id, status, created_at, updated_at
                 FROM public.applications
                 WHERE user_id = $1 AND job_id = $2 AND tenant_id = $3
+                FOR UPDATE
                 """,
                 ctx.user_id,
                 body.job_id,
@@ -679,6 +687,7 @@ class AnswerHoldBody(BaseModel):
     @classmethod
     def sanitize_answer(cls, v: str) -> str:
         from packages.backend.domain.sanitization import sanitize_text_input
+
         return sanitize_text_input(v, max_length=5000)
 
 
@@ -896,6 +905,7 @@ class UpdateApplicationStatusBody(BaseModel):
         if v is None:
             return None
         from packages.backend.domain.sanitization import sanitize_text_input
+
         return sanitize_text_input(v, max_length=5000)
 
 
@@ -1118,7 +1128,9 @@ async def get_profile(
                 if is_system_admin:
                     role = "superadmin"
             except Exception as e:
-                logger.debug("is_system_admin check failed (column may not exist): %s", e)
+                logger.debug(
+                    "is_system_admin check failed (column may not exist): %s", e
+                )
     except Exception as exc:
         logger.error(
             "[PROFILE] Database error fetching profile: %s", exc, exc_info=True
@@ -1254,6 +1266,7 @@ class ProfileUpdate(BaseModel):
         if value is None:
             return None
         import re
+
         email = value.get("email")
         if email is not None and str(email).strip():
             if not re.match(r"^[^\s@]+@[^\s@]+\.[^\s@]+$", str(email).strip()):
@@ -1274,6 +1287,7 @@ class ProfileUpdate(BaseModel):
         if v is None:
             return None
         from packages.backend.domain.sanitization import sanitize_text_input
+
         return sanitize_text_input(v, max_length=200)
 
     @field_validator("bio")
@@ -1283,6 +1297,7 @@ class ProfileUpdate(BaseModel):
         if v is None:
             return None
         from packages.backend.domain.sanitization import sanitize_text_input
+
         return sanitize_text_input(v, max_length=5000)
 
     @field_validator("avatar_url", "resume_url")
@@ -1451,6 +1466,7 @@ def _merge_contact_fields(contact: dict, body_contact: dict) -> None:
             val = body_contact[field]
             if isinstance(val, str):
                 from packages.backend.domain.sanitization import sanitize_text_input
+
                 val = sanitize_text_input(val, max_length=500)
             contact[field] = val
     if "avatar_url" in body_contact and body_contact["avatar_url"]:
@@ -1487,7 +1503,9 @@ def _merge_profile_update(profile_data: dict, body: ProfileUpdate) -> None:
         profile_data["onboarding_step"] = max(current_step, requested)
     if body.onboarding_completed_steps is not None:
         existing = set(profile_data.get("onboarding_completed_steps") or [])
-        profile_data["onboarding_completed_steps"] = list(existing | set(body.onboarding_completed_steps))
+        profile_data["onboarding_completed_steps"] = list(
+            existing | set(body.onboarding_completed_steps)
+        )
 
     avatar_url = (
         body.avatar_url if body.avatar_url is not None else contact.get("avatar_url")
