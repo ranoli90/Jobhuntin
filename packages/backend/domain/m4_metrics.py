@@ -107,7 +107,7 @@ async def get_ltv_cac_estimate(conn: asyncpg.Connection) -> dict[str, Any]:
 async def get_m4_dashboard(conn: asyncpg.Connection) -> dict[str, Any]:
     """Return the complete M4 enterprise analytics dashboard."""
     # Import M3 for base metrics
-    from backend.domain.m3_metrics import get_m3_dashboard
+    from packages.backend.domain.m3_metrics import get_m3_dashboard
 
     m3 = await get_m3_dashboard(conn)
     cohorts = await get_mrr_cohorts(conn)

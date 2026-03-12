@@ -8,7 +8,7 @@ from typing import Any, cast
 
 import asyncpg
 
-from backend.domain.masking import redact_event_payload
+from packages.backend.domain.masking import redact_event_payload
 
 
 async def build_debug_bundle(

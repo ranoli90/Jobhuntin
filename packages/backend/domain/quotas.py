@@ -8,8 +8,8 @@ from __future__ import annotations
 
 import asyncpg
 
-from backend.domain.plans import plan_config_for
-from backend.domain.repositories import TenantRepo
+from packages.backend.domain.plans import plan_config_for
+from packages.backend.domain.repositories import TenantRepo
 from shared.logging_config import get_logger
 
 logger = get_logger("sorce.quotas")

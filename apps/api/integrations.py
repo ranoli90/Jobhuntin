@@ -10,14 +10,14 @@ import asyncpg
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
-from backend.domain.google_drive_integration import GoogleDriveIntegrationManager
-from backend.domain.notion_integration import (
+from packages.backend.domain.google_drive_integration import GoogleDriveIntegrationManager
+from packages.backend.domain.notion_integration import (
     APPLICATION_DATABASE_SCHEMA,
     NotionClient,
     NotionIntegrationManager,
 )
-from backend.domain.slack_integration import SlackIntegrationManager, SlackMessageType
-from backend.domain.zapier_integration import ZapierIntegrationManager
+from packages.backend.domain.slack_integration import SlackIntegrationManager, SlackMessageType
+from packages.backend.domain.zapier_integration import ZapierIntegrationManager
 from shared.logging_config import get_logger
 from shared.redirect_validation import validate_webhook_url
 

@@ -42,7 +42,7 @@ from reportlab.platypus import (
     TableStyle,
 )
 
-from backend.domain.resume_tailoring import TailoredResumeResult
+from packages.backend.domain.resume_tailoring import TailoredResumeResult
 from shared.logging_config import get_logger
 
 logger = get_logger("sorce.resume_pdf_generator")

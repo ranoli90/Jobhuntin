@@ -5,8 +5,8 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
-from backend.domain.repositories import JobRepo
-from backend.domain.tenant import TenantContext
+from packages.backend.domain.repositories import JobRepo
+from packages.backend.domain.tenant import TenantContext
 from shared.logging_config import get_logger
 from shared.sql_utils import escape_ilike
 
@@ -154,7 +154,7 @@ async def get_job_details(
         raise HTTPException(status_code=400, detail="Invalid job ID format")
 
     try:
-        from backend.domain.repositories import get_pool
+        from packages.backend.domain.repositories import get_pool
 
         async with get_pool().acquire() as conn:
             job_data = await JobRepo.get_by_id(conn, job_id)
@@ -221,7 +221,7 @@ async def list_jobs(
         List of jobs with pagination info
     """
     try:
-        from backend.domain.repositories import get_pool
+        from packages.backend.domain.repositories import get_pool
 
         # Build filters
         filters = {}
@@ -337,7 +337,7 @@ async def search_jobs(
         List of matching jobs with pagination info
     """
     try:
-        from backend.domain.repositories import get_pool
+        from packages.backend.domain.repositories import get_pool
 
         filters = {"keywords": q}
 
@@ -398,7 +398,7 @@ async def get_company_jobs(
         List of company jobs with pagination info
     """
     try:
-        from backend.domain.repositories import get_pool
+        from packages.backend.domain.repositories import get_pool
 
         filters = {"company_name": company_name}
 
@@ -450,7 +450,7 @@ async def get_filter_options(
         Available filter options
     """
     try:
-        from backend.domain.repositories import get_pool
+        from packages.backend.domain.repositories import get_pool
 
         async with get_pool().acquire() as conn:
             # Get unique values for filters

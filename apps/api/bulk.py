@@ -12,9 +12,9 @@ import asyncpg
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
-from backend.domain.audit import record_audit_event
-from backend.domain.repositories import db_transaction
-from backend.domain.tenant import TenantContext, TenantScopeError, require_role
+from packages.backend.domain.audit import record_audit_event
+from packages.backend.domain.repositories import db_transaction
+from packages.backend.domain.tenant import TenantContext, TenantScopeError, require_role
 from shared.logging_config import get_logger
 from shared.metrics import incr
 from shared.sql_utils import escape_ilike
@@ -182,7 +182,7 @@ async def start_campaign(
             raise HTTPException(status_code=404, detail="No matching jobs found")
 
         # Compute priority score for bulk
-        from backend.domain.priority import compute_priority_score
+        from packages.backend.domain.priority import compute_priority_score
 
         priority = compute_priority_score(ctx.plan, is_bulk=True)
 

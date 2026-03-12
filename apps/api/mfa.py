@@ -10,7 +10,7 @@ import asyncpg
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
-from backend.domain.mfa import MFAManager
+from packages.backend.domain.mfa import MFAManager
 from shared.logging_config import get_logger
 
 logger = get_logger("sorce.api.mfa")

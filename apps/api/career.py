@@ -9,8 +9,8 @@ import asyncpg
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
-from backend.domain.career_path import CareerPathAnalyzer, SkillGap
-from backend.domain.repositories import ProfileRepo
+from packages.backend.domain.career_path import CareerPathAnalyzer, SkillGap
+from packages.backend.domain.repositories import ProfileRepo
 from shared.logging_config import get_logger
 
 logger = get_logger("sorce.api.career")

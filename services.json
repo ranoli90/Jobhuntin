@@ -1,15 +1,153 @@
 [
   {
+    "note": "NEW RENDER ACCOUNT SERVICES (tea-d6p1rv6a2pns73f4sucg - Dalton's workspace)",
+    "postgres": {
+      "createdAt": "2026-03-12T05:40:18.380273Z",
+      "dashboardUrl": "https://dashboard.render.com/d/dpg-d6p53ghr0fns73e4da20-a",
+      "databaseName": "jobhuntin_db_ghef",
+      "databaseUser": "jobhuntin_db_ghef_user",
+      "diskAutoscalingEnabled": false,
+      "highAvailabilityEnabled": false,
+      "id": "dpg-d6p53ghr0fns73e4da20-a",
+      "name": "jobhuntin-db",
+      "owner": {
+        "email": "coremugshot@gmail.com",
+        "id": "tea-d6p1rv6a2pns73f4sucg",
+        "name": "Dalton's workspace",
+        "type": "team"
+      },
+      "plan": "free",
+      "region": "oregon",
+      "role": "primary",
+      "status": "available",
+      "updatedAt": "2026-03-12T05:40:18.380273Z",
+      "version": "16"
+    }
+  },
+  {
+    "note": "Redis on new account",
+    "keyValue": {
+      "createdAt": "2026-03-12T05:40:38.853975Z",
+      "id": "red-d6p53ln5gffc738u7o9g",
+      "name": "jobhuntin-redis",
+      "options": {
+        "maxmemoryPolicy": "allkeys_lru"
+      },
+      "owner": {
+        "email": "coremugshot@gmail.com",
+        "id": "tea-d6p1rv6a2pns73f4sucg",
+        "name": "Dalton's workspace",
+        "type": "team"
+      },
+      "plan": "free",
+      "region": "oregon",
+      "status": "available",
+      "updatedAt": "2026-03-12T05:40:38.853975Z",
+      "version": "8.1.4"
+    }
+  },
+  {
+    "note": "API on new account",
     "service": {
       "autoDeploy": "yes",
       "autoDeployTrigger": "commit",
       "branch": "main",
-      "createdAt": "2026-02-11T15:50:16.532454Z",
-      "dashboardUrl": "https://dashboard.render.com/worker/srv-d66aadsr85hc73dastfg",
-      "id": "srv-d66aadsr85hc73dastfg",
+      "createdAt": "2026-03-12T05:09:22.238476Z",
+      "dashboardUrl": "https://dashboard.render.com/web/srv-d6p4l03h46gs73ftvuj0",
+      "id": "srv-d6p4l03h46gs73ftvuj0",
+      "name": "jobhuntin-api",
+      "notifyOnFail": "default",
+      "ownerId": "tea-d6p1rv6a2pns73f4sucg",
+      "repo": "https://github.com/ranoli90/sorce",
+      "rootDir": "",
+      "serviceDetails": {
+        "buildPlan": "starter",
+        "env": "docker",
+        "envSpecificDetails": {
+          "dockerCommand": "",
+          "dockerContext": ".",
+          "dockerfilePath": "./Dockerfile"
+        },
+        "healthCheckPath": "/health",
+        "ipAllowList": [
+          {
+            "cidrBlock": "0.0.0.0/0",
+            "description": "everywhere"
+          }
+        ],
+        "numInstances": 1,
+        "openPorts": [
+          {
+            "port": 10000,
+            "protocol": "TCP"
+          }
+        ],
+        "plan": "standard",
+        "previews": {
+          "generation": "off"
+        },
+        "pullRequestPreviewsEnabled": "no",
+        "region": "oregon",
+        "runtime": "docker",
+        "sshAddress": "srv-d6p4l03h46gs73ftvuj0@ssh.oregon.render.com",
+        "url": "https://jobhuntin-api.onrender.com"
+      },
+      "slug": "jobhuntin-api",
+      "suspended": "not_suspended",
+      "suspenders": [],
+      "type": "web_service",
+      "updatedAt": "2026-03-12T05:09:22.238476Z"
+    }
+  },
+  {
+    "note": "Web on new account",
+    "service": {
+      "autoDeploy": "yes",
+      "autoDeployTrigger": "commit",
+      "branch": "main",
+      "createdAt": "2026-03-12T06:19:46.826298Z",
+      "dashboardUrl": "https://dashboard.render.com/static/srv-d6p5m0fafjfc739ij050",
+      "id": "srv-d6p5m0fafjfc739ij050",
+      "name": "jobhuntin-web",
+      "notifyOnFail": "default",
+      "ownerId": "tea-d6p1rv6a2pns73f4sucg",
+      "repo": "https://github.com/ranoli90/sorce",
+      "rootDir": "apps/web",
+      "serviceDetails": {
+        "buildCommand": "npm ci && npx vite build",
+        "buildPlan": "starter",
+        "ipAllowList": [
+          {
+            "cidrBlock": "0.0.0.0/0",
+            "description": "everywhere"
+          }
+        ],
+        "previews": {
+          "generation": "off"
+        },
+        "publishPath": "dist",
+        "pullRequestPreviewsEnabled": "no",
+        "url": "https://jobhuntin-web.onrender.com"
+      },
+      "slug": "jobhuntin-web",
+      "suspended": "not_suspended",
+      "suspenders": [],
+      "type": "static_site",
+      "updatedAt": "2026-03-12T06:19:46.826298Z"
+    }
+  },
+  {
+    "note": "SEO Engine Worker on new account",
+    "service": {
+      "autoDeploy": "yes",
+      "autoDeployTrigger": "commit",
+      "branch": "main",
+      "createdAt": "2026-03-12T06:22:16.725325Z",
+      "dashboardUrl": "https://dashboard.render.com/worker/srv-d6p5n5vkijhs73fikui0",
+      "id": "srv-d6p5n5vkijhs73fikui0",
       "name": "jobhuntin-seo-engine",
       "notifyOnFail": "default",
-      "ownerId": "tea-d63jqusr85hc73b9bun0",
+      "ownerId": "tea-d6p1rv6a2pns73f4sucg",
       "repo": "https://github.com/ranoli90/sorce",
       "rootDir": "apps/web",
       "serviceDetails": {
@@ -27,288 +165,13 @@
         "pullRequestPreviewsEnabled": "no",
         "region": "oregon",
         "runtime": "node",
-        "sshAddress": "srv-d66aadsr85hc73dastfg@ssh.oregon.render.com"
+        "sshAddress": "srv-d6p5n5vkijhs73fikui0@ssh.oregon.render.com"
       },
-      "slug": "jobhuntin-seo-engine",
+      "slug": "jobhuntin-seo-engine-2hak",
       "suspended": "not_suspended",
       "suspenders": [],
       "type": "background_worker",
-      "updatedAt": "2026-02-16T06:48:26.349769Z"
-    }
-  },
-  {
-    "keyValue": {
-      "createdAt": "2026-02-12T23:22:23.682548Z",
-      "dashboardUrl": "https://dashboard.render.com/r/red-d6761bp5pdvs73e7b3mg",
-      "id": "red-d6761bp5pdvs73e7b3mg",
-      "ipAllowList": [
-        {
-          "cidrBlock": "172.59.231.127/32",
-          "description": "senifkumar@gmail.com"
-        }
-      ],
-      "name": "jobhuntin-redis",
-      "options": {
-        "maxmemoryPolicy": "allkeys_lru"
-      },
-      "owner": {
-        "email": "senifkumar@gmail.com",
-        "id": "tea-d63jqusr85hc73b9bun0",
-        "name": "My Workspace",
-        "type": "team"
-      },
-      "plan": "starter",
-      "region": "oregon",
-      "status": "available",
-      "updatedAt": "2026-02-15T07:54:33.043704Z",
-      "version": "8.1.4"
-    }
-  },
-  {
-    "postgres": {
-      "createdAt": "2026-02-11T18:27:32.256713Z",
-      "dashboardUrl": "https://dashboard.render.com/d/dpg-d66ck524d50c73bas62g-a",
-      "databaseName": "jobhuntin",
-      "databaseUser": "jobhuntin_user",
-      "diskAutoscalingEnabled": false,
-      "diskSizeGB": 1,
-      "highAvailabilityEnabled": false,
-      "id": "dpg-d66ck524d50c73bas62g-a",
-      "ipAllowList": [
-        {
-          "cidrBlock": "0.0.0.0/0",
-          "description": "Allow all for Render services"
-        }
-      ],
-      "name": "jobhuntin-db",
-      "owner": {
-        "email": "senifkumar@gmail.com",
-        "id": "tea-d63jqusr85hc73b9bun0",
-        "name": "My Workspace",
-        "type": "team"
-      },
-      "plan": "basic_256mb",
-      "readReplicas": [],
-      "region": "oregon",
-      "role": "primary",
-      "status": "available",
-      "suspended": "not_suspended",
-      "suspenders": [],
-      "updatedAt": "2026-02-11T18:31:07.48907Z",
-      "version": "16"
-    }
-  },
-  {
-    "service": {
-      "autoDeploy": "yes",
-      "autoDeployTrigger": "commit",
-      "branch": "main",
-      "createdAt": "2026-02-07T23:37:20.195493Z",
-      "dashboardUrl": "https://dashboard.render.com/static/srv-d63spbogjchc739akan0",
-      "id": "srv-d63spbogjchc739akan0",
-      "name": "jobhuntin-web",
-      "notifyOnFail": "default",
-      "ownerId": "tea-d63jqusr85hc73b9bun0",
-      "repo": "https://github.com/ranoli90/sorce",
-      "rootDir": "apps/web",
-      "serviceDetails": {
-        "buildCommand": "npm install \u0026\u0026 npm run build",
-        "buildPlan": "starter",
-        "ipAllowList": [
-          {
-            "cidrBlock": "0.0.0.0/0",
-            "description": "everywhere"
-          }
-        ],
-        "previews": {
-          "generation": "off"
-        },
-        "publishPath": "dist",
-        "pullRequestPreviewsEnabled": "no",
-        "url": "https://sorce-web.onrender.com"
-      },
-      "slug": "sorce-web",
-      "suspended": "not_suspended",
-      "suspenders": [],
-      "type": "static_site",
-      "updatedAt": "2026-02-16T06:48:28.716162Z"
-    }
-  },
-  {
-    "service": {
-      "autoDeploy": "yes",
-      "autoDeployTrigger": "commit",
-      "branch": "main",
-      "createdAt": "2026-02-07T15:00:55.028662Z",
-      "dashboardUrl": "https://dashboard.render.com/web/srv-d63l79hr0fns73boblag",
-      "id": "srv-d63l79hr0fns73boblag",
-      "name": "jobhuntin-api",
-      "notifyOnFail": "default",
-      "ownerId": "tea-d63jqusr85hc73b9bun0",
-      "repo": "https://github.com/ranoli90/sorce",
-      "rootDir": "",
-      "serviceDetails": {
-        "buildPlan": "starter",
-        "cache": {
-          "profile": "no-cache"
-        },
-        "disk": {
-          "id": "dsk-d68om1ur433s73cmgpj0",
-          "mountPath": "/opt/render/project/data/storage",
-          "name": "disk",
-          "sizeGB": 1
-        },
-        "env": "docker",
-        "envSpecificDetails": {
-          "dockerCommand": "",
-          "dockerContext": ".",
-          "dockerfilePath": "./Dockerfile"
-        },
-        "healthCheckPath": "/health",
-        "ipAllowList": [
-          {
-            "cidrBlock": "0.0.0.0/0",
-            "description": "everywhere"
-          }
-        ],
-        "maintenanceMode": {
-          "enabled": false,
-          "uri": ""
-        },
-        "numInstances": 1,
-        "openPorts": [
-          {
-            "port": 10000,
-            "protocol": "TCP"
-          }
-        ],
-        "plan": "standard",
-        "previews": {
-          "generation": "off"
-        },
-        "pullRequestPreviewsEnabled": "no",
-        "region": "oregon",
-        "runtime": "docker",
-        "sshAddress": "srv-d63l79hr0fns73boblag@ssh.oregon.render.com",
-        "url": "https://sorce-api.onrender.com"
-      },
-      "slug": "sorce-api",
-      "suspended": "not_suspended",
-      "suspenders": [],
-      "type": "web_service",
-      "updatedAt": "2026-02-16T06:49:33.007828Z"
-    }
-  },
-  {
-    "service": {
-      "autoDeploy": "yes",
-      "autoDeployTrigger": "commit",
-      "branch": "staging",
-      "createdAt": "2026-02-13T00:40:33.289529Z",
-      "dashboardUrl": "https://dashboard.render.com/web/srv-d67760248b3s73c3vk40",
-      "id": "srv-d67760248b3s73c3vk40",
-      "name": "jobhuntin-api-staging",
-      "notifyOnFail": "default",
-      "ownerId": "tea-d63jqusr85hc73b9bun0",
-      "repo": "https://github.com/ranoli90/sorce",
-      "rootDir": "",
-      "serviceDetails": {
-        "buildPlan": "starter",
-        "cache": {
-          "profile": "no-cache"
-        },
-        "env": "docker",
-        "envSpecificDetails": {
-          "dockerCommand": "",
-          "dockerContext": ".",
-          "dockerfilePath": "./Dockerfile"
-        },
-        "healthCheckPath": "",
-        "ipAllowList": [
-          {
-            "cidrBlock": "0.0.0.0/0",
-            "description": "everywhere"
-          }
-        ],
-        "maintenanceMode": {
-          "enabled": false,
-          "uri": ""
-        },
-        "numInstances": 1,
-        "openPorts": [
-          {
-            "port": 10000,
-            "protocol": "TCP"
-          }
-        ],
-        "plan": "starter",
-        "previews": {
-          "generation": "off"
-        },
-        "pullRequestPreviewsEnabled": "no",
-        "region": "oregon",
-        "runtime": "docker",
-        "sshAddress": "srv-d67760248b3s73c3vk40@ssh.oregon.render.com",
-        "url": "https://jobhuntin-api-staging.onrender.com"
-      },
-      "slug": "jobhuntin-api-staging",
-      "suspended": "not_suspended",
-      "suspenders": [],
-      "type": "web_service",
-      "updatedAt": "2026-02-15T12:34:32.859158Z"
-    }
-  },
-  {
-    "service": {
-      "autoDeploy": "yes",
-      "autoDeployTrigger": "commit",
-      "createdAt": "2026-02-12T02:56:16.595796Z",
-      "dashboardUrl": "https://dashboard.render.com/web/srv-d66k2k5um26s73fvgrlg",
-      "id": "srv-d66k2k5um26s73fvgrlg",
-      "imagePath": "docker.io/ankane/pghero:latest",
-      "name": "PgHero-dpg-d66ck524d50c73bas62g-a",
-      "notifyOnFail": "default",
-      "ownerId": "tea-d63jqusr85hc73b9bun0",
-      "rootDir": "",
-      "serviceDetails": {
-        "buildPlan": "starter",
-        "cache": {
-          "profile": "no-cache"
-        },
-        "env": "image",
-        "envSpecificDetails": {
-          "dockerCommand": "",
-          "dockerContext": "",
-          "dockerfilePath": ""
-        },
-        "healthCheckPath": "",
-        "ipAllowList": [
-          {
-            "cidrBlock": "0.0.0.0/0",
-            "description": "everywhere"
-          }
-        ],
-        "maintenanceMode": {
-          "enabled": false,
-          "uri": ""
-        },
-        "numInstances": 1,
-        "openPorts": null,
-        "plan": "free",
-        "previews": {
-          "generation": "off"
-        },
-        "pullRequestPreviewsEnabled": "no",
-        "region": "oregon",
-        "runtime": "image",
-        "sshAddress": "srv-d66k2k5um26s73fvgrlg@ssh.oregon.render.com",
-        "url": "https://pghero-dpg-d66ck524d50c73bas62g-a.onrender.com"
-      },
-      "slug": "pghero-dpg-d66ck524d50c73bas62g-a",
-      "suspended": "not_suspended",
-      "suspenders": [],
-      "type": "web_service",
-      "updatedAt": "2026-02-12T02:56:59.745805Z"
+      "updatedAt": "2026-03-12T06:22:16.725325Z"
     }
   }
 ]

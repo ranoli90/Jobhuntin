@@ -11,9 +11,9 @@ from typing import Any
 
 import asyncpg
 
-from backend.domain.job_dedup import deduplicate_jobs, normalize_job
-from backend.domain.job_scoring import apply_dealbreaker_filters, score_job_match
-from backend.domain.profile_assembly import assemble_profile
+from packages.backend.domain.job_dedup import deduplicate_jobs, normalize_job
+from packages.backend.domain.job_scoring import apply_dealbreaker_filters, score_job_match
+from packages.backend.domain.profile_assembly import assemble_profile
 from shared.config import get_settings
 from shared.logging_config import get_logger
 from shared.metrics import incr, observe
@@ -80,7 +80,7 @@ async def search_and_list_jobs(
     if not rows and offset == 0 and s.adzuna_app_id and s.adzuna_api_key:
         logger.info("[JOB_SEARCH] DB empty, fetching from Adzuna live")
         try:
-            from backend.domain.job_sync_service import JobSyncService
+            from packages.backend.domain.job_sync_service import JobSyncService
 
             sync = JobSyncService(db_pool, s)
             search_kw = keywords or "software engineer"

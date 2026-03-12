@@ -17,9 +17,9 @@ from api.dependencies import get_current_user_id
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
-from backend.domain.repositories import JobMatchCacheRepo, ProfileRepo
-from backend.llm import LLMClient
-from backend.llm.contracts import (
+from packages.backend.domain.repositories import JobMatchCacheRepo, ProfileRepo
+from packages.backend.llm import LLMClient
+from packages.backend.llm.contracts import (
     JobMatchScore_V1,
     LocationSuggestionResponse_V1,
     OnboardingQuestionsResponse_V1,
@@ -417,7 +417,7 @@ def _generate_cache_key(profile_id: str, job_ids: list[str]) -> str:
 
 async def _get_job_details(db: asyncpg.Connection, job_id: str) -> dict[str, Any]:
     """Get comprehensive job details for matching."""
-    from backend.domain.repositories import JobRepo
+    from packages.backend.domain.repositories import JobRepo
 
     try:
         job_details = await JobRepo.get_by_id(db, job_id)
@@ -448,7 +448,7 @@ async def _get_job_details(db: asyncpg.Connection, job_id: str) -> dict[str, Any
 async def emit_analytics_event(event_name: str, data: dict[str, Any]) -> None:
     """Emit analytics event."""
     try:
-        from backend.domain.analytics_events import emit_analytics_event
+        from packages.backend.domain.analytics_events import emit_analytics_event
 
         await emit_analytics_event(event_name, data)
     except Exception as e:

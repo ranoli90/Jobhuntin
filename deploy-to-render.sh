@@ -11,8 +11,9 @@ if [ -z "$RENDER_API_TOKEN" ]; then
   echo "❌ RENDER_API_TOKEN not set. Export it: export RENDER_API_TOKEN=your-key"
   exit 1
 fi
-SERVICE_ID_WEB="srv-cqdq7bg8fa8c73c1qgr0"  # Web service
-SERVICE_ID_SEO="srv-cqdq7t68fa8c73c1qgs0"  # SEO worker service
+SERVICE_ID_WEB="srv-d63spbogjchc739akan0"  # Web service (jobhuntin-web)
+SERVICE_ID_API="srv-d63l79hr0fns73boblag"    # API service (jobhuntin-api)
+SERVICE_ID_SEO="srv-d66aadsr85hc73dastfg"   # SEO worker service (jobhuntin-seo-engine)
 
 echo "🚀 Starting Render deployment for SEO Ranking Engine..."
 
@@ -23,11 +24,11 @@ trigger_deployment() {
     
     echo "📦 Deploying $service_name..."
     
-    response=$(curl -s -X POST \
-        "https://api.render.com/v1/services/$service_id/deploys" \
-        -H "Accept: application/json" \
-        -H "Authorization: Bearer $RENDER_API_TOKEN" \
-        -d '{"clearCache": "true"}')
+     response=$(curl -s -X POST \
+         "https://api.render.com/v1/services/$service_id/deploys" \
+         -H "Accept: application/json" \
+         -H "Authorization: Bearer $RENDER_API_TOKEN" \
+         -d '{"clearCache": "clear"}')
     
     if echo "$response" | grep -q "deploy"; then
         echo "✅ $service_name deployment triggered successfully"
@@ -140,11 +141,13 @@ main() {
     echo ""
     set_environment_variables "$SERVICE_ID_SEO" "SEO Worker Service"
     
-    # Trigger deployments
-    echo ""
-    trigger_deployment "$SERVICE_ID_WEB" "Web Service"
-    echo ""
-    trigger_deployment "$SERVICE_ID_SEO" "SEO Worker Service"
+# Trigger deployments
+echo ""
+trigger_deployment "$SERVICE_ID_WEB" "Web Service"
+echo ""
+trigger_deployment "$SERVICE_ID_API" "API Service"
+echo ""
+trigger_deployment "$SERVICE_ID_SEO" "SEO Worker Service"
     
     # Wait and check status
     echo ""

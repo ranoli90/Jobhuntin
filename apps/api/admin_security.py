@@ -8,12 +8,12 @@ import asyncpg
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
-from backend.domain.data_residency import (
+from packages.backend.domain.data_residency import (
     REGION_CONFIGS,
     DataRegion,
     DataResidencyManager,
 )
-from backend.domain.ip_allowlist import IPAllowlistManager
+from packages.backend.domain.ip_allowlist import IPAllowlistManager
 from shared.logging_config import get_logger
 
 logger = get_logger("sorce.api.admin_security")

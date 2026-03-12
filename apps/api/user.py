@@ -31,10 +31,10 @@ from fastapi import (
 from fastapi import Path as FastAPIPath
 from pydantic import BaseModel, Field, field_validator, model_validator
 
-from backend.domain.document_processor import create_document_processor
-from backend.domain.masking import mask_email
-from backend.domain.quotas import QuotaExceededError, check_can_create_application
-from backend.domain.repositories import (
+from packages.backend.domain.document_processor import create_document_processor
+from packages.backend.domain.masking import mask_email
+from packages.backend.domain.quotas import QuotaExceededError, check_can_create_application
+from packages.backend.domain.repositories import (
     ApplicationRepo,
     EventRepo,
     InputRepo,
@@ -42,8 +42,8 @@ from backend.domain.repositories import (
     ProfileRepo,
     db_transaction,
 )
-from backend.domain.resume import process_resume_upload
-from backend.domain.tenant import TenantContext
+from packages.backend.domain.resume import process_resume_upload
+from packages.backend.domain.tenant import TenantContext
 from shared.config import get_settings
 from shared.logging_config import get_logger, sanitize_for_log
 from shared.metrics import RateLimiter
@@ -448,7 +448,7 @@ async def create_application(
     validate_uuid(body.job_id, "job_id")
 
     # N-7: Import at function scope to keep it visible
-    from backend.domain.priority import compute_priority_score
+    from packages.backend.domain.priority import compute_priority_score
 
     if body.decision != "ACCEPT":
         # H-3: Persist rejection with REJECTED status (not FAILED) to avoid
@@ -997,7 +997,7 @@ async def list_jobs(
     min_match_score: When scoring, filter jobs below this score (0-100).
     When authenticated, match_score/recently_matched use profile-based scoring.
     """
-    from backend.domain.job_search import search_and_list_jobs
+    from packages.backend.domain.job_search import search_and_list_jobs
 
     limit = max(5, min(limit, 100))
     offset = max(0, offset)
@@ -1027,7 +1027,7 @@ async def get_job_sources(
     db: asyncpg.Pool = Depends(_get_pool),
 ) -> list[dict[str, Any]]:
     """Get list of available job sources with stats."""
-    from backend.domain.job_search import get_job_sources
+    from packages.backend.domain.job_search import get_job_sources
 
     return await get_job_sources(db)
 
@@ -1508,7 +1508,7 @@ async def _hydrate_job_matches(
     try:
         logger.info("Hydrating job matches for user %s", user_id)
 
-        from backend.domain.job_search import search_and_list_jobs
+        from packages.backend.domain.job_search import search_and_list_jobs
 
         location = preferences.get("location")
         role = preferences.get("role_type")
@@ -1854,7 +1854,7 @@ async def refresh_my_jobs(
     """Trigger per-user job sync for current user's preferences and job alerts.
     Rate-limited to once per 3 hours per user.
     """
-    from backend.domain.job_sync_service import JobSyncService
+    from packages.backend.domain.job_sync_service import JobSyncService
 
     # Rate limit: 1 refresh per 3 hours per user
     limiter = _get_job_refresh_limiter(ctx.user_id)
@@ -1889,7 +1889,7 @@ async def get_job_sync_status(
 
         raise HTTPException(status_code=403, detail="Admin access required")
 
-    from backend.domain.job_search import get_sync_status
+    from packages.backend.domain.job_search import get_sync_status
 
     return await get_sync_status(db)
 
@@ -1906,7 +1906,7 @@ async def trigger_job_sync(
 
         raise HTTPException(status_code=403, detail="Admin access required")
 
-    from backend.domain.job_sync_service import JobSyncService
+    from packages.backend.domain.job_sync_service import JobSyncService
 
     sync_service = JobSyncService(db)
     background_tasks.add_task(sync_service.sync_all_sources, None, 2)
@@ -1929,7 +1929,7 @@ async def delete_account(
     GDPR Article 17 / CCPA right to erasure. Settings UI requires typing "DELETE"
     before calling this endpoint.
     """
-    from backend.domain.ccpa import CCPAComplianceManager
+    from packages.backend.domain.ccpa import CCPAComplianceManager
 
     result = await CCPAComplianceManager.handle_data_deletion_request(ctx.user_id, db)
     return {

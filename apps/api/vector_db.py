@@ -13,7 +13,7 @@ from typing import Any
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
-from backend.domain.vector_db import (
+from packages.backend.domain.vector_db import (
     JOBS_NAMESPACE,
     PROFILES_NAMESPACE,
     VectorDBClient,

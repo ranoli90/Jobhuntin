@@ -9,7 +9,7 @@ import asyncpg
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
-from backend.domain.calendar import (
+from packages.backend.domain.calendar import (
     CalendarProvider,
     GoogleCalendarClient,
     InterviewEvent,

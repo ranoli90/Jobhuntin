@@ -14,8 +14,8 @@ import asyncpg
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from pydantic import BaseModel
 
-from backend.domain.audit import record_audit_event
-from backend.domain.tenant import TenantContext
+from packages.backend.domain.audit import record_audit_event
+from packages.backend.domain.tenant import TenantContext
 from shared.logging_config import get_logger
 from shared.metrics import incr
 

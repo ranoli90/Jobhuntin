@@ -17,7 +17,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import Response
 from pydantic import BaseModel, Field, field_validator
 
-from backend.domain.repositories import db_transaction
+from packages.backend.domain.repositories import db_transaction
 from shared.logging_config import get_logger
 from shared.metrics import incr
 from shared.validators import validate_uuid

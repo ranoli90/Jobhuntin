@@ -13,7 +13,7 @@ from typing import Any, Dict, List, Optional, Set
 
 import asyncpg
 
-from backend.domain.match_weights import (
+from packages.backend.domain.match_weights import (
     TenantMatchConfig,
     WeightCategory,
     get_match_weights_manager,

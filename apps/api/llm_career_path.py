@@ -26,8 +26,8 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
-from backend.domain.llm_career_path import get_llm_career_path_analyzer
-from backend.domain.tenant import TenantContext
+from packages.backend.domain.llm_career_path import get_llm_career_path_analyzer
+from packages.backend.domain.tenant import TenantContext
 from shared.ai_validation import sanitize_dict_for_ai, sanitize_for_ai
 from shared.logging_config import get_logger
 
@@ -492,7 +492,7 @@ async def create_personalized_learning_path(
         llm_analyzer = get_llm_career_path_analyzer()
 
         # Convert skill gaps to proper format
-        from backend.domain.career_path import SkillGap
+        from packages.backend.domain.career_path import SkillGap
 
         skill_gaps = [
             SkillGap(

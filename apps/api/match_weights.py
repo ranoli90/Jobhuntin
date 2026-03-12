@@ -5,12 +5,12 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
-from backend.domain.match_weights import (
+from packages.backend.domain.match_weights import (
     TenantMatchConfig,
     WeightCategory,
     get_match_weights_manager,
 )
-from backend.domain.tenant import TenantContext
+from packages.backend.domain.tenant import TenantContext
 from shared.logging_config import get_logger
 
 logger = get_logger("sorce.match_weights")
@@ -124,7 +124,7 @@ async def get_tenant_config(
         Current tenant match configuration
     """
     try:
-        from backend.domain.repositories import get_pool
+        from packages.backend.domain.repositories import get_pool
 
         manager = get_match_weights_manager()
         config = await manager.get_tenant_config(get_pool(), ctx.tenant_id)
@@ -181,7 +181,7 @@ async def update_tenant_config(
         Updated configuration
     """
     try:
-        from backend.domain.repositories import get_pool
+        from packages.backend.domain.repositories import get_pool
 
         manager = get_match_weights_manager()
 
@@ -237,7 +237,7 @@ async def update_weight(
         Updated weight configuration
     """
     try:
-        from backend.domain.repositories import get_pool
+        from packages.backend.domain.repositories import get_pool
 
         # Validate category
         try:
@@ -299,7 +299,7 @@ async def calculate_match_score(
         Calculated match score with breakdown
     """
     try:
-        from backend.domain.repositories import get_pool
+        from packages.backend.domain.repositories import get_pool
 
         manager = get_match_weights_manager()
         config = await manager.get_tenant_config(get_pool(), ctx.tenant_id)
@@ -431,7 +431,7 @@ async def get_match_analytics(
         Match analytics data
     """
     try:
-        from backend.domain.repositories import get_pool
+        from packages.backend.domain.repositories import get_pool
 
         async with get_pool().acquire() as conn:
             # Get analytics from the view
@@ -532,7 +532,7 @@ async def reset_to_defaults(
         Reset confirmation
     """
     try:
-        from backend.domain.repositories import get_pool
+        from packages.backend.domain.repositories import get_pool
 
         manager = get_match_weights_manager()
 

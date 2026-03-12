@@ -11,9 +11,9 @@ from typing import Any
 
 import asyncpg
 
-from backend.domain.repositories import JobMatchCacheRepo, ProfileRepo
-from backend.llm import LLMClient
-from backend.llm.contracts import (
+from packages.backend.domain.repositories import JobMatchCacheRepo, ProfileRepo
+from packages.backend.llm import LLMClient
+from packages.backend.llm.contracts import (
     JobMatchScore_V1,
     LocationSuggestionResponse_V1,
     OnboardingQuestionsResponse_V1,
@@ -318,7 +318,7 @@ class AIService:
     async def _get_job_details(self, job_id: str) -> dict[str, Any] | None:
         """Get comprehensive job details from database."""
         try:
-            from backend.domain.repositories import JobRepo
+            from packages.backend.domain.repositories import JobRepo
 
             job_details = await JobRepo.get_by_id(self.db, job_id)
             if not job_details:

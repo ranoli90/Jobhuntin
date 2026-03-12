@@ -19,7 +19,7 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
-from backend.llm.client import LLMClient, LLMError
+from packages.backend.llm.client import LLMClient, LLMError
 from shared.config import get_settings
 from shared.logging_config import get_logger
 

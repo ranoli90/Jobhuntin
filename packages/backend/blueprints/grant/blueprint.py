@@ -10,19 +10,19 @@ from datetime import datetime, timezone
 
 import asyncpg
 
-from backend.blueprints.grant.models import GrantApplicantProfile
-from backend.blueprints.grant.prompts import (
+from packages.backend.blueprints.grant.models import GrantApplicantProfile
+from packages.backend.blueprints.grant.prompts import (
     GRANT_SUBMIT_SELECTORS,
     build_grant_dom_mapping_prompt,
     build_grant_profile_parse_prompt,
 )
-from backend.domain.core_models import (
+from packages.backend.domain.core_models import (
     ActorProfile,
     DomMappingResult,
     FormField,
     UnresolvedField,
 )
-from backend.domain.repositories import ApplicationRepo, EventRepo
+from packages.backend.domain.repositories import ApplicationRepo, EventRepo
 
 
 class GrantApplicationBlueprint:

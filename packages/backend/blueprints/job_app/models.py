@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from backend.domain.core_models import (
+from packages.backend.domain.core_models import (
     ActorHistoryEntry,
     ActorIdentity,
     ActorProfile,

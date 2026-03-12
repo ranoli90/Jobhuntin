@@ -13,8 +13,8 @@ import asyncpg
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
 
-from backend.domain.session_manager import SessionManager
-from backend.domain.tenant import TenantContext
+from packages.backend.domain.session_manager import SessionManager
+from packages.backend.domain.tenant import TenantContext
 from shared.logging_config import get_logger
 from shared.metrics import incr
 

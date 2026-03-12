@@ -7,7 +7,7 @@ async def ensure_stripe_customer(
     conn: asyncpg.Connection, tenant_id: str, user_email: str | None
 ) -> str:
     """Ensure a Stripe customer exists for the tenant."""
-    from backend.domain.stripe_client import get_stripe
+    from packages.backend.domain.stripe_client import get_stripe
 
     stripe = get_stripe()
 

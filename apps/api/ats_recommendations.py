@@ -21,8 +21,8 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
-from backend.domain.ats_recommendations import get_ats_recommendations_engine
-from backend.domain.tenant import TenantContext
+from packages.backend.domain.ats_recommendations import get_ats_recommendations_engine
+from packages.backend.domain.tenant import TenantContext
 from shared.logging_config import get_logger
 
 logger = get_logger("sorce.ats_recommendations")

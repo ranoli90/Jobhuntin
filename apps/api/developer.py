@@ -12,9 +12,9 @@ from api_v2.auth import generate_api_key
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, field_validator
 
-from backend.domain.audit import record_audit_event
-from backend.domain.plans import plan_config_for
-from backend.domain.tenant import TenantContext, TenantScopeError, require_role
+from packages.backend.domain.audit import record_audit_event
+from packages.backend.domain.plans import plan_config_for
+from packages.backend.domain.tenant import TenantContext, TenantScopeError, require_role
 from shared.logging_config import get_logger
 
 logger = get_logger("sorce.api.developer")

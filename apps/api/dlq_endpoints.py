@@ -16,7 +16,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
-from backend.domain.tenant import TenantContext
+from packages.backend.domain.tenant import TenantContext
 from shared.config import get_settings
 from shared.logging_config import get_logger
 
@@ -126,7 +126,7 @@ async def _require_tenant_scope_or_system_admin(
     pool, user_id: str, ctx: TenantContext, requested_tenant_id: str
 ) -> None:
     """Tenant admin can only access own tenant; system admin can access any."""
-    from backend.domain.tenant import TenantScopeError, require_system_admin
+    from packages.backend.domain.tenant import TenantScopeError, require_system_admin
 
     async with pool.acquire() as conn:
         try:
@@ -172,7 +172,7 @@ async def get_dlq_items(
             pool, ctx.user_id, ctx, tenant_id
         )
     else:
-        from backend.domain.tenant import TenantScopeError, require_system_admin
+        from packages.backend.domain.tenant import TenantScopeError, require_system_admin
 
         async with pool.acquire() as conn:
             try:
@@ -246,7 +246,7 @@ async def get_dlq_stats(
             pool, ctx.user_id, ctx, tenant_id
         )
     else:
-        from backend.domain.tenant import TenantScopeError, require_system_admin
+        from packages.backend.domain.tenant import TenantScopeError, require_system_admin
 
         async with pool.acquire() as conn:
             try:
@@ -276,7 +276,7 @@ async def retry_applications(
     """Retry failed applications from the DLQ."""
     if not ctx.is_admin:
         raise HTTPException(status_code=403, detail="Admin access required")
-    from backend.domain.tenant import TenantScopeError, require_system_admin
+    from packages.backend.domain.tenant import TenantScopeError, require_system_admin
 
     async with pool.acquire() as conn:
         try:
@@ -392,7 +392,7 @@ async def bulk_delete_dlq_items(
             pool, ctx.user_id, ctx, request.tenant_id
         )
     else:
-        from backend.domain.tenant import TenantScopeError, require_system_admin
+        from packages.backend.domain.tenant import TenantScopeError, require_system_admin
 
         async with pool.acquire() as conn:
             try:
@@ -483,7 +483,7 @@ async def get_concurrent_usage(
             )
         stats = await tracker.get_stats()
 
-        from backend.domain.tenant import TenantScopeError, require_system_admin
+        from packages.backend.domain.tenant import TenantScopeError, require_system_admin
 
         active_by_tenant = stats.active_by_tenant
         async with pool.acquire() as conn:

@@ -11,8 +11,8 @@ import asyncpg
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
-from backend.domain.job_alerts import AlertFrequency, JobAlert, JobAlertService
-from backend.domain.tenant import TenantContext
+from packages.backend.domain.job_alerts import AlertFrequency, JobAlert, JobAlertService
+from packages.backend.domain.tenant import TenantContext
 from shared.logging_config import get_logger
 from shared.metrics import incr
 

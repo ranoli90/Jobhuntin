@@ -14,16 +14,16 @@ import asyncpg
 from fastapi import APIRouter, Depends, HTTPException, Path, Query
 from pydantic import BaseModel, Field
 
-from backend.domain.analytics_events import ALL_EVENT_TYPES
-from backend.domain.business_metrics import get_business_metrics_dashboard
-from backend.domain.eval_queries import get_agent_performance_summary
-from backend.domain.evaluations import record_user_feedback
-from backend.domain.experiment_readout import get_experiment_results
-from backend.domain.m1_metrics import get_m1_dashboard, refresh_dashboard_views
-from backend.domain.m2_metrics import get_m2_dashboard, refresh_m2_views
-from backend.domain.m3_metrics import get_m3_dashboard, refresh_m3_views
-from backend.domain.m4_metrics import get_m4_dashboard, refresh_m4_views
-from backend.domain.tenant import TenantContext
+from packages.backend.domain.analytics_events import ALL_EVENT_TYPES
+from packages.backend.domain.business_metrics import get_business_metrics_dashboard
+from packages.backend.domain.eval_queries import get_agent_performance_summary
+from packages.backend.domain.evaluations import record_user_feedback
+from packages.backend.domain.experiment_readout import get_experiment_results
+from packages.backend.domain.m1_metrics import get_m1_dashboard, refresh_dashboard_views
+from packages.backend.domain.m2_metrics import get_m2_dashboard, refresh_m2_views
+from packages.backend.domain.m3_metrics import get_m3_dashboard, refresh_m3_views
+from packages.backend.domain.m4_metrics import get_m4_dashboard, refresh_m4_views
+from packages.backend.domain.tenant import TenantContext
 from shared.logging_config import get_logger
 from shared.metrics import incr
 
@@ -248,7 +248,7 @@ async def debug_bundle(
     from shared.validators import validate_uuid
 
     validate_uuid(application_id, "application_id")
-    from backend.domain.debug import build_debug_bundle
+    from packages.backend.domain.debug import build_debug_bundle
 
     async with db.acquire() as conn:
         bundle = await build_debug_bundle(conn, application_id)
@@ -372,7 +372,7 @@ async def get_alerts(
     db: asyncpg.Pool = Depends(_get_pool),
 ) -> dict[str, Any]:
     """Run all automated alert checks and return triggered alerts."""
-    from backend.domain.observability import run_all_alerts
+    from packages.backend.domain.observability import run_all_alerts
 
     async with db.acquire() as conn:
         alerts = await run_all_alerts(conn)
@@ -390,7 +390,7 @@ async def m5_dashboard(
     db: asyncpg.Pool = Depends(_get_pool),
 ) -> dict[str, Any]:
     """Full M5 revenue intelligence dashboard (P&L, LTV:CAC, cohort retention, marketplace)."""
-    from backend.domain.m5_metrics import get_m5_dashboard
+    from packages.backend.domain.m5_metrics import get_m5_dashboard
 
     async with db.acquire() as conn:
         return await get_m5_dashboard(conn)
@@ -402,7 +402,7 @@ async def m5_dashboard_refresh(
     db: asyncpg.Pool = Depends(_get_pool),
 ) -> dict[str, str]:
     """Refresh all M1–M5 materialized views."""
-    from backend.domain.m5_metrics import refresh_m5_views
+    from packages.backend.domain.m5_metrics import refresh_m5_views
 
     async with db.acquire() as conn:
         await refresh_m5_views(conn)
@@ -442,7 +442,7 @@ async def investor_metrics(
     """Series A metrics export — clean JSON for pitch deck."""
     from datetime import datetime
 
-    from backend.domain.m5_metrics import get_investor_metrics
+    from packages.backend.domain.m5_metrics import get_investor_metrics
 
     async with db.acquire() as conn:
         data = await get_investor_metrics(conn)
@@ -461,7 +461,7 @@ async def investor_metrics_csv(
     db: asyncpg.Pool = Depends(_get_pool),
 ) -> Any:
     """Series A metrics as CSV for spreadsheet/pitch deck import."""
-    from backend.domain.m5_metrics import get_investor_metrics
+    from packages.backend.domain.m5_metrics import get_investor_metrics
 
     async with db.acquire() as conn:
         data = await get_investor_metrics(conn)
@@ -507,7 +507,7 @@ async def run_alerting_cycle_endpoint(
     db: asyncpg.Pool = Depends(_get_pool),
 ) -> dict[str, Any]:
     """Run full alerting cycle: alerts + auto-rollback + experiment graduation + PagerDuty/Slack dispatch."""
-    from backend.domain.alerting_v2 import run_alerting_cycle
+    from packages.backend.domain.alerting_v2 import run_alerting_cycle
 
     async with db.acquire() as conn:
         return await run_alerting_cycle(conn)
@@ -524,7 +524,7 @@ async def m6_platform_dashboard(
     db: asyncpg.Pool = Depends(_get_pool),
 ) -> dict[str, Any]:
     """Full M6 platform dashboard: ARR by vertical, API usage, integrators, staffing, university, marketplace."""
-    from backend.domain.m6_metrics import get_m6_dashboard
+    from packages.backend.domain.m6_metrics import get_m6_dashboard
 
     async with db.acquire() as conn:
         return await get_m6_dashboard(conn)
@@ -536,7 +536,7 @@ async def m6_platform_refresh(
     db: asyncpg.Pool = Depends(_get_pool),
 ) -> dict[str, str]:
     """Refresh all M1–M6 materialized views."""
-    from backend.domain.m6_metrics import refresh_m6_views
+    from packages.backend.domain.m6_metrics import refresh_m6_views
 
     async with db.acquire() as conn:
         await refresh_m6_views(conn)
@@ -549,7 +549,7 @@ async def investor_full_metrics(
     db: asyncpg.Pool = Depends(_get_pool),
 ) -> dict[str, Any]:
     """Complete Series A data room — comprehensive diligence package (JSON)."""
-    from backend.domain.m6_metrics import get_full_investor_metrics
+    from packages.backend.domain.m6_metrics import get_full_investor_metrics
 
     async with db.acquire() as conn:
         return await get_full_investor_metrics(conn)
@@ -561,7 +561,7 @@ async def investor_full_metrics_csv(
     db: asyncpg.Pool = Depends(_get_pool),
 ) -> Any:
     """Series A data room as CSV for spreadsheet import."""
-    from backend.domain.m6_metrics import get_full_investor_metrics
+    from packages.backend.domain.m6_metrics import get_full_investor_metrics
 
     async with db.acquire() as conn:
         data = await get_full_investor_metrics(conn)
@@ -613,7 +613,7 @@ async def run_renewal_cycle_endpoint(
     db: asyncpg.Pool = Depends(_get_pool),
 ) -> dict[str, Any]:
     """Run contract renewal cycle: scan upcoming renewals + send 90/60/30-day notifications."""
-    from backend.domain.renewals import run_renewal_cycle
+    from packages.backend.domain.renewals import run_renewal_cycle
 
     async with db.acquire() as conn:
         return await run_renewal_cycle(conn)

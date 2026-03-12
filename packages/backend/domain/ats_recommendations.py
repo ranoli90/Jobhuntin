@@ -23,7 +23,7 @@ import re
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 
-from backend.llm.client import LLMClient
+from packages.backend.llm.client import LLMClient
 from shared.config import get_settings
 from shared.logging_config import get_logger
 

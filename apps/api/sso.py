@@ -11,13 +11,13 @@ import asyncpg
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from pydantic import BaseModel, Field
 
-from backend.domain.audit import record_audit_event
-from backend.domain.tenant import TenantContext, TenantScopeError, require_role
+from packages.backend.domain.audit import record_audit_event
+from packages.backend.domain.tenant import TenantContext, TenantScopeError, require_role
 from shared.logging_config import get_logger
 from shared.validators import validate_uuid
 
 try:
-    from backend.sso.saml import (
+    from packages.backend.sso.saml import (
         create_sso_session_token,
         generate_sp_metadata,
         get_sso_config,

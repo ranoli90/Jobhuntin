@@ -24,7 +24,7 @@ from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from backend.domain.interview_simulator import (
+from packages.backend.domain.interview_simulator import (
     InterviewPhase,
     InterviewQuestion,
     InterviewType,
@@ -33,7 +33,7 @@ from backend.domain.interview_simulator import (
     UserResponse,
     get_interview_simulator,
 )
-from backend.llm.client import LLMClient
+from packages.backend.llm.client import LLMClient
 from shared.config import get_settings
 from shared.logging_config import get_logger
 

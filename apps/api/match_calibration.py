@@ -7,8 +7,8 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
-from backend.domain.match_calibration import get_match_calibrator
-from backend.domain.tenant import TenantContext
+from packages.backend.domain.match_calibration import get_match_calibrator
+from packages.backend.domain.tenant import TenantContext
 from shared.logging_config import get_logger
 
 logger = get_logger("sorce.match_calibration")
@@ -97,7 +97,7 @@ async def run_calibration(
         Calibration results
     """
     try:
-        from backend.domain.repositories import get_pool
+        from packages.backend.domain.repositories import get_pool
 
         calibrator = get_match_calibrator()
 
@@ -140,7 +140,7 @@ async def get_calibration_analytics(
         Calibration analytics data
     """
     try:
-        from backend.domain.repositories import get_pool
+        from packages.backend.domain.repositories import get_pool
 
         calibrator = get_match_calibrator()
 
@@ -235,7 +235,7 @@ async def get_current_recommendations(
         Current recommendations
     """
     try:
-        from backend.domain.repositories import get_pool
+        from packages.backend.domain.repositories import get_pool
 
         calibrator = get_match_calibrator()
 
@@ -311,7 +311,7 @@ async def apply_recommendations(
         Application results
     """
     try:
-        from backend.domain.repositories import get_pool
+        from packages.backend.domain.repositories import get_pool
 
         calibrator = get_match_calibrator()
 
@@ -399,7 +399,7 @@ async def get_calibration_history(
         Calibration history
     """
     try:
-        from backend.domain.repositories import get_pool
+        from packages.backend.domain.repositories import get_pool
 
         async with get_pool().acquire() as conn:
             # Get calibration history from analytics table
@@ -479,7 +479,7 @@ async def get_data_quality_report(
         Data quality report
     """
     try:
-        from backend.domain.repositories import get_pool
+        from packages.backend.domain.repositories import get_pool
 
         calibrator = get_match_calibrator()
 

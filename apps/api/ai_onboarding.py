@@ -26,8 +26,8 @@ import asyncpg
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field, field_validator
 
-from backend.domain.ai_onboarding import get_ai_onboarding_manager
-from backend.domain.tenant import TenantContext
+from packages.backend.domain.ai_onboarding import get_ai_onboarding_manager
+from packages.backend.domain.tenant import TenantContext
 from shared.logging_config import get_logger
 
 logger = get_logger("sorce.ai_onboarding")

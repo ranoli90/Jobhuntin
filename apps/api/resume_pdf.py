@@ -21,9 +21,9 @@ from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
-from backend.domain.resume_pdf_generator import get_pdf_generator
-from backend.domain.resume_tailoring import get_tailoring_service
-from backend.domain.tenant import TenantContext
+from packages.backend.domain.resume_pdf_generator import get_pdf_generator
+from packages.backend.domain.resume_tailoring import get_tailoring_service
+from packages.backend.domain.tenant import TenantContext
 from shared.logging_config import get_logger
 
 logger = get_logger("sorce.resume_pdf")

@@ -10,7 +10,7 @@ import asyncpg
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 
-from backend.domain.tenant import TenantContext
+from packages.backend.domain.tenant import TenantContext
 
 
 async def _get_pool():

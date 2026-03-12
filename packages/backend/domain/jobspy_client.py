@@ -13,7 +13,7 @@ from datetime import datetime
 from functools import partial
 from typing import Any
 
-from backend.domain.proxy_fetcher import (
+from packages.backend.domain.proxy_fetcher import (
     fetch_free_proxy,
     get_random_user_agent,
     normalize_proxy_url,

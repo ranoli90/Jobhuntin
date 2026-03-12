@@ -23,8 +23,8 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Optional
 
-from backend.domain.resume_pdf_generator import get_pdf_generator
-from backend.domain.resume_tailoring import get_tailoring_service
+from packages.backend.domain.resume_pdf_generator import get_pdf_generator
+from packages.backend.domain.resume_tailoring import get_tailoring_service
 from shared.logging_config import get_logger
 
 logger = get_logger("sorce.resume_agent_integration")

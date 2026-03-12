@@ -12,8 +12,8 @@ from typing import Any
 
 import asyncpg
 
-from backend.domain.job_search import _verify_job_legitimacy
-from backend.domain.jobspy_client import JobSpyClient, JobSpyError
+from packages.backend.domain.job_search import _verify_job_legitimacy
+from packages.backend.domain.jobspy_client import JobSpyClient, JobSpyError
 from shared.config import get_settings
 from shared.logging_config import get_logger
 from shared.metrics import incr

@@ -9,7 +9,7 @@ import asyncpg
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
-from backend.domain.interview_simulator import (
+from packages.backend.domain.interview_simulator import (
     InterviewPhase,
     InterviewQuestion,
     InterviewSession,

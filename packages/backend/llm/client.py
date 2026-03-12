@@ -1,8 +1,8 @@
 """Centralized LLM client with retry, timeout, fallback models, and response validation.
 
 Usage:
-    from backend.llm import LLMClient
-    from backend.llm.contracts import ResumeParseResponse_V1
+    from packages.backend.llm import LLMClient
+    from packages.backend.llm.contracts import ResumeParseResponse_V1
 
     client = LLMClient(settings)
     result = await client.call(
@@ -24,7 +24,7 @@ from typing import TypeVar
 import httpx
 from pydantic import BaseModel, ValidationError
 
-from backend.domain.llm_monitoring import get_llm_monitor
+from packages.backend.domain.llm_monitoring import get_llm_monitor
 from shared.circuit_breaker import CircuitBreakerOpenError, get_openrouter_breaker
 from shared.config import Settings
 from shared.logging_config import get_logger

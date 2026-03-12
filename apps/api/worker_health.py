@@ -13,7 +13,7 @@ import asyncpg
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
-from backend.domain.tenant import TenantContext
+from packages.backend.domain.tenant import TenantContext
 
 
 async def _get_tenant_ctx() -> TenantContext:

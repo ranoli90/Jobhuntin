@@ -81,11 +81,8 @@ USER sorce
 ENV PORT=10000
 ENV PYTHONPATH=/app/apps:/app:/app/packages:.
 
-# Render handles health checks externally via http request to /health
-# We remove the internal Docker HEALTHCHECK to avoid port mismatches
-# DL3025: Use exec form; shell needed for $PORT expansion
-# CMD ["sh", "-c", "python -c 'import apps.api.main' 2>&1 || echo 'EXIT_CODE: $?'"]
-CMD ["uvicorn", "apps.api.main:app", "--host", "0.0.0.0", "--port", "10000"]
+# Use exec form - uvicorn binds to all interfaces
+CMD ["uvicorn", "apps.api.main:app", "--host", "0.0.0.0", "--port", "10000"]"
 
 # HEALTHCHECK for local Docker usage (Render uses external health checks)
 # DISABLED because Render uses external http health check on /health

@@ -18,7 +18,7 @@ from fastapi.responses import JSONResponse, RedirectResponse
 from pydantic import BaseModel, EmailStr, Field
 
 from api.dependencies import get_pool
-from backend.domain.session_manager import SessionManager
+from packages.backend.domain.session_manager import SessionManager
 from packages.backend.domain.masking import mask_ip
 from shared.config import Settings, settings_dependency
 from shared.logging_config import get_logger
@@ -1097,7 +1097,7 @@ async def verify_magic_link(
 
     # On-login: trigger per-user job sync (fire-and-forget, non-blocking)
     try:
-        from backend.domain.job_sync_service import JobSyncService
+        from packages.backend.domain.job_sync_service import JobSyncService
 
         async def _sync_jobs_on_login():
             try:
@@ -1602,7 +1602,7 @@ async def dev_login(
 
         async with pool.acquire() as conn:
             # Ensure user_sessions exists (for future session-based flows)
-            from backend.domain.session_manager import init_session_table
+            from packages.backend.domain.session_manager import init_session_table
 
             await init_session_table(conn)
 

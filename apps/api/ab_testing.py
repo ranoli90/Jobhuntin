@@ -27,12 +27,12 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
-from backend.domain.ab_testing import (
+from packages.backend.domain.ab_testing import (
     ExperimentStatus,
     MetricType,
     get_ab_testing_manager,
 )
-from backend.domain.tenant import TenantContext
+from packages.backend.domain.tenant import TenantContext
 from shared.logging_config import get_logger
 
 logger = get_logger("sorce.ab_testing")

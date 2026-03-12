@@ -1,5 +1,5 @@
-from backend.llm.client import LLMClient
-from backend.llm.contracts import (
+from packages.backend.llm.client import LLMClient
+from packages.backend.llm.contracts import (
     DOM_MAPPING_PROMPT_V1,
     JOB_MATCH_PROMPT_V1,
     LOCATION_SUGGESTION_PROMPT_V1,

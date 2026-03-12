@@ -1,7 +1,7 @@
 """Blueprint registry — stores and retrieves AgentBlueprint instances by slug.
 
 Usage:
-    from backend.blueprints.registry import get_blueprint, register_blueprint
+    from packages.backend.blueprints.registry import get_blueprint, register_blueprint
 
     register_blueprint(JobApplicationBlueprint())
     bp = get_blueprint("job-app")
@@ -12,7 +12,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, Callable
 
 if TYPE_CHECKING:
-    from backend.blueprints.protocol import AgentBlueprint
+    from packages.backend.blueprints.protocol import AgentBlueprint
 
 from shared.logging_config import get_logger
 
@@ -42,8 +42,8 @@ def get_blueprint(key: str) -> AgentBlueprint:
 
 def load_default_blueprints(enabled_slugs: list[str] | None = None) -> None:
     """Import and register built-in blueprints, optionally filtered by slug."""
-    from backend.blueprints.grant import GrantApplicationBlueprint
-    from backend.blueprints.job_app import JobApplicationBlueprint
+    from packages.backend.blueprints.grant import GrantApplicationBlueprint
+    from packages.backend.blueprints.job_app import JobApplicationBlueprint
 
     registry: dict[str, Callable[[], Any]] = {
         "job-app": JobApplicationBlueprint,

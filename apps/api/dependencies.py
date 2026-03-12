@@ -79,7 +79,7 @@ class DatabasePoolManager:
     async def initialize(self) -> None:
         """Initialize the database pool on startup."""
         s = get_settings()
-        from backend.blueprints.registry import load_default_blueprints
+        from packages.backend.blueprints.registry import load_default_blueprints
 
         enabled_raw = getattr(s, "enabled_blueprints", None) or ""
         enabled = [
@@ -183,7 +183,7 @@ class DatabasePoolManager:
                     import pathlib
 
                     base = pathlib.Path(__file__).resolve().parent.parent
-                    from backend.domain.migrations import run_migrations
+                    from packages.backend.domain.migrations import run_migrations
 
                     await run_migrations(conn, base)
         except asyncpg.PostgresError as exc:
@@ -300,7 +300,7 @@ async def require_admin_user_id(
     Item 23: Admin RBAC — any authenticated user could access admin endpoints.
     Raises 403 if not admin.
     """
-    from backend.domain.tenant import (
+    from packages.backend.domain.tenant import (
         TenantScopeError,
         require_system_admin,
         resolve_tenant_context,
@@ -338,7 +338,7 @@ async def get_tenant_id(
     db: asyncpg.Pool = Depends(get_pool),
 ) -> str:
     """Resolve tenant_id for current user."""
-    from backend.domain.tenant import resolve_tenant_context
+    from packages.backend.domain.tenant import resolve_tenant_context
 
     async with db.acquire() as conn:
         ctx = await resolve_tenant_context(conn, user_id)
@@ -350,7 +350,7 @@ async def _is_admin(
     db: asyncpg.Pool = Depends(get_pool),
 ) -> bool:
     """Return True if current user is admin (tenant or system)."""
-    from backend.domain.tenant import (
+    from packages.backend.domain.tenant import (
         TenantScopeError,
         require_system_admin,
         resolve_tenant_context,

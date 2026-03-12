@@ -217,7 +217,7 @@ async def get_oauth_credentials(
     if not ctx.is_admin:
         raise HTTPException(status_code=403, detail="Admin access required")
 
-    from backend.domain.tenant import TenantScopeError, require_system_admin
+    from packages.backend.domain.tenant import TenantScopeError, require_system_admin
 
     async with pool.acquire() as conn:
         try:

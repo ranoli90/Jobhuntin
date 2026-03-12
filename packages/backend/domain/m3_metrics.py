@@ -78,7 +78,7 @@ async def get_plan_distribution(conn: asyncpg.Connection) -> list[dict[str, Any]
 
 async def get_m3_dashboard(conn: asyncpg.Connection) -> dict[str, Any]:
     """Return the complete M3 dashboard payload."""
-    from backend.domain.m2_metrics import get_conversion_funnel
+    from packages.backend.domain.m2_metrics import get_conversion_funnel
 
     team = await get_team_metrics(conn)
     blueprints = await get_blueprint_performance(conn)

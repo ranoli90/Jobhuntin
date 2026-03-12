@@ -5,8 +5,8 @@ from typing import Any, Dict, List
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
-from backend.domain.skills_taxonomy import get_skills_taxonomy, validate_user_skills
-from backend.domain.tenant import TenantContext
+from packages.backend.domain.skills_taxonomy import get_skills_taxonomy, validate_user_skills
+from packages.backend.domain.tenant import TenantContext
 from shared.logging_config import get_logger
 
 logger = get_logger("sorce.skills")

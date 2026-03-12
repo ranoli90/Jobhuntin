@@ -10,7 +10,7 @@ from typing import Any
 
 import asyncpg
 
-from backend.domain.stripe_client import (
+from packages.backend.domain.stripe_client import (
     get_protected_stripe,
     get_stripe,
     protected_stripe_call,

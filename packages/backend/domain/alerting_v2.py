@@ -11,7 +11,7 @@ from typing import Any
 
 import asyncpg
 
-from backend.domain.observability import run_all_alerts
+from packages.backend.domain.observability import run_all_alerts
 from shared.config import get_settings
 from shared.logging_config import get_logger
 
