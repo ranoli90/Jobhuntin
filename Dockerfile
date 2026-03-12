@@ -84,7 +84,7 @@ ENV PYTHONPATH=/app/apps:/app:/app/packages
 # Render handles health checks externally via http request to /health
 # We remove the internal Docker HEALTHCHECK to avoid port mismatches
 # DL3025: Use exec form; shell needed for $PORT expansion
-CMD ["sh", "-c", "uvicorn apps.api.main:app --host 0.0.0.0 --port ${PORT} --workers 1 --log-level info --timeout-keep-alive 30"]
+CMD ["sh", "-c", "cd /app && python -c 'import apps.api.main; print(\"Import successful\")' && uvicorn apps.api.main:app --host 0.0.0.0 --port ${PORT} --workers 1 --log-level debug --timeout-keep-alive 30"]
 
 # HEALTHCHECK for local Docker usage (Render uses external health checks)
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
