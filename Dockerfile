@@ -14,7 +14,7 @@ FROM python:3.12-slim AS base
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    PYTHONPATH=/app/apps:/app:/app/packages
+    PYTHONPATH=/app/apps:/app:/app/packages:.
 
 RUN groupadd -r sorce && useradd -r -g sorce -m sorce
 
@@ -79,14 +79,15 @@ EXPOSE 10000
 USER sorce
 
 ENV PORT=10000
-ENV PYTHONPATH=/app/apps:/app:/app/packages
+ENV PYTHONPATH=/app/apps:/app:/app/packages:.
 
 # Render handles health checks externally via http request to /health
 # We remove the internal Docker HEALTHCHECK to avoid port mismatches
 # DL3025: Use exec form; shell needed for $PORT expansion
 # CMD ["sh", "-c", "python -c 'import apps.api.main' 2>&1 || echo 'EXIT_CODE: $?'"]
-CMD ["uvicorn", "apps.api.main:app", "--host", "0.0.0.0", "--port", "10000"]
+CMD ["sh", "-c", "echo 'Starting uvicorn server...' && exec uvicorn apps.api.main:app --host 0.0.0.0 --port 10000"]
 
 # HEALTHCHECK for local Docker usage (Render uses external health checks)
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-  CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:${PORT}/health')" || exit 1
+# DISABLED because Render uses external http health check on /health
+# HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+#   CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:${PORT}/health')" || exit 1
