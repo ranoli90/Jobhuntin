@@ -144,13 +144,16 @@ async def create_db_pool():
     settings = get_settings()
     import ssl
 
+    from shared.db import resolve_dsn_ipv4
+    dsn = resolve_dsn_ipv4(settings.database_url)
+
+    # Disable hostname checking for Render's self-signed certificates
     ctx = ssl.create_default_context(purpose=ssl.Purpose.SERVER_AUTH)
-    ctx.check_hostname = True
-    # The default CA bundle should be sufficient if the Render cert is trusted
-    # If not, a custom CA bundle can be provided via ssl.load_verify_locations()
+    ctx.check_hostname = False
+    ctx.verify_mode = ssl.CERT_NONE
 
     return await asyncpg.create_pool(
-        settings.database_url,
+        dsn,
         min_size=settings.db_pool_min,
         max_size=settings.db_pool_max,
         statement_cache_size=0,
