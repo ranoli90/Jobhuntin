@@ -82,7 +82,7 @@ async def billing_status(
                    t.plan
             FROM public.tenants t
             LEFT JOIN public.billing_customers bc ON bc.tenant_id = t.id
-            WHERE t.id = $1
+            WHERE t.id = $1::uuid
             """,
             tenant_ctx.tenant_id,
         )
@@ -252,7 +252,7 @@ async def billing_usage(
     async with db.acquire() as conn:
         # Get tenant plan
         tenant_row = await conn.fetchrow(
-            "SELECT plan FROM public.tenants WHERE id = $1",
+            "SELECT plan FROM public.tenants WHERE id = $1::uuid",
             tenant_ctx.tenant_id,
         )
         plan = tenant_row["plan"] if tenant_row else "FREE"
@@ -262,7 +262,7 @@ async def billing_usage(
             """
             SELECT COUNT(*) as count
             FROM public.applications
-            WHERE tenant_id = $1
+            WHERE tenant_id = $1::uuid
             AND created_at >= date_trunc('month', now())
             """,
             tenant_ctx.tenant_id,
@@ -290,7 +290,7 @@ async def billing_usage(
                 """
                 SELECT COUNT(*)::int AS count
                 FROM public.concurrent_usage_sessions
-                WHERE tenant_id = $1
+                WHERE tenant_id = $1::uuid
                   AND UPPER(COALESCE(status, '')) IN ('ACTIVE', 'IN_PROGRESS')
                   AND ended_at IS NULL
                 """,

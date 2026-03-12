@@ -254,6 +254,42 @@ class TestApplicationsAPI:
         assert response.status_code in [200, 404, 503]
 
 
+class TestJobsAPI:
+    """Tests for jobs API endpoint."""
+
+    @pytest.mark.asyncio
+    async def test_list_jobs_returns_200(
+        self, authenticated_client_with_db, clean_db, db_pool, auth_token
+    ):
+        """Test GET /me/jobs returns 200 with jobs array (or empty)."""
+        _, user_id = auth_token
+
+        # Setup user and tenant (required for get_tenant_context)
+        async with db_pool.acquire() as conn:
+            await conn.execute(
+                "INSERT INTO public.users (id, email) VALUES ($1, $2) ON CONFLICT (id) DO UPDATE SET email = $2",
+                user_id,
+                "test@example.com",
+            )
+            tenant_id = await conn.fetchval(
+                """INSERT INTO public.tenants (id, name, slug, plan)
+                   VALUES (gen_random_uuid(), 'Test Tenant', 'test-tenant', 'FREE')
+                   RETURNING id"""
+            )
+            await conn.execute(
+                "INSERT INTO public.tenant_members (tenant_id, user_id, role) VALUES ($1, $2, 'OWNER') ON CONFLICT (tenant_id, user_id) DO NOTHING",
+                tenant_id,
+                user_id,
+            )
+
+        response = await authenticated_client_with_db.get("/me/jobs?limit=5")
+
+        assert response.status_code == 200
+        data = response.json()
+        assert "jobs" in data
+        assert isinstance(data["jobs"], list)
+
+
 class TestErrorHandling:
     """Tests for error handling and standardized responses."""
 
