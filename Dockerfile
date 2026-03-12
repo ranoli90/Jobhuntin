@@ -71,11 +71,11 @@ CMD ["python", "-m", "apps.worker.agent"]
 # ============================================================
 FROM base AS api
 
-EXPOSE 8000
+EXPOSE 10000
 
 USER sorce
 
-ENV PORT=8000
+ENV PORT=10000
 
 # Render handles health checks externally via http request to /health
 # We remove the internal Docker HEALTHCHECK to avoid port mismatches
