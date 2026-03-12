@@ -66,14 +66,18 @@ async def run_queue_loop() -> None:
     except Exception as e:
         logger.warning("Failed to register match score pre-computation handler: %s", e)
 
-    # Placeholder handlers: noop until real implementations are added for each job type
-    async def noop_handler(payload: dict) -> JobResult:
-        logger.warning("No handler for job payload: %s", list(payload.keys()))
-        return JobResult(success=True, result={"skipped": "no_handler"})
+    # Placeholder handlers: fail until real implementations are added for each job type
+    async def not_implemented_handler(payload: dict) -> JobResult:
+        logger.warning(
+            "Handler not implemented for job payload: %s", list(payload.keys())
+        )
+        return JobResult(
+            success=False, result={"error": "handler_not_implemented"}, retry=False
+        )
 
-    queue.register_handler("email_send", noop_handler)
-    queue.register_handler("notification", noop_handler)
-    queue.register_handler("digest", noop_handler)
+    queue.register_handler("email_send", not_implemented_handler)
+    queue.register_handler("notification", not_implemented_handler)
+    queue.register_handler("digest", not_implemented_handler)
 
     logger.info("Job queue worker started (poll every %ds)", POLL_INTERVAL_SEC)
 

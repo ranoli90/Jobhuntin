@@ -12,7 +12,10 @@ from typing import Any
 import asyncpg
 
 from packages.backend.domain.job_dedup import deduplicate_jobs, normalize_job
-from packages.backend.domain.job_scoring import apply_dealbreaker_filters, score_job_match
+from packages.backend.domain.job_scoring import (
+    apply_dealbreaker_filters,
+    score_job_match,
+)
 from packages.backend.domain.profile_assembly import assemble_profile
 from shared.config import get_settings
 from shared.logging_config import get_logger
@@ -52,7 +55,7 @@ async def search_and_list_jobs(
     # When scoring, fetch more to account for dealbreaker filtering and pagination
     if user_id:
         fetch_limit = min(offset + limit * 3, 200)
-        fetch_offset = 0
+        fetch_offset = offset
     else:
         fetch_limit = limit
         fetch_offset = offset
@@ -142,7 +145,9 @@ async def search_and_list_jobs(
                     uuid.UUID(user_id) if isinstance(user_id, str) else user_id,
                     job_ids_uuid,
                 )
-                precomputed = {str(r["job_id"]): float(r["score"]) for r in precomputed_rows}
+                precomputed = {
+                    str(r["job_id"]): float(r["score"]) for r in precomputed_rows
+                }
         if profile:
             result = apply_dealbreaker_filters(result, profile.dealbreakers)
             for job in result:
@@ -240,9 +245,7 @@ def _build_job_search_query(
 
     if keywords:
         n += 1
-        query += (
-            f" AND (title ILIKE ${n}::text OR company ILIKE ${n}::text OR description ILIKE ${n}::text)"
-        )
+        query += f" AND (title ILIKE ${n}::text OR company ILIKE ${n}::text OR description ILIKE ${n}::text)"
         params.append(f"%{escape_ilike(keywords)}%")
 
     if source:
@@ -268,9 +271,7 @@ def _build_job_search_query(
     ttl_days = getattr(settings, "jobspy_job_ttl_days", 7)
     if ttl_days > 0:
         n += 1
-        query += (
-            f" AND (last_synced_at IS NULL OR last_synced_at >= now() - (${n}::text)::interval)"
-        )
+        query += f" AND (last_synced_at IS NULL OR last_synced_at >= now() - (${n}::text)::interval)"
         params.append(f"{ttl_days} days")
 
     # ORDER BY

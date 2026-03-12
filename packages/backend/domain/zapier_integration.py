@@ -9,6 +9,7 @@ Features:
 
 from __future__ import annotations
 
+import asyncio
 import secrets
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -280,10 +281,10 @@ class ZapierIntegrationManager:
 
         import httpx
 
-        triggered = 0
-        async with httpx.AsyncClient(timeout=10) as client:
-            for hook in hooks:
-                try:
+        async def send_to_hook(hook: ZapierHook) -> tuple[str, bool, int]:
+            """Send webhook to a single hook. Returns (hook_id, success, status_code)."""
+            try:
+                async with httpx.AsyncClient(timeout=10) as client:
                     response = await client.post(
                         hook.webhook_url,
                         json={
@@ -295,8 +296,14 @@ class ZapierIntegrationManager:
                     )
 
                     if response.status_code in (200, 201, 204):
-                        triggered += 1
                         await self._update_last_triggered(hook.hook_id)
+                        return (hook.hook_id, True, response.status_code)
+                    elif response.status_code == 410:
+                        logger.warning(
+                            "Zapier webhook gone (410), unsubscribing: %s", hook.hook_id
+                        )
+                        await self.unsubscribe(hook.hook_id)
+                        return (hook.hook_id, False, 410)
                     else:
                         logger.warning(
                             "Zapier webhook failed: hook=%s status=%d",
@@ -304,12 +311,15 @@ class ZapierIntegrationManager:
                             response.status_code,
                         )
                         incr("zapier.webhook_failed")
+                        return (hook.hook_id, False, response.status_code)
 
-                except Exception as e:
-                    logger.error(
-                        "Zapier webhook error: hook=%s error=%s", hook.hook_id, e
-                    )
-                    incr("zapier.webhook_error")
+            except Exception as e:
+                logger.error("Zapier webhook error: hook=%s error=%s", hook.hook_id, e)
+                incr("zapier.webhook_error")
+                return (hook.hook_id, False, 0)
+
+        results = await asyncio.gather(*[send_to_hook(hook) for hook in hooks])
+        triggered = sum(1 for _, success, _ in results if success)
 
         incr("zapier.events_triggered", None, triggered)
         return triggered

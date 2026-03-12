@@ -17,6 +17,7 @@ Usage:
 
 from __future__ import annotations
 
+import asyncio
 import json
 import time
 from typing import TypeVar
@@ -236,13 +237,21 @@ class LLMClient:
                 error_type = type(exc).__name__
                 get_llm_monitor().record_failure(model, error_type)
 
-                if (
-                    isinstance(exc, httpx.HTTPStatusError)
-                    and exc.response.status_code < 500
-                ):
-                    # Client errors (4xx) are not retryable
-                    break
+                if isinstance(exc, httpx.HTTPStatusError):
+                    if exc.response.status_code == 429:
+                        backoff = 2**attempt
+                        logger.warning(
+                            "LLM rate limited (429), attempt %d/%d, backing off %ds",
+                            attempt,
+                            self.retry_count + 1,
+                            backoff,
+                        )
+                        await asyncio.sleep(backoff)
+                        continue
+                    if exc.response.status_code < 500:
+                        break
 
+                backoff = 2**attempt
                 logger.warning(
                     "LLM call attempt %d/%d failed for model %s: %s",
                     attempt,
@@ -250,9 +259,9 @@ class LLMClient:
                     model,
                     exc,
                 )
+                await asyncio.sleep(backoff)
 
             except LLMValidationError:
-                # Schema validation failures are not retryable
                 get_llm_monitor().record_failure(model, "validation_error")
                 raise
 
@@ -267,6 +276,8 @@ class LLMClient:
                     model,
                     exc,
                 )
+                backoff = 2**attempt
+                await asyncio.sleep(backoff)
 
         raise LLMError(
             f"LLM call to {model} failed after {self.retry_count + 1} attempts: {last_error}"

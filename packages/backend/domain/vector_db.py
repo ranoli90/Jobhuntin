@@ -322,32 +322,40 @@ class PineconeClient(VectorDBClient):
         ids: list[str],
         namespace: str = DEFAULT_NAMESPACE,
     ) -> int:
-        """Delete multiple vectors from Pinecone."""
+        """Delete multiple vectors from Pinecone (max 1000 per batch)."""
         if not ids:
             return 0
 
+        batch_size = 1000
+        total_deleted = 0
         t0 = time.monotonic()
-        try:
-            payload = {
-                "ids": ids,
-                "namespace": namespace,
-            }
-            await self._request("DELETE", "/vectors/delete", payload)
-            duration = time.monotonic() - t0
-            observe(
-                "vector_db.batch_delete_latency_seconds",
-                duration,
-                {"provider": "pinecone"},
-            )
-            _track_metric("vector_db.batch_deletes", {"provider": "pinecone"}, len(ids))
-            return len(ids)
-        except Exception as e:
-            _track_metric(
-                "vector_db.errors",
-                {"provider": "pinecone", "operation": "batch_delete"},
-            )
-            logger.error("Pinecone batch delete failed: %s", e)
-            return 0
+
+        for i in range(0, len(ids), batch_size):
+            batch = ids[i : i + batch_size]
+            try:
+                payload = {
+                    "ids": batch,
+                    "namespace": namespace,
+                }
+                await self._request("DELETE", "/vectors/delete", payload)
+                total_deleted += len(batch)
+            except Exception as e:
+                _track_metric(
+                    "vector_db.errors",
+                    {"provider": "pinecone", "operation": "batch_delete"},
+                )
+                logger.error("Pinecone batch delete failed: %s", e)
+
+        duration = time.monotonic() - t0
+        observe(
+            "vector_db.batch_delete_latency_seconds",
+            duration,
+            {"provider": "pinecone"},
+        )
+        _track_metric(
+            "vector_db.batch_deletes", {"provider": "pinecone"}, total_deleted
+        )
+        return total_deleted
 
     async def fetch(
         self,

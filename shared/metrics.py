@@ -27,18 +27,39 @@ _lock = threading.Lock()
 _counters: dict[str, int] = defaultdict(int)
 _observations: dict[str, list[float]] = defaultdict(list)
 
+ALLOWED_TAG_KEYS = frozenset(
+    {
+        "model",
+        "provider",
+        "operation",
+        "status",
+        "error_type",
+        "source",
+        "platform",
+        "event_type",
+        "tenant_id",
+    }
+)
+
 # Optional OTLP metric instruments (populated by setup_otel_metrics)
 _otel_counters: dict[str, Any] = {}
 _otel_histograms: dict[str, Any] = {}
 _otel_meter: Any = None
 
 
+def _filter_tags(tags: dict[str, str] | None) -> dict[str, str] | None:
+    """Filter tags to only include allowed keys to prevent high cardinality."""
+    if not tags:
+        return None
+    return {k: v for k, v in tags.items() if k in ALLOWED_TAG_KEYS}
+
+
 def incr(metric_name: str, tags: dict[str, str] | None = None, value: int = 1) -> None:
     """Increment a counter metric."""
-    key = _metric_key(metric_name, tags)
+    filtered_tags = _filter_tags(tags)
+    key = _metric_key(metric_name, filtered_tags)
     with _lock:
         _counters[key] += value
-    # Forward to OTLP if configured
     if _otel_meter is not None:
         otel_counter = _otel_counters.get(metric_name)
         if otel_counter is None:
@@ -47,19 +68,18 @@ def incr(metric_name: str, tags: dict[str, str] | None = None, value: int = 1) -
                 description=f"Counter: {metric_name}",
             )
             _otel_counters[metric_name] = otel_counter
-        otel_counter.add(value, attributes=tags or {})
+        otel_counter.add(value, attributes=filtered_tags or {})
 
 
 def observe(metric_name: str, value: float, tags: dict[str, str] | None = None) -> None:
     """Record an observation (e.g., latency in seconds)."""
-    key = _metric_key(metric_name, tags)
+    filtered_tags = _filter_tags(tags)
+    key = _metric_key(metric_name, filtered_tags)
     with _lock:
         obs = _observations[key]
         obs.append(value)
-        # Keep bounded: last 1000 observations
         if len(obs) > 1000:
             _observations[key] = obs[-500:]
-    # Forward to OTLP if configured
     if _otel_meter is not None:
         otel_hist = _otel_histograms.get(metric_name)
         if otel_hist is None:
@@ -68,7 +88,7 @@ def observe(metric_name: str, value: float, tags: dict[str, str] | None = None) 
                 description=f"Histogram: {metric_name}",
             )
             _otel_histograms[metric_name] = otel_hist
-        otel_hist.record(value, attributes=tags or {})
+        otel_hist.record(value, attributes=filtered_tags or {})
 
 
 # Store for gauge values (current value metrics)
@@ -77,7 +97,8 @@ _gauges: dict[str, float] = defaultdict(float)
 
 def gauge(metric_name: str, value: float, tags: dict[str, str] | None = None) -> None:
     """Record a gauge metric (current value, like pool size)."""
-    key = _metric_key(metric_name, tags)
+    filtered_tags = _filter_tags(tags)
+    key = _metric_key(metric_name, filtered_tags)
     with _lock:
         _gauges[key] = value
 

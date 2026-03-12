@@ -200,21 +200,27 @@ class SemanticMatchingService:
         if db_conn:
             # Try to get cached job embedding
             if job_id:
-                cached_job_embedding = await EmbeddingCacheRepo.get_job_embedding(
+                cached_job_result = await EmbeddingCacheRepo.get_job_embedding(
                     db_conn, job_id
                 )
-                if cached_job_embedding:
-                    job_embedding = cached_job_embedding
-                    logger.debug(f"Using cached job embedding for job {job_id}")
+                if cached_job_result:
+                    cached_embedding, cached_hash = cached_job_result
+                    if cached_hash == job_text_hash:
+                        job_embedding = cached_embedding
+                        logger.debug(f"Using cached job embedding for job {job_id}")
 
             # Try to get cached profile embedding
             if user_id and not profile_embedding:
-                cached_profile_embedding = (
-                    await EmbeddingCacheRepo.get_profile_embedding(db_conn, user_id)
+                cached_profile_result = await EmbeddingCacheRepo.get_profile_embedding(
+                    db_conn, user_id
                 )
-                if cached_profile_embedding:
-                    profile_embedding = cached_profile_embedding
-                    logger.debug(f"Using cached profile embedding for user {user_id}")
+                if cached_profile_result:
+                    cached_embedding, cached_hash = cached_profile_result
+                    if cached_hash == profile_text_hash:
+                        profile_embedding = cached_embedding
+                        logger.debug(
+                            f"Using cached profile embedding for user {user_id}"
+                        )
 
         # Generate embeddings if not cached
         if not profile_embedding:
@@ -563,10 +569,17 @@ class SemanticMatchingService:
 
         # Remote/onsite check
         job_location = (job.get("location") or "").lower()
-        if dealbreakers.remote_only and "remote" not in job_location:
-            reasons.append("Job is not remote")
-        if dealbreakers.onsite_only and "remote" in job_location:
-            reasons.append("Job is remote-only")
+        is_remote = job.get("is_remote")
+        if dealbreakers.remote_only:
+            if is_remote is not True and "remote" not in job_location:
+                reasons.append("Job is not remote")
+        if dealbreakers.onsite_only:
+            if is_remote is True or "remote" in job_location:
+                if (
+                    "hybrid" not in job_location
+                    and "remote-optional" not in job_location
+                ):
+                    reasons.append("Job is remote-only")
 
         # Excluded companies
         if dealbreakers.excluded_companies:
@@ -629,14 +642,14 @@ class EmbeddingCacheRepo:
     async def get_job_embedding(
         conn: asyncpg.Connection,
         job_id: str,
-    ) -> list[float] | None:
-        """Retrieve cached job embedding."""
+    ) -> tuple[list[float], str] | None:
+        """Retrieve cached job embedding and its hash."""
         row = await conn.fetchrow(
-            "SELECT embedding FROM public.job_embeddings WHERE job_id = $1",
+            "SELECT embedding, text_hash FROM public.job_embeddings WHERE job_id = $1",
             job_id,
         )
         if row and row["embedding"]:
-            return json.loads(row["embedding"])
+            return (json.loads(row["embedding"]), row["text_hash"])
         return None
 
     @staticmethod
@@ -665,14 +678,14 @@ class EmbeddingCacheRepo:
     async def get_profile_embedding(
         conn: asyncpg.Connection,
         user_id: str,
-    ) -> list[float] | None:
-        """Retrieve cached profile embedding."""
+    ) -> tuple[list[float], str] | None:
+        """Retrieve cached profile embedding and its hash."""
         row = await conn.fetchrow(
-            "SELECT embedding FROM public.profile_embeddings WHERE user_id = $1",
+            "SELECT embedding, text_hash FROM public.profile_embeddings WHERE user_id = $1",
             user_id,
         )
         if row and row["embedding"]:
-            return json.loads(row["embedding"])
+            return (json.loads(row["embedding"]), row["text_hash"])
         return None
 
     @staticmethod

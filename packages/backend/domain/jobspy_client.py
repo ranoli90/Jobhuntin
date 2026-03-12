@@ -5,6 +5,7 @@ Wraps the python-jobspy library with async support and error handling.
 from __future__ import annotations
 
 import asyncio
+import atexit
 import hashlib
 import time
 from concurrent.futures import ThreadPoolExecutor
@@ -31,7 +32,15 @@ def _get_executor() -> ThreadPoolExecutor:
     global _executor
     if _executor is None:
         _executor = ThreadPoolExecutor(max_workers=3, thread_name_prefix="jobspy-")
+        atexit.register(_shutdown_executor)
     return _executor
+
+
+def _shutdown_executor() -> None:
+    global _executor
+    if _executor is not None:
+        _executor.shutdown(wait=True)
+        _executor = None
 
 
 @dataclass
@@ -62,7 +71,9 @@ class JobSpyClient:
         self._circuit_breaker_state: dict[str, dict] = {}
         self._proxy_index = 0
         rpm = getattr(self.settings, "jobspy_rate_limit_per_minute", 12)
-        self._rate_limiter = RateLimiter(max_calls=rpm, window_seconds=60, name="jobspy")
+        self._rate_limiter = RateLimiter(
+            max_calls=rpm, window_seconds=60, name="jobspy"
+        )
 
     def _parse_sources(self) -> list[str]:
         if not getattr(self.settings, "jobspy_enabled", True):
@@ -153,6 +164,12 @@ class JobSpyClient:
         loop = asyncio.get_running_loop()
         executor = _get_executor()
 
+        try:
+            user_agent = get_random_user_agent()
+        except Exception as e:
+            logger.warning("Failed to get random user agent: %s", e)
+            user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+
         func = partial(
             self._scrape_sync,
             site_name=sources,
@@ -161,7 +178,7 @@ class JobSpyClient:
             results_wanted=results_wanted,
             hours_old=hours_old,
             proxies=proxies_list,
-            user_agent=get_random_user_agent(),
+            user_agent=user_agent,
             linkedin_fetch_description=getattr(
                 self.settings, "jobspy_linkedin_fetch_description", True
             ),
@@ -203,7 +220,7 @@ class JobSpyClient:
                     raise JobSpyError(f"Failed to fetch jobs: {error_msg}")
 
                 if attempt < max_retries:
-                    delay = 2 ** attempt
+                    delay = 2**attempt
                     logger.warning(
                         "JobSpy fetch attempt %d failed, retrying in %ds: %s",
                         attempt + 1,
@@ -212,9 +229,15 @@ class JobSpyClient:
                     )
                     await asyncio.sleep(delay)
                 else:
-                    logger.error("JobSpy fetch failed after %d attempts: %s", max_retries + 1, error_msg)
+                    logger.error(
+                        "JobSpy fetch failed after %d attempts: %s",
+                        max_retries + 1,
+                        error_msg,
+                    )
                     incr("jobspy.fetch_failed")
-                    raise JobSpyError(f"Failed to fetch jobs: {error_msg}") from last_error
+                    raise JobSpyError(
+                        f"Failed to fetch jobs: {error_msg}"
+                    ) from last_error
         return []
 
     def _scrape_sync(self, **kwargs) -> Any:
@@ -235,7 +258,7 @@ class JobSpyClient:
                 if job:
                     jobs.append(job)
             except Exception as e:
-                logger.warning(f"Failed to normalize job row: {e}")
+                logger.warning(f"Failed to normalize job row: {e}", exc_info=True)
                 continue
         return jobs
 
@@ -269,8 +292,10 @@ class JobSpyClient:
         description = str(clean_val(row.get("description")) or "")[:max_desc_len]
 
         raw_data = {}
+        last_key = "unknown"
         try:
             for k, v in dict(row).items():
+                last_key = k
                 cleaned = clean_val(v)
                 if cleaned is not None:
                     if isinstance(cleaned, (datetime,)):
@@ -280,7 +305,7 @@ class JobSpyClient:
                     else:
                         raw_data[k] = str(cleaned)
         except Exception as e:
-            logger.warning("Failed to clean job field %s: %s", k, e)
+            logger.warning("Failed to clean job field %s: %s", last_key, e)
 
         return {
             "external_id": external_id,
@@ -306,26 +331,41 @@ class JobSpyClient:
     def _generate_external_id(self, source: str, job_url: str, row) -> str:
         """Generate a unique external ID for the job."""
         import re
+        from urllib.parse import urlparse, parse_qs
+
+        # Strip known tracking parameters to avoid duplicate jobs
+        parsed = urlparse(job_url)
+        query_params = parse_qs(parsed.query)
+        tracking_params = {"trk", "guid", "fbclid", "gclid", "utm_source", "utm_medium"}
+        cleaned_query = "&".join(
+            f"{k}={v[0]}" for k, v in query_params.items() if k not in tracking_params
+        )
+        clean_url = parsed._replace(query=cleaned_query).geturl()
 
         if source == "linkedin":
             match = re.search(r"/jobs/view/(\d+)", job_url)
             if match:
                 return f"linkedin:{match.group(1)}"
         elif source == "indeed":
-            # Indeed uses 'id' column
             job_id = row.get("id")
             if job_id:
                 return f"indeed:{job_id}"
 
-        url_hash = hashlib.sha256(job_url.encode()).hexdigest()[:16]
+        url_hash = hashlib.sha256(clean_url.encode()).hexdigest()[:16]
         return f"{source}:{url_hash}"
 
     def _build_location(self, row) -> str | None:
         """Build location string from row data."""
-        # JobSpy returns location as a single string
         location = row.get("location")
         if location:
             return str(location)
+        # Fallback: construct from detailed geo-data if available
+        city = row.get("city")
+        state = row.get("state")
+        country = row.get("country")
+        if city or state or country:
+            parts = [p for p in [city, state, country] if p]
+            return ", ".join(parts)
         return None
 
     def _parse_salary(self, row) -> tuple[int | None, int | None]:

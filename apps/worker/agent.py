@@ -779,9 +779,23 @@ async def _verify_submit_success(page: Page, strict: bool = False) -> bool:
     """
     try:
         content = (await page.content()).lower()
+        import re
+
+        validation_patterns = [
+            r'<div[^>]*class="[^"]*error[^"]*"[^>]*>(.*?)</div>',
+            r'<span[^>]*class="[^"]*error[^"]*"[^>]*>(.*?)</span>',
+            r'<p[^>]*class="[^"]*error[^"]*"[^>]*>(.*?)</p>',
+            r'<div[^>]*class="[^"]*validation[^"]*"[^>]*>(.*?)</div>',
+            r'<form[^>]*class="[^"]*error[^"]*"[^>]*>(.*?)</form>',
+        ]
+        validation_content = ""
+        for pattern in validation_patterns:
+            matches = re.findall(pattern, content, re.DOTALL | re.IGNORECASE)
+            validation_content += " ".join(matches)
+
         for ind in ERROR_INDICATORS:
-            if ind in content:
-                logger.warning("Error indicator on post-submit page: %r", ind)
+            if ind in validation_content:
+                logger.warning("Error indicator in validation wrapper: %r", ind)
                 return False
         for ind in SUCCESS_INDICATORS:
             if ind in content:
@@ -791,7 +805,7 @@ async def _verify_submit_success(page: Page, strict: bool = False) -> bool:
                 "Submit click completed but no success indicator found; treating as uncertain"
             )
             return False
-        return True  # No error indicators; assume success when navigation completed
+        return True
     except Exception as e:
         logger.debug("Could not verify submit success: %s", e)
         return not strict
@@ -967,7 +981,11 @@ class FormAgent:
                 retry_count = 0
 
                 while True:
-                    await asyncio.sleep(60)  # Keep-alive check
+                    await asyncio.sleep(60)
+                    try:
+                        await conn.execute("SELECT 1")
+                    except Exception:
+                        break
             except Exception as e:
                 retry_count += 1
                 delay = min(2 ** (retry_count - 1), max_retry_delay)
@@ -1003,44 +1021,31 @@ class FormAgent:
             incr("agent.rate_limited", {"limiter": "processing"})
             return False
 
-        # CRITICAL: Check concurrent usage limits BEFORE claiming task
-        # This prevents race condition where task is claimed but then rejected
-        # Peek at the next task to get tenant_id for limit check (without locking)
-        async with self.pool.acquire() as conn:
-            peek_task = await conn.fetchrow(
-                """
-                SELECT id, tenant_id, user_id, blueprint_key
-                FROM public.applications
-                WHERE status = 'QUEUED'
-                ORDER BY priority_score DESC, created_at ASC
-                LIMIT 1
-                """
-            )
-
-            if peek_task:
-                peek_tenant_id = (
-                    str(peek_task["tenant_id"]) if peek_task.get("tenant_id") else None
-                )
-                # Check limits before claiming (CRITICAL: prevents claiming then rejecting)
-                concurrent_tracker = get_concurrent_tracker()
-                can_start = await concurrent_tracker.can_start_task(
-                    tenant_id=peek_tenant_id
-                )
-                if not can_start:
-                    logger.warning(
-                        "Concurrent usage limit reached, skipping task %s for tenant %s",
-                        peek_task["id"],
-                        peek_tenant_id or "none",
-                    )
-                    incr(
-                        "agent.concurrent_limited",
-                        {"tenant_id": peek_tenant_id or "none"},
-                    )
-                    return False
-
-        # Now claim the task (we've verified we can process it)
+        # Claim the task first
         task = await claim_task(self.pool)
         if task is None:
+            return False
+
+        # Check concurrent usage limits AFTER claiming but before processing
+        # This ensures we don't lose the task to another worker during the check
+        task_tenant_id = str(task["tenant_id"]) if task.get("tenant_id") else None
+        concurrent_tracker = get_concurrent_tracker()
+        can_start = await concurrent_tracker.can_start_task(tenant_id=task_tenant_id)
+        if not can_start:
+            logger.warning(
+                "Concurrent usage limit reached after claim, releasing task %s for tenant %s",
+                task["id"],
+                task_tenant_id or "none",
+            )
+            incr(
+                "agent.concurrent_limited",
+                {"tenant_id": task_tenant_id or "none"},
+            )
+            async with self.pool.acquire() as conn:
+                await conn.execute(
+                    "UPDATE public.applications SET status = 'QUEUED' WHERE id = $1",
+                    task["id"],
+                )
             return False
 
         app_id = str(task["id"])
@@ -1175,7 +1180,11 @@ class FormAgent:
                     pass
 
             for path in ctx.get("_temp_paths", []):
-                if path and os.path.exists(path) and path.startswith(tempfile.gettempdir()):
+                if (
+                    path
+                    and os.path.exists(path)
+                    and path.startswith(tempfile.gettempdir())
+                ):
                     try:
                         os.unlink(path)
                         logger.debug("Cleaned up temp file: %s", path)
@@ -1641,11 +1650,21 @@ class FormAgent:
             profile_obj = ctx.get("profile") or ctx.get("profile_data")
             portfolio_url = None
             if profile_obj:
-                contact = getattr(profile_obj, "contact", None) or (profile_obj.get("contact") if isinstance(profile_obj, dict) else None)
+                contact = getattr(profile_obj, "contact", None) or (
+                    profile_obj.get("contact")
+                    if isinstance(profile_obj, dict)
+                    else None
+                )
                 if contact:
-                    portfolio_url = getattr(contact, "portfolio_url", None) or (contact.get("portfolio_url") if isinstance(contact, dict) else None)
+                    portfolio_url = getattr(contact, "portfolio_url", None) or (
+                        contact.get("portfolio_url")
+                        if isinstance(contact, dict)
+                        else None
+                    )
                 if not portfolio_url and isinstance(profile_obj, dict):
-                    portfolio_url = profile_obj.get("portfolio_url") or profile_obj.get("portfolio")
+                    portfolio_url = profile_obj.get("portfolio_url") or profile_obj.get(
+                        "portfolio"
+                    )
 
             if portfolio_url:
                 # Download portfolio file if it's a URL
@@ -1697,8 +1716,14 @@ class FormAgent:
                 return None
 
             # Try to get document from raw profile_data (documents not in CanonicalProfile)
-            profile_data = ctx.get("profile_data") or (ctx.get("profile") if isinstance(ctx.get("profile"), dict) else None)
-            documents = (profile_data or {}).get("documents", []) if isinstance(profile_data, dict) else []
+            profile_data = ctx.get("profile_data") or (
+                ctx.get("profile") if isinstance(ctx.get("profile"), dict) else None
+            )
+            documents = (
+                (profile_data or {}).get("documents", [])
+                if isinstance(profile_data, dict)
+                else []
+            )
 
             # Find document by type
             for doc in documents:
@@ -1994,9 +2019,7 @@ class FormAgent:
         # Capture screenshot after submission
         await self.capture_screenshot(page, ctx, "post_submit", success=True)
 
-    async def _handle_success(
-        self, task: dict, ctx: dict, page: Page | None
-    ) -> None:
+    async def _handle_success(self, task: dict, ctx: dict, page: Page | None) -> None:
         # Capture success screenshot (skip when page is None, e.g. HTTP-first apply)
         if page is not None:
             try:

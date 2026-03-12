@@ -317,6 +317,8 @@ class AuthMiddleware:
                     token,
                     self.config.jwt_secret_key,
                     algorithms=[self.config.jwt_algorithm],
+                    options={"verify_aud": True},
+                    audience="session",
                 )
             except jwt.ExpiredSignatureError:
                 return AuthResult(
@@ -552,6 +554,7 @@ class AuthMiddleware:
     def _get_client_ip(self, request: Request) -> str:
         """Get client IP — use shared.middleware for consistency (AUTH-003)."""
         from shared.middleware import get_client_ip
+
         return get_client_ip(request)
 
     async def _is_rate_limited(self, client_ip: str) -> bool:

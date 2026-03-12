@@ -82,9 +82,7 @@ class DatabasePoolManager:
         from packages.backend.blueprints.registry import load_default_blueprints
 
         enabled_raw = getattr(s, "enabled_blueprints", None) or ""
-        enabled = [
-            slug.strip() for slug in enabled_raw.split(",") if slug.strip()
-        ]
+        enabled = [slug.strip() for slug in enabled_raw.split(",") if slug.strip()]
         load_default_blueprints(enabled_slugs=enabled or None)
 
         ssl_arg = self._get_ssl_config(s)
@@ -257,13 +255,17 @@ async def get_current_user_id(
         )
         user_id = payload.get("sub")
         if not user_id:
-            raise HTTPException(status_code=401, detail="Invalid token: missing subject")
+            raise HTTPException(
+                status_code=401, detail="Invalid token: missing subject"
+            )
         jti = payload.get("jti")
         payload.get("session_id")  # M2: Extract session_id for tracking
 
         # Require jti for revocation check; tokens without jti bypass revocation (reject)
         if not jti:
-            logger.warning("Token missing jti claim - rejecting (cannot verify revocation)")
+            logger.warning(
+                "Token missing jti claim - rejecting (cannot verify revocation)"
+            )
             raise HTTPException(status_code=401, detail="Invalid token: missing jti")
 
         # Check if session token has been revoked (C1: Session Token Replay Fix)
@@ -296,22 +298,18 @@ async def require_admin_user_id(
     user_id: str = Depends(get_current_user_id),
     db: asyncpg.Pool = Depends(get_pool),
 ) -> str:
-    """Return user_id only if user is admin (tenant OWNER/ADMIN or system admin).
+    """Return user_id only if user is system admin.
     Item 23: Admin RBAC — any authenticated user could access admin endpoints.
     Raises 403 if not admin.
     """
     from packages.backend.domain.tenant import (
         TenantScopeError,
         require_system_admin,
-        resolve_tenant_context,
     )
 
     async with db.acquire() as conn:
-        # Tenant admin: OWNER or ADMIN in tenant_members
-        ctx = await resolve_tenant_context(conn, user_id)
-        if ctx.is_admin:
-            return user_id
         # System admin: users.is_system_admin
+        # Note: ctx.is_admin is for tenant-specific routes only, not system admin routes
         try:
             await require_system_admin(conn, user_id)
             return user_id

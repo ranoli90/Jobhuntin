@@ -384,6 +384,16 @@ class SlackIntegrationManager:
             incr("slack.notification_sent", {"type": message_type.value})
             return True
         except Exception as e:
+            error_str = str(e).lower()
+            if (
+                "invalid_auth" in error_str
+                or "account_inactive" in error_str
+                or "token_revoked" in error_str
+            ):
+                logger.warning(
+                    "Slack auth failed, disabling integration for tenant: %s", tenant_id
+                )
+                await self._disable_integration(tenant_id)
             logger.error("Failed to send Slack notification: %s", e)
             return False
 
@@ -493,6 +503,19 @@ class SlackIntegrationManager:
             )
 
         incr("slack.team_disconnected")
+
+    async def _disable_integration(self, tenant_id: str) -> None:
+        """Disable Slack integration when auth fails."""
+        async with self._pool.acquire() as conn:
+            await conn.execute(
+                """
+                UPDATE public.slack_integrations
+                SET is_active = false, updated_at = now()
+                WHERE tenant_id = $1
+                """,
+                tenant_id,
+            )
+        incr("slack.integration_disabled")
 
     def _build_message(
         self,

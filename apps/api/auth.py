@@ -256,13 +256,18 @@ def _is_disposable_email(email: str) -> bool:
 
 def _sanitize_return_to(value: str | None) -> str | None:
     """Whitelist-only sanitizer for return_to paths to prevent open redirects."""
+    from urllib.parse import unquote
+
     if not value:
         return None
 
     trimmed = value.strip()
 
+    # URL-decode to handle encoded backslashes and other bypass attempts
+    decoded = unquote(trimmed)
+
     # Reject absolute URLs / dangerous schemes / protocol-relative
-    lower = trimmed.lower()
+    lower = decoded.lower()
     if (
         lower.startswith("http:")
         or lower.startswith("https:")
@@ -270,11 +275,15 @@ def _sanitize_return_to(value: str | None) -> str | None:
         or lower.startswith("data:")
     ):
         return None
-    if not trimmed.startswith("/") or trimmed.startswith("//"):
+    if not decoded.startswith("/") or decoded.startswith("//"):
+        return None
+
+    # Block backslashes (used in bypass attempts)
+    if "\\" in decoded:
         return None
 
     # Separate path from query/hash for whitelist check, but preserve query
-    parts = trimmed.split("?", 1)
+    parts = decoded.split("?", 1)
     path_only = parts[0].split("#")[0]
     query = parts[1].split("#")[0] if len(parts) > 1 else None
 

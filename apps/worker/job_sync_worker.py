@@ -17,7 +17,7 @@ sys.path.insert(0, os.path.join(_root, "packages"))
 
 import asyncpg  # noqa: E402
 
-from backend.domain.job_sync_service import JobSyncService  # noqa: E402
+from packages.backend.domain.job_sync_service import JobSyncService  # noqa: E402
 from shared.config import get_settings  # noqa: E402
 from shared.logging_config import get_logger  # noqa: E402
 
@@ -98,8 +98,11 @@ async def run_sync_loop():
 
         except Exception as e:
             logger.error(f"Sync loop error: {e}")
-            # Sleep 5 minutes on error before retrying
-            await asyncio.sleep(300)
+            # Sleep 5 minutes on error before retrying, but check for shutdown periodically
+            for _ in range(300):
+                if _shutdown:
+                    break
+                await asyncio.sleep(1)
 
     await db_pool.close()
     logger.info("Job sync worker stopped")

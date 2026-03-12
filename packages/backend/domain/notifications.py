@@ -135,45 +135,58 @@ async def _send_expo_push(
     """Send push via Expo Push API. Returns count of messages sent."""
     import httpx
 
-    messages = [
-        {
-            "to": token,
-            "sound": "default",
-            "title": title,
-            "body": body,
-            "data": data,
-        }
-        for token in tokens
-    ]
+    if not tokens:
+        return 0
 
     headers: dict[str, str] = {"Content-Type": "application/json"}
     if access_token:
         headers["Authorization"] = f"Bearer {access_token}"
 
+    batch_size = 100
+    total_sent = 0
+
     try:
-        async with httpx.AsyncClient(timeout=10) as client:
-            resp = await client.post(
-                EXPO_PUSH_URL,
-                json=messages,
-                headers=headers,
-            )
-            if resp.status_code == 200:
-                result = resp.json()
-                # Check for individual ticket errors
-                tickets = result.get("data", [])
-                ok_count = sum(1 for t in tickets if t.get("status") == "ok")
-                err_count = len(tickets) - ok_count
-                if err_count:
-                    logger.warning("Push send: %d ok, %d errors", ok_count, err_count)
-                return ok_count
-            else:
-                logger.error(
-                    "Expo push API error: %d %s", resp.status_code, resp.text[:200]
-                )
-                return 0
+        async with httpx.AsyncClient(timeout=30) as client:
+            for i in range(0, len(tokens), batch_size):
+                batch_tokens = tokens[i : i + batch_size]
+                messages = [
+                    {
+                        "to": token,
+                        "sound": "default",
+                        "title": title,
+                        "body": body,
+                        "data": data,
+                    }
+                    for token in batch_tokens
+                ]
+                try:
+                    resp = await client.post(
+                        EXPO_PUSH_URL,
+                        json=messages,
+                        headers=headers,
+                    )
+                    if resp.status_code == 200:
+                        result = resp.json()
+                        tickets = result.get("data", [])
+                        ok_count = sum(1 for t in tickets if t.get("status") == "ok")
+                        err_count = len(tickets) - ok_count
+                        if err_count:
+                            logger.warning(
+                                "Push send batch: %d ok, %d errors", ok_count, err_count
+                            )
+                        total_sent += ok_count
+                    else:
+                        logger.error(
+                            "Expo push API error: %d %s",
+                            resp.status_code,
+                            resp.text[:200],
+                        )
+                except Exception as batch_err:
+                    logger.error("Expo push batch failed: %s", batch_err)
     except Exception as exc:
         logger.error("Expo push send failed: %s", exc)
-        return 0
+
+    return total_sent
 
 
 # ---------------------------------------------------------------------------

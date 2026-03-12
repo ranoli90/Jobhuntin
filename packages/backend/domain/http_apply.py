@@ -7,6 +7,7 @@ Falls back to browser when form is JS-rendered or submission fails.
 from __future__ import annotations
 
 import re
+from io import IOBase
 from typing import Any
 from urllib.parse import urljoin
 
@@ -55,9 +56,8 @@ def _get_profile_fields(profile: Any) -> dict[str, str]:
 
     # Fallback: full_name split
     if not first and not last:
-        full = (
-            getattr(contact, "full_name", None)
-            or (contact.get("full_name", "") if isinstance(contact, dict) else "")
+        full = getattr(contact, "full_name", None) or (
+            contact.get("full_name", "") if isinstance(contact, dict) else ""
         )
         if full:
             parts = str(full).strip().split(None, 1)
@@ -81,9 +81,13 @@ def _parse_form(html: str, base_url: str) -> dict[str, Any] | None:
         re.I | re.DOTALL,
     )
     if not form_match:
-        form_match = re.search(r'<form[^>]*action=["\'][^"\']*greenhouse[^"\']*["\'][^>]*>', html, re.I)
+        form_match = re.search(
+            r'<form[^>]*action=["\'][^"\']*greenhouse[^"\']*["\'][^>]*>', html, re.I
+        )
     if not form_match:
-        form_match = re.search(r'<form[^>]*action=["\'][^"\']*lever[^"\']*["\'][^>]*>', html, re.I)
+        form_match = re.search(
+            r'<form[^>]*action=["\'][^"\']*lever[^"\']*["\'][^>]*>', html, re.I
+        )
     if not form_match:
         return None
 
@@ -115,6 +119,35 @@ def _parse_form(html: str, base_url: str) -> dict[str, Any] | None:
     return {"action": action, "method": method, "hidden": hidden}
 
 
+def _check_submission_success(html: str, status_code: int) -> bool:
+    """Check for specific confirmation elements in the response HTML."""
+    if status_code in (200, 302):
+        html_lower = html.lower()
+        confirmation_indicators = [
+            "application submitted",
+            "thank you for applying",
+            "thanks for applying",
+            "application received",
+            "successfully submitted",
+            "we've received your application",
+            "your application has been",
+        ]
+        for indicator in confirmation_indicators:
+            if indicator in html_lower:
+                return True
+        error_indicators = [
+            "error",
+            "failed",
+            "invalid",
+            "required field",
+            "please correct",
+        ]
+        for indicator in error_indicators:
+            if indicator in html_lower:
+                return False
+    return False
+
+
 async def _try_greenhouse(ctx: dict) -> bool:
     """Attempt HTTP form submission for Greenhouse. Returns True on success."""
     url = ctx.get("application_url", "")
@@ -125,60 +158,59 @@ async def _try_greenhouse(ctx: dict) -> bool:
         logger.debug("HTTP apply: no email in profile, skip")
         return False
 
+    client = httpx.AsyncClient(
+        timeout=30.0,
+        follow_redirects=True,
+        headers={"User-Agent": HTTP_UA},
+    )
     try:
-        async with httpx.AsyncClient(
-            timeout=25.0,
-            follow_redirects=False,
-            headers={"User-Agent": HTTP_UA},
-        ) as client:
-            resp = await client.get(url)
-            resp.raise_for_status()
-            html = resp.text
+        resp = await client.get(url)
+        resp.raise_for_status()
+        html = resp.text
 
         parsed = _parse_form(html, url)
         if not parsed:
             logger.debug("HTTP apply Greenhouse: no form found (likely JS-rendered)")
             return False
 
-        data: dict[str, str] = dict(parsed["hidden"])
+        data: dict[str, str] = {}
+        for k, v in parsed["hidden"].items():
+            data[str(k)] = str(v) if v is not None else ""
         data["first_name"] = fields["first_name"] or "Applicant"
         data["last_name"] = fields["last_name"] or "User"
         data["email"] = fields["email"]
         if fields["phone"]:
             data["phone"] = fields["phone"]
 
-        files: dict[str, tuple[str, bytes, str]] = {}
+        files: dict[str, tuple[str, IOBase, str]] = {}
         if resume_path:
             try:
-                with open(resume_path, "rb") as f:
-                    content = f.read()
-                files["resume"] = ("resume.pdf", content, "application/pdf")
+                files["resume"] = (
+                    "resume.pdf",
+                    open(resume_path, "rb"),
+                    "application/pdf",
+                )
             except OSError:
                 pass
 
-        async with httpx.AsyncClient(
-            timeout=30.0,
-            follow_redirects=True,
-            headers={"User-Agent": HTTP_UA},
-        ) as client:
-            resp = await client.post(
-                parsed["action"],
-                data={k: v for k, v in data.items() if isinstance(v, str)},
-                files=files if files else None,
-            )
-
-        success = (
-            resp.status_code in (200, 302)
-            or "thank" in resp.text.lower()
-            or "submitted" in resp.text.lower()
-            or "received" in resp.text.lower()
+        resp = await client.post(
+            parsed["action"],
+            data=data,
+            files=files if files else None,
         )
+
+        success = _check_submission_success(resp.text, resp.status_code)
         if success:
             logger.info("HTTP apply Greenhouse succeeded for %s", url)
         return success
     except Exception as e:
         logger.debug("HTTP apply Greenhouse failed: %s", e)
         return False
+    finally:
+        await client.aclose()
+        for f in files.values():
+            if len(f) > 2 and hasattr(f[1], "close"):
+                f[1].close()
 
 
 async def _try_lever(ctx: dict) -> bool:
@@ -190,57 +222,59 @@ async def _try_lever(ctx: dict) -> bool:
     if not fields.get("email"):
         return False
 
+    client = httpx.AsyncClient(
+        timeout=30.0,
+        follow_redirects=True,
+        headers={"User-Agent": HTTP_UA},
+    )
     try:
-        async with httpx.AsyncClient(
-            timeout=25.0,
-            follow_redirects=False,
-            headers={"User-Agent": HTTP_UA},
-        ) as client:
-            resp = await client.get(url)
-            resp.raise_for_status()
-            html = resp.text
+        resp = await client.get(url)
+        resp.raise_for_status()
+        html = resp.text
 
         parsed = _parse_form(html, url)
         if not parsed:
             return False
 
-        data: dict[str, str] = dict(parsed["hidden"])
-        data["name"] = f"{fields['first_name']} {fields['last_name']}".strip() or "Applicant"
+        data: dict[str, str] = {}
+        for k, v in parsed["hidden"].items():
+            data[str(k)] = str(v) if v is not None else ""
+        data["name"] = (
+            f"{fields['first_name']} {fields['last_name']}".strip() or "Applicant"
+        )
         data["email"] = fields["email"]
         if fields["phone"]:
             data["phone"] = fields["phone"]
 
-        files = {}
+        files: dict[str, tuple[str, IOBase, str]] = {}
         if resume_path:
             try:
-                with open(resume_path, "rb") as f:
-                    content = f.read()
-                files["resume"] = ("resume.pdf", content, "application/pdf")
+                files["resume"] = (
+                    "resume.pdf",
+                    open(resume_path, "rb"),
+                    "application/pdf",
+                )
             except OSError:
                 pass
 
-        async with httpx.AsyncClient(
-            timeout=30.0,
-            follow_redirects=True,
-            headers={"User-Agent": HTTP_UA},
-        ) as client:
-            resp = await client.post(
-                parsed["action"],
-                data=data,
-                files=files if files else None,
-            )
-
-        success = (
-            resp.status_code in (200, 302)
-            or "thank" in resp.text.lower()
-            or "submitted" in resp.text.lower()
+        resp = await client.post(
+            parsed["action"],
+            data=data,
+            files=files if files else None,
         )
+
+        success = _check_submission_success(resp.text, resp.status_code)
         if success:
             logger.info("HTTP apply Lever succeeded for %s", url)
         return success
     except Exception as e:
         logger.debug("HTTP apply Lever failed: %s", e)
         return False
+    finally:
+        await client.aclose()
+        for f in files.values():
+            if len(f) > 2 and hasattr(f[1], "close"):
+                f[1].close()
 
 
 async def try_http_apply_first(ctx: dict) -> bool:

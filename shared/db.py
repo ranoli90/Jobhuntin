@@ -60,7 +60,16 @@ def resolve_dsn_ipv4(dsn: str) -> str:
             return urlunparse(updated)
 
         ipv4_addr = str(infos[0][4][0])
-        netloc = parsed.netloc.replace(parsed.hostname or "", ipv4_addr)
+        username = parsed.username
+        password = parsed.password
+        port = parsed.port
+        if username:
+            if password:
+                netloc = f"{username}:{password}@{ipv4_addr}:{port}"
+            else:
+                netloc = f"{username}@{ipv4_addr}:{port}"
+        else:
+            netloc = f"{ipv4_addr}:{port}"
         resolved = urlunparse(
             parsed._replace(netloc=netloc, query=urlencode(query_params))
         )

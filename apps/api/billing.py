@@ -699,6 +699,13 @@ async def team_checkout(
                 line_items=line_items,
                 success_url=success_url,
                 cancel_url=cancel_url,
+                subscription_data={
+                    "metadata": {
+                        "tenant_id": str(ctx.tenant_id),
+                        "plan": "TEAM",
+                        "seats": str(body.seats),
+                    },
+                },
                 metadata={
                     "tenant_id": str(ctx.tenant_id),
                     "plan": "TEAM",
@@ -823,8 +830,19 @@ async def handle_checkout_completed(conn: asyncpg.Connection, session: dict):
 
     # Update tenant plan if metadata is available
     if tenant_id and plan:
+        import uuid as uuid_module
+
+        try:
+            tenant_uuid = (
+                uuid_module.UUID(tenant_id) if isinstance(tenant_id, str) else tenant_id
+            )
+        except (ValueError, TypeError):
+            logger.warning(f"Invalid tenant_id format: {tenant_id}")
+            tenant_uuid = tenant_id
         await conn.execute(
-            "UPDATE public.tenants SET plan = $1 WHERE id = $2", plan, tenant_id
+            "UPDATE public.tenants SET plan = $1 WHERE id = $2::uuid",
+            plan,
+            str(tenant_uuid),
         )
         logger.info(f"Updated tenant {tenant_id} plan to {plan}")
 

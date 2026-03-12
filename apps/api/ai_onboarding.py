@@ -195,6 +195,7 @@ async def _verify_session_ownership(
         raise HTTPException(status_code=400, detail="Invalid session ID")
     try:
         import uuid as _uuid
+
         _uuid.UUID(session_id)
     except (ValueError, TypeError, AttributeError):
         raise HTTPException(status_code=400, detail="Invalid session ID format")
@@ -213,10 +214,12 @@ async def _verify_session_ownership(
             raise HTTPException(status_code=404, detail="Session not found")
 
         # Check expiration
-        if session_row.get("expires_at") and session_row["expires_at"] < datetime.now(
-            timezone.utc
-        ):
-            raise HTTPException(status_code=410, detail="Session has expired")
+        expires_at = session_row.get("expires_at")
+        if expires_at:
+            if expires_at.tzinfo is None:
+                expires_at = expires_at.replace(tzinfo=timezone.utc)
+            if expires_at < datetime.now(timezone.utc):
+                raise HTTPException(status_code=410, detail="Session has expired")
 
         # Verify ownership
         row_user_id = session_row.get("user_id")
@@ -448,20 +451,16 @@ async def submit_response(
             session, request.question_id, request.response
         )
 
-        # HIGH: Save updated session after processing
-        async with db.acquire() as conn:
-            from packages.backend.domain.onboarding_repository import (
-                OnboardingSessionRepo,
-            )
-
-            await OnboardingSessionRepo.save_session(conn, session)
-
         if result["success"]:
-            # Get next question
+            # Get next question before saving
             next_question = await ai_onboarding.get_next_question(session)
 
-            # Save again after getting next question
+            # Single transactional save after processing and getting next question
             async with db.acquire() as conn:
+                from packages.backend.domain.onboarding_repository import (
+                    OnboardingSessionRepo,
+                )
+
                 await OnboardingSessionRepo.save_session(conn, session)
 
             return SubmitResponseResponse(
