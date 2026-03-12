@@ -43,9 +43,10 @@ services:
   # API Backend
   - type: web
     name: jobhuntin-api
-    env: python
-    buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn api.main:app --host 0.0.0.0 --port $PORT --workers 2 --log-level info
+    env: docker
+    dockerfilePath: ./Dockerfile
+    buildCommand: docker build --target api -t jobhuntin-api .
+    startCommand: uvicorn api.main:app --host 0.0.0.0 --port 10000
     envVars:
       - key: PYTHONPATH
         value: apps:packages:.

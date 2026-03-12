@@ -82,7 +82,7 @@ ENV PORT=10000
 ENV PYTHONPATH=/app/apps:/app:/app/packages:.
 
 # Use exec form - uvicorn binds to all interfaces
-CMD ["uvicorn", "apps.api.main:app", "--host", "0.0.0.0", "--port", "10000"]"
+CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "10000"]
 
 # HEALTHCHECK for local Docker usage (Render uses external health checks)
 # DISABLED because Render uses external http health check on /health
