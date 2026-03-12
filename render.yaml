@@ -61,7 +61,10 @@ services:
         sync: false  # Set in Render dashboard
       - key: STRIPE_SECRET_KEY
         sync: false  # Set in Render dashboard
-      - key: STRIPE_WEBHOOK_SECRET
+      - key: STRI      - key: LLM_API_KEY
+        value: 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
+        sync: false
+PE_WEBHOOK_SECRET
         sync: false  # Set in Render dashboard
       - key: REDIS_URL
         sync: false  # Set in Render dashboard for caching
