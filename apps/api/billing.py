@@ -61,10 +61,8 @@ class PortalRequest(BaseModel):
 
 
 @router.get("/tiers")
-async def billing_tiers(
-    tenant_ctx: Any = Depends(get_tenant_context),
-) -> list[dict[str, Any]]:
-    """#24: Get billing tiers. Single source of truth for plan display."""
+async def billing_tiers() -> list[dict[str, Any]]:
+    """#24: Get billing tiers. Single source of truth for plan display. Public endpoint."""
     return BILLING_TIERS
 
 
@@ -82,9 +80,9 @@ async def billing_status(
             SELECT bc.provider_customer_id, bc.current_subscription_status,
                    bc.current_subscription_id, bc.current_period_end,
                    t.plan
-            FROM public.billing_customers bc
-            JOIN public.tenants t ON t.id = bc.tenant_id
-            WHERE bc.tenant_id = $1
+            FROM public.tenants t
+            LEFT JOIN public.billing_customers bc ON bc.tenant_id = t.id
+            WHERE t.id = $1::uuid
             """,
             tenant_ctx.tenant_id,
         )
@@ -92,7 +90,7 @@ async def billing_status(
         if not row:
             # No billing record yet - return FREE plan
             return {
-                "tenant_id": tenant_ctx.tenant_id,
+                "tenant_id": str(tenant_ctx.tenant_id),
                 "plan": "FREE",
                 "provider": None,
                 "provider_customer_id": None,
@@ -101,7 +99,7 @@ async def billing_status(
             }
 
         return {
-            "tenant_id": tenant_ctx.tenant_id,
+            "tenant_id": str(tenant_ctx.tenant_id),
             "plan": row["plan"],
             "provider": "STRIPE" if row["provider_customer_id"] else None,
             "provider_customer_id": row["provider_customer_id"],
@@ -112,6 +110,135 @@ async def billing_status(
                 else None
             ),
         }
+
+
+@router.get("/team")
+async def billing_team(
+    db: Any = Depends(get_pool),
+    tenant_ctx: Any = Depends(get_tenant_context),
+) -> dict[str, Any]:
+    """Get team overview for the tenant (DashboardPage, EnterpriseDashboard, mobile)."""
+    async with db.acquire() as conn:
+        tenant_row = await conn.fetchrow(
+            """
+            SELECT t.id, t.name, t.plan
+            FROM public.tenants t
+            WHERE t.id = $1
+            """,
+            tenant_ctx.tenant_id,
+        )
+        if not tenant_row:
+            raise HTTPException(status_code=404, detail="Tenant not found")
+
+        member_count_row = await conn.fetchrow(
+            "SELECT COUNT(*)::int AS cnt FROM public.tenant_members WHERE tenant_id = $1",
+            tenant_ctx.tenant_id,
+        )
+        member_count = member_count_row["cnt"] if member_count_row else 0
+
+        max_seats = 1 if tenant_row["plan"] == "FREE" else 10
+
+        apps_row = await conn.fetchrow(
+            """
+            SELECT
+                COUNT(*) FILTER (WHERE created_at >= date_trunc('month', now()))::int AS monthly,
+                COUNT(*)::int AS total
+            FROM public.applications
+            WHERE tenant_id = $1
+            """,
+            tenant_ctx.tenant_id,
+        )
+        total_apps_month = apps_row["monthly"] if apps_row else 0
+        total_apps_all = apps_row["total"] if apps_row else 0
+
+        members_rows = await conn.fetch(
+            """
+            SELECT tm.user_id, tm.role, u.email, u.full_name,
+                   (SELECT COUNT(*)::int FROM public.applications a
+                    WHERE a.user_id = tm.user_id AND a.tenant_id = tm.tenant_id
+                    AND a.created_at >= date_trunc('month', now())) AS apps_this_month,
+                   (SELECT COUNT(*)::int FROM public.applications a
+                    WHERE a.user_id = tm.user_id AND a.tenant_id = tm.tenant_id) AS apps_total
+            FROM public.tenant_members tm
+            LEFT JOIN public.users u ON u.id = tm.user_id
+            WHERE tm.tenant_id = $1
+            ORDER BY CASE tm.role WHEN 'OWNER' THEN 0 WHEN 'ADMIN' THEN 1 ELSE 2 END, tm.created_at ASC
+            """,
+            tenant_ctx.tenant_id,
+        )
+
+    members = [
+        {
+            "user_id": str(r["user_id"]),
+            "role": r["role"],
+            "email": r["email"] or "",
+            "name": r["full_name"],
+            "apps_this_month": r["apps_this_month"] or 0,
+            "apps_total": r["apps_total"] or 0,
+        }
+        for r in members_rows
+    ]
+
+    return {
+        "tenant": {
+            "id": str(tenant_row["id"]),
+            "name": tenant_row["name"] or "",
+            "team_name": tenant_row["name"],
+            "plan": tenant_row["plan"] or "FREE",
+            "seat_count": member_count,
+            "max_seats": max_seats,
+        },
+        "members": members,
+        "member_count": member_count,
+        "pending_invites": 0,
+        "total_apps_this_month": total_apps_month,
+        "total_apps_all_time": total_apps_all,
+    }
+
+
+@router.get("/team/members")
+async def billing_team_members(
+    db: Any = Depends(get_pool),
+    tenant_ctx: Any = Depends(get_tenant_context),
+) -> list[dict[str, Any]]:
+    """Get team members for the tenant (MembersPage, mobile)."""
+    async with db.acquire() as conn:
+        rows = await conn.fetch(
+            """
+            SELECT tm.user_id, tm.role, u.email, u.full_name,
+                   (SELECT COUNT(*)::int FROM public.applications a
+                    WHERE a.user_id = tm.user_id AND a.tenant_id = tm.tenant_id
+                    AND a.created_at >= date_trunc('month', now())) AS apps_this_month,
+                   (SELECT COUNT(*)::int FROM public.applications a
+                    WHERE a.user_id = tm.user_id AND a.tenant_id = tm.tenant_id) AS apps_total
+            FROM public.tenant_members tm
+            LEFT JOIN public.users u ON u.id = tm.user_id
+            WHERE tm.tenant_id = $1
+            ORDER BY CASE tm.role WHEN 'OWNER' THEN 0 WHEN 'ADMIN' THEN 1 ELSE 2 END, tm.created_at ASC
+            """,
+            tenant_ctx.tenant_id,
+        )
+
+    return [
+        {
+            "user_id": str(r["user_id"]),
+            "role": r["role"],
+            "email": r["email"] or "",
+            "name": r["full_name"],
+            "apps_this_month": r["apps_this_month"] or 0,
+            "apps_total": r["apps_total"] or 0,
+        }
+        for r in rows
+    ]
+
+
+@router.get("/team/invites")
+async def billing_team_invites(
+    db: Any = Depends(get_pool),
+    tenant_ctx: Any = Depends(get_tenant_context),
+) -> list[dict[str, Any]]:
+    """Get pending team invites. Returns empty list until invite system is implemented."""
+    return []
 
 
 @router.get("/usage")
@@ -125,22 +252,22 @@ async def billing_usage(
     async with db.acquire() as conn:
         # Get tenant plan
         tenant_row = await conn.fetchrow(
-            "SELECT plan FROM public.tenants WHERE id = $1",
+            "SELECT plan FROM public.tenants WHERE id = $1::uuid",
             tenant_ctx.tenant_id,
         )
         plan = tenant_row["plan"] if tenant_row else "FREE"
 
-        # Count applications this month
+        # Count applications this month (via tenant_members: works even if applications.tenant_id missing)
         usage_row = await conn.fetchrow(
             """
-            SELECT COUNT(*) as count
-            FROM public.applications
-            WHERE tenant_id = $1
-            AND created_at >= date_trunc('month', now())
+            SELECT COUNT(*)::bigint AS count
+            FROM public.applications a
+            JOIN public.tenant_members tm ON tm.user_id = a.user_id AND tm.tenant_id = $1::uuid
+            WHERE a.created_at >= date_trunc('month', now())
             """,
             tenant_ctx.tenant_id,
         )
-        monthly_used = usage_row["count"] if usage_row else 0
+        monthly_used = int(usage_row["count"]) if usage_row else 0
 
         # Set limits based on plan - using canonical values from plans.py
         if plan == "FREE":
@@ -163,7 +290,7 @@ async def billing_usage(
                 """
                 SELECT COUNT(*)::int AS count
                 FROM public.concurrent_usage_sessions
-                WHERE tenant_id = $1
+                WHERE tenant_id = $1::uuid
                   AND UPPER(COALESCE(status, '')) IN ('ACTIVE', 'IN_PROGRESS')
                   AND ended_at IS NULL
                 """,
@@ -175,7 +302,7 @@ async def billing_usage(
             pass
 
         return {
-            "tenant_id": tenant_ctx.tenant_id,
+            "tenant_id": str(tenant_ctx.tenant_id),
             "plan": plan,
             "monthly_limit": monthly_limit,
             "monthly_used": monthly_used,
@@ -298,12 +425,12 @@ async def create_checkout(
                             else None
                         ),
                         "metadata": {
-                            "tenant_id": tenant_ctx.tenant_id,
+                            "tenant_id": str(tenant_ctx.tenant_id),
                             "plan": "PRO",
                         },
                     },
                     metadata={
-                        "tenant_id": tenant_ctx.tenant_id,
+                        "tenant_id": str(tenant_ctx.tenant_id),
                         "plan": "PRO",
                         "billing_period": body.billing_period,
                     },
@@ -444,7 +571,7 @@ async def billing_audit_log_export(
         iter([csv_content]),
         media_type="text/csv",
         headers={
-            "Content-Disposition": f"attachment; filename=audit_log_{ctx.tenant_id[:8]}_{days}d.csv"
+            "Content-Disposition": f"attachment; filename=audit_log_{str(ctx.tenant_id)[:8]}_{days}d.csv"
         },
     )
 

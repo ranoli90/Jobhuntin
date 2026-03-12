@@ -71,16 +71,16 @@ export function ReadyStep({
   }, [shouldReduceMotion]);
 
   const handleLaunch = () => {
-    if (shouldReduceMotion) {
-      onNext();
-      return;
-    }
+    // Trigger completion immediately so it's not blocked by unmount/re-renders
+    onNext();
+
+    if (shouldReduceMotion) return;
 
     // Clear any previous timers
     timersReference.current.forEach(clearTimeout);
     timersReference.current = [];
 
-    // Start countdown sequence
+    // Countdown/confetti as visual feedback only (completion already triggered)
     setCountdown(3);
     timersReference.current.push(setTimeout(() => setCountdown(2), 700));
     timersReference.current.push(setTimeout(() => setCountdown(1), 1400));
@@ -90,11 +90,6 @@ export function ReadyStep({
         setIsLaunching(true);
         setShowConfetti(true);
       }, 2100),
-    );
-    timersReference.current.push(
-      setTimeout(() => {
-        onNext();
-      }, 3200),
     );
   };
 

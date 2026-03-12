@@ -168,20 +168,18 @@ export function useOnboarding(options: UseOnboardingOptions = {}) {
         ) {
           step = serverProgress.step;
           completed = serverProgress.completed || [];
-          if (import.meta.env.DEV)
-            console.log(
-              "[useOnboarding] Using server progress:",
-              step,
-              completed,
-            );
         }
-        if (initialStepFromUrl != undefined && initialStepFromUrl >= 0) {
-          step = Math.min(initialStepFromUrl, 7); // Max step index (8 steps)
-          if (import.meta.env.DEV)
-            console.log("[useOnboarding] Using URL step:", step);
+        // N1: Only apply URL step when it would advance us - never go backwards
+        if (
+          initialStepFromUrl != undefined &&
+          initialStepFromUrl >= 0 &&
+          initialStepFromUrl >= step
+        ) {
+          step = Math.min(initialStepFromUrl, 7);
         }
-        setCurrentStep(step);
-        setCompletedSteps(completed);
+        // Never overwrite with a lower step (race: user advanced before this effect completed)
+        setCurrentStep((prev) => (step > prev ? step : prev));
+        setCompletedSteps((prev) => [...new Set([...prev, ...completed])]);
         if (initialState) setFormData(initialState.formData);
         setIsLoading(false);
       })
@@ -214,15 +212,8 @@ export function useOnboarding(options: UseOnboardingOptions = {}) {
           "[useOnboarding] Could not persist state; progress may be lost on refresh",
         );
 
-      if (syncToServer) {
-        try {
-          await syncToServer(currentStep, completedSteps);
-        } catch (error) {
-          if (import.meta.env.DEV)
-            console.warn("[useOnboarding] Server sync failed:", error);
-          onSyncError?.(error);
-        }
-      }
+      // O25: Sync is handled by dedicated effect (step/completed only, debounced)
+      // - Do NOT sync here on formData changes to avoid rate limits (429)
 
       if (Object.keys(pii).length > 0) {
         try {
@@ -259,7 +250,7 @@ export function useOnboarding(options: UseOnboardingOptions = {}) {
           );
       }
     }
-  }, [currentStep, completedSteps, formData, syncToServer, onSyncError]);
+  }, [currentStep, completedSteps, formData]);
 
   const updateFormData = useCallback(
     (updates: Partial<OnboardingState["formData"]>) => {
@@ -327,43 +318,19 @@ export function useOnboarding(options: UseOnboardingOptions = {}) {
     if (Date.now() - lastNavReference.current < NAV_DEBOUNCE_MS) return;
     lastNavReference.current = Date.now();
     const totalSteps = currentSteps.length;
-    if (import.meta.env.DEV)
-      console.log("[useOnboarding] nextStep called, totalSteps:", totalSteps);
+    if (currentStep >= totalSteps - 1) return;
 
-    setCurrentStep((previous) => {
-      if (previous < totalSteps - 1) {
-        if (import.meta.env.DEV)
-          console.log(
-            "[useOnboarding] Advancing from step",
-            previous,
-            "to",
-            previous + 1,
-          );
-
-        const completedStepId = currentSteps[previous]?.id;
-        if (completedStepId) {
-          telemetry.track("onboarding_step_completed", {
-            step_id: completedStepId,
-            step_number: previous + 1,
-            total_steps: totalSteps,
-          });
-          setCompletedSteps((previousCompleted) => {
-            const newCompleted = new Set(previousCompleted);
-            newCompleted.add(completedStepId);
-            return [...newCompleted];
-          });
-        }
-
-        return previous + 1;
-      }
-      if (import.meta.env.DEV)
-        console.log(
-          "[useOnboarding] Already at last step, staying at",
-          previous,
-        );
-      return previous;
-    });
-  }, [currentSteps]);
+    const completedStepId = currentSteps[currentStep]?.id;
+    if (completedStepId) {
+      telemetry.track("onboarding_step_completed", {
+        step_id: completedStepId,
+        step_number: currentStep + 1,
+        total_steps: totalSteps,
+      });
+      setCompletedSteps((prev) => [...new Set([...prev, completedStepId])]);
+    }
+    setCurrentStep((prev) => prev + 1);
+  }, [currentSteps, currentStep]);
 
   const previousStep = useCallback(() => {
     if (Date.now() - lastNavReference.current < NAV_DEBOUNCE_MS) return;
@@ -384,22 +351,54 @@ export function useOnboarding(options: UseOnboardingOptions = {}) {
   );
 
   // S1: Save immediately on step/completed; debounce on formData (rapid typing)
+  // Guard: throttle + skip when step/completed unchanged to prevent infinite loops
+  const lastSavedStepCompletedRef = React.useRef<string>("");
+  const saveThrottleRef = React.useRef(0);
   useEffect(() => {
+    const key = `${currentStep}|${completedSteps.join(",")}`;
+    if (lastSavedStepCompletedRef.current === key) return;
+    lastSavedStepCompletedRef.current = key;
+    const now = Date.now();
+    if (now - saveThrottleRef.current < 300) return;
+    saveThrottleRef.current = now;
     saveState();
-  }, [currentStep, completedSteps, saveState, syncToServer]);
-
-  // OB-010: When syncToServer becomes available (profile loads), sync current progress
-  const previousSyncReference = React.useRef(syncToServer);
+  }, [currentStep, completedSteps, saveState]);
   useEffect(() => {
-    if (syncToServer && !previousSyncReference.current) {
+    const t = setTimeout(() => {
+      saveThrottleRef.current = Date.now();
       saveState();
-    }
-    previousSyncReference.current = syncToServer;
-  }, [syncToServer, saveState]);
-  useEffect(() => {
-    const t = setTimeout(() => saveState(), 400);
+    }, 400);
     return () => clearTimeout(t);
   }, [formData, saveState]);
+
+  // O25: Sync to server ONLY when step/completed changes, with 1.5s debounce.
+  // Avoids 429 rate limits from formData-triggered saves (was syncing on every keystroke).
+  const previousSyncReference = React.useRef(syncToServer);
+  useEffect(() => {
+    if (!syncToServer) return;
+    // When profile loads, sync immediately
+    if (!previousSyncReference.current) {
+      previousSyncReference.current = syncToServer;
+      Promise.resolve(syncToServer(currentStep, completedSteps)).catch(
+        (err: unknown) => {
+          if (import.meta.env.DEV)
+            console.warn("[useOnboarding] Initial sync failed:", err);
+          onSyncError?.(err);
+        },
+      );
+      return;
+    }
+    const timer = setTimeout(() => {
+      Promise.resolve(syncToServer(currentStep, completedSteps)).catch(
+        (err: unknown) => {
+          if (import.meta.env.DEV)
+            console.warn("[useOnboarding] Server sync failed:", err);
+          onSyncError?.(err);
+        },
+      );
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, [currentStep, completedSteps, syncToServer, onSyncError]);
 
   // A6: Register flush for 401 redirect - persist state before navigation
   const stateReference = React.useRef({

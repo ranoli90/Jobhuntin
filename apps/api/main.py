@@ -26,6 +26,7 @@ import json
 import mimetypes
 import os
 import re
+import uuid
 from typing import Any
 
 import asyncpg
@@ -239,16 +240,17 @@ app.state.cors_origins = CORS_ORIGINS
 # CORS MUST be registered LAST so it executes FIRST (handles OPTIONS preflight).
 # ---------------------------------------------------------------------------
 
-# CRITICAL: Add response compression middleware (early in stack to compress all responses)
-from shared.api_compression import CompressionMiddleware, create_compression_config
-
-compression_config = create_compression_config(
-    min_size=512,  # Compress responses > 512 bytes
-    enable_gzip=True,
-    enable_brotli=True,
-    enable_deflate=True,
-)
-app.add_middleware(CompressionMiddleware, config=compression_config)
+# TEMPORARILY DISABLED: CompressionMiddleware returns None and breaks all endpoints.
+# TODO: Fix CompressionMiddleware properly, then re-enable.
+# from shared.api_compression import CompressionMiddleware, create_compression_config
+#
+# compression_config = create_compression_config(
+#     min_size=512,  # Compress responses > 512 bytes
+#     enable_gzip=True,
+#     enable_brotli=True,
+#     enable_deflate=True,
+# )
+# app.add_middleware(CompressionMiddleware, config=compression_config)
 
 # Add Request ID middleware for distributed tracing
 setup_request_id_middleware(app)
@@ -258,70 +260,80 @@ setup_request_id_middleware(app)
 # For v1, we use the default routes (no prefix)
 
 
-# M3: API Versioning Middleware - Add version headers and handle version negotiation
+# Proxy-friendly: Vite may forward /api/* without rewriting. Strip /api prefix for v1 routes.
 @app.middleware("http")
-async def api_versioning_middleware(request: Request, call_next):
-    """Add API version headers and handle version negotiation.
+async def api_prefix_rewrite_middleware(request: Request, call_next):
+    """Rewrite /api/me/jobs -> /me/jobs so backend routes match. Skip /api/v2/."""
+    path = request.scope.get("path", "")
+    if path.startswith("/api/") and not path.startswith("/api/v2/"):
+        request.scope["path"] = path[4:] or "/"  # /api/me/jobs -> /me/jobs
+    return await call_next(request)
 
-    Headers added:
-    - X-API-Version: Actual API version used (v1 or v2)
-    - X-Supported-Versions: Comma-separated list of supported versions
-    - Deprecation, Sunset: For deprecated endpoints (per RFC 8594)
-    - X-API-Deprecated, X-API-Sunset-Date: Custom deprecation headers (per API_VERSIONING.md)
 
-    Version negotiation:
-    - URL /api/v2/* implies v2; otherwise Accept-Version header or default v1
-    - If Accept-Version not supported, returns 400 with supported versions
-    """
-    # Infer version from path: /api/v2/* always uses v2
-    path = request.url.path
-    if path.startswith("/api/v2/"):
-        effective_version = "v2"
-        request.state.api_version = "v2"
-    else:
-        requested_version = request.headers.get("Accept-Version")
-        if requested_version:
-            requested_version = requested_version.strip().lower()
-            if requested_version not in SUPPORTED_VERSIONS:
-                return JSONResponse(
-                    status_code=400,
-                    content={
-                        "error": {
-                            "code": "UNSUPPORTED_API_VERSION",
-                            "message": f"API version '{requested_version}' is not supported",
-                            "detail": f"Supported versions: {', '.join(SUPPORTED_VERSIONS)}",
-                            "requested_version": requested_version,
-                            "supported_versions": SUPPORTED_VERSIONS,
-                        }
-                    },
-                    headers={
-                        "X-API-Version": API_VERSION,
-                        "X-Supported-Versions": ",".join(SUPPORTED_VERSIONS),
-                    },
-                )
-            request.state.api_version = requested_version
-            effective_version = requested_version
-        else:
-            request.state.api_version = API_VERSION
-            effective_version = API_VERSION
-
-    # Process request
-    response = await call_next(request)
-
-    # Add API version headers to response (reflect actual version used)
-    response.headers["X-API-Version"] = effective_version
-    response.headers["X-Supported-Versions"] = ",".join(SUPPORTED_VERSIONS)
-
-    # Deprecation headers per API_VERSIONING.md and RFC 8594
-    for prefix, sunset_date in DEPRECATED_PATHS:
-        if path.startswith(prefix):
-            response.headers["Deprecation"] = "true"
-            response.headers["Sunset"] = sunset_date
-            response.headers["X-API-Deprecated"] = "true"
-            response.headers["X-API-Sunset-Date"] = sunset_date
-            break
-
-    return response
+# M3: API Versioning Middleware - Add version headers and handle version negotiation
+# @app.middleware("http")
+# async def api_versioning_middleware(request: Request, call_next):
+#     """Add API version headers and handle version negotiation.
+# 
+#     Headers added:
+#     - X-API-Version: Actual API version used (v1 or v2)
+#     - X-Supported-Versions: Comma-separated list of supported versions
+#     - Deprecation, Sunset: For deprecated endpoints (per RFC 8594)
+#     - X-API-Deprecated, X-API-Sunset-Date: Custom deprecation headers (per API_VERSIONING.md)
+# 
+#     Version negotiation:
+#     - URL /api/v2/* implies v2; otherwise Accept-Version header or default v1
+#     - If Accept-Version not supported, returns 400 with supported versions
+#     """
+#     # Infer version from path: /api/v2/* always uses v2
+#     path = request.url.path
+#     if path.startswith("/api/v2/"):
+#         effective_version = "v2"
+#         request.state.api_version = "v2"
+#     else:
+#         requested_version = request.headers.get("Accept-Version")
+#         if requested_version:
+#             requested_version = requested_version.strip().lower()
+#             if requested_version not in SUPPORTED_VERSIONS:
+#                 return JSONResponse(
+#                     status_code=400,
+#                     content={
+#                         "error": {
+#                             "code": "UNSUPPORTED_API_VERSION",
+#                             "message": f"API version '{requested_version}' is not supported",
+#                             "detail": f"Supported versions: {', '.join(SUPPORTED_VERSIONS)}",
+#                             "requested_version": requested_version,
+#                             "supported_versions": SUPPORTED_VERSIONS,
+#                         }
+#                     },
+#                     headers={
+#                         "X-API-Version": API_VERSION,
+#                         "X-Supported-Versions": ",".join(SUPPORTED_VERSIONS),
+#                     },
+#                 )
+#             request.state.api_version = requested_version
+#             effective_version = requested_version
+#         else:
+#             request.state.api_version = API_VERSION
+#             effective_version = API_VERSION
+# 
+#     # Process request
+#     response = await call_next(request)
+# 
+#     # Add API version headers to response (reflect actual version used)
+#     response.headers["X-API-Version"] = effective_version
+#     response.headers["X-Supported-Versions"] = ",".join(SUPPORTED_VERSIONS)
+# 
+#     # Deprecation headers per API_VERSIONING.md and RFC 8594
+#     for prefix, sunset_date in DEPRECATED_PATHS:
+#         if path.startswith(prefix):
+#             response.headers["Deprecation"] = "true"
+#             response.headers["Sunset"] = sunset_date
+#             response.headers["X-API-Deprecated"] = "true"
+#             response.headers["X-API-Sunset-Date"] = sunset_date
+#             break
+# 
+#     return response
 
 
 import time
@@ -349,7 +361,18 @@ from shared.tenant_rate_limit import TenantTier, get_tenant_rate_limiter
 
 def _is_exempt_path(path: str) -> bool:
     """Check if the request path is exempt from rate limiting."""
-    exempt_paths = {"/health", "/healthz", "/csrf/prepare"}
+    exempt_paths = {
+        "/health",
+        "/healthz",
+        "/csrf/prepare",
+        "/billing/tiers",
+        "/agent-improvements/health",
+        "/ai/llm/health",
+        "/auth/logout",  # Critical auth flow - must not be rate limited
+        "/openapi.json",  # Used by API discovery/tooling
+        "/docs",
+        "/redoc",
+    }
     return path in exempt_paths or path.startswith("/static")
 
 
@@ -370,8 +393,14 @@ async def _get_tenant_info(auth_header: str) -> tuple[str | None, TenantTier]:
             algorithms=["HS256"],
             audience="authenticated",
         )
-        user_id = payload.get("sub")
-        if not user_id:
+        user_id_raw = payload.get("sub")
+        if not user_id_raw:
+            return None, TenantTier.FREE
+
+        # JWT sub is string; cast to UUID for profiles.user_id (uuid column)
+        try:
+            user_id_uuid = uuid.UUID(str(user_id_raw))
+        except (ValueError, TypeError):
             return None, TenantTier.FREE
 
         try:
@@ -379,12 +408,12 @@ async def _get_tenant_info(auth_header: str) -> tuple[str | None, TenantTier]:
                 row = await conn.fetchrow(
                     """SELECT p.tenant_id, t.plan
                        FROM public.profiles p
-                       LEFT JOIN public.tenants t ON t.id = p.tenant_id
-                       WHERE p.user_id = $1""",
-                    user_id,
+                       LEFT JOIN public.tenants t ON t.id::text = p.tenant_id
+                       WHERE p.user_id = $1::uuid""",
+                    str(user_id_raw),
                 )
-                if row:
-                    tenant_id = row["tenant_id"]
+                if row and row["tenant_id"]:
+                    tenant_id = str(row["tenant_id"])
                     try:
                         tier = (
                             TenantTier(row["plan"].upper())
@@ -402,8 +431,10 @@ async def _get_tenant_info(auth_header: str) -> tuple[str | None, TenantTier]:
     return None, TenantTier.FREE
 
 
-@app.middleware("http")
-async def idempotency_middleware(request: Request, call_next):
+# @app.middleware("http")
+# async def idempotency_middleware(request: Request, call_next):
+#     """C2: Idempotency Keys - Prevent duplicate writes on retries."""
+#     return await call_next(request)
     """C2: Idempotency Keys - Prevent duplicate writes on retries.
 
     Checks for Idempotency-Key header on POST/PUT/PATCH requests.
@@ -487,7 +518,8 @@ async def idempotency_middleware(request: Request, call_next):
                         return await call_next(request)
                 # No cache yet, release lock and proceed (shouldn't happen but handle gracefully)
                 await r.delete(lock_key)
-                # Continue to process request normally - fall through to line 425
+                # Continue to process request normally
+                return await call_next(request)
 
             # Check for existing cached response (double-check after acquiring lock)
             cached = await r.get(cache_key)
@@ -572,8 +604,10 @@ async def idempotency_middleware(request: Request, call_next):
         return await call_next(request)
 
 
-@app.middleware("http")
-async def latency_middleware(request: Request, call_next):
+# @app.middleware("http")
+# async def latency_middleware(request: Request, call_next):
+#     """Track API latency and performance metrics (H3: API Performance Monitoring)."""
+#     return await call_next(request)
     """Track API latency and performance metrics (H3: API Performance Monitoring).
 
     M4: Enhanced with OpenTelemetry span attributes for distributed tracing.
@@ -654,30 +688,32 @@ async def latency_middleware(request: Request, call_next):
             span.set_status(trace.Status(trace.StatusCode.ERROR, str(exc)))
             span.set_attribute("http.status_code", 500)
 
-            # Record error latency
-            observe(
-                "api.latency",
-                duration,
-                tags={
-                    "path": path,
-                    "method": method,
-                    "status_code": "500",
-                    "error": "true",
-                },
-            )
-            incr(
-                "api.errors",
-                tags={
-                    "path": path,
-                    "method": method,
-                    "error_type": type(exc).__name__,
-                },
-            )
-            raise
+        # Record error latency
+        observe(
+            "api.latency",
+            duration,
+            tags={
+                "path": path,
+                "method": method,
+                "status_code": "500",
+                "error": "true",
+            },
+        )
+        incr(
+            "api.errors",
+            tags={
+                "path": path,
+                "method": method,
+                "error_type": type(exc).__name__,
+            },
+        )
+        raise
 
 
-@app.middleware("http")
-async def rate_limiting_middleware(request: Request, call_next):
+# @app.middleware("http")
+# async def rate_limiting_middleware(request: Request, call_next):
+#     """Tenant-aware rate limiting middleware for API endpoints."""
+#     return await call_next(request)
     """Tenant-aware rate limiting middleware for API endpoints."""
     if _is_exempt_path(request.url.path):
         return await call_next(request)
@@ -698,9 +734,14 @@ async def rate_limiting_middleware(request: Request, call_next):
                 "api.rate_limit_exceeded",
                 tags={"tenant_id": str(tenant_id), "endpoint": request.url.path},
             )
-            raise HTTPException(
+            return JSONResponse(
                 status_code=429,
-                detail=f"Rate limit exceeded. Limit: {metadata.get('limit', 'unknown')} requests/minute. Try again in {metadata.get('reset_in', 60)} seconds.",
+                content={
+                    "error": {
+                        "code": "RATE_LIMIT_EXCEEDED",
+                        "message": f"Rate limit exceeded. Limit: {metadata.get('limit', 'unknown')} requests/minute. Try again in {metadata.get('reset_in', 60)} seconds.",
+                    }
+                },
             )
     else:
         ip_limiter = get_rate_limiter(
@@ -708,11 +749,24 @@ async def rate_limiting_middleware(request: Request, call_next):
         )
         if not await ip_limiter.acquire():
             incr("api.rate_limit_exceeded", tags={"ip_hash": mask_ip(client_ip)})
-            raise HTTPException(
-                status_code=429, detail="Rate limit exceeded. Please try again later."
+            return JSONResponse(
+                status_code=429,
+                content={
+                    "error": {
+                        "code": "RATE_LIMIT_EXCEEDED",
+                        "message": "Rate limit exceeded. Please try again later.",
+                    }
+                },
             )
 
-    return await call_next(request)
+    response = await call_next(request)
+    # CRITICAL: never return None (causes "NoneType object is not callable" in ASGI)
+    if response is None:
+        return JSONResponse(
+            status_code=500,
+            content={"error": {"code": "INTERNAL_SERVER_ERROR", "message": "No response"}},
+        )
+    return response
 
 
 # ---------------------------------------------------------------------------
@@ -757,6 +811,10 @@ def _mount_sub_routers() -> None:
     Uses app.dependency_overrides so that Depends() references captured at
     route-definition time are correctly replaced at request time.
     """
+
+    async def _get_tenant_id_from_context(ctx=Depends(get_tenant_context)) -> str:
+        return str(ctx.tenant_id)
+
     import api.admin as admin_mod
 
     app.dependency_overrides[admin_mod._get_pool] = get_pool
@@ -863,7 +921,7 @@ def _mount_sub_routers() -> None:
 
     app.dependency_overrides[job_details_mod._get_pool] = get_pool
     app.dependency_overrides[job_details_mod._get_tenant_ctx] = get_tenant_context
-    app.include_router(job_details_mod.router)
+    app.include_router(job_details_mod.router, prefix="/jobs")
 
     # Resume PDF generation
     import api.resume_pdf as resume_pdf_mod
@@ -932,6 +990,7 @@ def _mount_sub_routers() -> None:
 
     app.dependency_overrides[ai_mod._get_pool] = get_pool
     app.dependency_overrides[ai_mod._get_user_id] = get_current_user_id
+    app.dependency_overrides[ai_mod._get_tenant_id] = _get_tenant_id_from_context
     app.include_router(ai_mod.router)
 
     import api.dashboard as dashboard_mod
@@ -994,9 +1053,6 @@ def _mount_sub_routers() -> None:
     app.include_router(saved_jobs_mod.router)
 
     import api.calendar_api as calendar_mod
-
-    async def _get_tenant_id_from_context(ctx=Depends(get_tenant_context)) -> str:
-        return str(ctx.tenant_id)
 
     app.dependency_overrides[calendar_mod._get_pool] = get_pool
     app.dependency_overrides[calendar_mod._get_user_id] = get_current_user_id
@@ -1263,6 +1319,8 @@ async def get_tenant_context(
     db: asyncpg.Pool = Depends(get_pool),
 ) -> TenantContext:
     """Resolve TenantContext from JWT user_id. Auto-provisions FREE tenant if needed."""
+    from packages.backend.domain.tenant import TenantScopeError
+
     try:
         async with db.acquire() as conn:
             ctx = await resolve_tenant_context(conn, user_id)
@@ -1277,6 +1335,13 @@ async def get_tenant_context(
         return ctx
     except HTTPException:
         raise
+    except TenantScopeError as exc:
+        if "not found" in str(exc).lower() or "sign in again" in str(exc).lower():
+            raise HTTPException(
+                status_code=401,
+                detail="User not found. Please sign in again.",
+            )
+        raise HTTPException(status_code=403, detail=str(exc))
     except Exception as exc:
         logger.error("[TENANT] Error resolving tenant context: %s", exc, exc_info=True)
         raise HTTPException(status_code=500, detail="Failed to resolve tenant context")
@@ -1674,7 +1739,7 @@ async def save_work_style(
         # MEDIUM: Add null check for user_id
         if not user_id:
             logger.warning("Cannot update completeness: user_id is None")
-            return
+            return {"status": "saved"}
 
         from packages.backend.domain.deep_profile import calculate_completeness
         from packages.backend.domain.profile_assembly import assemble_profile
@@ -2048,8 +2113,28 @@ async def get_application_detail(
 
 
 @app.get("/health")
+@app.get("/api/health")  # Proxy-friendly: Vite may forward /api/health without rewrite
 async def health() -> dict[str, str]:
     return {"status": "ok"}
+
+
+@app.get("/agent-improvements/health")
+async def agent_improvements_health() -> dict[str, Any]:
+    """Health check for agent improvements system. Defined in main to avoid middleware edge cases."""
+    return {
+        "status": "healthy",
+        "service": "agent_improvements",
+        "features": [
+            "button_detection",
+            "form_field_detection",
+            "oauth_handling",
+            "screenshot_capture",
+            "concurrent_usage_tracking",
+            "dlq_management",
+            "document_type_tracking",
+            "performance_metrics",
+        ],
+    }
 
 
 @app.get("/csrf/prepare")

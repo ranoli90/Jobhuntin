@@ -197,17 +197,22 @@ def normalize_job(raw_job: dict[str, Any], source: str) -> JobListing:
 
 
 def deduplicate_jobs(
-    jobs: list[dict[str, Any]],
+    jobs: list[dict[str, Any] | JobListing],
     source: str = "unknown",
     existing_jobs: list[JobListing] | None = None,
 ) -> tuple[list[JobListing], list[JobListing]]:
     """Deduplicate a list of jobs.
 
+    Accepts either raw dicts (normalized on the fly) or pre-normalized JobListing objects.
+
     Returns:
         tuple of (unique_jobs, duplicate_jobs)
 
     """
-    normalized = [normalize_job(job, source) for job in jobs]
+    normalized = [
+        job if isinstance(job, JobListing) else normalize_job(job, source)
+        for job in jobs
+    ]
 
     if existing_jobs is None:
         existing_jobs = []

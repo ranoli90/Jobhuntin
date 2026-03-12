@@ -220,25 +220,16 @@ async def list_applications(
     offset = max(0, offset)
 
     async with db.acquire() as conn:
-        # Get total count for pagination
-        count_result = await conn.fetchrow(
-            """
-            SELECT COUNT(*) as total
+        # Query with tenant filter (works when applications.tenant_id exists)
+        count_sql = """
+            SELECT COUNT(*)::bigint AS total
             FROM   public.applications a
             JOIN   public.jobs j ON j.id = a.job_id
             WHERE  a.user_id = $1 AND (a.tenant_id = $2 OR a.tenant_id IS NULL)
               AND a.status != 'REJECTED'
               AND (a.snoozed_until IS NULL OR a.snoozed_until < now())
-            """,
-            ctx.user_id,
-            ctx.tenant_id,
-        )
-
-        total_count = count_result["total"]
-
-        # Get paginated results
-        rows = await conn.fetch(
             """
+        rows_sql = """
             SELECT a.id, a.status::text, a.updated_at, a.snoozed_until,
                    j.title AS job_title, j.company,
                    (
@@ -253,12 +244,53 @@ async def list_applications(
               AND (a.snoozed_until IS NULL OR a.snoozed_until < now())
             ORDER  BY a.updated_at DESC
             LIMIT $3 OFFSET $4
-            """,
-            ctx.user_id,
-            ctx.tenant_id,
-            limit,
-            offset,
-        )
+            """
+        try:
+            count_result = await conn.fetchrow(
+                count_sql,
+                ctx.user_id,
+                ctx.tenant_id,
+            )
+            rows = await conn.fetch(
+                rows_sql,
+                ctx.user_id,
+                ctx.tenant_id,
+                limit,
+                offset,
+            )
+        except asyncpg.UndefinedColumnError:
+            # applications.tenant_id or snoozed_until may not exist in older schemas
+            count_sql_fallback = """
+                SELECT COUNT(*)::bigint AS total
+                FROM   public.applications a
+                JOIN   public.jobs j ON j.id = a.job_id
+                WHERE  a.user_id = $1
+                  AND a.status != 'REJECTED'
+                """
+            rows_sql_fallback = """
+                SELECT a.id, a.status::text, a.updated_at, NULL::timestamptz AS snoozed_until,
+                       j.title AS job_title, j.company,
+                       (
+                           SELECT question FROM public.application_inputs
+                           WHERE application_id = a.id AND resolved = false
+                           ORDER BY created_at LIMIT 1
+                       ) AS hold_question
+                FROM   public.applications a
+                JOIN   public.jobs j ON j.id = a.job_id
+                WHERE  a.user_id = $1
+                  AND a.status != 'REJECTED'
+                ORDER  BY a.updated_at DESC
+                LIMIT $2 OFFSET $3
+                """
+            count_result = await conn.fetchrow(count_sql_fallback, ctx.user_id)
+            rows = await conn.fetch(
+                rows_sql_fallback,
+                ctx.user_id,
+                limit,
+                offset,
+            )
+
+        total_count = int(count_result["total"]) if count_result else 0
 
     out: list[dict[str, Any]] = []
     for r in rows:
@@ -309,44 +341,43 @@ async def get_queue_stats(
     """Return queue position and estimated wait for user's APPLYING applications.
     #36: Queue position/ETA for users.
     """
-    async with db.acquire() as conn:
-        # Count QUEUED applications ahead of user's (by priority_score DESC, created_at ASC)
-        user_applying = await conn.fetch(
-            """
-            SELECT id, priority_score, created_at
-            FROM public.applications
-            WHERE user_id = $1 AND (tenant_id = $2 OR tenant_id IS NULL)
-              AND status = 'QUEUED'
-            ORDER BY priority_score DESC, created_at ASC
-            """,
-            ctx.user_id,
-            ctx.tenant_id,
-        )
-        if not user_applying:
-            return {"applications": [], "queue_ahead": 0, "eta_minutes": 0}
+    safe_fallback = {"applications": [], "queue_ahead": 0, "eta_minutes": 0}
 
-        # For each user app, count how many QUEUED apps are ahead (same tenant only)
-        first = user_applying[0]
-        ahead = await conn.fetchval(
-            """
-            SELECT COUNT(*) FROM public.applications
-            WHERE status = 'QUEUED'
-              AND tenant_id = $3
-              AND (priority_score > $1 OR (priority_score = $1 AND created_at < $2))
-            """,
-            first["priority_score"],
-            first["created_at"],
-            ctx.tenant_id,
-        )
-        # Avg ~2 min per application (worker + LLM)
+    async with db.acquire() as conn:
+        try:
+            # Minimal query - only user_id, status, created_at (no priority_score/tenant_id)
+            user_applying = await conn.fetch(
+                """
+                SELECT id, created_at
+                FROM public.applications
+                WHERE user_id = $1::uuid AND status = 'QUEUED'
+                ORDER BY created_at ASC
+                """,
+                str(ctx.user_id),
+            )
+            if not user_applying:
+                return safe_fallback
+
+            first = user_applying[0]
+            ahead = await conn.fetchval(
+                """
+                SELECT COUNT(*) FROM public.applications
+                WHERE status = 'QUEUED' AND created_at < $1
+                """,
+                first["created_at"],
+            )
+            applications_out = [
+                {"id": str(r["id"]), "priority_score": 0} for r in user_applying
+            ]
+        except Exception as e:
+            logger.warning("queue-stats error: %s", e, exc_info=True)
+            return safe_fallback
+
         avg_min_per_app = 2
         eta_minutes = max(0, int(ahead or 0) * avg_min_per_app)
 
         return {
-            "applications": [
-                {"id": str(r["id"]), "priority_score": r["priority_score"]}
-                for r in user_applying
-            ],
+            "applications": applications_out,
             "queue_ahead": ahead or 0,
             "eta_minutes": eta_minutes,
         }

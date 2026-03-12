@@ -6,6 +6,7 @@ When user_id is provided, loads profile and scores jobs by match.
 
 import json
 import time
+import uuid
 from typing import Any
 
 import asyncpg
@@ -132,13 +133,14 @@ async def search_and_list_jobs(
             job_ids = [str(j.get("id")) for j in result if j.get("id")]
             precomputed: dict[str, float] = {}
             if job_ids:
+                job_ids_uuid = [uuid.UUID(j) for j in job_ids if j]
                 precomputed_rows = await conn.fetch(
                     """
                     SELECT job_id, score FROM public.match_scores
-                    WHERE user_id = $1 AND job_id = ANY($2::uuid[])
+                    WHERE user_id = $1::uuid AND job_id = ANY($2::uuid[])
                     """,
-                    user_id,
-                    job_ids,
+                    uuid.UUID(user_id) if isinstance(user_id, str) else user_id,
+                    job_ids_uuid,
                 )
                 precomputed = {str(r["job_id"]): float(r["score"]) for r in precomputed_rows}
         if profile:
@@ -228,28 +230,27 @@ def _build_job_search_query(
 
     if location:
         n += 1
-        query += f" AND location ILIKE ${n}"
+        query += f" AND location ILIKE ${n}::text"
         params.append(f"%{escape_ilike(location)}%")
 
     if min_salary is not None:
         n += 1
-        query += f" AND (salary_max IS NULL OR salary_max >= ${n})"
+        query += f" AND (salary_max IS NULL OR salary_max >= ${n}::int)"
         params.append(min_salary)
 
     if keywords:
         n += 1
         query += (
-            f" AND (title ILIKE ${n} OR company ILIKE ${n} OR description ILIKE ${n})"
+            f" AND (title ILIKE ${n}::text OR company ILIKE ${n}::text OR description ILIKE ${n}::text)"
         )
         params.append(f"%{escape_ilike(keywords)}%")
 
     if source:
         n += 1
-        query += f" AND source = ${n}"
+        query += f" AND source = ${n}::text"
         params.append(source.lower())
 
     if is_remote is not None:
-        n += 1
         if is_remote:
             query += " AND is_remote = TRUE"
         else:
@@ -257,22 +258,20 @@ def _build_job_search_query(
 
     if job_type:
         n += 1
-        query += f" AND job_type = ${n}"
+        query += f" AND job_type = ${n}::text"
         params.append(job_type.lower())
 
     # Filter out scam jobs (persisted at sync)
     query += " AND (is_scam IS NULL OR is_scam = FALSE)"
 
     # Filter out expired jobs using last_synced_at
-    from datetime import timedelta
-
     ttl_days = getattr(settings, "jobspy_job_ttl_days", 7)
     if ttl_days > 0:
         n += 1
         query += (
-            f" AND (last_synced_at IS NULL OR last_synced_at >= now() - ${n}::interval)"
+            f" AND (last_synced_at IS NULL OR last_synced_at >= now() - (${n}::text)::interval)"
         )
-        params.append(timedelta(days=ttl_days))
+        params.append(f"{ttl_days} days")
 
     # ORDER BY
     if sort_by == "salary":
@@ -282,7 +281,7 @@ def _build_job_search_query(
     else:
         order_clause = "date_posted DESC NULLS LAST, created_at DESC"
 
-    query += f" ORDER BY {order_clause} LIMIT ${n + 1} OFFSET ${n + 2}"
+    query += f" ORDER BY {order_clause} LIMIT ${n + 1}::int OFFSET ${n + 2}::int"
     params.extend([limit, offset])
 
     return query, params
@@ -448,13 +447,13 @@ async def _track_search(
             await conn.execute(
                 """
                 INSERT INTO public.popular_searches (search_term, location, search_count, last_searched_at)
-                VALUES ($1, $2, 1, now())
+                VALUES ($1::text, $2::text, 1, now())
                 ON CONFLICT (search_term, location) DO UPDATE SET
                     search_count = popular_searches.search_count + 1,
                     last_searched_at = now()
                 """,
                 keywords,
-                location,
+                location or "",
             )
     except Exception as e:
         logger.warning(f"Failed to track search: {e}")

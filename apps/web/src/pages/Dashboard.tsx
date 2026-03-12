@@ -380,22 +380,21 @@ export default function Dashboard() {
   // N-2: Reactive locale
   const locale = useMemo(() => getLocale(), []);
 
-  // L-2: Compute data-driven progress values
+  // L-2: Compute data-driven progress values (guard against NaN for framer-motion)
+  const safeProgress = (n: number) =>
+    Number.isFinite(n) ? Math.max(0, Math.min(100, n)) : 0;
   const totalApps =
     stats.totalApps ?? stats.monthlyApps ?? applications.length ?? 0;
   const totalForProgress = totalApps || 1; // avoid /0
-  const activeCount = byStatus.APPLYING + byStatus.APPLIED;
-  const activeProgress = Math.min(
-    100,
+  const activeCount = (byStatus.APPLYING ?? 0) + (byStatus.APPLIED ?? 0);
+  const activeProgress = safeProgress(
     Math.round((activeCount / totalForProgress) * 100),
   );
-  const successProgress = Math.min(100, stats.successRate);
-  const holdProgress = Math.min(
-    100,
-    Math.round((byStatus.HOLD / totalForProgress) * 100),
+  const successProgress = safeProgress(stats.successRate ?? 0);
+  const holdProgress = safeProgress(
+    Math.round(((byStatus.HOLD ?? 0) / totalForProgress) * 100),
   );
-  const monthlyProgress = Math.min(
-    100,
+  const monthlyProgress = safeProgress(
     Math.round((totalApps / Math.max(totalApps, 100)) * 100),
   );
 
@@ -412,7 +411,7 @@ export default function Dashboard() {
     },
     {
       label: "Success Rate",
-      value: `${stats.successRate}%`,
+      value: `${safeProgress(stats.successRate ?? 0)}%`,
       icon: BarChart3,
       color: "from-emerald-500 to-emerald-600",
       bg: "bg-emerald-50",
@@ -712,16 +711,20 @@ export default function Dashboard() {
                         </p>
                       </div>
                     </div>
-                    {/* L-2: Data-driven progress bar */}
+                    {/* L-2: Data-driven progress bar (coerce to avoid framer-motion NaN) */}
                     <div className="mt-4 h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
                       <motion.div
                         className={`h-full rounded-full bg-gradient-to-r ${metric.color}`}
                         initial={
                           shouldReduceMotion
-                            ? { width: `${metric.progress}%` }
-                            : { width: 0 }
+                            ? {
+                                width: `${Math.min(100, Math.max(0, Number(metric.progress) || 0))}%`,
+                              }
+                            : { width: "0%" }
                         }
-                        animate={{ width: `${metric.progress}%` }}
+                        animate={{
+                          width: `${Math.min(100, Math.max(0, Number(metric.progress) || 0))}%`,
+                        }}
                         transition={
                           shouldReduceMotion
                             ? undefined
@@ -1613,7 +1616,7 @@ export function JobsView() {
                     className="w-full"
                     onClick={() => {
                       setShowFirstStepsModal(false);
-                      navigate("/app/dashboard");
+                      navigate("/app/jobs");
                       telemetry.track("first_steps_jobs_clicked", {});
                     }}
                   >

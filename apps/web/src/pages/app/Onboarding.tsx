@@ -105,21 +105,96 @@ export default function Onboarding() {
     completeOnboarding,
     updateProfile,
   } = useProfile();
-  const syncProgressToServer = React.useCallback(
-    async (step: number, completed: string[]) => {
-      try {
-        await api.patch("me/profile", {
-          onboarding_step: step,
-          onboarding_completed_steps: completed,
-        });
-      } catch (error) {
-        if (import.meta.env.DEV)
-          console.warn("[Onboarding] syncProgressToServer failed:", error);
-        throw error; // Re-throw so useOnboarding saveState can call onSyncError
-      }
+  const syncToastLastShownRef = React.useRef(0);
+  const onSyncError = React.useCallback(
+    (error: unknown) => {
+      if (import.meta.env.DEV)
+        console.warn("[Onboarding] Progress sync failed:", error);
+      const now = Date.now();
+      const DEBOUNCE_MS = 5000;
+      if (now - syncToastLastShownRef.current < DEBOUNCE_MS) return;
+      syncToastLastShownRef.current = now;
+      pushToast({
+        title: "Could not save progress",
+        description: "Your progress is saved locally. Check your connection.",
+        tone: "warning",
+      });
     },
     [],
   );
+  const onSyncErrorRef = React.useRef(onSyncError);
+  onSyncErrorRef.current = onSyncError;
+  // O25: Throttle profile sync to max 1 req per 2s to avoid 429 rate limits
+  const syncProgressToServer = React.useMemo(() => {
+    let lastSyncTime = 0;
+    let pending: { step: number; completed: string[] } | null = null;
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+    const MIN_INTERVAL_MS = 2000;
+
+    const doPatch = async (step: number, completed: string[]) => {
+      await api.patch("me/profile", {
+        onboarding_step: step,
+        onboarding_completed_steps: completed,
+      });
+    };
+
+    const flushPending = (onError: (err: unknown) => void) => {
+      if (!pending || !timeoutId) return;
+      const { step, completed } = pending;
+      pending = null;
+      timeoutId = null;
+      lastSyncTime = Date.now();
+      doPatch(step, completed).catch((err) => {
+        if (import.meta.env.DEV)
+          console.warn("[Onboarding] syncProgressToServer failed:", err);
+        onError(err);
+      });
+    };
+
+    return async (step: number, completed: string[]) => {
+      const now = Date.now();
+      if (now - lastSyncTime >= MIN_INTERVAL_MS) {
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+          timeoutId = null;
+          pending = null;
+        }
+        lastSyncTime = now;
+        try {
+          await doPatch(step, completed);
+        } catch (error) {
+          if (import.meta.env.DEV)
+            console.warn("[Onboarding] syncProgressToServer failed:", error);
+          const err = error as Error & { status?: number };
+          const isRetryable =
+            !err.status || err.status >= 500 || err.status === 429;
+          if (isRetryable) {
+            try {
+              await new Promise((r) => setTimeout(r, 500));
+              await doPatch(step, completed);
+              return;
+            } catch (retryErr) {
+              if (import.meta.env.DEV)
+                console.warn(
+                  "[Onboarding] syncProgressToServer retry failed:",
+                  retryErr,
+                );
+              throw retryErr;
+            }
+          }
+          throw error;
+        }
+        return;
+      }
+      pending = { step, completed };
+      if (!timeoutId) {
+        timeoutId = setTimeout(
+          () => flushPending((e) => onSyncErrorRef.current(e)),
+          MIN_INTERVAL_MS - (now - lastSyncTime),
+        );
+      }
+    };
+  }, []);
   const [searchParameters, setSearchParameters] = useSearchParams();
   const urlStep = React.useMemo(() => {
     const s = searchParameters.get("step");
@@ -143,26 +218,26 @@ export default function Onboarding() {
     formData,
     updateFormData,
   } = useOnboarding({
-    serverProgress:
-      profile &&
-      !profile.has_completed_onboarding &&
-      profile.onboarding_step != undefined
-        ? {
-            step: profile.onboarding_step,
-            completed: profile.onboarding_completed_steps || [],
-          }
-        : null,
+    serverProgress: React.useMemo(() => {
+      if (
+        !profile ||
+        profile.has_completed_onboarding ||
+        profile.onboarding_step == undefined
+      )
+        return null;
+      return {
+        step: profile.onboarding_step,
+        completed: profile.onboarding_completed_steps || [],
+      };
+    }, [
+      profile?.id,
+      profile?.has_completed_onboarding,
+      profile?.onboarding_step,
+      profile?.onboarding_completed_steps?.join(",") ?? "",
+    ]),
     syncToServer: profile ? syncProgressToServer : undefined,
     initialStepFromUrl: urlStep,
-    onSyncError: (error) => {
-      if (import.meta.env.DEV)
-        console.warn("[Onboarding] Progress sync failed:", error);
-      pushToast({
-        title: "Could not save progress",
-        description: "Your progress is saved locally. Check your connection.",
-        tone: "warning",
-      });
-    },
+    onSyncError,
   });
   const aiSuggestions = useAISuggestions();
   const locale = getLocale();
@@ -1142,10 +1217,8 @@ export default function Onboarding() {
   const completeness = calculateCompleteness();
 
   const handleSavePreferences = async () => {
-    // Validate first before setting loading state
+    // Validate salary only; location and role_type are optional for step advancement
     const errors: Record<string, string> = {};
-    if (!preferences.location?.trim()) errors.location = "Required";
-    if (!preferences.role_type?.trim()) errors.role_type = "Required";
 
     const SALARY_CAP = 10_000_000;
     if (preferences.salary_min?.trim()) {
@@ -1194,8 +1267,8 @@ export default function Onboarding() {
       );
 
       const prefs: import("../../hooks/useProfile").Preferences = {
-        location: trimmedPrefs.location,
-        role_type: trimmedPrefs.role_type,
+        location: trimmedPrefs.location || undefined,
+        role_type: trimmedPrefs.role_type || undefined,
         salary_min: Number.parseInt(trimmedPrefs.salary_min) || 0,
         salary_max: trimmedPrefs.salary_max?.trim()
           ? Number.parseInt(trimmedPrefs.salary_max.trim())
@@ -1207,20 +1280,34 @@ export default function Onboarding() {
         excluded_companies: trimmedPrefs.excluded_companies,
         excluded_keywords: trimmedPrefs.excluded_keywords,
       };
-      await savePreferences(prefs);
+      // Timeout guard: prevent indefinite hang if API never resolves
+      const SAVE_TIMEOUT_MS = 25_000;
+      await Promise.race([
+        savePreferences(prefs),
+        new Promise<never>((_, reject) =>
+          setTimeout(
+            () => reject(new Error("Save timed out. Please try again.")),
+            SAVE_TIMEOUT_MS,
+          ),
+        ),
+      ]);
 
-      // Update contact info separately if LinkedIn URL is provided
+      // Advance immediately so UI doesn't hang; LinkedIn update is non-blocking
+      nextStep();
+      pushToast({ title: "Preferences saved!", tone: "success" });
+
+      // Update contact info separately if LinkedIn URL is provided (fire-and-forget)
       if (linkedinUrl) {
-        await updateProfile({
+        updateProfile({
           contact: {
             linkedin_url: linkedinUrl,
             location: trimmedPrefs.location,
           },
+        }).catch((err) => {
+          if (import.meta.env.DEV)
+            console.warn("[Onboarding] LinkedIn URL update failed:", err);
         });
       }
-      pushToast({ title: "Preferences saved!", tone: "success" });
-
-      nextStep();
     } catch (error) {
       const error_ = error as Error & { status?: number };
       const message =
@@ -1679,10 +1766,14 @@ export default function Onboarding() {
                 <motion.div
                   initial={
                     shouldReduceMotion
-                      ? { width: `${progress}%` }
+                      ? {
+                          width: `${Number.isFinite(progress) ? Math.max(0, Math.min(100, progress)) : 0}%`,
+                        }
                       : { width: 0 }
                   }
-                  animate={{ width: `${progress}%` }}
+                  animate={{
+                    width: `${Number.isFinite(progress) ? Math.max(0, Math.min(100, progress)) : 0}%`,
+                  }}
                   className="h-full bg-[#455DD3]"
                   transition={
                     shouldReduceMotion

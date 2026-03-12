@@ -258,8 +258,7 @@ export function PreferencesStep({
             className="mb-2 flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider"
           >
             <MapPin className="w-3 h-3" />
-            {t("onboarding.location", locale)}{" "}
-            <span className="text-red-400">*</span>
+            {t("onboarding.location", locale)}
           </label>
           <AutoCompleteInput
             id="onboarding-location"
@@ -284,8 +283,7 @@ export function PreferencesStep({
             className="mb-2 flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider"
           >
             <Briefcase className="w-3 h-3" />
-            {t("onboarding.roleType", locale)}{" "}
-            <span className="text-red-400">*</span>
+            {t("onboarding.roleType", locale)}
           </label>
           <AutoCompleteInput
             id="onboarding-role-type"
@@ -638,11 +636,7 @@ export function PreferencesStep({
         <Button
           type="button"
           onClick={onNext}
-          disabled={
-            !preferences.location ||
-            !preferences.role_type ||
-            isSavingPreferences
-          }
+          disabled={isSavingPreferences}
           className="flex-1 h-12 sm:h-11 rounded-xl font-bold bg-emerald-600 hover:bg-emerald-500 shadow-lg shadow-emerald-500/20 text-sm disabled:opacity-50 disabled:cursor-not-allowed group touch-manipulation"
           aria-label={t("onboarding.savePreferences", locale)}
           data-onboarding-next

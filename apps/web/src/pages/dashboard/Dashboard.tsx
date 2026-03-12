@@ -93,23 +93,23 @@ export default function Dashboard() {
   const locale = getLocale();
   const rtl = isRTLLanguage(locale);
 
+  // Guard against NaN for framer-motion width animations
+  const safeProgress = (n: number) =>
+    Number.isFinite(n) ? Math.max(0, Math.min(100, n)) : 0;
   const totalApps = applications.length || 1; // avoid /0
-  const activeCount = byStatus.APPLYING + byStatus.APPLIED;
-  const activeProgress = Math.min(
-    100,
+  const activeCount = (byStatus.APPLYING ?? 0) + (byStatus.APPLIED ?? 0);
+  const activeProgress = safeProgress(
     Math.round((activeCount / totalApps) * 100),
   );
   const appliedRate =
     applications.length > 0
-      ? Math.round((byStatus.APPLIED / applications.length) * 100)
+      ? Math.round(((byStatus.APPLIED ?? 0) / applications.length) * 100)
       : 0;
-  const appliedProgress = Math.min(100, appliedRate);
-  const holdProgress = Math.min(
-    100,
-    Math.round((byStatus.HOLD / totalApps) * 100),
+  const appliedProgress = safeProgress(appliedRate);
+  const holdProgress = safeProgress(
+    Math.round(((byStatus.HOLD ?? 0) / totalApps) * 100),
   );
-  const totalProgress = Math.min(
-    100,
+  const totalProgress = safeProgress(
     Math.round(
       (applications.length / Math.max(applications.length, 100)) * 100,
     ),
@@ -315,12 +315,16 @@ export default function Dashboard() {
                   <div className="mt-4 h-1.5 w-full bg-brand-gray rounded-full overflow-hidden">
                     <motion.div
                       className={`h-full rounded-full bg-gradient-to-r ${metric.color}`}
-                      initial={
-                        shouldReduceMotion
-                          ? { width: `${metric.progress}%` }
-                          : { width: 0 }
-                      }
-                      animate={{ width: `${metric.progress}%` }}
+                        initial={
+                          shouldReduceMotion
+                            ? {
+                                width: `${Math.min(100, Math.max(0, Number(metric.progress) || 0))}%`,
+                              }
+                            : { width: "0%" }
+                        }
+                        animate={{
+                          width: `${Math.min(100, Math.max(0, Number(metric.progress) || 0))}%`,
+                        }}
                       transition={
                         shouldReduceMotion
                           ? undefined

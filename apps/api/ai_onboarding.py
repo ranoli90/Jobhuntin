@@ -18,6 +18,7 @@ Key endpoints:
 - GET /ai-onboarding/health - Health check for AI onboarding
 """
 
+import json
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
@@ -119,8 +120,6 @@ class SubmitResponseRequest(BaseModel):
         # Validate size
         if len(v) > 10000:
             raise ValueError("Response too long (max 10000 characters)")
-        if isinstance(v, (list, dict)) and len(str(v)) > 10000:
-            raise ValueError("Response too large (max 10000 characters)")
         return v
 
 
@@ -533,6 +532,18 @@ async def complete_onboarding(
             await OnboardingSessionRepo.mark_completed(conn, session_id)
             await OnboardingSessionRepo.save_session(conn, session)
 
+            # CRITICAL: Update profile has_completed_onboarding so user is not sent back to onboarding
+            await conn.execute(
+                """
+                UPDATE public.profiles
+                SET profile_data = COALESCE(profile_data, '{}')::jsonb || '{"has_completed_onboarding": true}'::jsonb,
+                    updated_at = now()
+                WHERE user_id = $1 AND tenant_id = $2
+                """,
+                session.user_id,
+                session.tenant_id,
+            )
+
         if result["success"]:
             return CompleteSessionResponse(
                 success=result["success"],
@@ -601,6 +612,10 @@ async def get_onboarding_flows(
         )
 
 
+_PROGRESS_DATA_MAX_KEYS = 10
+_PROGRESS_DATA_MAX_BYTES = 50 * 1024  # 50KB
+
+
 @router.post("/session/{session_id}/save-progress")
 async def save_session_progress(
     session_id: str,
@@ -622,6 +637,22 @@ async def save_session_progress(
         Save operation result
     """
     try:
+        # HIGH: Validate payload size to prevent DoS
+        try:
+            payload_bytes = json.dumps(progress_data).encode("utf-8")
+        except (TypeError, ValueError):
+            raise HTTPException(status_code=400, detail="Invalid progress_data")
+        if len(payload_bytes) > _PROGRESS_DATA_MAX_BYTES:
+            raise HTTPException(
+                status_code=400,
+                detail=f"progress_data too large (max {_PROGRESS_DATA_MAX_BYTES // 1024}KB)",
+            )
+        if len(progress_data) > _PROGRESS_DATA_MAX_KEYS:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Too many keys in progress_data (max {_PROGRESS_DATA_MAX_KEYS})",
+            )
+
         # CRITICAL: Verify session ownership
         await _verify_session_ownership(session_id, ctx, db)
 

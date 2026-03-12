@@ -327,7 +327,7 @@ async def get_tenant_activity(
                 MAX(a.updated_at) as last_activity
             FROM public.tenants t
             LEFT JOIN public.profiles p ON p.tenant_id = t.id
-            LEFT JOIN public.applications a ON a.user_id = p.user_id
+            LEFT JOIN public.applications a ON a.user_id = p.user_id AND a.tenant_id = t.id
             GROUP BY t.id, t.name, t.plan
             ORDER BY requests_last_day DESC NULLS LAST
             LIMIT $1

@@ -78,7 +78,9 @@ function ScoreVisualization({
         <motion.div
           className={`h-full bg-gradient-to-r ${getScoreColor(score)} rounded-full`}
           initial={{ width: 0 }}
-          animate={{ width: `${score}%` }}
+          animate={{
+            width: `${Number.isFinite(score) ? Math.max(0, Math.min(100, score)) : 0}%`,
+          }}
           transition={{ delay: 0.2, duration: 0.6, ease: [0.4, 0, 0.2, 1] }}
         />
       </div>

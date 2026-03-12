@@ -58,7 +58,8 @@ export default defineConfig(({ mode }) => {
         "/api": {
           target: env.API_URL || "http://localhost:8000",
           changeOrigin: true,
-          rewrite: (path) => path.replace(/^\/api/, ""),
+          // Strip /api prefix so /api/me/jobs -> /me/jobs (backend expects no /api prefix)
+          rewrite: (path) => (path.startsWith("/api") ? path.slice(4) || "/" : path),
         },
       },
     },

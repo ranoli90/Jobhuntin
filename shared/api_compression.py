@@ -64,6 +64,7 @@ class CompressionConfig:
         if self.exclude_paths is None:
             self.exclude_paths = [
                 "/health",
+                "/healthz",
                 "/metrics",
                 "/monitoring/health",
                 "/favicon.ico",
@@ -156,10 +157,20 @@ class CompressionMiddleware(BaseHTTPMiddleware):
         # Check if compression should be applied
         if not self._should_compress_request(request):
             response = await call_next(request)
+            if response is None:
+                return JSONResponse(
+                    status_code=500,
+                    content={"error": {"code": "INTERNAL_SERVER_ERROR", "message": "No response"}},
+                )
             return response
 
-        # Get original response
+        # Get original response - CRITICAL: never return None (causes "NoneType object is not callable" in ASGI)
         response = await call_next(request)
+        if response is None:
+            return JSONResponse(
+                status_code=500,
+                content={"error": {"code": "INTERNAL_SERVER_ERROR", "message": "No response"}},
+            )
 
         # Check if response should be compressed
         if not self._should_compress_response(request, response):
@@ -171,9 +182,11 @@ class CompressionMiddleware(BaseHTTPMiddleware):
         if compression_type == CompressionType.IDENTITY:
             return response
 
-        # Compress response
+        # Compress response - NEVER return None (causes "NoneType object is not callable" in ASGI)
         compressed_response = await self._compress_response(response, compression_type)
-
+        if compressed_response is None:
+            logger.warning("_compress_response returned None, returning uncompressed response")
+            return response
         return compressed_response
 
     def _should_compress_request(self, request: Request) -> bool:
@@ -323,21 +336,14 @@ class CompressionMiddleware(BaseHTTPMiddleware):
                 original_size, compressed_size, compression_type.value
             )
 
-            # Create new response
-            if isinstance(response, JSONResponse):
-                compressed_response = JSONResponse(
-                    content=compressed_body,
-                    status_code=response.status_code,
-                    headers=dict(response.headers),
-                    background=response.background,
-                )
-            else:
-                compressed_response = Response(
-                    content=compressed_body,
-                    status_code=response.status_code,
-                    headers=dict(response.headers),
-                    background=response.background,
-                )
+            # Create new response - always use Response for compressed bytes
+            # (JSONResponse expects dict/list, not raw bytes)
+            compressed_response = Response(
+                content=compressed_body,
+                status_code=response.status_code,
+                headers=dict(response.headers),
+                background=response.background,
+            )
 
             # Set compression headers
             compressed_response.headers["content-encoding"] = encoding_name

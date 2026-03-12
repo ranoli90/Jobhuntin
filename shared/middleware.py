@@ -83,6 +83,7 @@ class CSRFMiddleware:
         "/healthz",
         "/auth/magic-link",
         "/auth/verify-magic",
+        "/auth/dev-login",
         "/auth/logout",
         "/auth/webhooks/resend",
         "/billing/webhook",

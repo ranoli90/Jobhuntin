@@ -138,6 +138,7 @@ export function useJobs(filters: JobFilters) {
     hasNextPage: query.hasNextPage,
     fetchNextPage: query.fetchNextPage,
     refetch: query.refetch,
+    error: query.error,
   };
 }
 
@@ -146,7 +147,7 @@ export function useJobSources() {
     queryKey: ["jobSources"],
     queryFn: () => fetchJobSources(),
     initialPageParam: 0,
-    getNextPageParam: () => {},
+    getNextPageParam: () => undefined,
   });
 }
 
