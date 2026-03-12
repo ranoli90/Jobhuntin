@@ -164,7 +164,7 @@ class CompressionMiddleware(BaseHTTPMiddleware):
                 )
             return response
 
-        # Get original response
+        # Get original response - CRITICAL: never return None (causes "NoneType object is not callable" in ASGI)
         response = await call_next(request)
         if response is None:
             return JSONResponse(

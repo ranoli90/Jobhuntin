@@ -26,6 +26,7 @@ import json
 import mimetypes
 import os
 import re
+import uuid
 from typing import Any
 
 import asyncpg
@@ -258,6 +259,16 @@ setup_request_id_middleware(app)
 # For v1, we use the default routes (no prefix)
 
 
+# Proxy-friendly: Vite may forward /api/* without rewriting. Strip /api prefix for v1 routes.
+@app.middleware("http")
+async def api_prefix_rewrite_middleware(request: Request, call_next):
+    """Rewrite /api/me/jobs -> /me/jobs so backend routes match. Skip /api/v2/."""
+    path = request.scope.get("path", "")
+    if path.startswith("/api/") and not path.startswith("/api/v2/"):
+        request.scope["path"] = path[4:] or "/"  # /api/me/jobs -> /me/jobs
+    return await call_next(request)
+
+
 # M3: API Versioning Middleware - Add version headers and handle version negotiation
 @app.middleware("http")
 async def api_versioning_middleware(request: Request, call_next):
@@ -307,11 +318,6 @@ async def api_versioning_middleware(request: Request, call_next):
 
     # Process request
     response = await call_next(request)
-    if response is None:
-        return JSONResponse(
-            status_code=500,
-            content={"error": {"code": "INTERNAL_SERVER_ERROR", "message": "No response"}},
-        )
 
     # Add API version headers to response (reflect actual version used)
     response.headers["X-API-Version"] = effective_version
@@ -386,8 +392,14 @@ async def _get_tenant_info(auth_header: str) -> tuple[str | None, TenantTier]:
             algorithms=["HS256"],
             audience="authenticated",
         )
-        user_id = payload.get("sub")
-        if not user_id:
+        user_id_raw = payload.get("sub")
+        if not user_id_raw:
+            return None, TenantTier.FREE
+
+        # JWT sub is string; cast to UUID for profiles.user_id (uuid column)
+        try:
+            user_id_uuid = uuid.UUID(str(user_id_raw))
+        except (ValueError, TypeError):
             return None, TenantTier.FREE
 
         try:
@@ -395,12 +407,12 @@ async def _get_tenant_info(auth_header: str) -> tuple[str | None, TenantTier]:
                 row = await conn.fetchrow(
                     """SELECT p.tenant_id, t.plan
                        FROM public.profiles p
-                       LEFT JOIN public.tenants t ON t.id = p.tenant_id
-                       WHERE p.user_id = $1""",
-                    user_id,
+                       LEFT JOIN public.tenants t ON t.id::text = p.tenant_id
+                       WHERE p.user_id = $1::uuid""",
+                    str(user_id_raw),
                 )
-                if row:
-                    tenant_id = row["tenant_id"]
+                if row and row["tenant_id"]:
+                    tenant_id = str(row["tenant_id"])
                     try:
                         tier = (
                             TenantTier(row["plan"].upper())
@@ -430,25 +442,13 @@ async def idempotency_middleware(request: Request, call_next):
 
     # Only apply to write operations
     if request.method not in ["POST", "PUT", "PATCH"]:
-        response = await call_next(request)
-        if response is None:
-            return JSONResponse(
-                status_code=500,
-                content={"error": {"code": "INTERNAL_SERVER_ERROR", "message": "No response"}},
-            )
-        return response
+        return await call_next(request)
 
     idempotency_key = request.headers.get("Idempotency-Key")
     if not idempotency_key:
         # No idempotency key provided - proceed normally
         # (Optional: could require it for certain endpoints)
-        response = await call_next(request)
-        if response is None:
-            return JSONResponse(
-                status_code=500,
-                content={"error": {"code": "INTERNAL_SERVER_ERROR", "message": "No response"}},
-            )
-        return response
+        return await call_next(request)
 
     # Validate key format (UUID or alphanumeric, max 128 chars)
     if (
@@ -512,13 +512,7 @@ async def idempotency_middleware(request: Request, call_next):
                         logger.warning("Failed to parse cached idempotency response")
                         # Release lock and fall through
                         await r.delete(lock_key)
-                        response = await call_next(request)
-                        if response is None:
-                            return JSONResponse(
-                                status_code=500,
-                                content={"error": {"code": "INTERNAL_SERVER_ERROR", "message": "No response"}},
-                            )
-                        return response
+                        return await call_next(request)
                 # No cache yet, release lock and proceed (shouldn't happen but handle gracefully)
                 await r.delete(lock_key)
                 # Continue to process request normally - fall through to line 425
@@ -556,12 +550,6 @@ async def idempotency_middleware(request: Request, call_next):
             finally:
                 # Always release lock
                 await r.delete(lock_key)
-
-            if response is None:
-                return JSONResponse(
-                    status_code=500,
-                    content={"error": {"code": "INTERNAL_SERVER_ERROR", "message": "No response"}},
-                )
 
             # Cache successful responses (2xx status codes)
             if 200 <= response.status_code < 300:
@@ -602,26 +590,14 @@ async def idempotency_middleware(request: Request, call_next):
         except Exception as e:
             logger.warning("Idempotency check failed (Redis unavailable): %s", e)
             # Fail open - process request normally if Redis is down
-            response = await call_next(request)
-            if response is None:
-                return JSONResponse(
-                    status_code=500,
-                    content={"error": {"code": "INTERNAL_SERVER_ERROR", "message": "No response"}},
-                )
-            return response
+            return await call_next(request)
     else:
         # No Redis - can't provide idempotency (log warning in production)
         if _settings.env.value == "prod":
             logger.warning(
                 "Idempotency-Key provided but Redis not available - idempotency disabled"
             )
-        response = await call_next(request)
-        if response is None:
-            return JSONResponse(
-                status_code=500,
-                content={"error": {"code": "INTERNAL_SERVER_ERROR", "message": "No response"}},
-            )
-        return response
+        return await call_next(request)
 
 
 @app.middleware("http")
@@ -646,12 +622,6 @@ async def latency_middleware(request: Request, call_next):
 
     try:
         response = await call_next(request)
-        if response is None:
-            logger.warning("call_next returned None for path=%s", request.url.path)
-            return JSONResponse(
-                status_code=500,
-                content={"error": {"code": "INTERNAL_SERVER_ERROR", "message": "No response"}},
-            )
         duration = time.time() - start_time
 
         # M4: Add response attributes to span
@@ -738,13 +708,7 @@ async def latency_middleware(request: Request, call_next):
 async def rate_limiting_middleware(request: Request, call_next):
     """Tenant-aware rate limiting middleware for API endpoints."""
     if _is_exempt_path(request.url.path):
-        response = await call_next(request)
-        if response is None:
-            return JSONResponse(
-                status_code=500,
-                content={"error": {"code": "INTERNAL_SERVER_ERROR", "message": "No response"}},
-            )
-        return response
+        return await call_next(request)
 
     client_ip = get_client_ip(request)
     auth_header = request.headers.get("Authorization", "")
@@ -788,9 +752,8 @@ async def rate_limiting_middleware(request: Request, call_next):
             )
 
     response = await call_next(request)
-    # Guard: BaseHTTPMiddleware can receive None in edge cases; prevent crash
+    # CRITICAL: never return None (causes "NoneType object is not callable" in ASGI)
     if response is None:
-        logger.warning("call_next returned None for path=%s", request.url.path)
         return JSONResponse(
             status_code=500,
             content={"error": {"code": "INTERNAL_SERVER_ERROR", "message": "No response"}},
@@ -1348,6 +1311,8 @@ async def get_tenant_context(
     db: asyncpg.Pool = Depends(get_pool),
 ) -> TenantContext:
     """Resolve TenantContext from JWT user_id. Auto-provisions FREE tenant if needed."""
+    from packages.backend.domain.tenant import TenantScopeError
+
     try:
         async with db.acquire() as conn:
             ctx = await resolve_tenant_context(conn, user_id)
@@ -1362,6 +1327,13 @@ async def get_tenant_context(
         return ctx
     except HTTPException:
         raise
+    except TenantScopeError as exc:
+        if "not found" in str(exc).lower() or "sign in again" in str(exc).lower():
+            raise HTTPException(
+                status_code=401,
+                detail="User not found. Please sign in again.",
+            )
+        raise HTTPException(status_code=403, detail=str(exc))
     except Exception as exc:
         logger.error("[TENANT] Error resolving tenant context: %s", exc, exc_info=True)
         raise HTTPException(status_code=500, detail="Failed to resolve tenant context")

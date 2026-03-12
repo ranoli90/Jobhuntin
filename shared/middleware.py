@@ -52,11 +52,6 @@ class RequestIDMiddleware(BaseHTTPMiddleware):
 
         # Process request
         response = await call_next(request)
-        if response is None:
-            return JSONResponse(
-                status_code=500,
-                content={"error": {"code": "INTERNAL_SERVER_ERROR", "message": "No response"}},
-            )
 
         # Add to response headers
         response.headers[header_name] = request_id
@@ -274,11 +269,6 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
 
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
         response = await call_next(request)
-        if response is None:
-            return JSONResponse(
-                status_code=500,
-                content={"error": {"code": "INTERNAL_SERVER_ERROR", "message": "No response"}},
-            )
         s = get_settings()
 
         response.headers["X-Content-Type-Options"] = "nosniff"

@@ -66,6 +66,12 @@ async def resolve_tenant_context(
     If the user has no tenant_members rows, auto-create a personal FREE tenant
     and make them OWNER. Returns the resolved TenantContext.
     """
+    # JWT user_id is string; cast to UUID for tenant_members.user_id (uuid column)
+    try:
+        user_id_uuid = uuid.UUID(str(user_id))
+    except (ValueError, TypeError):
+        raise TenantScopeError(f"Invalid user_id: {user_id}")
+
     # 1. Look up existing membership (take first tenant — default)
     row = await conn.fetchrow(
         """
@@ -76,7 +82,7 @@ async def resolve_tenant_context(
         ORDER  BY tm.created_at ASC
         LIMIT  1
         """,
-        user_id,
+        user_id_uuid,
     )
 
     if row is not None:
@@ -86,8 +92,8 @@ async def resolve_tenant_context(
             SELECT role FROM public.tenant_members
             WHERE  tenant_id = $1 AND user_id = $2
             """,
-            str(row["tenant_id"]),
-            user_id,
+            row["tenant_id"],
+            user_id_uuid,
         )
         roles = [str(r["role"]) for r in roles_rows]
         return TenantContext(
@@ -97,7 +103,17 @@ async def resolve_tenant_context(
             plan=str(row["plan"]),
         )
 
-    # 2. Auto-provision: create personal tenant + OWNER membership
+    # 2. Ensure user exists before creating tenant (tenant_members has FK to users)
+    user_exists = await conn.fetchval(
+        "SELECT 1 FROM public.users WHERE id = $1", user_id_uuid
+    )
+    if not user_exists:
+        logger.warning("User %s not found in users table - cannot provision tenant", user_id)
+        raise TenantScopeError(
+            f"User {user_id} not found. Please sign in again."
+        )
+
+    # 3. Auto-provision: create personal tenant + OWNER membership
     logger.info("Auto-provisioning FREE tenant for user %s", user_id)
     tenant_id = str(uuid.uuid4())
     slug = f"user-{user_id[:8]}-{uuid.uuid4().hex[:6]}"
@@ -135,8 +151,8 @@ async def resolve_tenant_context(
         INSERT INTO public.tenant_members (tenant_id, user_id, role)
         VALUES ($1, $2, 'OWNER')
         """,
-        tenant_id,
-        user_id,
+        uuid.UUID(tenant_id),
+        user_id_uuid,
     )
 
     return TenantContext(
