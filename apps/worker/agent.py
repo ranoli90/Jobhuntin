@@ -2455,7 +2455,35 @@ async def worker_loop() -> None:
 ApplicationAgent = FormAgent
 
 
+def _ensure_playwright_browsers():
+    """Ensure Playwright browsers are installed, install if missing."""
+    import subprocess
+    import sys
+    
+    try:
+        from playwright.sync_api import sync_playwright
+        
+        # Try to check if chromium is available
+        with sync_playwright() as pw:
+            try:
+                pw.chromium.launch(headless=True)
+                return True
+            except Exception as e:
+                pass
+        
+        # If we get here, browser launch failed - try installing
+        result = subprocess.run(
+            [sys.executable, "-m", "playwright", "install", "chromium"],
+            capture_output=True,
+            text=True
+        )
+        return result.returncode == 0
+    except Exception:
+        return False
+
+
 def main() -> None:
+    _ensure_playwright_browsers()
     asyncio.run(worker_loop())
 
 

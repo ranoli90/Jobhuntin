@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+import os
 import signal
 import ssl
 import sys
@@ -21,6 +22,39 @@ from shared.logging_config import get_logger
 from shared.metrics import incr, observe
 
 logger = get_logger("sorce.worker.scaling")
+
+
+def _ensure_playwright_browsers():
+    """Ensure Playwright browsers are installed, install if missing."""
+    try:
+        from playwright.sync_api import sync_playwright
+        
+        # Try to check if chromium is available
+        with sync_playwright() as pw:
+            try:
+                pw.chromium.launch(headless=True)
+                logger.info("Playwright chromium browser is available")
+                return True
+            except Exception as e:
+                logger.warning("Playwright chromium not available, attempting to install: %s", e)
+        
+        # If we get here, browser launch failed - try installing
+        logger.info("Installing Playwright chromium browser...")
+        import subprocess
+        result = subprocess.run(
+            [sys.executable, "-m", "playwright", "install", "chromium"],
+            capture_output=True,
+            text=True
+        )
+        if result.returncode == 0:
+            logger.info("Successfully installed Playwright chromium")
+            return True
+        else:
+            logger.error("Failed to install Playwright chromium: %s", result.stderr)
+            return False
+    except Exception as e:
+        logger.warning("Could not verify/install Playwright browsers: %s", e)
+        return False
 
 
 def _get_ssl_config() -> Any:
@@ -501,6 +535,9 @@ class WorkerScaler:
 
 async def main() -> None:
     """Entry point for scaled worker."""
+    # Ensure Playwright browsers are installed
+    _ensure_playwright_browsers()
+    
     s = get_settings()
     count = s.worker_instance_count
 
