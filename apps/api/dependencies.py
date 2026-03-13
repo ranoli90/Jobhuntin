@@ -216,11 +216,26 @@ _pool_manager = DatabasePoolManager()
 
 async def get_pool() -> asyncpg.Pool:
     """Dependency for getting the primary database pool."""
+    if _pool_manager.pool is None:
+        from fastapi import HTTPException
+        raise HTTPException(
+            status_code=503,
+            detail="Database connection not available. The service may be starting up or experiencing connectivity issues."
+        )
     return _pool_manager.pool
 
 
 async def get_read_pool() -> asyncpg.Pool:
     """Dependency for getting a read-replica pool if available."""
+    if _pool_manager.read_pool is None:
+        # Fall back to primary pool if read replica is not available
+        if _pool_manager.pool is None:
+            from fastapi import HTTPException
+            raise HTTPException(
+                status_code=503,
+                detail="Database connection not available."
+            )
+        return _pool_manager.pool
     return _pool_manager.read_pool
 
 
