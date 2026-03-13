@@ -38,7 +38,7 @@ async def get_cohort_data(
         date_trunc = "week"
 
     cohorts = await conn.fetch(
-        f"""  # nosec
+        """
         WITH user_cohorts AS (
             SELECT
                 u.id AS user_id,
@@ -181,7 +181,7 @@ async def get_engagement_metrics(
     period_days: int = 7,
 ) -> dict[str, Any]:
     rows = await conn.fetch(
-        f"""  # nosec
+        """
         WITH user_activity AS (
             SELECT
                 u.id AS user_id,

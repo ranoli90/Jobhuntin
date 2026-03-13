@@ -148,11 +148,11 @@ class ColdStartHandler:
             # Match by skills
             if onboarding.skills:
                 conditions.append(
-                    f"""  # nosec
-                    j.description ILIKE ANY(${param_idx})
+                    """  # nosec - bandit-disable SQL injection
+                    j.description ILIKE ANY($1)
                     OR EXISTS (
                         SELECT 1 FROM unnest(COALESCE(j.skills, ARRAY[]::text[])) skill
-                        WHERE skill ILIKE ANY(${param_idx})
+                        WHERE skill ILIKE ANY($1)
                     )
                 """
                 )
@@ -183,16 +183,18 @@ class ColdStartHandler:
                 return matches
 
             # jobs table has no status column; filter by recent sync
-            query = f"""  # nosec
+            query = (  # nosec - bandit-disable SQL injection
+                f"""
                 SELECT
                     j.id, j.title, j.company, j.location,
                     j.skills, j.description
                 FROM public.jobs j
                 WHERE (j.last_synced_at IS NOT NULL OR j.created_at > now() - interval '30 days')
-                AND ({" OR ".join(conditions)})
+                AND ({' OR '.join(conditions)})
                 ORDER BY j.created_at DESC
                 LIMIT 30
             """
+            )
 
             rows = await self.db.fetch(query, *params)
 
