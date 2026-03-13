@@ -2390,7 +2390,24 @@ async def worker_loop() -> None:
 
     async with async_playwright() as pw:
         playwright_instance = pw
-        browser = await pw.chromium.launch(headless=s.playwright_headless)
+        # Try to launch chromium with fallback handling
+        try:
+            browser = await pw.chromium.launch(headless=s.playwright_headless)
+        except Exception as e:
+            logger.warning("Failed to launch chromium with default settings: %s", e)
+            try:
+                # Try with headless=True if headless=False failed
+                if not s.playwright_headless:
+                    browser = await pw.chromium.launch(headless=True)
+                else:
+                    # Try with channel specified as last resort
+                    browser = await pw.chromium.launch(
+                        headless=s.playwright_headless,
+                        channel="chromium"
+                    )
+            except Exception as e2:
+                logger.error("Failed to launch chromium: %s", e2)
+                raise
 
         async def context_factory() -> BrowserContext:
             import random  # nosec B311 - random.choice used for browser fingerprinting, not security purposes
