@@ -28,9 +28,28 @@ def _ensure_playwright_browsers():
     """Ensure Playwright browsers are installed, install if missing."""
     import subprocess
     import sys
+    import os
+    
+    logger.info("Starting Playwright browser check...")
+    
+    # First, check what browsers are already installed
+    cache_paths = [
+        os.path.expanduser("~/.cache/ms-playwright"),
+        "/opt/render/.cache/ms-playwright",
+    ]
+    
+    for cache_path in cache_paths:
+        if os.path.exists(cache_path):
+            try:
+                contents = os.listdir(cache_path)
+                logger.info(f"Browser cache found at {cache_path}: {contents}")
+            except Exception as e:
+                logger.warning(f"Could not list browser cache: {e}")
+        else:
+            logger.info(f"Browser cache not found at {cache_path}")
     
     try:
-        # First, try to run playwright install to ensure browsers are present
+        # Run playwright install to ensure browsers are present
         # This is a synchronous operation that works in any context
         result = subprocess.run(
             [sys.executable, "-m", "playwright", "install", "chromium"],
@@ -40,11 +59,13 @@ def _ensure_playwright_browsers():
         )
         if result.returncode == 0:
             logger.info("Playwright chromium installed successfully")
+            if result.stdout:
+                logger.info(f"Install output: {result.stdout[:500]}")
         else:
-            logger.warning("Playwright install output: %s", result.stdout)
-            logger.warning("Playwright install errors: %s", result.stderr)
+            logger.warning("Playwright install output: %s", result.stdout[:500] if result.stdout else "")
+            logger.warning("Playwright install errors: %s", result.stderr[:500] if result.stderr else "")
     except subprocess.TimeoutExpired:
-        logger.warning("Playwright install timed out")
+        logger.warning("Playwright install timed out after 5 minutes")
     except Exception as e:
         logger.warning("Could not run Playwright install: %s", e)
 
