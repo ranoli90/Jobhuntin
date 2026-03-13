@@ -187,7 +187,7 @@ services:
   - type: background_worker
     name: sorce-auto-apply-agent
     env: python
-    buildCommand: pip install -r requirements.txt && python -m playwright install chromium-headless-shell && python -m playwright install-deps chromium
+    buildCommand: pip install -r requirements.txt && python -m playwright install chromium chromium-headless-shell && python -m playwright install-deps chromium
     startCommand: python -m apps.worker.scaling --instances 2
     plan: standard  # Production-ready plan for 1000+ users
     numInstances: 2  # Start with 2 instances, can scale to 20

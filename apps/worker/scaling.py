@@ -246,12 +246,20 @@ class BrowserPoolManager:
                 s.browserless_url.split("?")[0],
             )
         else:
-            # Local Chromium
-            self._browser = await self._playwright.chromium.launch(
-                headless=s.playwright_headless
-            )
+            # Local Chromium - try headless-shell first, fall back to regular chromium
+            try:
+                self._browser = await self._playwright.chromium.launch(
+                    headless=True,
+                    channel="chromium",  # Use regular chromium instead of headless-shell
+                )
+            except Exception as e:
+                logger.warning("Failed to launch chromium, trying with headless=False: %s", e)
+                self._browser = await self._playwright.chromium.launch(
+                    headless=False,
+                    channel="chromium",
+                )
             self._is_remote = False
-            logger.info("Launched local Chromium (headless=%s)", s.playwright_headless)
+            logger.info("Launched local Chromium (headless=%s)", self._browser.is_headless)
 
     # Realistic Chrome user-agent strings for rotation
     _USER_AGENTS = [
