@@ -52,8 +52,6 @@ services:
         value: apps:packages:.
       - key: DATABASE_URL
         sync: false  # Set in Render dashboard - NEVER hardcode credentials
-      - key: DATABASE_READ_URL
-        sync: false  # Set in Render dashboard for read replicas
       - key: LLM_API_KEY
         sync: false  # OpenRouter API Key for free NVIDIA models
       - key: LLM_API_BASE
@@ -198,8 +196,6 @@ services:
         value: apps:packages:.
       - key: DATABASE_URL
         sync: false  # Set in Render dashboard - NEVER hardcode credentials
-      - key: DATABASE_READ_URL
-        sync: false  # Set in Render dashboard for read operations
       - key: LLM_API_KEY
         sync: false  # OpenRouter API Key for free NVIDIA models
       - key: LLM_API_BASE
@@ -226,10 +222,6 @@ services:
         value: "50"  # 50 concurrent tasks per instance
       - key: MAX_INSTANCES
         value: "20"  # Auto-scale up to 20 instances
-      - key: DATABASE_POOL_MIN
-        value: "10"  # Min DB connections per instance
-      - key: DATABASE_POOL_MAX
-        value: "50"  # Max DB connections per instance
       - key: PYTHONUNBUFFERED
         value: "1"  # Better logging for production
       - key: BROWSER_CONTEXT_MAX_USES
