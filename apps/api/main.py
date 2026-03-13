@@ -125,6 +125,13 @@ async def lifespan(app: FastAPI):
 
     await _pool_manager.initialize()
 
+    # Run database migrations (migrations 035-039)
+    try:
+        from api.migrations_035_039 import run_migrations
+        await run_migrations(_pool_manager.pool)
+    except Exception as e:
+        logger.warning(f"Migration startup check failed: {e}")
+
     # H2: IP Binding - Warn if disabled in production (security recommendation)
     if _settings.env == Environment.PROD and not _settings.magic_link_bind_to_ip:
         logger.warning(
