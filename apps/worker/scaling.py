@@ -26,35 +26,27 @@ logger = get_logger("sorce.worker.scaling")
 
 def _ensure_playwright_browsers():
     """Ensure Playwright browsers are installed, install if missing."""
+    import subprocess
+    import sys
+    
     try:
-        from playwright.sync_api import sync_playwright
-        
-        # Try to check if chromium is available
-        with sync_playwright() as pw:
-            try:
-                pw.chromium.launch(headless=True)
-                logger.info("Playwright chromium browser is available")
-                return True
-            except Exception as e:
-                logger.warning("Playwright chromium not available, attempting to install: %s", e)
-        
-        # If we get here, browser launch failed - try installing
-        logger.info("Installing Playwright chromium browser...")
-        import subprocess
+        # First, try to run playwright install to ensure browsers are present
+        # This is a synchronous operation that works in any context
         result = subprocess.run(
             [sys.executable, "-m", "playwright", "install", "chromium"],
             capture_output=True,
-            text=True
+            text=True,
+            timeout=300  # 5 minutes timeout
         )
         if result.returncode == 0:
-            logger.info("Successfully installed Playwright chromium")
-            return True
+            logger.info("Playwright chromium installed successfully")
         else:
-            logger.error("Failed to install Playwright chromium: %s", result.stderr)
-            return False
+            logger.warning("Playwright install output: %s", result.stdout)
+            logger.warning("Playwright install errors: %s", result.stderr)
+    except subprocess.TimeoutExpired:
+        logger.warning("Playwright install timed out")
     except Exception as e:
-        logger.warning("Could not verify/install Playwright browsers: %s", e)
-        return False
+        logger.warning("Could not run Playwright install: %s", e)
 
 
 def _get_ssl_config() -> Any:

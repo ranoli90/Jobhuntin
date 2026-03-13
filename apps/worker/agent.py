@@ -2461,21 +2461,12 @@ def _ensure_playwright_browsers():
     import sys
     
     try:
-        from playwright.sync_api import sync_playwright
-        
-        # Try to check if chromium is available
-        with sync_playwright() as pw:
-            try:
-                pw.chromium.launch(headless=True)
-                return True
-            except Exception as e:
-                pass
-        
-        # If we get here, browser launch failed - try installing
+        # Run playwright install to ensure browsers are present
         result = subprocess.run(
             [sys.executable, "-m", "playwright", "install", "chromium"],
             capture_output=True,
-            text=True
+            text=True,
+            timeout=300  # 5 minutes timeout
         )
         return result.returncode == 0
     except Exception:
