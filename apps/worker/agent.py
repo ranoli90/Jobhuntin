@@ -966,14 +966,18 @@ class FormAgent:
         settings = get_settings()
         retry_count = 0
         max_retry_delay = 60.0
+        # Use SSL but disable hostname checking for Render's self-signed certificates
         ctx = ssl.create_default_context(purpose=ssl.Purpose.SERVER_AUTH)
-        ctx.check_hostname = True
+        ctx.check_hostname = False
+        ctx.verify_mode = ssl.CERT_NONE
 
         while True:
             conn = None
             try:
+                from shared.db import resolve_dsn_ipv4
+                dsn = resolve_dsn_ipv4(settings.database_url)
                 conn = await asyncpg.connect(
-                    settings.database_url,
+                    dsn,
                     ssl=ctx,
                     command_timeout=0,  # No timeout for LISTEN (long-lived)
                 )
