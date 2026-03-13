@@ -53,6 +53,7 @@ import { apiPost, apiGet } from "../lib/api";
 import { pushToast } from "../lib/toast";
 import { fireSuccessConfetti } from "../lib/confetti";
 import { LoadingSpinner } from "../components/ui/LoadingSpinner";
+import { SkeletonCard, SkeletonList, SkeletonTable } from "../components/ui/Skeleton";
 import { useJobs } from "../hooks/useJobs";
 import type { JobFilters } from "../hooks/useJobs";
 import { formatCurrency, formatDate } from "../lib/format";
@@ -1440,19 +1441,13 @@ export function JobsView() {
       >
         <div className="space-y-4 w-full max-w-md">
           {[1, 2, 3].map((index) => (
-            <div
+            <SkeletonCard
               key={index}
-              className="animate-pulse rounded-3xl border border-slate-200 bg-white p-6 space-y-3 shadow-sm"
-            >
-              <div className="h-4 w-24 bg-slate-200 rounded" />
-              <div className="h-6 w-[75%] bg-slate-200 rounded" />
-              <div className="h-4 w-[50%] bg-slate-200 rounded" />
-              <div className="h-20 w-full bg-slate-100 rounded-xl" />
-              <div className="flex gap-2">
-                <div className="h-10 w-24 bg-slate-200 rounded-full" />
-                <div className="h-10 w-20 bg-slate-100 rounded-full" />
-              </div>
-            </div>
+              showHeader={true}
+              showFooter={true}
+              lines={3}
+              className="p-6"
+            />
           ))}
         </div>
       </div>
@@ -2226,46 +2221,16 @@ export function ApplicationsView() {
       >
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 md:gap-6">
           <div className="space-y-2">
-            <div className="h-8 w-48 bg-slate-200 rounded animate-pulse" />
-            <div className="h-4 w-64 bg-slate-100 rounded animate-pulse" />
+            <Skeleton className="h-8 w-48" />
+            <Skeleton className="h-4 w-64" />
           </div>
-          <div className="h-12 w-full md:w-72 bg-slate-100 rounded-2xl animate-pulse" />
+          <Skeleton className="h-12 w-full md:w-72 rounded-2xl" />
         </div>
         <div className="grid gap-3 md:hidden">
-          {[1, 2, 3, 4].map((index) => (
-            <div
-              key={index}
-              className="p-4 rounded-2xl border border-slate-200 bg-white animate-pulse"
-            >
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-lg bg-slate-200" />
-                <div className="flex-1 space-y-2">
-                  <div className="h-4 w-24 bg-slate-200 rounded" />
-                  <div className="h-3 w-16 bg-slate-100 rounded" />
-                </div>
-                <div className="h-6 w-16 bg-slate-100 rounded" />
-              </div>
-              <div className="mt-3 h-4 w-20 bg-slate-100 rounded" />
-            </div>
-          ))}
+          <SkeletonList items={4} showAvatars={true} showActions={false} itemHeight="md" />
         </div>
-        <div className="hidden md:block p-0 overflow-hidden border border-slate-200 rounded-2xl">
-          <div className="bg-slate-50 border-b border-slate-200 px-6 py-4">
-            <div className="h-4 w-32 bg-slate-200 rounded" />
-          </div>
-          <div className="divide-y divide-slate-100">
-            {[1, 2, 3, 4, 5].map((index) => (
-              <div key={index} className="px-6 py-4 flex items-center gap-4">
-                <div className="h-10 w-10 rounded-lg bg-slate-200 animate-pulse" />
-                <div className="flex-1 space-y-2">
-                  <div className="h-4 w-32 bg-slate-200 rounded" />
-                  <div className="h-3 w-24 bg-slate-100 rounded" />
-                </div>
-                <div className="h-6 w-20 bg-slate-100 rounded" />
-                <div className="h-4 w-16 bg-slate-100 rounded" />
-              </div>
-            ))}
-          </div>
+        <div className="hidden md:block">
+          <SkeletonTable rows={5} columns={4} showHeader={true} />
         </div>
       </div>
     );

@@ -188,10 +188,14 @@ services:
     name: sorce-auto-apply-agent
     env: python
     buildCommand: pip install -r requirements.txt && python -m playwright install --with-deps chromium
-    startCommand: python -m playwright install chromium || true; python -m apps.worker.scaling --instances 2
+    startCommand: python -m apps.worker.startup --instances 2
     plan: standard  # Production-ready plan for 1000+ users
     numInstances: 2  # Start with 2 instances, can scale to 20
+    healthCheckPath: /worker/health
+    healthCheckTimeout: 30
     envVars:
+      - key: PYTHON_VERSION
+        value: "3.12"  # Match Dockerfile Python version
       - key: PYTHONPATH
         value: apps:packages:.
       - key: DATABASE_URL
@@ -228,6 +232,12 @@ services:
         value: "10"  # Recycle browser contexts
       - key: POLL_INTERVAL_SECONDS
         value: "2"  # Faster polling for high throughput
+      - key: LOG_LEVEL
+        value: "INFO"  # Consistent logging level
+      - key: WORKER_TIMEOUT_SECONDS
+        value: "300"  # 5 minute timeout for worker tasks
+      - key: ENABLE_METRICS
+        value: "true"  # Enable performance metrics
     autoDeploy: true
 
   # Cron: Job Alerts (daily)

@@ -1,4 +1,137 @@
 {
+  "holdNotifications": {
+    "title": "Hold Question Notifications",
+    "urgentTitle": "⏰ Response needed: {{company}}",
+    "urgentDesc": "Question: {{question}}",
+    "responseRequired": "Response Required",
+    "deadlineApproaching": "Deadline Approaching",
+    "deadlinePassed": "Deadline Passed",
+    "daysLeft": "{{days}}d {{hours}}h left",
+    "hoursLeft": "{{hours}}h {{minutes}}m left",
+    "minutesLeft": "{{minutes}}m left",
+    "overdue": "Overdue",
+    "quickAnswer": "Quick Answer",
+    "quickAnswerPlaceholder": "Type a quick response...",
+    "quickAnswerSend": "Send Quick Answer",
+    "snooze": "Snooze",
+    "snooze24h": "Snooze 24h",
+    "snooze48h": "Snooze 48h",
+    "snooze1w": "Snooze 1 week",
+    "preferences": "Notification Settings",
+    "preferencesSaved": "Preferences saved",
+    "preferencesSavedDesc": "Your notification preferences have been updated.",
+    "preferencesError": "Could not save preferences",
+    "pushEnabled": "Push Notifications",
+    "pushEnabledDesc": "Receive real-time notifications in your browser",
+    "emailEnabled": "Email Notifications",
+    "emailEnabledDesc": "Receive email reminders for hold questions",
+    "quickAnswerEnabled": "Quick Answer",
+    "quickAnswerEnabledDesc": "Show inline answer form on hold cards",
+    "soundEnabled": "Notification Sound",
+    "soundEnabledDesc": "Play sound for new notifications",
+    "deadlineReminder": "Deadline Reminder",
+    "deadlineReminderDesc": "Remind me before deadline",
+    "quickAnswerSent": "Response sent",
+    "quickAnswerSentDesc": "Your AI agent will resume this application.",
+    "quickAnswerError": "Could not send response",
+    "snoozed": "Snoozed",
+    "snoozedDesc": "This hold will reappear after the snooze period.",
+    "snoozeError": "Could not snooze",
+    "tryAgain": "Please try again.",
+    "markAllRead": "Mark All as Read",
+    "viewAll": "View All Notifications"
+  },
+  "celebrations": {
+    "applicationSent": "Application Sent! 🚀",
+    "applicationSentDesc": "Your application for {{title}} at {{company}} has been submitted successfully.",
+    "estimatedResponse": "Estimated response time",
+    "responseTimeNote": "This is an estimate based on company size. Actual times may vary.",
+    "shareSuccess": "Share your success",
+    "shareDesc": "Let others know you're on the job hunt!",
+    "firstApplication": "First Application! 🎉",
+    "fiveApplications": "5 Applications! 🔥",
+    "tenApplications": "10 Applications! 🚀",
+    "twentyFiveApplications": "25 Applications! 💪",
+    "fiftyApplications": "50 Applications! ⭐",
+    "hundredApplications": "100 Applications! 🏆",
+    "milestoneDesc": "Keep up the great work! Your AI agent is working hard for you."
+  },
+  "errors": {
+    "application": {
+      "captchaFailed": {
+        "title": "CAPTCHA Verification Failed",
+        "description": "The automated security check could not be completed. The employer's website detected unusual activity.",
+        "troubleshooting": [
+          "The employer uses advanced bot detection that our system cannot bypass",
+          "This may be a temporary issue - try applying again in a few hours",
+          "Consider applying directly on the company's careers page",
+          "Some companies block automated applications - manual application may be needed"
+        ]
+      },
+      "formChanged": {
+        "title": "Application Form Changed",
+        "description": "The job application form on the employer's website has been updated or modified since we last accessed it.",
+        "troubleshooting": [
+          "The company has updated their application process",
+          "Our AI agent will need to adapt to the new form structure",
+          "The application has been queued for retry with the updated form",
+          "This usually resolves automatically on the next attempt"
+        ]
+      },
+      "rateLimited": {
+        "title": "Too Many Requests",
+        "description": "The employer has temporarily blocked further applications due to rate limiting. This usually happens when too many applications come from the same source.",
+        "troubleshooting": [
+          "The company's application system is receiving too many submissions",
+          "We've automatically spaced out retry attempts",
+          "This is usually a temporary cooldown period",
+          "The application will be retried automatically when the limit lifts"
+        ]
+      },
+      "loginRequired": {
+        "title": "Login Required",
+        "description": "This position requires an existing account with the employer. We couldn't access the application without valid credentials.",
+        "troubleshooting": [
+          "This job posting requires candidates to have an existing account",
+          "You may need to create an account on the company's portal first",
+          "Check if the job posting mentions required login credentials",
+          "Consider applying directly through the company's website with your credentials"
+        ]
+      },
+      "sessionExpired": {
+        "title": "Session Timed Out",
+        "description": "The session with the employer's website expired before the application could be submitted. This can happen with longer application processes.",
+        "troubleshooting": [
+          "The application session expired during submission",
+          "Our system will automatically retry with a fresh session",
+          "This commonly happens with multi-step application forms",
+          "The retry should complete successfully"
+        ]
+      },
+      "networkError": {
+        "title": "Network Connection Issue",
+        "description": "A network error occurred while trying to submit the application. This could be due to connectivity issues or server problems.",
+        "troubleshooting": [
+          "There was a temporary network connectivity issue",
+          "Our system will automatically retry the submission",
+          "Check your internet connection if this persists",
+          "This is often a temporary server issue on the employer's side"
+        ]
+      },
+      "unknownError": {
+        "title": "Application Failed",
+        "description": "An unexpected error occurred while submitting your application. Our team has been notified and will investigate.",
+        "troubleshooting": [
+          "An unexpected error occurred during application submission",
+          "The application has been logged for review",
+          "Our team will analyze what happened and attempt recovery",
+          "You can try applying again if needed"
+        ]
+      },
+      "retryable": "This issue may resolve automatically. Our system will retry.",
+      "notRetryable": "This issue requires manual attention."
+    }
+  },
   "dashboard": {
     "activeRadar": "Active Radar",
     "swipeRight": "Swipe right to let AI apply for you.",
@@ -28,6 +161,14 @@
     "scanning": "Scanning Vector Space...",
     "confirmIdentity": "CONFIRM IDENTITY",
     "deployHunter": "DEPLOY HUNTER ENGINE",
-    "launchCenter": "LAUNCH COMMAND CENTER"
+    "launchCenter": "LAUNCH COMMAND CENTER",
+    "benefit1Title": "10x More Applications",
+    "benefit1Desc": "Apply to 10x more jobs in less time",
+    "benefit2Title": "AI-Powered Matching",
+    "benefit2Desc": "AI-powered matching with your skills",
+    "benefit3Title": "One Dashboard",
+    "benefit3Desc": "Track all applications in one place",
+    "socialProof": "10,000+ jobs applied this week",
+    "timeRemaining": "~2 min remaining"
   }
 }

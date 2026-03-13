@@ -2,12 +2,14 @@ import * as React from "react";
 import { motion } from "framer-motion";
 import {
   Rocket,
-  MapPin,
   ArrowRight,
   Sparkles,
   Clock,
   Zap,
   Target,
+  Users,
+  TrendingUp,
+  LayoutDashboard,
 } from "lucide-react";
 import { Button } from "../../../../components/ui/Button";
 import { t, getLocale } from "../../../../lib/i18n";
@@ -27,21 +29,21 @@ export function WelcomeStep({ onNext, shouldReduceMotion, firstName }: WelcomeSt
 
   const features = [
     {
-      titleKey: "onboarding.feature1Title",
-      descKey: "onboarding.feature1Desc",
-      icon: Sparkles,
+      titleKey: "onboarding.benefit1Title",
+      descKey: "onboarding.benefit1Desc",
+      icon: TrendingUp,
       color: "from-[#455DD3] to-[#3A4FB8]",
     },
     {
-      titleKey: "onboarding.feature2Title",
-      descKey: "onboarding.feature2Desc",
-      icon: Target,
+      titleKey: "onboarding.benefit2Title",
+      descKey: "onboarding.benefit2Desc",
+      icon: Sparkles,
       color: "from-[#17BEBB] to-[#14A3A0]",
     },
     {
-      titleKey: "onboarding.feature3Title",
-      descKey: "onboarding.feature3Desc",
-      icon: Zap,
+      titleKey: "onboarding.benefit3Title",
+      descKey: "onboarding.benefit3Desc",
+      icon: LayoutDashboard,
       color: "from-[#455DD3] to-[#7DD3CF]",
     },
   ];
@@ -122,16 +124,16 @@ export function WelcomeStep({ onNext, shouldReduceMotion, firstName }: WelcomeSt
           </motion.div>
         </div>
 
-        {/* Time badge */}
+        {/* Social Proof Badge */}
         <motion.div
           initial={shouldReduceMotion ? undefined : { opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#17BEBB]/10 border border-[#17BEBB]/20 mb-4"
+          transition={{ delay: 0.15 }}
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-[#17BEBB]/10 to-[#455DD3]/10 border border-[#17BEBB]/20 mb-4"
         >
-          <Clock className="w-3 h-3 text-[#17BEBB]" />
-          <span className="text-[10px] font-bold text-[#17BEBB] uppercase tracking-wider">
-            {t("onboarding.setupTime", locale) || "2–3 min"}
+          <Users className="w-4 h-4 text-[#17BEBB]" />
+          <span className="text-xs font-bold text-[#455DD3]">
+            {t("onboarding.socialProof", locale) || "10,000+ jobs applied this week"}
           </span>
         </motion.div>
 

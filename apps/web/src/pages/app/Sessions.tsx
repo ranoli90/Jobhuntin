@@ -20,6 +20,7 @@ import { Button } from "../../components/ui/Button";
 import { Card } from "../../components/ui/Card";
 import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
 import { ConfirmModal } from "../../components/ui/ConfirmModal";
+import { NoSessionsEmptyState } from "../../components/ui/EmptyState";
 import { pushToast } from "../../lib/toast";
 import { apiGet, apiDelete } from "../../lib/api";
 import { telemetry } from "../../lib/telemetry";
@@ -193,15 +194,7 @@ export default function Sessions() {
       </div>
 
       {sessions.length === 0 ? (
-        <Card className="p-8 text-center">
-          <Monitor className="w-12 h-12 text-slate-400 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">
-            No active sessions
-          </h3>
-          <p className="text-sm text-slate-600 dark:text-slate-400">
-            You don't have any active sessions at the moment.
-          </p>
-        </Card>
+        <NoSessionsEmptyState onRefresh={fetchSessions} />
       ) : (
         <div className="space-y-4">
           {/* Current Session */}

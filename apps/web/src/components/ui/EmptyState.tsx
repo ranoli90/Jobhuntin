@@ -12,6 +12,11 @@ import {
   Calendar,
   Sparkles,
   Plus,
+  Bookmark,
+  Shield,
+  Monitor,
+  LayoutGrid,
+  CheckCircle2,
 } from "lucide-react";
 import { Button } from "./Button";
 import { cn } from "../../lib/utils";
@@ -27,6 +32,11 @@ const iconMap = {
   mail: Mail,
   calendar: Calendar,
   sparkles: Sparkles,
+  bookmark: Bookmark,
+  shield: Shield,
+  monitor: Monitor,
+  layoutgrid: LayoutGrid,
+  check: CheckCircle2,
 };
 
 interface EmptyStateProperties {
@@ -287,6 +297,124 @@ export function ComingSoonEmptyState({
       }
       compact
       className={className}
+    />
+  );
+}
+
+// Additional pre-built variants for specific use cases
+
+export function NoSavedJobsEmptyState({
+  onBrowse,
+  onClearSearch,
+  hasSearchTerm = false,
+}: {
+  onBrowse?: () => void;
+  onClearSearch?: () => void;
+  hasSearchTerm?: boolean;
+}) {
+  return (
+    <EmptyState
+      iconName="bookmark"
+      title={hasSearchTerm ? "No saved jobs match your search" : "No saved jobs yet"}
+      description={
+        hasSearchTerm
+          ? "Try adjusting your search terms or clear the search to see all saved jobs."
+          : "Start saving jobs you're interested in to see them here. We'll help you keep track of positions you want to apply to."
+      }
+      actionLabel={hasSearchTerm ? "Clear Search" : "Browse Jobs"}
+      onAction={hasSearchTerm ? onClearSearch : onBrowse}
+    />
+  );
+}
+
+export function NoSessionsEmptyState({
+  onRefresh,
+}: {
+  onRefresh?: () => void;
+}) {
+  return (
+    <EmptyState
+      iconName="monitor"
+      title="No active sessions"
+      description="You don't have any active sessions at the moment. Sign in to start a new session."
+      compact
+      actionLabel="Refresh"
+      onAction={onRefresh}
+    />
+  );
+}
+
+export function UnauthorizedEmptyState({
+  onGoBack,
+  onGoHome,
+  message,
+}: {
+  onGoBack?: () => void;
+  onGoHome?: () => void;
+  message?: string;
+}) {
+  return (
+    <EmptyState
+      iconName="shield"
+      title="Access Denied"
+      description={message ?? "You don't have permission to access this content."}
+      actionLabel="Go Back"
+      onAction={onGoBack}
+      secondaryActionLabel="Go Home"
+      onSecondaryAction={onGoHome}
+    />
+  );
+}
+
+export function NoPipelineItemsEmptyState({
+  onBrowseJobs,
+  stageName,
+}: {
+  onBrowseJobs?: () => void;
+  stageName?: string;
+}) {
+  return (
+    <EmptyState
+      iconName="layoutgrid"
+      title={`No applications in ${stageName ?? "this stage"}`}
+      description="Applications will appear here as you move through the hiring process."
+      actionLabel="Browse Jobs"
+      onAction={onBrowseJobs}
+      compact
+    />
+  );
+}
+
+export function NoActivitiesEmptyState({
+  onBrowse,
+}: {
+  onBrowse?: () => void;
+}) {
+  return (
+    <EmptyState
+      iconName="check"
+      title="No activities yet"
+      description="Your recent activities will appear here. Start exploring jobs to see your activity history."
+      actionLabel="Browse Jobs"
+      onAction={onBrowse}
+    />
+  );
+}
+
+export function ErrorEmptyState({
+  onRetry,
+  message,
+}: {
+  onRetry?: () => void;
+  message?: string;
+}) {
+  return (
+    <EmptyState
+      iconName="inbox"
+      title="Something went wrong"
+      description={message ?? "We encountered an error while loading this content. Please try again."}
+      actionLabel="Try Again"
+      onAction={onRetry}
     />
   );
 }

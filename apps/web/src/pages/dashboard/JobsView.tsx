@@ -13,6 +13,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { apiPost } from "../../lib/api";
 import { pushToast } from "../../lib/toast";
 import { telemetry } from "../../lib/telemetry";
+import { useApplicationCelebration } from "../../hooks/useCelebrations";
 
 interface SwipeRecord {
   direction: "accept" | "reject";
@@ -33,6 +34,7 @@ export default function JobsView() {
   const { jobs, isLoading, refetch, error } = useJobs(filters);
   const shouldReduceMotion = useReducedMotion();
   const hasError = Boolean(error);
+  const { celebrate: celebrateApplication } = useApplicationCelebration();
 
   // Local swipe state — tracks which jobs have been swiped and in which direction
   const [swipedJobs, setSwipedJobs] = useState<Map<string, SwipeRecord>>(
@@ -119,7 +121,14 @@ export default function JobsView() {
             company: job?.company,
             title: job?.title,
           });
-          pushToast({ title: "Applied!", tone: "success" });
+          // Trigger celebration with confetti and detailed feedback
+          celebrateApplication({
+            jobId,
+            jobTitle: job?.title || "",
+            company: job?.company || "",
+            companySize: job?.company_size,
+            salary: job?.salary_max ? `${job.salary_max.toLocaleString()}` : undefined,
+          });
           setSwipeAnnouncement(
             `Swiped right. Applied to ${job?.title || "job"} at ${job?.company || "company"}`,
           );

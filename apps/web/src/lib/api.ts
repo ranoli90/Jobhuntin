@@ -6,6 +6,7 @@
  *  - Automatic 401 → redirect to /login with return path
  *  - Retry with exponential back-off for 429 and 5xx errors
  *  - User-friendly error messages mapped from HTTP status codes
+ *  - Standardized API response format handling (Phase 6.1)
  */
 
 // Token storage key
@@ -32,6 +33,188 @@ const BASE_DELAY_MS = 1000;
 
 /** Maximum retry delay in ms */
 const MAX_DELAY_MS = 30_000;
+
+// ---------------------------------------------------------------------------
+// Standardized API Response Types (Phase 6.1)
+// ---------------------------------------------------------------------------=
+
+/** Metadata included in every API response. */
+export interface ResponseMeta {
+  version: string;
+  timestamp: string;
+  request_id?: string;
+}
+
+/** Detailed error information for a specific field. */
+export interface ErrorDetail {
+  field?: string;
+  message: string;
+}
+
+/** Error information structure from backend. */
+export interface ErrorInfo {
+  code: string;
+  message: string;
+  details?: ErrorDetail[];
+  request_id?: string;
+}
+
+/**
+ * Standardized API response wrapper.
+ * - Success: { success: true, data: T, meta: { version, timestamp, request_id } }
+ * - Error: { success: false, error: { code, message, details, request_id } }
+ */
+export interface ApiResponse<T> {
+  success: true;
+  data: T;
+  meta: ResponseMeta;
+}
+
+/** Standardized error response from backend. */
+export interface ApiErrorResponse {
+  success: false;
+  error: ErrorInfo;
+}
+
+/** Union type for all API responses. */
+export type ApiResult<T> = ApiResponse<T> | ApiErrorResponse;
+
+/** Check if a response is a successful API response. */
+export function isApiSuccess<T>(response: ApiResult<T>): response is ApiResponse<T> {
+  return response.success === true;
+}
+
+/** Check if a response is an error API response. */
+export function isApiError<T>(response: ApiResult<T>): response is ApiErrorResponse {
+  return response.success === false;
+}
+
+// ---------------------------------------------------------------------------
+// Typed Error Classes
+// ---------------------------------------------------------------------------=
+
+/** Base API Error with typed error code. */
+export class ApiError extends Error {
+  constructor(
+    message: string,
+    public readonly code: string,
+    public readonly status: number,
+    public readonly details?: ErrorDetail[],
+    public readonly requestId?: string,
+  ) {
+    super(message);
+    this.name = "ApiError";
+  }
+}
+
+/** Authentication/Authorization error (401, 403). */
+export class AuthError extends ApiError {
+  constructor(message: string, code: string = "AUTH_ERROR", requestId?: string) {
+    super(message, code, 401, undefined, requestId);
+    this.name = "AuthError";
+  }
+}
+
+/** Resource not found error (404). */
+export class NotFoundError extends ApiError {
+  constructor(message: string = "Resource not found", requestId?: string) {
+    super(message, "NOT_FOUND", 404, undefined, requestId);
+    this.name = "NotFoundError";
+  }
+}
+
+/** Validation error (400, 422). */
+export class ValidationError extends ApiError {
+  constructor(message: string, details?: ErrorDetail[], requestId?: string) {
+    super(message, "VALIDATION_ERROR", 400, details, requestId);
+    this.name = "ValidationError";
+  }
+}
+
+/** Rate limit error (429). */
+export class RateLimitError extends ApiError {
+  constructor(message: string = "Rate limit exceeded", requestId?: string) {
+    super(message, "RATE_LIMIT_EXCEEDED", 429, undefined, requestId);
+    this.name = "RateLimitError";
+  }
+}
+
+/** Internal server error (5xx). */
+export class InternalError extends ApiError {
+  constructor(message: string = "Internal server error", requestId?: string) {
+    super(message, "INTERNAL_ERROR", 500, undefined, requestId);
+    this.name = "InternalError";
+  }
+}
+
+/**
+ * Create typed error from API error response.
+ * Maps error codes to appropriate error types.
+ */
+export function createApiError(errorInfo: ErrorInfo, httpStatus: number): ApiError {
+  const { code, message, details, request_id } = errorInfo;
+
+  // Map error codes to typed errors
+  switch (code) {
+    case "AUTH_ERROR":
+    case "INVALID_TOKEN":
+    case "TOKEN_EXPIRED":
+      return new AuthError(message, code, request_id);
+    case "NOT_FOUND":
+      return new NotFoundError(message, request_id);
+    case "VALIDATION_ERROR":
+    case "INVALID_INPUT":
+      return new ValidationError(message, details, request_id);
+    case "RATE_LIMIT_EXCEEDED":
+      return new RateLimitError(message, request_id);
+    case "INTERNAL_ERROR":
+    case "DATABASE_ERROR":
+      return new InternalError(message, request_id);
+    default:
+      return new ApiError(message, code, httpStatus, details, request_id);
+  }
+}
+
+/**
+ * Parse standardized API response.
+ * Returns the data on success, throws ApiError on failure.
+ * Maintains backward compatibility with non-standard responses.
+ */
+export function parseApiResponse<T>(json: unknown, httpStatus: number): T {
+  // Check if this is a standardized response format
+  if (json !== null && typeof json === "object") {
+    const response = json as { success?: boolean; data?: unknown; error?: ErrorInfo };
+
+    // Handle standardized error response
+    if (response.success === false && response.error) {
+      const error = createApiError(response.error, httpStatus);
+
+      // Log request_id for debugging
+      if (response.error.request_id) {
+        console.debug(`[API Error] request_id: ${response.error.request_id}, code: ${response.error.code}`);
+      }
+
+      throw error;
+    }
+
+    // Handle standardized success response - extract data
+    if (response.success === true && response.data !== undefined) {
+      return response.data as T;
+    }
+
+    // Backward compatibility: non-standard response with success field
+    if ("success" in response && response.data === undefined) {
+      // Some endpoints might return { success: true, ... } without data wrapper
+      // Return the entire response minus the success field
+      const { success, ...rest } = response as Record<string, unknown>;
+      return rest as T;
+    }
+  }
+
+  // Backward compatibility: non-standard response (raw data)
+  // Return as-is for endpoints that haven't been updated yet
+  return json as T;
+}
 
 /**
  * Utility function to retry an async operation with exponential backoff
@@ -316,6 +499,42 @@ export function handleApiError(resp: Response, body: string): never {
       // AuthContext handles redirect; avoid double redirect by not redirecting here
     }
   }
+
+  // Try to parse as standardized API error response first
+  let requestId: string | undefined;
+  let errorCode = "UNKNOWN_ERROR";
+  let errorMessage = "";
+
+  try {
+    const json = JSON.parse(body);
+    if (json && typeof json === "object") {
+      const response = json as { success?: boolean; error?: ErrorInfo };
+
+      // Check for standardized error format
+      if (response.success === false && response.error) {
+        requestId = response.error.request_id;
+        errorCode = response.error.code;
+        errorMessage = response.error.message;
+
+        // Log request_id for debugging
+        if (requestId) {
+          console.debug(`[API Error] request_id: ${requestId}, code: ${errorCode}`);
+        }
+
+        // Create typed error
+        const error = createApiError(response.error, resp.status);
+        throw error;
+      }
+    }
+  } catch (e) {
+    // If it's already an ApiError, re-throw it
+    if (e instanceof ApiError) {
+      throw e;
+    }
+    // Otherwise continue with fallback message parsing
+  }
+
+  // Fallback: try legacy message parsing
   const parsedMessage = tryParseMessage(body);
   const message = parsedMessage
     ? `${parsedMessage} (HTTP ${resp.status})`
@@ -324,10 +543,14 @@ export function handleApiError(resp: Response, body: string): never {
   // Create error with sanitized information for production
   const error = new Error(message) as Error & {
     status: number;
+    code: string;
     rawBody: string;
     sanitized: boolean;
+    requestId?: string;
   };
   error.status = resp.status;
+  error.code = errorCode;
+  error.requestId = requestId;
 
   // In production, sanitize sensitive information
   if (import.meta.env.PROD) {
@@ -439,12 +662,17 @@ export async function apiFetch(
   throw lastError || new Error("Request failed");
 }
 
-/** GET and parse JSON. Throws if !resp.ok; on 401 redirects to login. */
+/** GET and parse JSON. Throws if !resp.ok; on 401 redirects to login.
+ * Handles standardized API response format.
+ */
 export async function apiGet<T = unknown>(path: string): Promise<T> {
   const resp = await apiFetch(path, { method: "GET" });
   const text = await resp.text();
   if (!resp.ok) handleApiError(resp, text);
-  return JSON.parse(text) as T;
+  if (!text) return {} as T;
+  const json = JSON.parse(text);
+  // Parse standardized response format
+  return parseApiResponse<T>(json, resp.status);
 }
 
 /** Download a file from the API. */
@@ -465,7 +693,9 @@ export async function downloadFile(path: string, filename: string) {
   a.remove();
 }
 
-/** POST JSON and parse JSON. Throws if !resp.ok; on 401 redirects to login. */
+/** POST JSON and parse JSON. Throws if !resp.ok; on 401 redirects to login.
+ * Handles standardized API response format.
+ */
 export async function apiPost<T = unknown>(
   path: string,
   body?: unknown,
@@ -479,10 +709,14 @@ export async function apiPost<T = unknown>(
   const text = await resp.text();
   if (!resp.ok) handleApiError(resp, text);
   if (!text) return {} as T;
-  return JSON.parse(text) as T;
+  const json = JSON.parse(text);
+  // Parse standardized response format
+  return parseApiResponse<T>(json, resp.status);
 }
 
-/** PATCH JSON and parse JSON. Throws if !resp.ok; on 401 redirects to login. */
+/** PATCH JSON and parse JSON. Throws if !resp.ok; on 401 redirects to login.
+ * Handles standardized API response format.
+ */
 export async function apiPatch<T = unknown>(
   path: string,
   body: unknown,
@@ -494,10 +728,14 @@ export async function apiPatch<T = unknown>(
   const text = await resp.text();
   if (!resp.ok) handleApiError(resp, text);
   if (!text) return {} as T;
-  return JSON.parse(text) as T;
+  const json = JSON.parse(text);
+  // Parse standardized response format
+  return parseApiResponse<T>(json, resp.status);
 }
 
-/** PUT JSON and parse JSON. Throws if !resp.ok; on 401 redirects to login. */
+/** PUT JSON and parse JSON. Throws if !resp.ok; on 401 redirects to login.
+ * Handles standardized API response format.
+ */
 export async function apiPut<T = unknown>(
   path: string,
   body?: unknown,
@@ -509,19 +747,27 @@ export async function apiPut<T = unknown>(
   const text = await resp.text();
   if (!resp.ok) handleApiError(resp, text);
   if (!text) return {} as T;
-  return JSON.parse(text) as T;
+  const json = JSON.parse(text);
+  // Parse standardized response format
+  return parseApiResponse<T>(json, resp.status);
 }
 
-/** DELETE and parse JSON. Throws if !resp.ok; on 401 redirects to login. */
+/** DELETE and parse JSON. Throws if !resp.ok; on 401 redirects to login.
+ * Handles standardized API response format.
+ */
 export async function apiDelete<T = unknown>(path: string): Promise<T> {
   const resp = await apiFetch(path, { method: "DELETE" });
   const text = await resp.text();
   if (!resp.ok) handleApiError(resp, text);
   if (!text) return {} as T;
-  return JSON.parse(text) as T;
+  const json = JSON.parse(text);
+  // Parse standardized response format
+  return parseApiResponse<T>(json, resp.status);
 }
 
-/** POST FormData (e.g. file upload). On 401 redirects to login. */
+/** POST FormData (e.g. file upload). On 401 redirects to login.
+ * Handles standardized API response format.
+ */
 export async function apiPostFormData<T = unknown>(
   path: string,
   body: FormData,
@@ -559,7 +805,10 @@ export async function apiPostFormData<T = unknown>(
 
       if (resp.ok) {
         const text = await resp.text();
-        return JSON.parse(text) as T;
+        if (!text) return {} as T;
+        const json = JSON.parse(text);
+        // Parse standardized response format
+        return parseApiResponse<T>(json, resp.status);
       }
 
       if (!isRetryable(resp.status, "POST") || attempt === MAX_RETRIES) {

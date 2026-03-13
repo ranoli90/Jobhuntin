@@ -1,7 +1,7 @@
 """CAPTCHA Detection and Solving for Job Application Automation.
 
 Handles detection of CAPTCHAs during job application automation and provides
-solving capabilities through various services (2Captcha, Anti-Captcha, etc.).
+solving capabilities through various services (2Captcha, Anti-Captcha, ML-based).
 """
 
 from __future__ import annotations
@@ -17,6 +17,14 @@ from shared.config import get_settings
 from shared.logging_config import get_logger
 
 logger = get_logger("sorce.captcha_handler")
+
+# Import ML solver
+try:
+    from .ml_captcha_solver import MLCaptchaSolver, EnhancedCaptchaDetector
+    ML_AVAILABLE = True
+except ImportError:
+    ML_AVAILABLE = False
+    logger.warning("ML CAPTCHA solver not available - using external services only")
 
 
 class CaptchaType:
@@ -35,6 +43,12 @@ class CaptchaDetector:
     """Detects various types of CAPTCHAs on web pages."""
 
     def __init__(self):
+        # Use enhanced detector if available
+        if ML_AVAILABLE:
+            self.enhanced_detector = EnhancedCaptchaDetector()
+        else:
+            self.enhanced_detector = None
+            
         self.captcha_selectors = {
             CaptchaType.RECAPTCHA_V2: [
                 ".g-recaptcha",
@@ -73,12 +87,18 @@ class CaptchaDetector:
 
     async def detect_captcha(self, page: Page) -> Dict[str, Any]:
         """Detect if CAPTCHA is present on the page."""
+        # Use enhanced detector if available
+        if self.enhanced_detector:
+            return await self.enhanced_detector.detect_captcha_enhanced(page)
+        
+        # Fallback to original detection
         detected = {
             "has_captcha": False,
             "captcha_type": None,
             "site_key": None,
             "selectors": [],
             "element_count": 0,
+            "ml_suitable": False,
         }
 
         for captcha_type, selectors in self.captcha_selectors.items():
@@ -97,6 +117,9 @@ class CaptchaDetector:
                 detected["captcha_type"] = captcha_type
                 detected["selectors"] = selectors
                 detected["element_count"] = len(elements)
+                detected["ml_suitable"] = captcha_type in [
+                    CaptchaType.IMAGE_CAPTCHA, CaptchaType.TEXT_CAPTCHA, CaptchaType.MATH_CAPTCHA
+                ]
 
                 # Extract site key for reCAPTCHA/hCaptcha
                 if captcha_type in [
@@ -152,7 +175,7 @@ class CaptchaDetector:
 
 
 class CaptchaSolver:
-    """Solves various types of CAPTCHAs using external services."""
+    """Solves various types of CAPTCHAs using external services and ML."""
 
     def __init__(self):
         self.settings = get_settings()
@@ -162,6 +185,12 @@ class CaptchaSolver:
             if isinstance(val, str)
             else []
         )
+        
+        # Initialize ML solver if available
+        if ML_AVAILABLE:
+            self.ml_solver = MLCaptchaSolver()
+        else:
+            self.ml_solver = None
 
     async def solve_recaptcha_v2(self, site_key: str, page_url: str) -> Optional[str]:
         """Solve reCAPTCHA v2 using external service."""
@@ -210,7 +239,21 @@ class CaptchaSolver:
     async def solve_image_captcha(
         self, image_base64: str, instructions: str = ""
     ) -> Optional[str]:
-        """Solve image CAPTCHA using external service."""
+        """Solve image CAPTCHA using ML first, then external services."""
+        
+        # Try ML solving first if available
+        if self.ml_solver:
+            try:
+                ml_result, ml_method, ml_confidence = await self.ml_solver.solve_with_fallback(
+                    image_base64, "text", self
+                )
+                if ml_result and ml_confidence >= 0.7:
+                    logger.info(f"ML CAPTCHA solved: {ml_method} with confidence {ml_confidence:.2f}")
+                    return ml_result
+            except Exception as e:
+                logger.debug(f"ML CAPTCHA solving failed: {e}")
+        
+        # Fallback to external services
         if not self.enabled_solvers:
             logger.warning("No CAPTCHA solvers configured")
             return None
@@ -451,12 +494,14 @@ class CaptchaHandler:
         self.solver = CaptchaSolver()
 
     async def handle_captcha(self, page: Page, page_url: str) -> Dict[str, Any]:
-        """Handle CAPTCHA detection and solving."""
+        """Handle CAPTCHA detection and solving with ML enhancement."""
         result = {
             "detected": False,
             "solved": False,
             "solution": None,
             "captcha_type": None,
+            "solving_method": None,
+            "confidence": 0.0,
             "error": None,
         }
 
@@ -472,18 +517,36 @@ class CaptchaHandler:
 
             captcha_type = detected["captcha_type"]
             site_key = detected.get("site_key")
+            ml_suitable = detected.get("ml_suitable", False)
 
-            logger.info(f"CAPTCHA detected: {captcha_type} on {page_url}")
+            logger.info(f"CAPTCHA detected: {captcha_type} on {page_url} (ML suitable: {ml_suitable})")
 
             # Solve based on type
+            solution = None
+            solving_method = None
+            confidence = 0.0
+
             if captcha_type == CaptchaType.RECAPTCHA_V2 and site_key:
                 solution = await self.solver.solve_recaptcha_v2(site_key, page_url)
+                solving_method = "external"
+                confidence = 0.9
             elif captcha_type == CaptchaType.HCAPTCHA and site_key:
                 solution = await self.solver.solve_hcaptcha(site_key, page_url)
+                solving_method = "external"
+                confidence = 0.9
             elif captcha_type == CaptchaType.IMAGE_CAPTCHA:
                 image_data = await self.detector.get_captcha_image(page, captcha_type)
                 if image_data:
                     solution = await self.solver.solve_image_captcha(image_data)
+                    solving_method = "hybrid" if self.solver.ml_solver else "external"
+                    confidence = 0.8 if self.solver.ml_solver else 0.7
+            elif captcha_type == CaptchaType.TEXT_CAPTCHA:
+                # Try to extract and solve text CAPTCHA
+                image_data = await self.detector.get_captcha_image(page, captcha_type)
+                if image_data:
+                    solution = await self.solver.solve_image_captcha(image_data)
+                    solving_method = "hybrid" if self.solver.ml_solver else "external"
+                    confidence = 0.8 if self.solver.ml_solver else 0.7
             else:
                 result["error"] = (
                     f"CAPTCHA type {captcha_type} not supported for solving"
@@ -493,7 +556,9 @@ class CaptchaHandler:
             if solution:
                 result["solved"] = True
                 result["solution"] = solution
-                logger.info(f"CAPTCHA solved successfully for {captcha_type}")
+                result["solving_method"] = solving_method
+                result["confidence"] = confidence
+                logger.info(f"CAPTCHA solved successfully: {captcha_type} via {solving_method}")
             else:
                 result["error"] = "Failed to solve CAPTCHA"
                 logger.warning(f"Failed to solve {captcha_type} on {page_url}")

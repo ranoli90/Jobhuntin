@@ -2,10 +2,13 @@
  * D1: Validate file type by magic bytes (not just MIME from OS).
  * PDF: %PDF (25 50 44 46)
  * DOCX: PK.. (50 4B 03 04) - ZIP format
+ * DOC: D0 CF 11 E0 (Microsoft Office OLE compound document)
  */
 const PDF_MAGIC = new Uint8Array([0x25, 0x50, 0x44, 0x46]);
 const ZIP_MAGIC = new Uint8Array([0x50, 0x4b, 0x03, 0x04]);
 const ZIP_MAGIC_ALT = new Uint8Array([0x50, 0x4b, 0x05, 0x06]);
+// OLE compound document magic bytes (old .doc format)
+const DOC_MAGIC = new Uint8Array([0xD0, 0xCF, 0x11, 0xE0]);
 
 function matchesMagic(file: File, magic: Uint8Array): Promise<boolean> {
   return new Promise((resolve) => {
@@ -48,6 +51,15 @@ export async function isValidResumeFile(
       };
     return { valid: true };
   }
-  if (file.type === "application/msword") return { valid: true }; // .doc - trust type
+  if (file.type === "application/msword") {
+    // Validate old .doc format (OLE compound document) by magic bytes
+    const isDoc = await matchesMagic(file, DOC_MAGIC);
+    if (!isDoc)
+      return {
+        valid: false,
+        reason: "File may be corrupted or not a valid Word document",
+      };
+    return { valid: true };
+  }
   return { valid: false, reason: "Please upload a PDF or Word document" };
 }

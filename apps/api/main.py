@@ -61,6 +61,12 @@ from packages.backend.domain.repositories import (
 )
 from packages.backend.domain.resume import process_resume_upload
 from packages.backend.domain.tenant import TenantContext, resolve_tenant_context
+from shared.api_response import (
+    ErrorResponse,
+    ErrorInfo,
+    SuccessResponse,
+    success_response,
+)
 from shared.config import Environment, get_settings
 from shared.logging_config import LogContext, get_logger, setup_logging
 from shared.metrics import incr, observe
@@ -910,6 +916,13 @@ def _mount_sub_routers() -> None:
     app.dependency_overrides[skills_mod._get_tenant_ctx] = get_tenant_context
     app.include_router(skills_mod.router)
 
+    # Skill gap analysis
+    import api.skill_gap_analysis as skill_gap_mod
+
+    app.dependency_overrides[skill_gap_mod._get_pool] = get_pool
+    app.dependency_overrides[skill_gap_mod._get_tenant_ctx] = get_tenant_context
+    app.include_router(skill_gap_mod.router, prefix="/skill-gap")
+
     # Match weights configuration
     import api.match_weights as match_weights_mod
 
@@ -1040,6 +1053,19 @@ def _mount_sub_routers() -> None:
     app.dependency_overrides[gdpr_mod._get_pool] = get_pool
     app.dependency_overrides[gdpr_mod._get_user_id] = get_current_user_id
     app.include_router(gdpr_mod.router)
+
+    # Phase 9.3 Consent Management
+    import api.consent as consent_mod
+
+    app.dependency_overrides[consent_mod.get_pool] = get_pool
+    app.include_router(consent_mod.router)
+
+    # Phase 9.4 Compliance Reporting
+    import api.compliance_reports as compliance_mod
+
+    app.dependency_overrides[compliance_mod._get_admin_user_id] = require_admin_user_id
+    app.dependency_overrides[compliance_mod._get_pool] = get_pool
+    app.include_router(compliance_mod.router)
 
     import api.interviews as interviews_mod
 
@@ -2135,12 +2161,16 @@ async def get_application_detail(
 @app.get("/health")
 @app.get("/api/health")  # Proxy-friendly: Vite may forward /api/health without rewrite
 async def health(
+    request: Request,
     db: asyncpg.Pool = Depends(get_pool),
-) -> dict[str, Any]:
+) -> SuccessResponse[dict[str, str]]:
     """Basic health check with dependency validation.
 
     M8: Include database and Redis health checks to ensure all critical
     dependencies are available before reporting healthy status.
+    
+    Returns standardized response format:
+    {"success": true, "data": {...}, "meta": {"version": "1.0", "timestamp": "...", "request_id": "..."}}
     """
     s = get_settings()
     checks = {
@@ -2174,17 +2204,29 @@ async def health(
     redis_healthy = checks["redis"] in ("healthy", "not_configured")
 
     if db_healthy and redis_healthy:
-        return {"status": "ok", "checks": checks}
+        return success_response({"status": "ok", "checks": checks}, request=request)
     else:
         return JSONResponse(
-            status_code=503, content={"status": "degraded", "checks": checks}
+            status_code=503,
+            content=ErrorResponse(
+                success=False,
+                error=ErrorInfo(
+                    code="SERVICE_UNAVAILABLE",
+                    message="One or more dependencies are unhealthy",
+                    details=[],
+                    request_id=getattr(request.state, "request_id", None),
+                ),
+            ).model_dump(),
         )
 
 
 @app.get("/agent-improvements/health")
-async def agent_improvements_health() -> dict[str, Any]:
-    """Health check for agent improvements system. Defined in main to avoid middleware edge cases."""
-    return {
+async def agent_improvements_health(request: Request) -> SuccessResponse[dict[str, Any]]:
+    """Health check for agent improvements system. Defined in main to avoid middleware edge cases.
+    
+    Returns standardized response format.
+    """
+    return success_response({
         "status": "healthy",
         "service": "agent_improvements",
         "features": [
@@ -2197,13 +2239,16 @@ async def agent_improvements_health() -> dict[str, Any]:
             "document_type_tracking",
             "performance_metrics",
         ],
-    }
+    }, request=request)
 
 
 @app.get("/csrf/prepare")
-async def csrf_prepare() -> dict[str, str]:
-    """No-op endpoint to ensure CSRF cookie is issued to the client."""
-    return {"status": "ok"}
+async def csrf_prepare(request: Request) -> SuccessResponse[dict[str, str]]:
+    """No-op endpoint to ensure CSRF cookie is issued to the client.
+    
+    Returns standardized response format.
+    """
+    return success_response({"status": "ok"}, request=request)
 
 
 @app.get("/healthz")

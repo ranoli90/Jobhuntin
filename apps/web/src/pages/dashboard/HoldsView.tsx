@@ -1,12 +1,76 @@
 import { motion, useReducedMotion } from "framer-motion";
-import { CheckCircle, Clock, Quote, Send } from "lucide-react";
-import { useState } from "react";
+import { CheckCircle, Clock, Quote, Send, AlertTriangle } from "lucide-react";
+import { useState, useEffect } from "react";
 import { useApplications } from "../../hooks/useApplications";
+import { useHoldNotifications } from "../../hooks/useHoldNotifications";
 import { Button } from "../../components/ui/Button";
 import { Badge } from "../../components/ui/Badge";
 import { Card } from "../../components/ui/Card";
 import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
 import { sharedLocale, sharedRtl } from "./shared";
+
+/**
+ * Deadline countdown component for time-sensitive hold questions
+ */
+function DeadlineCountdown({ lastActivity }: { lastActivity: string }) {
+  const [timeRemaining, setTimeRemaining] = useState<{
+    days: number;
+    hours: number;
+    minutes: number;
+    isUrgent: boolean;
+    isOverdue: boolean;
+  }>({
+    days: 0,
+    hours: 0,
+    minutes: 0,
+    isUrgent: false,
+    isOverdue: false,
+  });
+
+  useEffect(() => {
+    // Calculate deadline: 48 hours from last activity
+    const deadline = new Date(new Date(lastActivity).getTime() + 48 * 60 * 60 * 1000);
+    const now = new Date();
+    const total = deadline.getTime() - now.getTime();
+    
+    if (total <= 0) {
+      setTimeRemaining({ days: 0, hours: 0, minutes: 0, isUrgent: true, isOverdue: true });
+      return;
+    }
+    
+    const days = Math.floor(total / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((total % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((total % (1000 * 60 * 60)) / (1000 * 60));
+    const isUrgent = total < 4 * 60 * 60 * 1000;
+    
+    setTimeRemaining({ days, hours, minutes, isUrgent, isOverdue: false });
+  }, [lastActivity]);
+
+  if (timeRemaining.isOverdue) {
+    return (
+      <Badge variant="error" className="rounded-md font-bold text-[10px] flex items-center gap-1">
+        <AlertTriangle className="w-3 h-3" />
+        OVERDUE
+      </Badge>
+    );
+  }
+
+  if (timeRemaining.isUrgent) {
+    return (
+      <Badge variant="warning" className="rounded-md font-bold text-[10px] flex items-center gap-1 bg-red-100 text-red-700 border-red-200">
+        <Clock className="w-3 h-3" />
+        {timeRemaining.hours}h {timeRemaining.minutes}m
+      </Badge>
+    );
+  }
+
+  return (
+    <Badge variant="outline" className="rounded-md font-bold text-[10px] text-brand-muted flex items-center gap-1">
+      <Clock className="w-3 h-3" />
+      {timeRemaining.days > 0 ? `${timeRemaining.days}d` : `${timeRemaining.hours}h`} left
+    </Badge>
+  );
+}
 
 export default function HoldsView() {
   const {
@@ -18,7 +82,21 @@ export default function HoldsView() {
     refetch,
     isSubmitting,
   } = useApplications();
+  
+  // Enhanced hold notifications hook
+  const {
+    urgentNotifications,
+    unreadCount,
+    preferences,
+    handleQuickAnswer,
+    handleQuickAnswerChange,
+    handleSnooze,
+    getQuickAnswer,
+    calculateTimeRemaining,
+  } = useHoldNotifications();
+  
   const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [showQuickAnswer, setShowQuickAnswer] = useState<Record<string, boolean>>({});
   const shouldReduceMotion = useReducedMotion();
   const locale = sharedLocale;
   const rtl = sharedRtl;
@@ -137,12 +215,17 @@ export default function HoldsView() {
                     </p>
                   </div>
                 </div>
-                <Badge
-                  variant="warning"
-                  className="rounded-md font-bold text-[10px]"
-                >
-                  RESPONSE REQUIRED
-                </Badge>
+                <div className="flex items-center gap-2">
+                  {/* Deadline countdown if available */}
+                  {app.last_activity && (
+                    <DeadlineCountdown lastActivity={app.last_activity} />
+                  )}
+                  <Badge
+                    variant="warning"
+                    className="rounded-md font-bold text-[10px]"
+                  >
+                    RESPONSE REQUIRED
+                  </Badge>
               </div>
 
               <div className="p-4 sm:p-6 space-y-6">

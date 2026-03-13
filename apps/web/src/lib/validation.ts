@@ -3,6 +3,8 @@
  * Microsoft-level implementation with security-first approach
  */
 
+import { RefObject } from 'react';
+
 // XSS Protection Utilities
 export class XSSProtection {
   private static readonly HTML_ENTITIES = {
@@ -481,6 +483,152 @@ export class Validator {
       warnings,
     };
   }
+
+  /**
+   * Validate a URL
+   */
+  static url(url: string): ValidationResult {
+    const errors: string[] = [];
+    const warnings: string[] = [];
+
+    if (!url) {
+      return { isValid: true, errors, warnings }; // URL is often optional
+    }
+
+    try {
+      const parsed = new URL(url);
+      
+      // Only allow http and https
+      if (!["http:", "https:"].includes(parsed.protocol)) {
+        errors.push("URL must use HTTP or HTTPS protocol");
+      }
+
+      // Check for valid hostname
+      if (!parsed.hostname || parsed.hostname.length === 0) {
+        errors.push("URL must have a valid hostname");
+      }
+
+      // Warn about suspicious patterns
+      if (url.includes("localhost") || url.includes("127.0.0.1")) {
+        warnings.push("URL points to local server");
+      }
+    } catch {
+      errors.push("Invalid URL format");
+    }
+
+    return {
+      isValid: errors.length === 0,
+      errors,
+      warnings,
+    };
+  }
+
+  /**
+   * Validate a LinkedIn URL
+   */
+  static linkedInUrl(url: string): ValidationResult {
+    const errors: string[] = [];
+    const warnings: string[] = [];
+
+    if (!url) {
+      return { isValid: true, errors, warnings };
+    }
+
+    // LinkedIn URL pattern
+    const linkedInRegex = /^https?:\/\/(www\.)?linkedin\.com\/.*$/i;
+    if (!linkedInRegex.test(url)) {
+      errors.push("Please enter a valid LinkedIn URL");
+    }
+
+    return {
+      isValid: errors.length === 0,
+      errors,
+      warnings,
+    };
+  }
+
+  /**
+   * Validate a company website URL
+   */
+  static companyWebsite(url: string): ValidationResult {
+    const errors: string[] = [];
+    const warnings: string[] = [];
+
+    if (!url) {
+      return { isValid: true, errors, warnings };
+    }
+
+    // Basic URL validation first
+    const urlResult = this.url(url);
+    if (!urlResult.isValid) {
+      return urlResult;
+    }
+
+    // Check for common personal/prohibited domains
+    const personalDomains = ['facebook.com', 'twitter.com', 'instagram.com', 'tiktok.com', 'youtube.com'];
+    try {
+      const parsed = new URL(url);
+      if (personalDomains.some(domain => parsed.hostname.endsWith(domain))) {
+        errors.push("Please enter a company website, not a personal social media profile");
+      }
+    } catch {
+      // URL already validated above
+    }
+
+    return {
+      isValid: errors.length === 0,
+      errors,
+      warnings,
+    };
+  }
+
+  /**
+   * Validate confirmation (e.g., password match)
+   */
+  static confirmation(value: string, confirmation: string, fieldName: string = "Value"): ValidationResult {
+    const errors: string[] = [];
+    const warnings: string[] = [];
+
+    if (!value && !confirmation) {
+      return { isValid: true, errors, warnings };
+    }
+
+    if (value !== confirmation) {
+      errors.push(`${fieldName}s do not match`);
+    }
+
+    return {
+      isValid: errors.length === 0,
+      errors,
+      warnings,
+    };
+  }
+
+  /**
+   * Validate against a custom regex pattern
+   */
+  static pattern(
+    value: string,
+    pattern: RegExp,
+    errorMessage: string = "Invalid format"
+  ): ValidationResult {
+    const errors: string[] = [];
+    const warnings: string[] = [];
+
+    if (!value) {
+      return { isValid: true, errors, warnings };
+    }
+
+    if (!pattern.test(value)) {
+      errors.push(errorMessage);
+    }
+
+    return {
+      isValid: errors.length === 0,
+      errors,
+      warnings,
+    };
+  }
 }
 
 // Rate Limiting Protection
@@ -610,6 +758,398 @@ export const CSPHelper = {
   },
 };
 
+// Password strength levels
+export type PasswordStrength = 'weak' | 'fair' | 'good' | 'strong';
+
+// Form validator configuration
+export interface FormFieldConfig {
+  name: string;
+  required?: boolean;
+  requiredMessage?: string;
+  minLength?: number;
+  maxLength?: number;
+  pattern?: RegExp;
+  patternMessage?: string;
+  custom?: (value: string) => ValidationResult;
+  validateOn?: 'blur' | 'change' | 'submit' | 'all';
+}
+
+// Form validation state
+export interface FormValidationState {
+  values: Record<string, string>;
+  errors: Record<string, string>;
+  touched: Record<string, boolean>;
+  isValid: boolean;
+}
+
+/**
+ * FormValidator - A class for handling form validation with real-time feedback
+ */
+export class FormValidator {
+  private fields: Map<string, FormFieldConfig> = new Map();
+  private state: FormValidationState;
+  private onChangeCallback?: (state: FormValidationState) => void;
+
+  constructor(fields: FormFieldConfig[] = []) {
+    this.state = {
+      values: {},
+      errors: {},
+      touched: {},
+      isValid: false,
+    };
+
+    fields.forEach((field) => this.addField(field));
+  }
+
+  /**
+   * Add a field to the validator
+   */
+  addField(config: FormFieldConfig): this {
+    this.fields.set(config.name, config);
+    return this;
+  }
+
+  /**
+   * Remove a field from the validator
+   */
+  removeField(name: string): this {
+    this.fields.delete(name);
+    delete this.state.values[name];
+    delete this.state.errors[name];
+    delete this.state.touched[name];
+    return this;
+  }
+
+  /**
+   * Set the value for a field and validate it
+   */
+  setValue(name: string, value: string): this {
+    this.state.values[name] = value;
+    const field = this.fields.get(name);
+    
+    if (field && this.state.touched[name]) {
+      const error = this.validateField(name, value);
+      this.state.errors[name] = error || '';
+    }
+    
+    this.updateValidity();
+    this.notifyChange();
+    return this;
+  }
+
+  /**
+   * Mark a field as touched
+   */
+  setTouched(name: string, touched: boolean = true): this {
+    this.state.touched[name] = touched;
+    
+    if (touched) {
+      const value = this.state.values[name] || '';
+      const error = this.validateField(name, value);
+      this.state.errors[name] = error || '';
+    }
+    
+    this.updateValidity();
+    this.notifyChange();
+    return this;
+  }
+
+  /**
+   * Get current value
+   */
+  getValue(name: string): string {
+    return this.state.values[name] || '';
+  }
+
+  /**
+   * Get current error
+   */
+  getError(name: string): string | undefined {
+    return this.state.errors[name];
+  }
+
+  /**
+   * Get all current values
+   */
+  getValues(): Record<string, string> {
+    return { ...this.state.values };
+  }
+
+  /**
+   * Get all current errors
+   */
+  getErrors(): Record<string, string> {
+    const errors: Record<string, string> = {};
+    for (const [name, error] of Object.entries(this.state.errors)) {
+      if (error) errors[name] = error;
+    }
+    return errors;
+  }
+
+  /**
+   * Validate a single field
+   */
+  validateField(name: string, value: string): string | null {
+    const field = this.fields.get(name);
+    if (!field) return null;
+
+    // Required validation
+    if (field.required && (!value || value.trim() === '')) {
+      return field.requiredMessage || 'This field is required';
+    }
+
+    // Skip other validations if empty and not required
+    if (!value) return null;
+
+    // Min length validation
+    if (field.minLength && value.length < field.minLength) {
+      return `Must be at least ${field.minLength} characters`;
+    }
+
+    // Max length validation
+    if (field.maxLength && value.length > field.maxLength) {
+      return `Must be no more than ${field.maxLength} characters`;
+    }
+
+    // Pattern validation
+    if (field.pattern && !field.pattern.test(value)) {
+      return field.patternMessage || 'Invalid format';
+    }
+
+    // Custom validation
+    if (field.custom) {
+      const result = field.custom(value);
+      if (!result.isValid && result.errors.length > 0) {
+        return result.errors[0];
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * Validate all fields
+   */
+  validate(): boolean {
+    let isValid = true;
+
+    for (const [name, field] of this.fields) {
+      const value = this.state.values[name] || '';
+      const error = this.validateField(name, value);
+      this.state.errors[name] = error || '';
+      this.state.touched[name] = true;
+
+      if (error) isValid = false;
+    }
+
+    this.state.isValid = isValid;
+    this.notifyChange();
+    return isValid;
+  }
+
+  /**
+   * Check if form is valid
+   */
+  isValid(): boolean {
+    return this.state.isValid;
+  }
+
+  /**
+   * Get the current validation state
+   */
+  getState(): FormValidationState {
+    return { ...this.state };
+  }
+
+  /**
+   * Reset the form
+   */
+  reset(): this {
+    this.state = {
+      values: {},
+      errors: {},
+      touched: {},
+      isValid: false,
+    };
+    this.notifyChange();
+    return this;
+  }
+
+  /**
+   * Set callback for state changes
+   */
+  onChange(callback: (state: FormValidationState) => void): this {
+    this.onChangeCallback = callback;
+    return this;
+  }
+
+  private updateValidity(): void {
+    this.state.isValid = true;
+    for (const [name, value] of Object.entries(this.state.values)) {
+      const error = this.validateField(name, value);
+      if (error) {
+        this.state.isValid = false;
+        break;
+      }
+    }
+  }
+
+  private notifyChange(): void {
+    if (this.onChangeCallback) {
+      this.onChangeCallback(this.getState());
+    }
+  }
+}
+
+// Error message formatters
+export const ErrorFormatters = {
+  /**
+   * Format required field error
+   */
+  required(fieldName: string): string {
+    return `${fieldName} is required`;
+  },
+
+  /**
+   * Format min length error
+   */
+  minLength(fieldName: string, length: number): string {
+    return `${fieldName} must be at least ${length} characters`;
+  },
+
+  /**
+   * Format max length error
+   */
+  maxLength(fieldName: string, length: number): string {
+    return `${fieldName} must be no more than ${length} characters`;
+  },
+
+  /**
+   * Format email error
+   */
+  email(): string {
+    return 'Please enter a valid email address';
+  },
+
+  /**
+   * Format password mismatch error
+   */
+  passwordMismatch(): string {
+    return 'Passwords do not match';
+  },
+
+  /**
+   * Format password strength error
+   */
+  passwordStrength(strength: string): string {
+    return `Password is too ${strength}. Please use a stronger password.`;
+  },
+
+  /**
+   * Format generic pattern error
+   */
+  pattern(fieldName: string): string {
+    return `${fieldName} format is invalid`;
+  },
+
+  /**
+   * Format URL error
+   */
+  url(): string {
+    return 'Please enter a valid URL';
+  },
+
+  /**
+   * Format phone error
+   */
+  phone(): string {
+    return 'Please enter a valid phone number';
+  },
+
+  /**
+   * Get first error from validation result
+   */
+  firstError(result: ValidationResult): string | null {
+    if (!result.isValid && result.errors.length > 0) {
+      return result.errors[0];
+    }
+    return null;
+  },
+
+  /**
+   * Get all errors from validation result
+   */
+  allErrors(result: ValidationResult): string[] {
+    return result.errors;
+  },
+};
+
+// Password strength calculator
+export const PasswordStrengthCalculator = {
+  calculate(password: string): { strength: PasswordStrength; score: number; feedback: string[] } {
+    const feedback: string[] = [];
+    let score = 0;
+
+    if (!password) {
+      return { strength: 'weak', score: 0, feedback: ['Password is required'] };
+    }
+
+    // Length checks
+    if (password.length >= 8) score += 1;
+    if (password.length >= 12) score += 1;
+    if (password.length >= 16) score += 1;
+
+    // Character type checks
+    if (/[a-z]/.test(password)) score += 1;
+    if (/[A-Z]/.test(password)) score += 1;
+    if (/\d/.test(password)) score += 1;
+    if (/[!"#$%&'()*+,./:;<=>?@[\\\]^_{|}\-]/.test(password)) score += 1;
+
+    // Check for patterns that reduce strength
+    if (/^[a-zA-Z]+$/.test(password)) {
+      feedback.push('Add numbers or symbols');
+    }
+    if (/^\d+$/.test(password)) {
+      feedback.push('Add letters');
+    }
+    if (password.length < 10) {
+      feedback.push('Use at least 10 characters');
+    }
+
+    // Determine strength
+    let strength: PasswordStrength;
+    if (score <= 2) {
+      strength = 'weak';
+    } else if (score <= 4) {
+      strength = 'fair';
+    } else if (score <= 6) {
+      strength = 'good';
+    } else {
+      strength = 'strong';
+    }
+
+    return { strength, score: Math.min(score, 10), feedback };
+  },
+
+  getStrengthColor(strength: PasswordStrength): string {
+    switch (strength) {
+      case 'weak': return 'bg-red-500';
+      case 'fair': return 'bg-yellow-500';
+      case 'good': return 'bg-blue-500';
+      case 'strong': return 'bg-green-500';
+    }
+  },
+
+  getStrengthLabel(strength: PasswordStrength): string {
+    switch (strength) {
+      case 'weak': return 'Weak';
+      case 'fair': return 'Fair';
+      case 'good': return 'Good';
+      case 'strong': return 'Strong';
+    }
+  },
+};
+
 // Export all validation utilities
 export const ValidationUtils = {
   sanitize: XSSProtection.sanitizeHTML.bind(XSSProtection),
@@ -623,7 +1163,36 @@ export const ValidationUtils = {
     name: Validator.name.bind(Validator),
     salary: Validator.salary.bind(Validator),
     phone: Validator.phoneNumber.bind(Validator),
+    url: Validator.url.bind(Validator),
+    linkedIn: Validator.linkedInUrl.bind(Validator),
+    companyWebsite: Validator.companyWebsite.bind(Validator),
     field: Validator.validateField.bind(Validator),
+    pattern: Validator.pattern.bind(Validator),
+    confirmation: Validator.confirmation.bind(Validator),
+  },
+
+  form: {
+    create: (fields: FormFieldConfig[]) => new FormValidator(fields),
+  },
+
+  password: {
+    strength: PasswordStrengthCalculator.calculate,
+    getColor: PasswordStrengthCalculator.getStrengthColor,
+    getLabel: PasswordStrengthCalculator.getStrengthLabel,
+  },
+
+  format: {
+    required: ErrorFormatters.required,
+    minLength: ErrorFormatters.minLength,
+    maxLength: ErrorFormatters.maxLength,
+    email: ErrorFormatters.email,
+    passwordMismatch: ErrorFormatters.passwordMismatch,
+    passwordStrength: ErrorFormatters.passwordStrength,
+    pattern: ErrorFormatters.pattern,
+    url: ErrorFormatters.url,
+    phone: ErrorFormatters.phone,
+    firstError: ErrorFormatters.firstError,
+    allErrors: ErrorFormatters.allErrors,
   },
 
   security: {

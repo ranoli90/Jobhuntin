@@ -9,6 +9,7 @@ import LoginPage from "./pages/LoginPage";
 import EnterpriseDashboard from "./enterprise/EnterpriseDashboard";
 import SSOConfigPage from "./enterprise/SSOConfigPage";
 import AuditLogPage from "./compliance/AuditLogPage";
+import ComplianceDashboard from "./compliance/ComplianceDashboard";
 import BulkCampaignsPage from "./bulk-ops/BulkCampaignsPage";
 import MarketplaceBrowse from "./marketplace/MarketplaceBrowse";
 import AuthorDashboard from "./marketplace/AuthorDashboard";
@@ -260,6 +261,7 @@ export default function App() {
           <Route path="/enterprise" element={<EnterpriseDashboard />} />
           <Route path="/sso" element={<SSOConfigPage />} />
           <Route path="/audit-log" element={<AuditLogPage />} />
+          <Route path="/compliance" element={<ComplianceDashboard />} />
           <Route path="/bulk-campaigns" element={<BulkCampaignsPage />} />
           <Route path="/marketplace" element={<MarketplaceBrowse />} />
           <Route path="/marketplace/submit" element={<SubmitBlueprint />} />

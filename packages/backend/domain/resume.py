@@ -480,6 +480,7 @@ async def process_resume_upload(
     # Generate storage path with appropriate extension
     file_ext = {
         "pdf": "pdf",
+        "doc": "doc",
         "docx": "docx",
         "image": "jpg",  # Default image extension
     }.get(metadata["file_type"], "pdf")

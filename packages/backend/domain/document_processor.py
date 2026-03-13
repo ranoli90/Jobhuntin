@@ -5,6 +5,7 @@ import os
 
 import docx  # python-docx for DOCX
 import fitz  # PyMuPDF for PDF
+import mammoth  # For .doc and .docx parsing
 import pytesseract  # OCR support
 from fastapi import HTTPException
 from PIL import Image
@@ -61,7 +62,10 @@ class DocumentProcessor:
         if content_type in self.SUPPORTED_PDF_TYPES:
             return "pdf"
         elif content_type in self.SUPPORTED_DOCX_TYPES:
-            return "docx"
+            # Distinguish between .doc and .docx based on content type
+            if content_type == "application/msword":
+                return "doc"  # Old binary .doc format
+            return "docx"  # OpenXML .docx format
         elif content_type in self.SUPPORTED_IMAGE_TYPES:
             return "image"
 
@@ -69,9 +73,11 @@ class DocumentProcessor:
         ext = os.path.splitext(filename.lower())[1]
         if ext == "pdf":
             return "pdf"
-        elif ext in ["docx", "doc"]:
-            return "docx"
-        elif ext in ["jpg", "jpeg", "png", "tiff", "bmp"]:
+        elif ext == ".doc":
+            return "doc"  # Old binary .doc format
+        elif ext == ".docx":
+            return "docx"  # OpenXML .docx format
+        elif ext in [".jpg", ".jpeg", ".png", ".tiff", ".bmp"]:
             return "image"
 
         return "unknown"
@@ -79,7 +85,7 @@ class DocumentProcessor:
     def is_supported_file(self, filename: str, content_type: str) -> bool:
         """Check if the file format is supported."""
         file_type = self.get_file_type(filename, content_type)
-        return file_type in ["pdf", "docx", "image"]
+        return file_type in ["pdf", "doc", "docx", "image"]
 
     async def extract_text_from_document(
         self, file_bytes: bytes, filename: str, content_type: str, use_ocr: bool = True
@@ -102,6 +108,8 @@ class DocumentProcessor:
 
         if file_type == "pdf":
             return await self._extract_text_from_pdf(file_bytes, use_ocr)
+        elif file_type == "doc":
+            return await self._extract_text_from_doc(file_bytes)
         elif file_type == "docx":
             return await self._extract_text_from_docx(file_bytes)
         elif file_type == "image":
@@ -109,7 +117,7 @@ class DocumentProcessor:
         else:
             raise HTTPException(
                 status_code=400,
-                detail=f"Unsupported file type: {file_type}. Supported formats: PDF, DOCX, and images.",
+                detail=f"Unsupported file type: {file_type}. Supported formats: PDF, DOC, DOCX, and images.",
             )
 
     async def _extract_text_from_pdf(
@@ -245,6 +253,31 @@ class DocumentProcessor:
             raise HTTPException(
                 status_code=422,
                 detail="Failed to process DOCX file. Please ensure the file is not corrupted.",
+            )
+
+    async def _extract_text_from_doc(self, doc_bytes: bytes) -> str:
+        """Extract text from legacy .doc document using mammoth."""
+        try:
+            # Use mammoth to convert .doc to HTML, then extract text
+            result = mammoth.convert_to_text(io.BytesIO(doc_bytes))
+            text = result.value
+
+            if not text or not text.strip():
+                raise HTTPException(
+                    status_code=422,
+                    detail="The DOC file appears to be empty or could not be read.",
+                )
+
+            return text
+
+        except HTTPException:
+            # Re-raise HTTPExceptions as-is
+            raise
+        except Exception as e:
+            logger.error(f"Failed to extract text from DOC: {e}")
+            raise HTTPException(
+                status_code=422,
+                detail="Failed to process DOC file. Please convert to DOCX or PDF and try again.",
             )
 
     async def _extract_text_from_image(self, image_bytes: bytes) -> str:

@@ -635,6 +635,16 @@ export function PreferencesStep({
         </Button>
         <Button
           type="button"
+          variant="outline"
+          onClick={onNext}
+          disabled={isSavingPreferences}
+          className="h-12 sm:h-11 rounded-xl font-bold text-slate-500 hover:text-slate-700 border border-slate-200 hover:bg-slate-50 text-sm px-4 touch-manipulation"
+          aria-label={t("onboarding.skipForNow", locale)}
+        >
+          {t("onboarding.skipForNow", locale) || "Skip for now"}
+        </Button>
+        <Button
+          type="button"
           onClick={onNext}
           disabled={isSavingPreferences}
           className="flex-1 h-12 sm:h-11 rounded-xl font-bold bg-emerald-600 hover:bg-emerald-500 shadow-lg shadow-emerald-500/20 text-sm disabled:opacity-50 disabled:cursor-not-allowed group touch-manipulation"

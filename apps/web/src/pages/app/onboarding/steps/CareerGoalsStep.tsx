@@ -169,8 +169,7 @@ export function CareerGoalsStep({
         <div className="mb-6">
           <label className="mb-3 flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
             <Clock className="w-3 h-3" />
-            {t("onboarding.experienceLevel", locale) || "Experience Level"}{" "}
-            <span className="text-red-400">*</span>
+            {t("onboarding.experienceLevel", locale) || "Experience Level"}
           </label>
           <div
             className="grid grid-cols-3 md:grid-cols-5 gap-2"
@@ -220,8 +219,7 @@ export function CareerGoalsStep({
           <label className="mb-3 flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
             <Flame className="w-3 h-3" />
             {t("onboarding.searchUrgency", locale) ||
-              "How urgently are you looking?"}{" "}
-            <span className="text-red-400">*</span>
+              "How urgently are you looking?"}
           </label>
           <div
             className="grid gap-2"
@@ -368,6 +366,16 @@ export function CareerGoalsStep({
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
           {t("onboarding.back", locale)}
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onNext}
+          disabled={isSaving}
+          className="h-12 sm:h-11 rounded-xl font-bold text-slate-500 hover:text-slate-700 border border-slate-200 hover:bg-slate-50 text-sm px-4 touch-manipulation"
+          aria-label={t("onboarding.skipForNow", locale)}
+        >
+          {t("onboarding.skipForNow", locale) || "Skip for now"}
         </Button>
         <Button
           type="button"

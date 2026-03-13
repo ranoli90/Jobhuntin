@@ -1,3 +1,4 @@
+import { MetricCard, QuickActions, PipelineOverview } from "../../components/dashboard";
 import { FocusTrap } from "focus-trap-react";
 import {
   ArrowUpRight,
@@ -28,6 +29,11 @@ import {
   Sunset,
   Moon,
   TrendingUp,
+  Search,
+  FileText,
+  HelpCircle,
+  Calendar,
+  Target,
 } from "lucide-react";
 import { Card } from "../../components/ui/Card";
 import { Badge } from "../../components/ui/Badge";
@@ -115,48 +121,89 @@ export default function Dashboard() {
     ),
   );
 
+  // Calculate key metrics for the new hierarchy
+  const totalApps = applications.length || 1; // avoid /0
+  const appliedCount = byStatus.APPLIED ?? 0;
+  const applyingCount = byStatus.APPLYING ?? 0;
+  const interviewCount = (byStatus.INTERVIEWING ?? 0) + (byStatus.OFFER ?? 0);
+  const responseRate = applications.length > 0
+    ? Math.round(((appliedCount + interviewCount) / applications.length) * 100)
+    : 0;
+  
+  // Pipeline stages for fourth row
+  const pipelineStages = [
+    { label: "Applying", count: applyingCount, status: "APPLYING" as const, Icon: Briefcase },
+    { label: "Applied", count: appliedCount, status: "APPLIED" as const, Icon: Send },
+    { label: "Interviewing", count: byStatus.INTERVIEWING ?? 0, status: "INTERVIEWING" as const, Icon: Calendar },
+    { label: "Offers", count: byStatus.OFFER ?? 0, status: "OFFER" as const, Icon: Target },
+  ];
+
+  // Quick actions for second row
+  const quickActions = [
+    {
+      label: "Find New Jobs",
+      description: "Browse jobs matched to your profile",
+      icon: Search,
+      color: "bg-blue-100 text-blue-600 hover:bg-blue-200",
+      onClick: () => navigate("/app/jobs"),
+    },
+    {
+      label: "Continue Applications",
+      description: `${applyingCount} applications in progress`,
+      icon: FileText,
+      color: "bg-purple-100 text-purple-600 hover:bg-purple-200",
+      onClick: () => navigate("/app/applications?status=APPLYING"),
+    },
+    {
+      label: "Pending Questions",
+      description: `${holdApplications.length} awaiting your input`,
+      icon: HelpCircle,
+      color: "bg-amber-100 text-amber-600 hover:bg-amber-200",
+      onClick: () => navigate("/app/applications?status=HOLD"),
+      badge: holdApplications.length,
+    },
+  ];
+
   const metrics = [
     {
-      label: "Active Applications",
-      value: activeCount,
-      icon: Briefcase,
+      label: "Applications Sent",
+      value: appliedCount,
+      icon: Send,
       color: "from-blue-500 to-blue-600",
       bg: "bg-blue-50",
       text: "text-blue-600",
       iconColor: "text-blue-500",
-      progress: activeProgress,
+      progress: Math.round((appliedCount / totalApps) * 100),
     },
     {
-      label: "Applied Rate",
-      value: `${appliedRate}%`,
-      icon: BarChart3,
+      label: "Response Rate",
+      value: `${responseRate}%`,
+      icon: TrendingUp,
       color: "from-emerald-500 to-emerald-600",
       bg: "bg-emerald-50",
       text: "text-emerald-600",
       iconColor: "text-emerald-500",
-      progress: appliedProgress,
+      progress: responseRate,
     },
     {
-      label: "Needs Your Input",
-      value: byStatus.HOLD,
-      icon: Inbox,
-      color: "from-amber-500 to-amber-600",
-      bg: "bg-amber-50",
-      text: "text-amber-600",
-      iconColor: "text-amber-500",
-      progress: holdProgress,
-      title:
-        "Applications where the form asked a question we need you to answer",
+      label: "Interviews Scheduled",
+      value: interviewCount,
+      icon: Calendar,
+      color: "from-indigo-500 to-indigo-600",
+      bg: "bg-indigo-50",
+      text: "text-indigo-600",
+      iconColor: "text-indigo-500",
+      progress: Math.round((interviewCount / totalApps) * 100),
     },
     {
-      label: "Total Applications",
-      value: applications.length,
-      icon: Zap,
+      label: "Active Applications",
+      value: applyingCount,
+      icon: Briefcase,
       color: "from-brand-primary to-brand-primaryHover",
       bg: "bg-brand-primary/10",
       text: "text-brand-primary",
       iconColor: "text-brand-primary",
-      progress: totalProgress,
+      progress: Math.round((applyingCount / totalApps) * 100),
     },
   ];
 
@@ -273,75 +320,22 @@ export default function Dashboard() {
           </Button>
         </Card>
       ) : (
-        <div className="-mx-1 overflow-x-auto pb-1 lg:mx-0">
-          <div className="flex gap-2 md:grid md:grid-cols-2 xl:grid-cols-4 min-w-full px-1">
-            {metrics.map((metric, index) => (
-              <motion.div
-                key={metric.label}
-                initial={shouldReduceMotion ? undefined : { opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={
-                  shouldReduceMotion
-                    ? undefined
-                    : { delay: 0.05 * index, duration: 0.4 }
-                }
-                className="h-full min-w-[240px] md:min-w-0"
-                title={
-                  "title" in metric && metric.title ? metric.title : undefined
-                }
-              >
-                <Card
-                  className="h-full border-brand-border bg-white hover:border-brand-primary/30 transition-colors duration-200 group rounded-xl"
-                  shadow="sm"
-                  tone="glass"
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="space-y-3">
-                      <p className="text-sm text-brand-muted">{metric.label}</p>
-                      <p className="text-2xl font-semibold text-brand-text tabular-nums">
-                        {isLoading ? (
-                          <span className="inline-block h-7 w-14 bg-slate-100 rounded animate-pulse"></span>
-                        ) : (typeof metric.value === "string" ? (
-                          metric.value
-                        ) : (
-                          <AnimatedNumber
-                            value={metric.value}
-                            shouldReduceMotion={!!shouldReduceMotion}
-                          />
-                        ))}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="mt-4 h-1.5 w-full bg-brand-gray rounded-full overflow-hidden">
-                    <motion.div
-                      className={`h-full rounded-full bg-gradient-to-r ${metric.color}`}
-                        initial={
-                          shouldReduceMotion
-                            ? {
-                                width: `${Math.min(100, Math.max(0, Number(metric.progress) || 0))}%`,
-                              }
-                            : { width: "0%" }
-                        }
-                        animate={{
-                          width: `${Math.min(100, Math.max(0, Number(metric.progress) || 0))}%`,
-                        }}
-                      transition={
-                        shouldReduceMotion
-                          ? undefined
-                          : {
-                              delay: 0.2 + index * 0.08,
-                              duration: 0.6,
-                              type: "spring",
-                            }
-                      }
-                    />
-                  </div>
-                </Card>
-              </motion.div>
-            ))}
+        <>
+          {/* ROW 1: Key Metrics */}
+          <div className="-mx-1 overflow-x-auto pb-1 lg:mx-0">
+            <div className="flex gap-2 md:grid md:grid-cols-2 xl:grid-cols-4 min-w-full px-1">
+              {metrics.map((metric, index) => (
+                <MetricCard
+                  key={metric.label}
+                  {...metric}
+                  isLoading={isLoading}
+                />
+              ))}
+            </div>
           </div>
-        </div>
-      )}
+
+          {/* ROW 2: Quick Actions */}
+          <QuickActions actions={quickActions} isLoading={isLoading} />
 
       <div className="grid gap-3 lg:grid-cols-3">
         <div className="space-y-3 lg:col-span-2">
@@ -605,6 +599,16 @@ export default function Dashboard() {
           </motion.div>
         </div>
       </div>
+
+      {/* ROW 4: Pipeline Overview */}
+      {applications.length > 0 && (
+        <PipelineOverview
+          stages={pipelineStages}
+          total={applications.length}
+          isLoading={isLoading}
+          onViewAll={() => navigate("/app/applications")}
+        />
+      )}
     </motion.div>
   );
 }

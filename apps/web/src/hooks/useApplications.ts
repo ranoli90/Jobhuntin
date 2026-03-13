@@ -1,7 +1,13 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiGet, apiPost } from "../lib/api";
 import { pushToast } from "../lib/toast";
+import {
+  ApplicationErrorCode,
+  getErrorDetail,
+  formatApplicationError,
+  type ApplicationErrorDetail,
+} from "../lib/applicationErrors";
 
 export type ApplicationStatus = "APPLYING" | "APPLIED" | "HOLD" | "FAILED";
 
@@ -13,6 +19,8 @@ export interface ApplicationRecord {
   summary?: string;
   hold_question?: string;
   last_activity?: string;
+  error_code?: ApplicationErrorCode;
+  error_message?: string;
 }
 
 interface ApplicationsResponse {
@@ -210,14 +218,45 @@ export function useApplications() {
     [queryClient],
   );
 
+  // Get detailed error information for a failed application
+  const getApplicationError = useCallback(
+    (application: ApplicationRecord): ApplicationErrorDetail | null => {
+      if (application.status !== "FAILED") {
+        return null;
+      }
+      // If we have an error code, use the detailed error system
+      if (application.error_code) {
+        return getErrorDetail(application.error_code as ApplicationErrorCode);
+      }
+      // Fallback: parse from error_message if available
+      if (application.error_message) {
+        return formatApplicationError(application.error_message);
+      }
+      // Default to unknown error
+      return getErrorDetail(ApplicationErrorCode.UNKNOWN_ERROR);
+    },
+    [],
+  );
+
+  // Get failed applications with error details
+  const failedApplications = useMemo(() => {
+    return applications
+      .filter((app) => app.status === "FAILED")
+      .map((app) => ({
+        ...app,
+        errorDetail: getApplicationError(app),
+      }));
+  }, [applications, getApplicationError]);
+
   return {
     applications,
     holdApplications,
+    failedApplications,
     byStatus,
     stats: {
       successRate,
       totalApps: displayTotal,
-      monthlyApps: displayTotal, // Same as totalApps until API provides monthly count
+      monthlyApps: displayTotal,
     },
     queueStats: queueStats ?? null,
     isLoading: query.isLoading,
@@ -228,5 +267,6 @@ export function useApplications() {
     snoozeApplication,
     reviewApplication,
     withdrawApplication,
+    getApplicationError,
   } as const;
 }

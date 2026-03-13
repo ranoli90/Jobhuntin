@@ -24,6 +24,7 @@ import { Button } from "../components/ui/Button";
 import { Card } from "../components/ui/Card";
 import { LoadingSpinner } from "../components/ui/LoadingSpinner";
 import { ConfirmModal } from "../components/ui/ConfirmModal";
+import { SkeletonProfile, SkeletonForm } from "../components/ui/Skeleton";
 import { pushToast } from "../lib/toast";
 import { apiPost, apiDelete, downloadFile, handleApiError } from "../lib/api";
 import { telemetry } from "../lib/telemetry";
@@ -378,45 +379,17 @@ export default function Settings() {
 
   if (loading) {
     return (
-      <div
-        className="space-y-8 px-4 lg:px-0 pb-8"
-        aria-busy="true"
-        aria-label="Loading settings"
-      >
+      <div className="space-y-8 px-4 lg:px-0 pb-8" aria-busy="true" aria-label="Loading settings">
         <div className="space-y-2">
-          <div className="h-4 w-24 bg-slate-200 rounded animate-pulse" />
-          <div className="h-10 w-64 bg-slate-200 rounded animate-pulse" />
+          <Skeleton className="h-4 w-24" />
+          <Skeleton className="h-10 w-64" />
         </div>
         <div className="grid gap-6 lg:grid-cols-2">
           <div className="space-y-6">
-            <div className="p-6 rounded-2xl border border-slate-200 bg-white animate-pulse">
-              <div className="flex items-center justify-between mb-4">
-                <div className="h-5 w-32 bg-slate-200 rounded" />
-                <div className="h-4 w-40 bg-slate-100 rounded" />
-              </div>
-              <div className="flex items-center gap-4 mb-6">
-                <div className="h-20 w-20 rounded-full bg-slate-200" />
-                <div className="space-y-2 flex-1">
-                  <div className="h-5 w-32 bg-slate-200 rounded" />
-                  <div className="h-4 w-48 bg-slate-100 rounded" />
-                </div>
-              </div>
-              <div className="space-y-4">
-                <div className="h-12 w-full bg-slate-100 rounded-2xl" />
-                <div className="h-12 w-full bg-slate-100 rounded-2xl" />
-                <div className="h-24 w-full bg-slate-100 rounded-2xl" />
-              </div>
-            </div>
+            <SkeletonProfile showCover={false} showBio={true} statsCount={0} showActions={true} />
           </div>
           <div className="space-y-6">
-            <div className="p-6 rounded-2xl border border-slate-200 bg-white animate-pulse">
-              <div className="h-5 w-40 bg-slate-200 rounded mb-4" />
-              <div className="space-y-4">
-                <div className="h-12 w-full bg-slate-100 rounded-2xl" />
-                <div className="h-12 w-full bg-slate-100 rounded-2xl" />
-                <div className="h-12 w-1/2 bg-slate-100 rounded-2xl" />
-              </div>
-            </div>
+            <SkeletonForm fields={3} showLabels={true} showSubmit={false} layout="single" />
           </div>
         </div>
       </div>

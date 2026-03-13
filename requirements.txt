@@ -30,11 +30,22 @@ signxml>=4.3.1
 # ── PDF Parsing ──────────────────────────────────────────────────
 PyMuPDF>=1.24,<2
 python-docx>=0.8.11,<1
+mammoth>=1.6.0,<2  # For .doc and .docx parsing
 reportlab>=4.0,<5
 
 # ── OCR Support ──────────────────────────────────────────────────
 pytesseract>=0.3.10,<1
 Pillow>=12.1.1
+
+# ── Optional: ML CAPTCHA Solving ─────────────────────────────────────
+# Install with: pip install opencv-python numpy
+# (Required only for local ML-based CAPTCHA solving; falls back to external services if not installed)
+# opencv-python>=4.8.0
+# numpy>=1.24.0
+# PyTorch for deep learning (optional, heavy dependency)
+# torch>=2.0.0
+# torchvision>=0.15.0
+# transformers>=4.30.0
 
 # ── Browser Automation (Worker) ──────────────────────────────────
 playwright>=1.43,<2

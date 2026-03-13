@@ -62,7 +62,9 @@ FROM base AS worker
 # Install Playwright system deps + browser (DL3013: pin version)
 USER root
 RUN pip install --no-cache-dir "playwright>=1.43,<2" \
-    && python -m playwright install --with-deps chromium
+    && python -m playwright install --with-deps chromium \
+    && python -c "from playwright.sync_api import sync_playwright; print('Playwright OK')" \
+    && echo "Playwright installed successfully"
 
 USER sorce
 

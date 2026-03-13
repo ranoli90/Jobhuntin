@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { CheckCircle2, Zap, Sparkles } from "lucide-react";
+import { CheckCircle2, Zap, Sparkles, Clock } from "lucide-react";
 import { Logo } from "../../components/brand/Logo";
 import { useOnboarding } from "../../hooks/useOnboarding";
 import { useProfile } from "../../hooks/useProfile";
@@ -1330,41 +1330,46 @@ export default function Onboarding() {
 
   const handleSaveCareerGoals = async () => {
     setSaveError(null);
-    // F5: Explicit validation before submit (e.g. Ctrl+Enter bypasses button disabled)
-    if (!careerGoals.experience_level?.trim() || !careerGoals.urgency?.trim()) {
-      setSaveError(
-        t("onboarding.careerGoalsRequired", locale) ||
-          "Please select experience level and search urgency.",
-      );
-      return;
+    // Allow skipping - only validate if fields are filled
+    if (careerGoals.experience_level?.trim() || careerGoals.urgency?.trim()) {
+      if (!careerGoals.experience_level?.trim() || !careerGoals.urgency?.trim()) {
+        setSaveError(
+          t("onboarding.careerGoalsRequired", locale) ||
+            "Please select both experience level and search urgency, or skip this step.",
+        );
+        return;
+      }
     }
     try {
       setIsSavingCareerGoals(true);
-      // Map frontend values to backend enums (experience_level: entry|mid|senior|staff, urgency: passive|casual|active|urgent)
-      const expMap: Record<string, string> = {
-        "0-1": "entry",
-        "1-3": "entry",
-        "3-5": "mid",
-        "5-10": "senior",
-        "10+": "staff",
-      };
-      const urgencyMap: Record<string, string> = {
-        active: "active",
-        open: "casual",
-        exploring: "passive",
-      };
-      await updateProfile({
-        career_goals: {
-          experience_level:
-            expMap[careerGoals.experience_level] ?? careerGoals.experience_level,
-          urgency:
-            urgencyMap[careerGoals.urgency] ?? careerGoals.urgency,
-          primary_goal: careerGoals.primary_goal,
-          why_leaving: careerGoals.why_leaving,
-        },
-      });
-      updateFormData({ careerGoals });
-      pushToast({ title: "Career goals saved!", tone: "success" });
+      // Only save if user provided values
+      if (careerGoals.experience_level?.trim() && careerGoals.urgency?.trim()) {
+        // Map frontend values to backend enums (experience_level: entry|mid|senior|staff, urgency: passive|casual|active|urgent)
+        const expMap: Record<string, string> = {
+          "0-1": "entry",
+          "1-3": "entry",
+          "3-5": "mid",
+          "5-10": "senior",
+          "10+": "staff",
+        };
+        const urgencyMap: Record<string, string> = {
+          active: "active",
+          open: "casual",
+          exploring: "passive",
+        };
+        await updateProfile({
+          career_goals: {
+            experience_level:
+              expMap[careerGoals.experience_level] ?? careerGoals.experience_level,
+            urgency:
+              urgencyMap[careerGoals.urgency] ?? careerGoals.urgency,
+            primary_goal: careerGoals.primary_goal,
+            why_leaving: careerGoals.why_leaving,
+          },
+        });
+        updateFormData({ careerGoals });
+        pushToast({ title: "Career goals saved!", tone: "success" });
+      }
       nextStep();
     } catch (error) {
       const error_ = error as Error & { status?: number };
@@ -1745,9 +1750,12 @@ export default function Onboarding() {
                   {t("onboarding.of", locale) || "of"} {steps.length} —{" "}
                   {progress.toFixed(0)}%
                 </span>
-                <span className="text-[10px] md:text-xs font-bold text-[#455DD3] uppercase tracking-wider">
-                  {currentStepData.title}
-                </span>
+                <div className="flex items-center gap-2">
+                  <Clock className="w-3 h-3 text-[#17BEBB]" />
+                  <span className="text-[10px] md:text-xs font-bold text-[#17BEBB] uppercase tracking-wider">
+                    {t("onboarding.timeRemaining", locale) || "~2 min remaining"}
+                  </span>
+                </div>
               </div>
               {/* OB1: Progress Persistence Warning - Show auto-save indicator */}
               <div className="flex items-center gap-1.5 mb-2 px-1">

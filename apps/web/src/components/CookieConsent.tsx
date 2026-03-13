@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { FocusTrap } from "focus-trap-react";
 import { Button } from "./ui/Button";
 import { t, getLocale } from "../lib/i18n";
+import { getConsent, saveConsent as saveConsentApi, ConsentPreferences } from "../lib/consent";
 
 declare global {
   interface Window {
@@ -29,40 +30,92 @@ export function CookieConsent() {
   });
   const containerReference = useRef<HTMLDivElement>(null);
 
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
-    const raw = localStorage.getItem(CONSENT_KEY);
-    if (!raw) {
-      setVisible(true);
-      return;
-    }
-    try {
-      const consent = JSON.parse(raw);
-      // Check if consent is outdated (version or expiry)
-      const isVersionOutdated = consent?.version !== CONSENT_VERSION;
-      const ts = consent?.ts;
-      let isExpired = false;
+    const loadConsent = async () => {
+      setLoading(true);
+      try {
+        // Try to fetch consent from backend
+        const response = await getConsent();
+        const consent = response.preferences;
 
-      if (ts && typeof ts === "number") {
-        const expiry = ts + CONSENT_EXPIRY_MONTHS * 30 * 24 * 60 * 60 * 1000;
-        isExpired = Date.now() > expiry;
-      }
+        // Check if consent is outdated (version or expiry)
+        const isVersionOutdated = response.version !== CONSENT_VERSION;
+        const lastUpdated = response.last_updated ? new Date(response.last_updated).getTime() : 0;
+        let isExpired = false;
 
-      if (isVersionOutdated || isExpired) {
-        localStorage.removeItem(CONSENT_KEY);
-        setVisible(true);
-      } else if (ts) {
-        // Load existing preferences
-        setPreferences({
-          essential: true,
-          analytics: consent.analytics || false,
-          marketing: consent.marketing || false,
-        });
-      } else {
-        setVisible(true);
+        if (lastUpdated) {
+          const expiry = lastUpdated + CONSENT_EXPIRY_MONTHS * 30 * 24 * 60 * 60 * 1000;
+          isExpired = Date.now() > expiry;
+        }
+
+        if (isVersionOutdated || isExpired) {
+          // Remove from localStorage and show banner
+          localStorage.removeItem(CONSENT_KEY);
+          setVisible(true);
+        } else if (consent) {
+          // Load existing preferences
+          setPreferences({
+            essential: true,
+            analytics: consent.analytics || false,
+            marketing: consent.marketing || false,
+          });
+          // Store in localStorage as backup
+          localStorage.setItem(
+            CONSENT_KEY,
+            JSON.stringify({
+              analytics: consent.analytics || false,
+              marketing: consent.marketing || false,
+              ts: lastUpdated,
+              version: response.version,
+            }),
+          );
+        } else {
+          // No consent found, show banner
+          setVisible(true);
+        }
+      } catch {
+        // Fallback to localStorage if API fails
+        const raw = localStorage.getItem(CONSENT_KEY);
+        if (!raw) {
+          setVisible(true);
+          return;
+        }
+        try {
+          const consent = JSON.parse(raw);
+          // Check if consent is outdated (version or expiry)
+          const isVersionOutdated = consent?.version !== CONSENT_VERSION;
+          const ts = consent?.ts;
+          let isExpired = false;
+
+          if (ts && typeof ts === "number") {
+            const expiry = ts + CONSENT_EXPIRY_MONTHS * 30 * 24 * 60 * 60 * 1000;
+            isExpired = Date.now() > expiry;
+          }
+
+          if (isVersionOutdated || isExpired) {
+            localStorage.removeItem(CONSENT_KEY);
+            setVisible(true);
+          } else if (ts) {
+            // Load existing preferences
+            setPreferences({
+              essential: true,
+              analytics: consent.analytics || false,
+              marketing: consent.marketing || false,
+            });
+          } else {
+            setVisible(true);
+          }
+        } catch {
+          setVisible(true);
+        }
+      } finally {
+        setLoading(false);
       }
-    } catch {
-      setVisible(true);
-    }
+    };
+
+    loadConsent();
   }, []);
 
   useEffect(() => {
@@ -81,7 +134,8 @@ export function CookieConsent() {
     return () => window.removeEventListener("showCookiePreferences", handler);
   }, []);
 
-  const saveConsent = useCallback((prefs: ConsentPreferences) => {
+  const saveConsent = useCallback(async (prefs: ConsentPreferences) => {
+    // Store in localStorage as backup
     localStorage.setItem(
       CONSENT_KEY,
       JSON.stringify({
@@ -91,6 +145,11 @@ export function CookieConsent() {
         version: CONSENT_VERSION,
       }),
     );
+
+    // Sync with backend API (fire and forget, don't block UI)
+    saveConsentApi(prefs).catch((err) => {
+      console.error("Failed to sync consent to backend:", err);
+    });
 
     // Update Google Analytics consent
     if (typeof window !== "undefined" && window.gtag) {

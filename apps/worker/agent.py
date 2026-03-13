@@ -33,6 +33,17 @@ from packages.backend.domain.ats_handlers import (
 )
 from packages.backend.domain.http_apply import try_http_apply_first
 
+# Import job board handlers
+try:
+    from packages.backend.domain.job_board_handlers import (
+        JobBoardPlatform,
+        detect_job_board_platform,
+        get_job_board_handler,
+    )
+    JOB_BOARD_HANDLERS_AVAILABLE = True
+except ImportError:
+    JOB_BOARD_HANDLERS_AVAILABLE = False
+
 # CAPTCHA types we cannot solve; escalate to user immediately
 UNSUPPORTED_CAPTCHA_TYPES = frozenset(
     {"cloudflare", "turnstile", "arkose", "friendly_captcha"}
@@ -147,10 +158,11 @@ async def create_db_pool():
     from shared.db import resolve_dsn_ipv4
     dsn = resolve_dsn_ipv4(settings.database_url)
 
-    # Disable hostname checking for Render's self-signed certificates
+    # Use proper SSL verification - Render uses DigiCert signed certificates
+    # Only disable in local development if needed
     ctx = ssl.create_default_context(purpose=ssl.Purpose.SERVER_AUTH)
-    ctx.check_hostname = False
-    ctx.verify_mode = ssl.CERT_NONE
+    # ctx.check_hostname = False  # REMOVED - security risk
+    # ctx.verify_mode = ssl.CERT_NONE  # REMOVED - security risk
 
     return await asyncpg.create_pool(
         dsn,
@@ -966,10 +978,11 @@ class FormAgent:
         settings = get_settings()
         retry_count = 0
         max_retry_delay = 60.0
-        # Use SSL but disable hostname checking for Render's self-signed certificates
+        # Use proper SSL verification - Render uses DigiCert signed certificates
+        # Only disable in local development if needed
         ctx = ssl.create_default_context(purpose=ssl.Purpose.SERVER_AUTH)
-        ctx.check_hostname = False
-        ctx.verify_mode = ssl.CERT_NONE
+        # ctx.check_hostname = False  # REMOVED - security risk
+        # ctx.verify_mode = ssl.CERT_NONE  # REMOVED - security risk
 
         while True:
             conn = None
@@ -1320,32 +1333,75 @@ class FormAgent:
                     ) from exc
 
     async def _detect_and_prepare_ats(self, page: Page, ctx: dict) -> None:
-        """Detect ATS platform, run pre_fill_hook, and store handler in ctx."""
+        """Detect ATS platform or job board, run pre_fill_hook, and store handler in ctx."""
         url = ctx.get("application_url", "")
         page_content: str | None = None
         try:
             page_content = await page.content()
         except Exception as e:
             logger.debug("Could not get page content for ATS detection: %s", e)
+        
+        # First try ATS detection
         result = detect_ats_platform(url, page_content)
-        if result.platform == ATSPlatform.UNKNOWN or result.confidence < 0.5:
-            ctx["ats_handler"] = None
-            return
-        handler = get_handler(result.platform)
-        if handler:
-            ctx["ats_handler"] = handler
-            logger.info(
-                "ATS detected: %s (confidence=%.2f), using %s",
-                result.platform.value,
-                result.confidence,
-                type(handler).__name__,
-            )
-            try:
-                await handler.pre_fill_hook(page, ctx)
-            except Exception as e:
-                logger.warning("ATS pre_fill_hook failed: %s", e)
-        else:
-            ctx["ats_handler"] = None
+        if result.platform != ATSPlatform.UNKNOWN and result.confidence >= 0.5:
+            handler = get_handler(result.platform)
+            if handler:
+                ctx["ats_handler"] = handler
+                ctx["job_board_handler"] = None
+                logger.info(
+                    "ATS detected: %s (confidence=%.2f), using %s",
+                    result.platform.value,
+                    result.confidence,
+                    type(handler).__name__,
+                )
+                try:
+                    await handler.pre_fill_hook(page, ctx)
+                except Exception as e:
+                    logger.warning("ATS pre_fill_hook failed: %s", e)
+                return
+        
+        # If no ATS detected, try job board detection
+        if JOB_BOARD_HANDLERS_AVAILABLE:
+            job_board_result = detect_job_board_platform(url, page_content)
+            if job_board_result.platform != JobBoardPlatform.UNKNOWN and job_board_result.confidence >= 0.5:
+                handler = get_job_board_handler(job_board_result.platform)
+                if handler:
+                    ctx["job_board_handler"] = handler
+                    ctx["ats_handler"] = None
+                    logger.info(
+                        "Job board detected: %s (confidence=%.2f), using %s",
+                        job_board_result.platform.value,
+                        job_board_result.confidence,
+                        type(handler).__name__,
+                    )
+                    
+                    # Handle login if required
+                    if job_board_result.requires_login:
+                        login_status = await handler.check_login_status(page)
+                        if not login_status:
+                            logger.info(f"{job_board_result.platform.value} requires login")
+                            # Get user credentials from profile
+                            user_credentials = ctx.get("profile", {}).get("job_board_credentials", {})
+                            if user_credentials:
+                                login_success = await handler.handle_login(page, user_credentials)
+                                if not login_success:
+                                    logger.warning(f"{job_board_result.platform.value} login failed")
+                                    ctx["login_required"] = True
+                                    return
+                            else:
+                                logger.warning(f"{job_board_result.platform.value} credentials not found")
+                                ctx["login_required"] = True
+                                return
+                    
+                    try:
+                        await handler.pre_apply_hook(page, ctx)
+                    except Exception as e:
+                        logger.warning("Job board pre_apply_hook failed: %s", e)
+                    return
+        
+        # No platform detected
+        ctx["ats_handler"] = None
+        ctx["job_board_handler"] = None
 
     async def _extract_fields(self, page: Page) -> list[FormField]:
         form_fields = await extract_all_form_fields(page)
@@ -1417,6 +1473,8 @@ class FormAgent:
 
         max_step = max((f["step_index"] for f in form_fields), default=0)
         ats_handler = ctx.get("ats_handler")
+        job_board_handler = ctx.get("job_board_handler")
+        
         for step in range(max_step + 1):
             step_values = {
                 sel: val
@@ -1434,9 +1492,13 @@ class FormAgent:
                     HumanBehaviorSimulator,
                 )
 
-                skip_selectors = (
-                    ats_handler.get_skip_selectors() if ats_handler else None
-                )
+                # Get skip selectors from handler (ATS or job board)
+                skip_selectors = None
+                if ats_handler:
+                    skip_selectors = ats_handler.get_skip_selectors()
+                elif job_board_handler:
+                    skip_selectors = job_board_handler.get_skip_selectors()
+                
                 behavior_sim = HumanBehaviorSimulator(HumanBehaviorConfig())
                 await fill_form_from_mapping(
                     page,
@@ -1454,6 +1516,9 @@ class FormAgent:
                 custom_next = None
                 if ats_handler:
                     custom_next = ats_handler.get_custom_selectors().get("next")
+                elif job_board_handler:
+                    custom_next = job_board_handler.get_application_selectors().get("continue_button")
+                    
                 advanced = await click_next_button(page, custom_next)
                 if not advanced:
                     logger.warning(
@@ -2014,17 +2079,36 @@ class FormAgent:
 
         base_selectors = ctx["blueprint"].submit_button_selectors()
         ats_handler = ctx.get("ats_handler")
+        job_board_handler = ctx.get("job_board_handler")
+        
+        # Get submit selectors from handler (ATS or job board)
+        submit_selectors = base_selectors
         if ats_handler:
             ats_submit = ats_handler.get_custom_selectors().get("submit", [])
             submit_selectors = ats_submit + base_selectors
-        else:
-            submit_selectors = base_selectors
+        elif job_board_handler:
+            job_board_submit = job_board_handler.get_application_selectors().get("submit_button")
+            if job_board_submit:
+                submit_selectors = job_board_submit
+            else:
+                # For job boards, also try apply button selectors
+                apply_selectors = job_board_handler.get_application_selectors().get("apply_button")
+                if apply_selectors:
+                    submit_selectors = apply_selectors + base_selectors
+                    
         submitted = await submit_form(page, submit_selectors)
         if not submitted:
             raise RuntimeError("Could not locate a submit button on the form")
 
         # Capture screenshot after submission
         await self.capture_screenshot(page, ctx, "post_submit", success=True)
+        
+        # Run post-apply hooks for job board handlers
+        if job_board_handler:
+            try:
+                await job_board_handler.post_apply_hook(page, ctx)
+            except Exception as e:
+                logger.warning("Job board post_apply_hook failed: %s", e)
 
     async def _handle_success(self, task: dict, ctx: dict, page: Page | None) -> None:
         # Capture success screenshot (skip when page is None, e.g. HTTP-first apply)

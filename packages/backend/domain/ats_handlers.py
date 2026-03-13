@@ -31,6 +31,8 @@ class ATSPlatform(Enum):
     ICIMS = "icims"
     TALENTSOFT = "talentsoft"
     BRASSRING = "brassring"
+    ORACLE_TALEO = "oracle_taleo"
+    SAP_SUCCESSFACTORS = "sap_successfactors"
     UNKNOWN = "unknown"
 
 
@@ -91,6 +93,26 @@ ATS_URL_PATTERNS: dict[ATSPlatform, list[str]] = {
         r"\.brassring\.com",
         r"tm\.brassring\.com",
     ],
+    ATSPlatform.ORACLE_TALEO: [
+        r"taleo\.net",
+        r"\.taleo\.net",
+        r"taleo\.oracle\.com",
+        r"career\.taleo\.com",
+        r"/career/.*taleo",
+        r"/jobs/.*taleo",
+        r"ch\.taleo\.net",
+        r"ext\.taleo\.net",
+        r"tbe\.taleo\.net",
+    ],
+    ATSPlatform.SAP_SUCCESSFACTORS: [
+        r"successfactors\.com",
+        r"\.successfactors\.com",
+        r"career\.successfactors\.com",
+        r"jobs\.successfactors\.com",
+        r"/career/.*successfactors",
+        r"/jobs/.*successfactors",
+        r"sfapi\.successfactors\.com",
+    ],
 }
 
 # Page content patterns for ATS detection
@@ -135,6 +157,29 @@ ATS_CONTENT_PATTERNS: dict[ATSPlatform, list[str]] = {
         "brassring",
         "kenexa",
         "tm-brassring",
+    ],
+    ATSPlatform.ORACLE_TALEO: [
+        "taleo",
+        "oracle-taleo",
+        "data-taleo",
+        "taleo-form",
+        "career-section",
+        "applyClick",
+        "iframe-taleo",
+        "taleo.net",
+        "ftlButton",
+        "form-mapping",
+    ],
+    ATSPlatform.SAP_SUCCESSFACTORS: [
+        "successfactors",
+        "data-sf",
+        "sf-",
+        "career-site",
+        "job-apply",
+        "sfapi",
+        "successFactors",
+        "job-application",
+        "career-page",
     ],
 }
 
@@ -488,6 +533,224 @@ class TalentSoftHandler(ATSSpecificHandler):
         ]
 
 
+class OracleTaleoHandler(ATSSpecificHandler):
+    """Handler for Oracle Taleo application forms."""
+
+    platform = ATSPlatform.ORACLE_TALEO
+
+    def get_custom_selectors(self) -> dict[str, list[str]]:
+        return {
+            "submit": [
+                '.ftlButton[type="submit"]',
+                'button[data-automation-id*="submit"]',
+                'button:has-text("Submit Application")',
+                'button:has-text("Submit")',
+                'button:has-text("Apply")',
+                'input[type="submit"]',
+                '.applyButton',
+                '#applyClick',
+            ],
+            "next": [
+                '.ftlButton[data-automation-id*="next"]',
+                'button:has-text("Next")',
+                'button:has-text("Continue")',
+                'button:has-text("Save and Continue")',
+                '.nextButton',
+            ],
+            "resume": [
+                'input[type="file"][name*="resume"]',
+                'input[type="file"][name*="cv"]',
+                'input[accept*=".pdf"]',
+                'input[accept*=".doc"]',
+                '.resume-upload',
+            ],
+            "cover_letter": [
+                'textarea[name*="cover"]',
+                'textarea[name*="letter"]',
+                'input[name*="cover"]',
+                '.cover-letter-textarea',
+            ],
+            "country_select": [
+                'select[name*="country"]',
+                'select[data-automation-id*="country"]',
+                '.country-select',
+            ],
+            "phone": [
+                'input[name*="phone"]',
+                'input[type="tel"]',
+                'input[name*="mobile"]',
+                '.phone-input',
+            ],
+            "email": [
+                'input[name*="email"]',
+                'input[type="email"]',
+                '.email-input',
+            ],
+        }
+
+    async def pre_fill_hook(self, page: Page, ctx: dict) -> None:
+        """Handle Taleo-specific pre-fill setup."""
+        try:
+            # Wait for Taleo form to load
+            await page.wait_for_selector('.career-section', timeout=5000)
+            
+            # Handle iframe if present
+            iframe = await page.query_selector('iframe[src*="taleo"]')
+            if iframe:
+                await page.wait_for_selector('iframe[src*="taleo"]', timeout=3000)
+                
+            # Check for multi-step form
+            next_button = await page.query_selector('.ftlButton:has-text("Next")')
+            if next_button:
+                ctx['is_multi_step'] = True
+                
+        except Exception:
+            pass
+
+    async def post_fill_hook(self, page: Page, ctx: dict) -> None:
+        """Handle Taleo-specific post-fill actions."""
+        try:
+            # Handle file upload if resume is provided
+            if ctx.get('resume_path'):
+                file_input = await page.query_selector('input[type="file"]')
+                if file_input:
+                    await file_input.set_input_files(ctx['resume_path'])
+                    
+        except Exception:
+            pass
+
+    async def pre_submit_hook(self, page: Page, ctx: dict) -> None:
+        """Handle Taleo-specific pre-submit validation."""
+        try:
+            # Check for any validation errors
+            error_elements = await page.query_selector('.error, .validation-error, .field-error')
+            if error_elements:
+                ctx['has_validation_errors'] = True
+                
+            # Handle any confirm dialogs
+            confirm_button = await page.query_selector('button:has-text("Confirm")')
+            if confirm_button:
+                await confirm_button.click()
+                
+        except Exception:
+            pass
+
+    def get_skip_selectors(self) -> list[str]:
+        return [
+            'input[name*="referral"]',
+            'input[name*="source"]',
+            'input[name*="diversity"]',
+            'input[name*="veteran"]',
+            'input[name*="disability"]',
+            '.optional-field',
+            '[data-optional="true"]',
+        ]
+
+
+class SAPSuccessFactorsHandler(ATSSpecificHandler):
+    """Handler for SAP SuccessFactors application forms."""
+
+    platform = ATSPlatform.SAP_SUCCESSFACTORS
+
+    def get_custom_selectors(self) -> dict[str, list[str]]:
+        return {
+            "submit": [
+                'button[data-sf*="submit"]',
+                'button[data-automation-id*="submit"]',
+                'button:has-text("Submit Application")',
+                'button:has-text("Submit")',
+                'button:has-text("Apply")',
+                'input[type="submit"]',
+                '.sf-apply-button',
+                '.job-apply-submit',
+            ],
+            "next": [
+                'button[data-sf*="next"]',
+                'button:has-text("Next")',
+                'button:has-text("Continue")',
+                'button:has-text("Save and Continue")',
+                '.sf-next-button',
+            ],
+            "resume": [
+                'input[type="file"][name*="resume"]',
+                'input[type="file"][name*="cv"]',
+                'input[accept*=".pdf"]',
+                'input[accept*=".doc"]',
+                '.sf-resume-upload',
+            ],
+            "cover_letter": [
+                'textarea[name*="cover"]',
+                'textarea[name*="letter"]',
+                'textarea[data-sf*="cover"]',
+                '.sf-cover-letter',
+            ],
+            "country_select": [
+                'select[name*="country"]',
+                'select[data-sf*="country"]',
+                '.sf-country-select',
+            ],
+            "phone": [
+                'input[name*="phone"]',
+                'input[type="tel"]',
+                'input[name*="mobile"]',
+                '.sf-phone-input',
+            ],
+            "email": [
+                'input[name*="email"]',
+                'input[type="email"]',
+                '.sf-email-input',
+            ],
+        }
+
+    async def pre_fill_hook(self, page: Page, ctx: dict) -> None:
+        """Handle SAP SuccessFactors-specific pre-fill setup."""
+        try:
+            # Wait for SuccessFactors form to load
+            await page.wait_for_selector('.career-site, .job-application', timeout=5000)
+            
+            # Check for multi-step form
+            next_button = await page.query_selector('button:has-text("Next")')
+            if next_button:
+                ctx['is_multi_step'] = True
+                
+        except Exception:
+            pass
+
+    async def post_fill_hook(self, page: Page, ctx: dict) -> None:
+        """Handle SAP SuccessFactors-specific post-fill actions."""
+        try:
+            # Handle file upload if resume is provided
+            if ctx.get('resume_path'):
+                file_input = await page.query_selector('input[type="file"]')
+                if file_input:
+                    await file_input.set_input_files(ctx['resume_path'])
+                    
+        except Exception:
+            pass
+
+    async def pre_submit_hook(self, page: Page, ctx: dict) -> None:
+        """Handle SAP SuccessFactors-specific pre-submit validation."""
+        try:
+            # Check for any validation errors
+            error_elements = await page.query_selector('.error, .validation-error, .field-error')
+            if error_elements:
+                ctx['has_validation_errors'] = True
+                
+        except Exception:
+            pass
+
+    def get_skip_selectors(self) -> list[str]:
+        return [
+            'input[name*="referral"]',
+            'input[name*="source"]',
+            'input[name*="diversity"]',
+            'input[name*="veteran"]',
+            'input[name*="disability"]',
+            '.optional-field',
+            '[data-optional="true"]',
+        ]
+
+
 class BrassringHandler(ATSSpecificHandler):
     """Handler for BrassRing (IBM Kenexa) application forms."""
 
@@ -523,6 +786,8 @@ ATS_HANDLERS: dict[ATSPlatform, type[ATSSpecificHandler]] = {
     ATSPlatform.ICIMS: IcimsHandler,
     ATSPlatform.TALENTSOFT: TalentSoftHandler,
     ATSPlatform.BRASSRING: BrassringHandler,
+    ATSPlatform.ORACLE_TALEO: OracleTaleoHandler,
+    ATSPlatform.SAP_SUCCESSFACTORS: SAPSuccessFactorsHandler,
 }
 
 

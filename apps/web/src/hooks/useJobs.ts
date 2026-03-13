@@ -34,6 +34,7 @@ export interface JobPosting {
   date_posted?: string;
   job_level?: string;
   company_industry?: string;
+  company_size?: string;
 }
 
 export interface JobSource {

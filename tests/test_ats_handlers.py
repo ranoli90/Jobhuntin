@@ -13,6 +13,8 @@ from backend.domain.ats_handlers import (
     GreenhouseHandler,
     IcimsHandler,
     LeverHandler,
+    OracleTaleoHandler,
+    SAPSuccessFactorsHandler,
     SmartRecruitersHandler,
     TalentSoftHandler,
     WorkdayHandler,
@@ -61,6 +63,19 @@ class TestDetectATSPlatform:
         """BrassRing URL should be detected."""
         result = detect_ats_platform("https://tm.brassring.com/jobs/12345")
         assert result.platform == ATSPlatform.BRASSRING
+        assert result.confidence >= 0.8
+
+    def test_detect_oracle_taleo_url(self) -> None:
+        """Oracle Taleo URL should be detected."""
+        result = detect_ats_platform("https://ch.taleo.net/career/job/12345")
+        assert result.platform == ATSPlatform.ORACLE_TALEO
+        assert result.confidence >= 0.8
+
+    def test_detect_sap_successfactors_url(self) -> None:
+        """SAP SuccessFactors URL should be detected."""
+        result = detect_ats_platform("https://career.successfactors.com/job/12345")
+        assert result.platform == ATSPlatform.SAP_SUCCESSFACTORS
+        assert result.confidence >= 0.8
 
     def test_detect_unknown_platform(self) -> None:
         """Unknown URLs should return UNKNOWN platform."""
@@ -147,6 +162,18 @@ class TestATSHandlers:
         handler = get_handler(ATSPlatform.BRASSRING)
         assert isinstance(handler, BrassringHandler)
         assert handler.platform == ATSPlatform.BRASSRING
+
+    def test_get_oracle_taleo_handler(self) -> None:
+        """Should get OracleTaleoHandler for Oracle Taleo platform."""
+        handler = get_handler(ATSPlatform.ORACLE_TALEO)
+        assert isinstance(handler, OracleTaleoHandler)
+        assert handler.platform == ATSPlatform.ORACLE_TALEO
+
+    def test_get_sap_successfactors_handler(self) -> None:
+        """Should get SAPSuccessFactorsHandler for SAP SuccessFactors platform."""
+        handler = get_handler(ATSPlatform.SAP_SUCCESSFACTORS)
+        assert isinstance(handler, SAPSuccessFactorsHandler)
+        assert handler.platform == ATSPlatform.SAP_SUCCESSFACTORS
 
     def test_get_unknown_handler(self) -> None:
         """Should return None for unknown platform."""
@@ -252,6 +279,8 @@ class TestATSPlatformEnum:
             ATSPlatform.ICIMS,
             ATSPlatform.TALENTSOFT,
             ATSPlatform.BRASSRING,
+            ATSPlatform.ORACLE_TALEO,
+            ATSPlatform.SAP_SUCCESSFACTORS,
             ATSPlatform.UNKNOWN,
         ]
         for platform in platforms:

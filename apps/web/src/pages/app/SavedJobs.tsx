@@ -9,6 +9,8 @@ import { useQuery } from "@tanstack/react-query";
 import { Button } from "../../components/ui/Button";
 import { Card } from "../../components/ui/Card";
 import { Badge } from "../../components/ui/Badge";
+import { SkeletonList, SkeletonCard } from "../../components/ui/Skeleton";
+import { NoSavedJobsEmptyState } from "../../components/ui/EmptyState";
 import { useSavedJobs, type SavedJob } from "../../hooks/useSavedJobs";
 import { formatCurrency, formatDate } from "../../lib/format";
 import {
@@ -69,9 +71,13 @@ export default function SavedJobsPage() {
 
   if (isLoading) {
     return (
-      <div className="max-w-4xl mx-auto p-6">
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+      <div className="max-w-4xl mx-auto p-6" aria-busy="true" aria-label="Loading saved jobs">
+        <div className="space-y-4">
+          <div className="flex items-center justify-between gap-4 mb-6">
+            <Skeleton className="h-8 w-48" />
+            <Skeleton className="h-10 w-32" />
+          </div>
+          <SkeletonList items={5} showAvatars={false} showActions={true} itemHeight="lg" />
         </div>
       </div>
     );
@@ -159,27 +165,11 @@ export default function SavedJobsPage() {
 
       {/* Jobs List */}
       {filteredJobs.length === 0 ? (
-        <Card className="p-8 text-center">
-          <Bookmark className="w-12 h-12 mx-auto text-slate-300 mb-4" />
-          <h3 className="text-xl font-semibold text-slate-900 mb-2">
-            {searchTerm
-              ? t("savedJobs.noSearchResults", locale) ||
-                "No saved jobs match your search"
-              : t("savedJobs.noSavedJobs", locale) || "No saved jobs yet"}
-          </h3>
-          <p className="text-slate-600 mb-4">
-            {searchTerm
-              ? t("savedJobs.tryDifferentSearch", locale) ||
-                "Try adjusting your search terms"
-              : t("savedJobs.startSaving", locale) ||
-                "Start saving jobs you're interested in to see them here"}
-          </p>
-          {!searchTerm && (
-            <Button onClick={() => setSearchTerm("")}>
-              {t("savedJobs.clearSearch", locale) || "Clear Search"}
-            </Button>
-          )}
-        </Card>
+        <NoSavedJobsEmptyState
+          onBrowse={() => navigate("/app/jobs")}
+          onClearSearch={() => setSearchTerm("")}
+          hasSearchTerm={!!searchTerm}
+        />
       ) : (
         <div className="space-y-4">
           {filteredJobs.map((savedJob) => (

@@ -73,10 +73,21 @@ def _ensure_playwright_browsers():
 def _get_ssl_config() -> Any:
     """Get SSL configuration for database connections."""
     import ssl
-    # Use SSL but disable hostname checking for Render's self-signed certificates
-    ctx = ssl.create_default_context(purpose=ssl.Purpose.SERVER_AUTH)
-    ctx.check_hostname = False
-    ctx.verify_mode = ssl.CERT_NONE
+    # Use SSL with proper verification - Render's PostgreSQL uses DigiCert signed certificates
+    # Only disable verification in development/local environments if needed
+    s = get_settings()
+    is_local = s.environment.value == "local" if hasattr(s, 'environment') else False
+    
+    if is_local:
+        # For local development - allow self-signed certs
+        ctx = ssl.create_default_context(purpose=ssl.Purpose.SERVER_AUTH)
+        ctx.check_hostname = False
+        ctx.verify_mode = ssl.CERT_NONE
+    else:
+        # For production - use proper certificate verification
+        ctx = ssl.create_default_context(purpose=ssl.Purpose.SERVER_AUTH)
+        # Keep default verification enabled
+    
     return ctx
 
 
@@ -267,6 +278,7 @@ class BrowserPoolManager:
         self._playwright: Any = None
         self._browser: Any = None
         self._is_remote: bool = False
+        self._is_headless: bool = True  # Track headless state manually
         self._context_use_counts: dict[int, int] = {}  # context id -> use count
         self._active_contexts: int = 0
         self._total_contexts_created: int = 0
@@ -277,42 +289,77 @@ class BrowserPoolManager:
         from playwright.async_api import async_playwright
 
         s = get_settings()
-
-        self._playwright = await async_playwright().start()
+        
+        try:
+            self._playwright = await async_playwright().start()
+            logger.info("Playwright initialized successfully")
+        except Exception as e:
+            logger.error("Failed to initialize Playwright: %s", e)
+            raise RuntimeError(f"Playwright initialization failed: {e}") from e
 
         if s.browserless_url:
             # Remote browser via CDP (Browserless.io or compatible)
-            url = s.browserless_url
-            if s.browserless_token and "token=" not in url:
-                separator = "&" if "?" in url else "?"
-                url = f"{url}{separator}token={s.browserless_token}"
-            self._browser = await self._playwright.chromium.connect_over_cdp(url)
-            self._is_remote = True
-            logger.info(
-                "Connected to remote browser via CDP: %s",
-                s.browserless_url.split("?")[0],
-            )
-        else:
-            # Local Chromium - try headless-shell first, fall back to regular chromium
             try:
-                self._browser = await self._playwright.chromium.launch(
-                    headless=True,
+                url = s.browserless_url
+                if s.browserless_token and "token=" not in url:
+                    separator = "&" if "?" in url else "?"
+                    url = f"{url}{separator}token={s.browserless_token}"
+                
+                self._browser = await self._playwright.chromium.connect_over_cdp(url)
+                self._is_remote = True
+                self._is_headless = True  # Remote browsers are typically headless
+                logger.info(
+                    "Connected to remote browser via CDP: %s",
+                    s.browserless_url.split("?")[0],
                 )
             except Exception as e:
-                logger.warning("Failed to launch chromium headless, trying with headless=False: %s", e)
+                logger.error("Failed to connect to remote browser: %s", e)
+                raise RuntimeError(f"Remote browser connection failed: {e}") from e
+        else:
+            # Local Chromium - try headless-shell first, fall back to regular chromium
+            launch_attempts = [
+                {"headless": True, "channel": None, "description": "headless chromium"},
+                {"headless": False, "channel": None, "description": "headed chromium"},
+                {"headless": True, "channel": "chromium", "description": "chromium with channel"},
+            ]
+            
+            browser_started = False
+            last_error = None
+            
+            for attempt in launch_attempts:
                 try:
-                    self._browser = await self._playwright.chromium.launch(
-                        headless=False,
-                    )
-                except Exception as e2:
-                    logger.error("Failed to launch chromium: %s", e2)
-                    # Last resort: try with channel specified
-                    self._browser = await self._playwright.chromium.launch(
-                        headless=True,
-                        channel="chromium",
-                    )
+                    logger.info("Attempting to launch %s...", attempt["description"])
+                    launch_params = {"headless": attempt["headless"]}
+                    if attempt["channel"]:
+                        launch_params["channel"] = attempt["channel"]
+                    
+                    self._browser = await self._playwright.chromium.launch(**launch_params)
+                    self._is_headless = attempt["headless"]
+                    browser_started = True
+                    logger.info("Successfully launched %s", attempt["description"])
+                    break
+                    
+                except Exception as e:
+                    last_error = e
+                    logger.warning("Failed to launch %s: %s", attempt["description"], e)
+                    continue
+            
+            if not browser_started:
+                logger.error("All browser launch attempts failed")
+                raise RuntimeError(f"Failed to launch browser after {len(launch_attempts)} attempts. Last error: {last_error}") from last_error
+            
             self._is_remote = False
-            logger.info("Launched local Chromium (headless=%s)", self._browser.is_headless)
+            logger.info("Launched local Chromium (headless=%s, remote=%s)", self._is_headless, self._is_remote)
+        
+        # Validate browser is properly initialized
+        try:
+            # Test browser with a simple operation
+            test_context = await self._browser.new_context()
+            await test_context.close()
+            logger.info("Browser validation successful")
+        except Exception as e:
+            logger.error("Browser validation failed: %s", e)
+            raise RuntimeError(f"Browser validation failed: {e}") from e
 
     # Realistic Chrome user-agent strings for rotation
     _USER_AGENTS = [
@@ -339,32 +386,39 @@ class BrowserPoolManager:
         import random  # nosec B311 - random.choice used for browser fingerprinting, not security purposes
 
         if not self._browser:
-            raise RuntimeError("BrowserPoolManager not started")
+            raise RuntimeError("BrowserPoolManager not started - call start() first")
 
-        viewport = random.choice(self._VIEWPORTS)  # nosec B311 - browser fingerprinting
-        ua = random.choice(self._USER_AGENTS)  # nosec B311 - browser fingerprinting
+        try:
+            viewport = random.choice(self._VIEWPORTS)  # nosec B311 - browser fingerprinting
+            ua = random.choice(self._USER_AGENTS)  # nosec B311 - browser fingerprinting
 
-        ctx = await self._browser.new_context(  # nosec B311
-            viewport=viewport,
-            user_agent=ua,
-            # nosec B311 - browser fingerprinting
-            locale=random.choice(["en-US", "en-GB", "en-CA"]),
-            timezone_id=random.choice(  # nosec B311 - browser fingerprinting
-                [
-                    "America/New_York",
-                    "America/Chicago",
-                    "America/Los_Angeles",
-                    "America/Denver",
-                ]
-            ),
-        )
-        async with self._lock:
-            self._active_contexts += 1
-            self._total_contexts_created += 1
-            self._context_use_counts[id(ctx)] = 0
-        incr("browser.context.created")
-        observe("browser.active_contexts", float(self._active_contexts))
-        return ctx
+            ctx = await self._browser.new_context(  # nosec B311
+                viewport=viewport,
+                user_agent=ua,
+                # nosec B311 - browser fingerprinting
+                locale=random.choice(["en-US", "en-GB", "en-CA"]),
+                timezone_id=random.choice(  # nosec B311 - browser fingerprinting
+                    [
+                        "America/New_York",
+                        "America/Chicago",
+                        "America/Los_Angeles",
+                        "America/Denver",
+                    ]
+                ),
+            )
+            
+            async with self._lock:
+                self._active_contexts += 1
+                self._total_contexts_created += 1
+                self._context_use_counts[id(ctx)] = 0
+            incr("browser.context.created")
+            observe("browser.active_contexts", float(self._active_contexts))
+            return ctx
+            
+        except Exception as e:
+            logger.error("Failed to create browser context: %s", e)
+            incr("browser.context.create_failed")
+            raise RuntimeError(f"Browser context creation failed: {e}") from e
 
     async def record_context_use(self, ctx: Any) -> bool:
         """Record a use of the context. Returns True if context should be recycled
@@ -391,21 +445,62 @@ class BrowserPoolManager:
         incr("browser.context.closed")
         observe("browser.active_contexts", float(self._active_contexts))
 
+    async def health_check(self) -> dict[str, Any]:
+        """Perform health check on browser pool and return status."""
+        status = {
+            "browser_connected": self._browser is not None,
+            "playwright_active": self._playwright is not None,
+            "is_remote": self._is_remote,
+            "is_headless": self._is_headless,
+            "active_contexts": self._active_contexts,
+            "total_contexts_created": self._total_contexts_created,
+            "context_use_counts": len(self._context_use_counts),
+            "healthy": False,
+        }
+        
+        try:
+            if self._browser:
+                # Test browser with a quick context creation/cleanup
+                test_context = await self._browser.new_context()
+                await test_context.close()
+                status["healthy"] = True
+                status["browser_status"] = "operational"
+            else:
+                status["browser_status"] = "not_initialized"
+        except Exception as e:
+            status["browser_status"] = f"error: {str(e)}"
+            logger.warning("Browser health check failed: %s", e)
+        
+        return status
+
     async def shutdown(self) -> None:
         """Close the browser and Playwright."""
+        logger.info("Shutting down BrowserPoolManager...")
+        
         if self._browser:
             try:
                 await self._browser.close()
+                logger.info("Browser closed successfully")
             except Exception as exc:
                 logger.warning("Error closing browser: %s", exc)
-            self._browser = None
+            finally:
+                self._browser = None
+                
         if self._playwright:
             try:
                 await self._playwright.stop()
+                logger.info("Playwright stopped successfully")
             except Exception as exc:
                 logger.warning("Error stopping Playwright: %s", exc)
-            self._playwright = None
-        logger.info("BrowserPoolManager shut down")
+            finally:
+                self._playwright = None
+        
+        # Reset state
+        async with self._lock:
+            self._active_contexts = 0
+            self._context_use_counts.clear()
+        
+        logger.info("BrowserPoolManager shutdown complete")
 
     def get_stats(self) -> dict[str, Any]:
         """Return browser pool statistics for health checks."""
@@ -440,6 +535,13 @@ class WorkerScaler:
         # Initialize BrowserPoolManager (supports local and remote browsers)
         self.browser_pool = BrowserPoolManager()
         await self.browser_pool.start()
+        
+        # Verify browser pool health before starting workers
+        health_status = await self.browser_pool.health_check()
+        if not health_status["healthy"]:
+            raise RuntimeError(f"Browser pool health check failed: {health_status['browser_status']}")
+        
+        logger.info("Browser pool health check passed: %s", health_status["browser_status"])
 
         async def context_factory():
             return await self.browser_pool.create_context()
