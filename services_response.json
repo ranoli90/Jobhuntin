@@ -1,0 +1,289 @@
+[
+  {
+    "cursor": "VSu5XsPwjhRhZWg1cGR2czczYXJhazFn",
+    "service": {
+      "autoDeploy": "yes",
+      "autoDeployTrigger": "commit",
+      "branch": "main",
+      "createdAt": "2026-03-12T15:01:17.363957Z",
+      "dashboardUrl": "https://dashboard.render.com/worker/srv-d6pdaeh5pdvs73arak1g",
+      "id": "srv-d6pdaeh5pdvs73arak1g",
+      "name": "sorce-auto-apply-agent",
+      "notifyOnFail": "default",
+      "ownerId": "tea-d6p1rv6a2pns73f4sucg",
+      "repo": "https://github.com/ranoli90/sorce",
+      "rootDir": "",
+      "serviceDetails": {
+        "buildPlan": "starter",
+        "env": "python",
+        "envSpecificDetails": {
+          "buildCommand": "pip install -r requirements.txt && playwright install chromium",
+          "startCommand": "python -m apps.worker.scaling --instances 2"
+        },
+        "numInstances": 2,
+        "plan": "standard",
+        "previews": {
+          "generation": "off"
+        },
+        "pullRequestPreviewsEnabled": "no",
+        "region": "oregon",
+        "runtime": "python",
+        "sshAddress": "srv-d6pdaeh5pdvs73arak1g@ssh.oregon.render.com"
+      },
+      "slug": "sorce-auto-apply-agent",
+      "suspended": "not_suspended",
+      "suspenders": [],
+      "type": "background_worker",
+      "updatedAt": "2026-03-14T00:09:16.832883Z"
+    }
+  },
+  {
+    "cursor": "VSu5XsPwjhQ5bnA0dHI2czczYWtzMTdn",
+    "service": {
+      "autoDeploy": "yes",
+      "autoDeployTrigger": "commit",
+      "branch": "main",
+      "createdAt": "2026-03-12T14:59:46.360714Z",
+      "dashboardUrl": "https://dashboard.render.com/worker/srv-d6pd9np4tr6s73aks17g",
+      "id": "srv-d6pd9np4tr6s73aks17g",
+      "name": "jobhuntin-follow-up-reminders",
+      "notifyOnFail": "default",
+      "ownerId": "tea-d6p1rv6a2pns73f4sucg",
+      "repo": "https://github.com/ranoli90/sorce",
+      "rootDir": "",
+      "serviceDetails": {
+        "buildPlan": "starter",
+        "env": "python",
+        "envSpecificDetails": {
+          "buildCommand": "pip install -r requirements.txt",
+          "startCommand": "python -m apps.worker.follow_up_reminders_worker"
+        },
+        "numInstances": 1,
+        "plan": "standard",
+        "previews": {
+          "generation": "off"
+        },
+        "pullRequestPreviewsEnabled": "no",
+        "region": "oregon",
+        "runtime": "python",
+        "sshAddress": "srv-d6pd9np4tr6s73aks17g@ssh.oregon.render.com"
+      },
+      "slug": "jobhuntin-follow-up-reminders",
+      "suspended": "not_suspended",
+      "suspenders": [],
+      "type": "background_worker",
+      "updatedAt": "2026-03-14T00:09:17.445713Z"
+    }
+  },
+  {
+    "cursor": "VSu5XsPwjhQ5azI0ZDUwYzczYThndnAw",
+    "service": {
+      "autoDeploy": "yes",
+      "autoDeployTrigger": "commit",
+      "branch": "main",
+      "createdAt": "2026-03-12T14:59:31.007424Z",
+      "dashboardUrl": "https://dashboard.render.com/worker/srv-d6pd9k24d50c73a8gvp0",
+      "id": "srv-d6pd9k24d50c73a8gvp0",
+      "name": "jobhuntin-job-queue",
+      "notifyOnFail": "default",
+      "ownerId": "tea-d6p1rv6a2pns73f4sucg",
+      "repo": "https://github.com/ranoli90/sorce",
+      "rootDir": "",
+      "serviceDetails": {
+        "buildPlan": "starter",
+        "env": "python",
+        "envSpecificDetails": {
+          "buildCommand": "pip install -r requirements.txt",
+          "startCommand": "python -m apps.worker.job_queue_worker"
+        },
+        "numInstances": 1,
+        "plan": "standard",
+        "previews": {
+          "generation": "off"
+        },
+        "pullRequestPreviewsEnabled": "no",
+        "region": "oregon",
+        "runtime": "python",
+        "sshAddress": "srv-d6pd9k24d50c73a8gvp0@ssh.oregon.render.com"
+      },
+      "slug": "jobhuntin-job-queue",
+      "suspended": "not_suspended",
+      "suspenders": [],
+      "type": "background_worker",
+      "updatedAt": "2026-03-14T00:14:26.918146Z"
+    }
+  },
+  {
+    "cursor": "VSu5XsPwjhQ5Z2g1cGR2czczYXJhOW9n",
+    "service": {
+      "autoDeploy": "yes",
+      "autoDeployTrigger": "commit",
+      "branch": "main",
+      "createdAt": "2026-03-12T14:59:15.624758Z",
+      "dashboardUrl": "https://dashboard.render.com/worker/srv-d6pd9gh5pdvs73ara9og",
+      "id": "srv-d6pd9gh5pdvs73ara9og",
+      "name": "jobhuntin-job-sync",
+      "notifyOnFail": "default",
+      "ownerId": "tea-d6p1rv6a2pns73f4sucg",
+      "repo": "https://github.com/ranoli90/sorce",
+      "rootDir": "",
+      "serviceDetails": {
+        "buildPlan": "starter",
+        "env": "python",
+        "envSpecificDetails": {
+          "buildCommand": "pip install -r requirements.txt",
+          "startCommand": "python -m apps.worker.job_sync_worker"
+        },
+        "numInstances": 1,
+        "plan": "standard",
+        "previews": {
+          "generation": "off"
+        },
+        "pullRequestPreviewsEnabled": "no",
+        "region": "oregon",
+        "runtime": "python",
+        "sshAddress": "srv-d6pd9gh5pdvs73ara9og@ssh.oregon.render.com"
+      },
+      "slug": "jobhuntin-job-sync",
+      "suspended": "not_suspended",
+      "suspenders": [],
+      "type": "background_worker",
+      "updatedAt": "2026-03-14T00:09:50.101446Z"
+    }
+  },
+  {
+    "cursor": "l7MX2tUQgt9uNXZraWpoczczZmlrdWkw",
+    "service": {
+      "autoDeploy": "yes",
+      "autoDeployTrigger": "commit",
+      "branch": "main",
+      "createdAt": "2026-03-12T06:22:16.725325Z",
+      "dashboardUrl": "https://dashboard.render.com/worker/srv-d6p5n5vkijhs73fikui0",
+      "id": "srv-d6p5n5vkijhs73fikui0",
+      "name": "jobhuntin-seo-engine",
+      "notifyOnFail": "default",
+      "ownerId": "tea-d6p1rv6a2pns73f4sucg",
+      "repo": "https://github.com/ranoli90/sorce",
+      "rootDir": "apps/web",
+      "serviceDetails": {
+        "buildPlan": "starter",
+        "env": "node",
+        "envSpecificDetails": {
+          "buildCommand": "npm install",
+          "startCommand": "npm run seo:engine"
+        },
+        "numInstances": 1,
+        "plan": "standard",
+        "previews": {
+          "generation": "off"
+        },
+        "pullRequestPreviewsEnabled": "no",
+        "region": "oregon",
+        "runtime": "node",
+        "sshAddress": "srv-d6p5n5vkijhs73fikui0@ssh.oregon.render.com"
+      },
+      "slug": "jobhuntin-seo-engine-2hak",
+      "suspended": "not_suspended",
+      "suspenders": [],
+      "type": "background_worker",
+      "updatedAt": "2026-03-13T23:15:19.454104Z"
+    }
+  },
+  {
+    "cursor": "l7MX2tUQgt9tMGZhZmpmYzczOWlqMDUw",
+    "service": {
+      "autoDeploy": "yes",
+      "autoDeployTrigger": "commit",
+      "branch": "main",
+      "createdAt": "2026-03-12T06:19:46.826298Z",
+      "dashboardUrl": "https://dashboard.render.com/static/srv-d6p5m0fafjfc739ij050",
+      "id": "srv-d6p5m0fafjfc739ij050",
+      "name": "jobhuntin-web",
+      "notifyOnFail": "default",
+      "ownerId": "tea-d6p1rv6a2pns73f4sucg",
+      "repo": "https://github.com/ranoli90/sorce",
+      "rootDir": "apps/web",
+      "serviceDetails": {
+        "buildCommand": "npm ci && npx vite build",
+        "buildPlan": "starter",
+        "ipAllowList": [
+          {
+            "cidrBlock": "0.0.0.0/0",
+            "description": "everywhere"
+          }
+        ],
+        "previews": {
+          "generation": "off"
+        },
+        "publishPath": "dist",
+        "pullRequestPreviewsEnabled": "no",
+        "url": "https://jobhuntin-web.onrender.com"
+      },
+      "slug": "jobhuntin-web",
+      "suspended": "not_suspended",
+      "suspenders": [],
+      "type": "static_site",
+      "updatedAt": "2026-03-12T15:00:19.621318Z"
+    }
+  },
+  {
+    "cursor": "lL8nxWMQHIxsMDNoNDZnczczZnR2dWow",
+    "service": {
+      "autoDeploy": "yes",
+      "autoDeployTrigger": "commit",
+      "branch": "main",
+      "createdAt": "2026-03-12T05:09:22.238476Z",
+      "dashboardUrl": "https://dashboard.render.com/web/srv-d6p4l03h46gs73ftvuj0",
+      "id": "srv-d6p4l03h46gs73ftvuj0",
+      "name": "jobhuntin-api",
+      "notifyOnFail": "default",
+      "ownerId": "tea-d6p1rv6a2pns73f4sucg",
+      "repo": "https://github.com/ranoli90/sorce",
+      "rootDir": "",
+      "serviceDetails": {
+        "buildPlan": "starter",
+        "cache": {
+          "profile": "no-cache"
+        },
+        "env": "docker",
+        "envSpecificDetails": {
+          "dockerCommand": "",
+          "dockerContext": ".",
+          "dockerfilePath": "./Dockerfile"
+        },
+        "healthCheckPath": "",
+        "ipAllowList": [
+          {
+            "cidrBlock": "0.0.0.0/0",
+            "description": "everywhere"
+          }
+        ],
+        "maintenanceMode": {
+          "enabled": false,
+          "uri": ""
+        },
+        "numInstances": 1,
+        "openPorts": [
+          {
+            "port": 10000,
+            "protocol": "TCP"
+          }
+        ],
+        "plan": "standard",
+        "previews": {
+          "generation": "off"
+        },
+        "pullRequestPreviewsEnabled": "no",
+        "region": "oregon",
+        "runtime": "docker",
+        "sshAddress": "srv-d6p4l03h46gs73ftvuj0@ssh.oregon.render.com",
+        "url": "https://jobhuntin-api.onrender.com"
+      },
+      "slug": "jobhuntin-api",
+      "suspended": "not_suspended",
+      "suspenders": [],
+      "type": "web_service",
+      "updatedAt": "2026-03-14T00:07:59.5397Z"
+    }
+  }
+]

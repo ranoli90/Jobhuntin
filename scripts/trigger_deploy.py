@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-RENDER_API_KEY = os.environ.get("RENDER_API_KEY")
+RENDER_API_KEY = os.environ.get("RENDER_API_TOKEN")
 if not RENDER_API_KEY:
     raise SystemExit(
         "RENDER_API_KEY not set. Export it: export RENDER_API_KEY=your-key"
@@ -28,7 +28,7 @@ def trigger_deploy():
         api_service = None
         for svc in services:
             service = svc.get("service", {})
-            if service.get("name") == "sorce-api":
+            if service.get("name") == "jobhuntin-api":
                 api_service = service
                 break
 

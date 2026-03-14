@@ -18,5 +18,9 @@ async def test_connection(db_url):
 
 
 if __name__ == "__main__":
-    db_url = "postgresql://jobhuntin_user:60BpsY53MYOO4fGFlvZKwDpiXB9Up9lL@dpg-d66ck524d50c73bas62g-a:5432/jobhuntin"
+    import os
+    from dotenv import load_dotenv
+    
+    load_dotenv()
+    db_url = os.getenv("DATABASE_URL")
     asyncio.run(test_connection(db_url))

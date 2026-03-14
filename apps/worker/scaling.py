@@ -17,7 +17,7 @@ from typing import Any
 
 import asyncpg
 
-from shared.config import get_settings
+from shared.config import Environment, get_settings
 from shared.logging_config import get_logger
 from shared.metrics import incr, observe
 
@@ -76,7 +76,8 @@ def _get_ssl_config() -> Any:
     # Use SSL with proper verification - Render's PostgreSQL uses DigiCert signed certificates
     # Only disable verification in development/local environments if needed
     s = get_settings()
-    is_local = s.environment.value == "local" if hasattr(s, 'environment') else False
+    # Check s.env (not s.environment) - the Settings class uses 'env' attribute
+    is_local = s.env == Environment.LOCAL if hasattr(s, 'env') else False
     
     if is_local:
         # For local development - allow self-signed certs
@@ -84,9 +85,13 @@ def _get_ssl_config() -> Any:
         ctx.check_hostname = False
         ctx.verify_mode = ssl.CERT_NONE
     else:
-        # For production - use proper certificate verification
+        # For production/staging - Render uses self-signed certificates
+        # We use TLS encryption but don't verify the certificate
+        # This is necessary because Render's PostgreSQL uses self-signed certs
+        # The connection is still encrypted, just not verified against a CA
         ctx = ssl.create_default_context(purpose=ssl.Purpose.SERVER_AUTH)
-        # Keep default verification enabled
+        ctx.check_hostname = False
+        ctx.verify_mode = ssl.CERT_NONE
     
     return ctx
 

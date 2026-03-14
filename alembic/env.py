@@ -42,6 +42,9 @@ def get_url():
         if url.startswith("postgres://"):
             url = url.replace("postgres://", "postgresql+asyncpg://")
         elif url.startswith("postgresql://"):
+            # Remove sslmode from URL for asyncpg compatibility
+            if "?sslmode=" in url:
+                url = url.split("?sslmode=")[0]
             url = url.replace("postgresql://", "postgresql+asyncpg://")
         elif not url.startswith("postgresql+asyncpg://"):
             # If it's just a DSN like 'user:pass@host/db', assume postgres
