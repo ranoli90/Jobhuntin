@@ -442,6 +442,18 @@ class BackgroundJobQueue:
 
 
 async def create_job_queue_tables(conn: asyncpg.Connection) -> None:
+    # First create the enum types (these are idempotent)
+    await conn.execute(
+        """
+        DROP TYPE IF EXISTS public.job_status CASCADE;
+        CREATE TYPE public.job_status AS ENUM ('pending', 'queued', 'running', 'completed', 'failed', 'cancelled');
+
+        DROP TYPE IF EXISTS public.job_priority CASCADE;
+        CREATE TYPE public.job_priority AS ENUM ('low', 'normal', 'high', 'critical');
+        """
+    )
+    
+    # Create the main background_jobs table
     await conn.execute(
         """
         CREATE TABLE IF NOT EXISTS public.background_jobs (
@@ -473,46 +485,56 @@ async def create_job_queue_tables(conn: asyncpg.Connection) -> None:
         CREATE INDEX IF NOT EXISTS idx_background_jobs_dedup ON public.background_jobs (dedup_key)
             WHERE dedup_key IS NOT NULL;
         CREATE INDEX IF NOT EXISTS idx_background_jobs_locked ON public.background_jobs (locked_at, lock_expires_at);
-
-        CREATE TABLE IF NOT EXISTS public.job_alert_log (
-            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-            alert_id UUID NOT NULL REFERENCES public.job_alerts(id) ON DELETE CASCADE,
-            jobs_count INT NOT NULL DEFAULT 0,
-            job_ids JSONB NOT NULL DEFAULT '[]',
-            sent_at TIMESTAMPTZ NOT NULL DEFAULT now()
-        );
-
-        CREATE TABLE IF NOT EXISTS public.job_alerts (
-            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-            user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-            tenant_id UUID,
-            name TEXT NOT NULL DEFAULT 'Job Alert',
-            keywords JSONB NOT NULL DEFAULT '[]',
-            locations JSONB NOT NULL DEFAULT '[]',
-            salary_min INT,
-            salary_max INT,
-            companies_include JSONB NOT NULL DEFAULT '[]',
-            companies_exclude JSONB NOT NULL DEFAULT '[]',
-            job_types JSONB NOT NULL DEFAULT '[]',
-            remote_only BOOLEAN NOT NULL DEFAULT false,
-            frequency public.alert_frequency NOT NULL DEFAULT 'daily',
-            is_active BOOLEAN NOT NULL DEFAULT true,
-            last_sent_at TIMESTAMPTZ,
-            created_at TIMESTAMPTZ NOT NULL DEFAULT now()
-        );
-
-        CREATE INDEX IF NOT EXISTS idx_job_alerts_user ON public.job_alerts (user_id);
-        CREATE INDEX IF NOT EXISTS idx_job_alerts_due ON public.job_alerts (frequency, last_sent_at)
-            WHERE is_active = true;
-
-        DROP TYPE IF EXISTS public.job_status CASCADE;
-        CREATE TYPE public.job_status AS ENUM ('pending', 'queued', 'running', 'completed', 'failed', 'cancelled');
-
-        DROP TYPE IF EXISTS public.job_priority CASCADE;
-        CREATE TYPE public.job_priority AS ENUM ('low', 'normal', 'high', 'critical');
-
-        DROP TYPE IF EXISTS public.alert_frequency CASCADE;
-        CREATE TYPE public.alert_frequency AS ENUM ('daily', 'weekly', 'immediate');
-    """
+        """
     )
+    
+    # Try to create alert tables - these may fail if auth.users doesn't exist
+    try:
+        await conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS public.job_alert_log (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                alert_id UUID NOT NULL REFERENCES public.job_alerts(id) ON DELETE CASCADE,
+                jobs_count INT NOT NULL DEFAULT 0,
+                job_ids JSONB NOT NULL DEFAULT '[]',
+                sent_at TIMESTAMPTZ NOT NULL DEFAULT now()
+            );
+            """
+        )
+    except Exception as e:
+        logger.warning("Could not create job_alert_log table: %s", e)
+    
+    try:
+        await conn.execute(
+            """
+            DROP TYPE IF EXISTS public.alert_frequency CASCADE;
+            CREATE TYPE public.alert_frequency AS ENUM ('daily', 'weekly', 'immediate');
+            
+            CREATE TABLE IF NOT EXISTS public.job_alerts (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+                tenant_id UUID,
+                name TEXT NOT NULL DEFAULT 'Job Alert',
+                keywords JSONB NOT NULL DEFAULT '[]',
+                locations JSONB NOT NULL DEFAULT '[]',
+                salary_min INT,
+                salary_max INT,
+                companies_include JSONB NOT NULL DEFAULT '[]',
+                companies_exclude JSONB NOT NULL DEFAULT '[]',
+                job_types JSONB NOT NULL DEFAULT '[]',
+                remote_only BOOLEAN NOT NULL DEFAULT false,
+                frequency public.alert_frequency NOT NULL DEFAULT 'daily',
+                is_active BOOLEAN NOT NULL DEFAULT true,
+                last_sent_at TIMESTAMPTZ,
+                created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+            );
+
+            CREATE INDEX IF NOT EXISTS idx_job_alerts_user ON public.job_alerts (user_id);
+            CREATE INDEX IF NOT EXISTS idx_job_alerts_due ON public.job_alerts (frequency, last_sent_at)
+                WHERE is_active = true;
+            """
+        )
+    except Exception as e:
+        logger.warning("Could not create job_alerts table: %s", e)
+    
     logger.info("Job queue tables created/verified")
