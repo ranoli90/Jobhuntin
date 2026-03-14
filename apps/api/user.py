@@ -952,9 +952,9 @@ async def update_application_status(
         if not app:
             raise HTTPException(status_code=404, detail="Application not found")
 
-        # Update status and notes ($1=application_id, $2=user_id, $3=tenant_id, $4=status, $5=notes optional)
-        params: list[Any] = [application_id, ctx.user_id, ctx.tenant_id, body.status]
-        update_fields = ["status = $4", "updated_at = CURRENT_TIMESTAMP"]
+        # Update status and notes ($1=status, $2=application_id, $3=user_id, $4=tenant_id, $5=notes optional)
+        params: list[Any] = [body.status, application_id, ctx.user_id, ctx.tenant_id]
+        update_fields = ["status = $1", "updated_at = CURRENT_TIMESTAMP"]
         if body.notes:
             update_fields.append("notes = $5")
             params.append(body.notes)
@@ -964,7 +964,7 @@ async def update_application_status(
             f"""
             UPDATE public.applications
             SET {", ".join(update_fields)}
-            WHERE id = $1 AND user_id = $2 AND (tenant_id = $3 OR tenant_id IS NULL)
+            WHERE id = $2 AND user_id = $3 AND (tenant_id = $4 OR tenant_id IS NULL)
             """,
             *params,
         )
