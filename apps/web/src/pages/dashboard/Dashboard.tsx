@@ -122,7 +122,6 @@ export default function Dashboard() {
   );
 
   // Calculate key metrics for the new hierarchy
-  const totalApps = applications.length || 1; // avoid /0
   const appliedCount = byStatus.APPLIED ?? 0;
   const applyingCount = byStatus.APPLYING ?? 0;
   const interviewCount = (byStatus.INTERVIEWING ?? 0) + (byStatus.OFFER ?? 0);
@@ -609,6 +608,9 @@ export default function Dashboard() {
           onViewAll={() => navigate("/app/applications")}
         />
       )}
+
+      </>
+    )}
     </motion.div>
   );
 }
