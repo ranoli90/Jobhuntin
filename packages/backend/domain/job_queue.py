@@ -504,36 +504,91 @@ async def create_job_queue_tables(conn: asyncpg.Connection) -> None:
     except Exception as e:
         logger.warning("Could not create job_alert_log table: %s", e)
     
+    # Check and create job_alerts table with proper column handling for existing tables
     try:
         await conn.execute(
             """
             DROP TYPE IF EXISTS public.alert_frequency CASCADE;
             CREATE TYPE public.alert_frequency AS ENUM ('daily', 'weekly', 'immediate');
-            
-            CREATE TABLE IF NOT EXISTS public.job_alerts (
-                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-                user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-                tenant_id UUID,
-                name TEXT NOT NULL DEFAULT 'Job Alert',
-                keywords JSONB NOT NULL DEFAULT '[]',
-                locations JSONB NOT NULL DEFAULT '[]',
-                salary_min INT,
-                salary_max INT,
-                companies_include JSONB NOT NULL DEFAULT '[]',
-                companies_exclude JSONB NOT NULL DEFAULT '[]',
-                job_types JSONB NOT NULL DEFAULT '[]',
-                remote_only BOOLEAN NOT NULL DEFAULT false,
-                frequency public.alert_frequency NOT NULL DEFAULT 'daily',
-                is_active BOOLEAN NOT NULL DEFAULT true,
-                last_sent_at TIMESTAMPTZ,
-                created_at TIMESTAMPTZ NOT NULL DEFAULT now()
-            );
-
-            CREATE INDEX IF NOT EXISTS idx_job_alerts_user ON public.job_alerts (user_id);
-            CREATE INDEX IF NOT EXISTS idx_job_alerts_due ON public.job_alerts (frequency, last_sent_at)
-                WHERE is_active = true;
             """
         )
+        
+        # Check if table exists using information_schema
+        table_exists = await conn.fetchval(
+            """
+            SELECT EXISTS (
+                SELECT 1 FROM information_schema.tables 
+                WHERE table_schema = 'public' AND table_name = 'job_alerts'
+            )
+            """
+        )
+        
+        if not table_exists:
+            # Table doesn't exist, create it with all columns including status
+            await conn.execute(
+                """
+                CREATE TABLE IF NOT EXISTS public.job_alerts (
+                    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+                    tenant_id UUID,
+                    name TEXT NOT NULL DEFAULT 'Job Alert',
+                    keywords JSONB NOT NULL DEFAULT '[]',
+                    locations JSONB NOT NULL DEFAULT '[]',
+                    salary_min INT,
+                    salary_max INT,
+                    companies_include JSONB NOT NULL DEFAULT '[]',
+                    companies_exclude JSONB NOT NULL DEFAULT '[]',
+                    job_types JSONB NOT NULL DEFAULT '[]',
+                    remote_only BOOLEAN NOT NULL DEFAULT false,
+                    frequency public.alert_frequency NOT NULL DEFAULT 'daily',
+                    status TEXT NOT NULL DEFAULT 'active',
+                    is_active BOOLEAN NOT NULL DEFAULT true,
+                    last_sent_at TIMESTAMPTZ,
+                    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+                );
+
+                CREATE INDEX IF NOT EXISTS idx_job_alerts_user ON public.job_alerts (user_id);
+                CREATE INDEX IF NOT EXISTS idx_job_alerts_due ON public.job_alerts (frequency, last_sent_at)
+                    WHERE is_active = true;
+                """
+            )
+        else:
+            # Table exists, check and add missing columns
+            # Check if status column exists
+            status_col_exists = await conn.fetchval(
+                """
+                SELECT EXISTS (
+                    SELECT 1 FROM information_schema.columns 
+                    WHERE table_schema = 'public' AND table_name = 'job_alerts' AND column_name = 'status'
+                )
+                """
+            )
+            
+            if not status_col_exists:
+                await conn.execute(
+                    """
+                    ALTER TABLE public.job_alerts ADD COLUMN status TEXT NOT NULL DEFAULT 'active';
+                    """
+                )
+                logger.info("Added 'status' column to job_alerts table")
+            
+            # Check if tenant_id column exists (for older tables)
+            tenant_col_exists = await conn.fetchval(
+                """
+                SELECT EXISTS (
+                    SELECT 1 FROM information_schema.columns 
+                    WHERE table_schema = 'public' AND table_name = 'job_alerts' AND column_name = 'tenant_id'
+                )
+                """
+            )
+            
+            if not tenant_col_exists:
+                await conn.execute(
+                    """
+                    ALTER TABLE public.job_alerts ADD COLUMN tenant_id UUID;
+                    """
+                )
+                logger.info("Added 'tenant_id' column to job_alerts table")
     except Exception as e:
         logger.warning("Could not create job_alerts table: %s", e)
     
