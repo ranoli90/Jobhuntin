@@ -538,3 +538,35 @@ async def create_job_queue_tables(conn: asyncpg.Connection) -> None:
         logger.warning("Could not create job_alerts table: %s", e)
     
     logger.info("Job queue tables created/verified")
+
+
+async def create_follow_up_reminders_table(conn: asyncpg.Connection) -> None:
+    """Create the follow_up_reminders table if it doesn't exist."""
+    try:
+        await conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS public.follow_up_reminders (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                application_id UUID NOT NULL,
+                user_id UUID NOT NULL,
+                tenant_id UUID,
+                reminder_type TEXT NOT NULL,
+                scheduled_for TIMESTAMPTZ NOT NULL,
+                message TEXT NOT NULL,
+                status TEXT NOT NULL DEFAULT 'pending',
+                metadata JSONB DEFAULT '{}',
+                created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+                updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+                sent_at TIMESTAMPTZ
+            );
+
+            CREATE INDEX IF NOT EXISTS idx_follow_up_reminders_status_scheduled 
+                ON public.follow_up_reminders (status, scheduled_for)
+                WHERE status = 'pending';
+            CREATE INDEX IF NOT EXISTS idx_follow_up_reminders_user 
+                ON public.follow_up_reminders (tenant_id, user_id);
+            """
+        )
+        logger.info("Follow-up reminders table created/verified")
+    except Exception as e:
+        logger.warning("Could not create follow_up_reminders table: %s", e)

@@ -63,8 +63,9 @@ async def run_queue_loop() -> None:
     
     # Create tables if they don't exist
     async with db_pool.acquire() as conn:
-        from packages.backend.domain.job_queue import create_job_queue_tables
+        from packages.backend.domain.job_queue import create_job_queue_tables, create_follow_up_reminders_table
         await create_job_queue_tables(conn)
+        await create_follow_up_reminders_table(conn)
     
     queue = BackgroundJobQueue(db_pool)
 
