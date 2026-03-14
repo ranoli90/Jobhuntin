@@ -226,9 +226,10 @@ export default function HoldsView() {
                   >
                     RESPONSE REQUIRED
                   </Badge>
-              </div>
+                </div>
+                </div>
 
-              <div className="p-4 sm:p-6 space-y-6">
+                <div className="p-4 sm:p-6 space-y-6">
                 <div
                   id={`hold-question-${app.id}`}
                   className="bg-amber-50 rounded-2xl p-4 sm:p-6 border border-amber-100 relative"

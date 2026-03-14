@@ -118,14 +118,9 @@ class JobQueueRepo:
         queues: list[str] | None = None,
         batch_size: int = JobQueueConfig.BATCH_SIZE,
     ) -> list[Job]:
-        queue_filter = ""
-        params: list[Any] = [batch_size, JobQueueConfig.CLAIM_TIMEOUT_SECONDS]
+        # Build query dynamically to avoid SQL injection and parameter issues
         if queues:
-            queue_filter = "AND queue = ANY($3)"
-            params.append(queues)
-
-        rows = await conn.fetch(
-            """
+            query = """
             WITH claimable AS (
                 SELECT id
                 FROM public.background_jobs
@@ -135,7 +130,7 @@ class JobQueueRepo:
                 )
                   AND (scheduled_at IS NULL OR scheduled_at <= now())
                   AND attempts < max_attempts
-                  {queue_filter}
+                  AND queue = ANY($3)
                 ORDER BY
                     CASE priority
                         WHEN 'critical' THEN 0
@@ -156,9 +151,43 @@ class JobQueueRepo:
             FROM claimable c
             WHERE j.id = c.id
             RETURNING j.*
-            """,
-            *params,
-        )
+            """
+            params: list[Any] = [batch_size, JobQueueConfig.CLAIM_TIMEOUT_SECONDS, queues]
+        else:
+            query = """
+            WITH claimable AS (
+                SELECT id
+                FROM public.background_jobs
+                WHERE (
+                    status IN ('queued', 'pending')
+                    OR (status = 'running' AND lock_expires_at < now())
+                )
+                  AND (scheduled_at IS NULL OR scheduled_at <= now())
+                  AND attempts < max_attempts
+                ORDER BY
+                    CASE priority
+                        WHEN 'critical' THEN 0
+                        WHEN 'high' THEN 1
+                        WHEN 'normal' THEN 2
+                        WHEN 'low' THEN 3
+                    END,
+                    created_at ASC
+                LIMIT $1
+                FOR UPDATE SKIP LOCKED
+            )
+            UPDATE public.background_jobs j
+            SET status = 'running',
+                started_at = now(),
+                attempts = j.attempts + 1,
+                locked_at = now(),
+                lock_expires_at = now() + interval '1 second' * $2
+            FROM claimable c
+            WHERE j.id = c.id
+            RETURNING j.*
+            """
+            params = [batch_size, JobQueueConfig.CLAIM_TIMEOUT_SECONDS]
+
+        rows = await conn.fetch(query, *params)
         return [JobQueueRepo._row_to_model(r) for r in rows]
 
     @staticmethod
