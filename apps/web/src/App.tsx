@@ -17,105 +17,37 @@ import { OfflineBanner } from "./components/OfflineBanner";
 import { ErrorBoundary, RouteErrorBoundary } from "./components/ErrorBoundary";
 import { ToastShelf } from "./components/ui/ToastShelf";
 
-// Lazy Load Pages for Performance
-const Homepage = React.lazy(() => import("./pages/Homepage"));
-const Pricing = React.lazy(() => import("./pages/Pricing"));
-const SuccessStories = React.lazy(() => import("./pages/SuccessStories"));
-const ChromeExtension = React.lazy(() => import("./pages/ChromeExtension"));
-const Recruiters = React.lazy(() => import("./pages/Recruiters"));
-const JobNiche = React.lazy(() => import("./pages/JobNiche"));
-const ComparisonPage = React.lazy(() => import("./pages/ComparisonPage"));
-const AlternativeTo = React.lazy(() => import("./pages/AlternativeTo"));
-const ReviewPage = React.lazy(() => import("./pages/ReviewPage"));
-const SwitchFrom = React.lazy(() => import("./pages/SwitchFrom"));
-const PricingVs = React.lazy(() => import("./pages/PricingVs"));
-const CategoryHub = React.lazy(() => import("./pages/CategoryHub"));
-const GuidesHome = React.lazy(() => import("./pages/GuidesHome"));
-const GuidePage = React.lazy(() => import("./pages/GuidePage"));
-const BlogHome = React.lazy(() => import("./pages/BlogHome"));
-const BlogPost = React.lazy(() => import("./pages/BlogPost"));
-const ToolsHub = React.lazy(() => import("./pages/ToolsHub"));
-const JobrightVsJobhuntin = React.lazy(
-  () => import("./pages/JobrightVsJobhuntin"),
-);
-const Login = React.lazy(() => import("./pages/Login"));
-const Privacy = React.lazy(() => import("./pages/Privacy"));
-const Terms = React.lazy(() => import("./pages/Terms"));
-const Dashboard = React.lazy(() => import("./pages/Dashboard"));
-const Onboarding = React.lazy(() => import("./pages/app/Onboarding"));
-const Billing = React.lazy(() => import("./pages/app/Billing"));
-const AppNotFound = React.lazy(() => import("./pages/app/NotFound"));
-const Settings = React.lazy(() => import("./pages/Settings"));
-const Sessions = React.lazy(() => import("./pages/app/Sessions"));
-const NotFound = React.lazy(() => import("./pages/NotFound"));
-const Maintenance = React.lazy(() => import("./pages/Maintenance"));
-const About = React.lazy(() => import("./pages/About"));
-const Contact = React.lazy(() => import("./pages/Contact"));
-const Locations = React.lazy(() => import("./pages/Locations"));
-const TopicPage = React.lazy(() => import("./pages/TopicPage"));
-const AuthorPage = React.lazy(() => import("./pages/AuthorPage"));
-
-// AI Feature Pages
-const MatchesPage = React.lazy(() => import("./pages/app/matches"));
-const AITailorPage = React.lazy(() => import("./pages/app/ai-tailor"));
-const ATSScorePage = React.lazy(() => import("./pages/app/ats-score"));
-
-// Phase 12.1 Agent Improvements Pages
-const AgentImprovementsPage = React.lazy(
-  () => import("./pages/app/agent-improvements"),
-);
-const DLQDashboardPage = React.lazy(() => import("./pages/app/dlq-dashboard"));
-const ScreenshotCapturePage = React.lazy(
-  () => import("./pages/app/screenshot-capture"),
-);
-
-// Phase 13.1 Communication Pages
-const CommunicationPreferencesPage = React.lazy(
-  () => import("./pages/app/communication-preferences"),
-);
-const NotificationHistoryPage = React.lazy(
-  () => import("./pages/app/notification-history"),
-);
-
-// Phase 14.1 User Experience Pages
-const PipelineViewPage = React.lazy(() => import("./pages/app/pipeline-view"));
-const ApplicationExportPage = React.lazy(
-  () => import("./pages/app/application-export"),
-);
-const FollowUpRemindersPage = React.lazy(
-  () => import("./pages/app/follow-up-reminders"),
-);
-const InterviewPracticePage = React.lazy(
-  () => import("./pages/app/interview-practice"),
-);
-const MultiResumePage = React.lazy(() => import("./pages/app/multi-resume"));
-const ApplicationNotesPage = React.lazy(
-  () => import("./pages/app/application-notes"),
-);
-
-// Admin Pages
-const ApplicationDetailPage = React.lazy(
-  () => import("./pages/app/ApplicationDetailPage"),
-);
-const AdminUsagePage = React.lazy(() => import("./pages/admin/usage"));
-const AdminMatchesPage = React.lazy(() => import("./pages/admin/matches"));
-const AdminAlertsPage = React.lazy(() => import("./pages/admin/alerts"));
-const AdminSourcesPage = React.lazy(() => import("./pages/admin/sources"));
-
-// Dashboard sub-component wrappers for lazy loading
-const JobsViewWrapper = React.lazy(() => import("./pages/dashboard/JobsView"));
-const ApplicationsViewWrapper = React.lazy(
-  () => import("./pages/dashboard/ApplicationsView"),
-);
-const HoldsViewWrapper = React.lazy(
-  () => import("./pages/dashboard/HoldsView"),
-);
-const TeamViewWrapper = React.lazy(() => import("./pages/dashboard/TeamView"));
-// Dashboard sub-components are exported from Dashboard.tsx and will be loaded when Dashboard chunk loads
-
-// Job Alerts Page
-const JobAlertsPage = React.lazy(() => import("./pages/app/JobAlerts"));
-const SavedJobsPage = React.lazy(() => import("./pages/app/SavedJobs"));
+// Lazy-loaded pages — organized by feature area in routes/lazyPages.ts (FE-002)
+import {
+  // Marketing / Public
+  Homepage, Pricing, SuccessStories, ChromeExtension, Recruiters,
+  JobNiche, ComparisonPage, AlternativeTo, ReviewPage, SwitchFrom,
+  PricingVs, CategoryHub, Locations, TopicPage, AuthorPage,
+  About, Contact, JobrightVsJobhuntin,
+  // Content / Blog
+  GuidesHome, GuidePage, BlogHome, BlogPost, ToolsHub,
+  // Auth / Legal
+  Login, Privacy, Terms,
+  // Core App
+  Dashboard, Onboarding, Billing, AppNotFound, Settings,
+  Sessions, NotFound, Maintenance,
+  // AI Features
+  MatchesPage, AITailorPage, ATSScorePage,
+  // Agent Improvements (Phase 12.1)
+  AgentImprovementsPage, DLQDashboardPage, ScreenshotCapturePage,
+  // Communication (Phase 13.1)
+  CommunicationPreferencesPage, NotificationHistoryPage,
+  // User Experience (Phase 14.1)
+  PipelineViewPage, ApplicationExportPage, FollowUpRemindersPage,
+  InterviewPracticePage, MultiResumePage, ApplicationNotesPage,
+  // Admin
+  ApplicationDetailPage, AdminUsagePage, AdminMatchesPage,
+  AdminAlertsPage, AdminSourcesPage,
+  // Dashboard sub-components
+  JobsViewWrapper, ApplicationsViewWrapper, HoldsViewWrapper, TeamViewWrapper,
+  // Jobs & Alerts
+  JobAlertsPage, SavedJobsPage,
+} from "./routes/lazyPages";
 
 /**
  * Bi-directional onboarding guard:

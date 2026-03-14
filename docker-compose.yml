@@ -14,8 +14,6 @@
 #   - Multiple workers are safe due to SELECT ... FOR UPDATE SKIP LOCKED.
 #   - To scale workers: docker compose up --scale worker=2
 
-version: "3.9"
-
 services:
   # nosemgrep: yaml.docker-compose.security - postgres needs writable data dir; no-new-privileges mitigates escalation
   db:

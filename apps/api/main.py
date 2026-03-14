@@ -436,202 +436,27 @@ async def _get_tenant_info(auth_header: str) -> tuple[str | None, TenantTier]:
 
     return None, TenantTier.FREE
 
-    # @app.middleware("http")
-    # async def idempotency_middleware(request: Request, call_next):
-    #     """C2: Idempotency Keys - Prevent duplicate writes on retries."""
-    #     return await call_next(request)
-    """C2: Idempotency Keys - Prevent duplicate writes on retries.
 
-    Checks for Idempotency-Key header on POST/PUT/PATCH requests.
-    If present, caches the response in Redis and returns cached response
-    for duplicate requests within the TTL window.
-    """
-    import json
+# ---------------------------------------------------------------------------
+# Latency / Observability Middleware
+# ---------------------------------------------------------------------------
+# NOTE: Middleware executes in REVERSE order of registration.
+# Registration order below: latency → rate-limit → CORS (last = first to run).
 
-    # Only apply to write operations
-    if request.method not in ["POST", "PUT", "PATCH"]:
-        return await call_next(request)
 
-    idempotency_key = request.headers.get("Idempotency-Key")
-    if not idempotency_key:
-        # No idempotency key provided - proceed normally
-        # (Optional: could require it for certain endpoints)
-        return await call_next(request)
+@app.middleware("http")
+async def latency_middleware(request: Request, call_next):
+    """Track API latency, request count, and OpenTelemetry span attributes."""
+    try:
+        from opentelemetry import trace
 
-    # Validate key format (UUID or alphanumeric, max 128 chars)
-    if (
-        not idempotency_key
-        or len(idempotency_key) > 128
-        or not idempotency_key.replace("-", "").replace("_", "").isalnum()
-    ):
-        raise HTTPException(
-            status_code=400,
-            detail="Invalid Idempotency-Key format. Must be alphanumeric, max 128 characters.",
-        )
-
-    # Check Redis for cached response
-    if _settings.redis_url:
-        try:
-            from shared.redis_client import get_redis
-
-            r = await get_redis()
-            # Scope by method+path+user to prevent cross-user/cross-endpoint collisions
-            user_scope = "anon"
-            auth_header = request.headers.get("Authorization")
-            if (
-                auth_header
-                and auth_header.startswith("Bearer ")
-                and _settings.jwt_secret
-            ):
-                try:
-                    token = auth_header.replace("Bearer ", "").strip()
-                    payload = pyjwt.decode(
-                        token,
-                        _settings.jwt_secret,
-                        algorithms=["HS256"],
-                        audience="authenticated",
-                    )
-                    user_scope = payload.get("sub") or "anon"
-                except Exception:
-                    pass
-            scope = f"{request.method}:{request.url.path}:{user_scope}"
-            cache_key = f"idempotency:{scope}:{idempotency_key}"
-
-            # CRITICAL: Use atomic SET NX to prevent race condition
-            # Two requests with same key will both check, but only one can set the lock
-            lock_key = f"{cache_key}:lock"
-            lock_acquired = await r.set(lock_key, "1", nx=True, ex=30)  # 30 second lock
-
-            if not lock_acquired:
-                # Another request is processing with this key, wait and check cache
-                import asyncio
-
-                await asyncio.sleep(0.1)  # Brief wait
-                cached = await r.get(cache_key)
-                if cached:
-                    logger.info(
-                        "Idempotent request detected (race condition avoided) - returning cached response",
-                        extra={
-                            "idempotency_key": idempotency_key[:16] + "...",
-                            "path": request.url.path,
-                        },
-                    )
-                    try:
-                        cached_data = json.loads(cached)
-                        return JSONResponse(
-                            content=cached_data.get("body", {}),
-                            status_code=cached_data.get("status_code", 200),
-                            headers=cached_data.get("headers", {}),
-                        )
-                    except json.JSONDecodeError:
-                        logger.warning("Failed to parse cached idempotency response")
-                        # Release lock and fall through
-                        await r.delete(lock_key)
-                        return await call_next(request)
-                # No cache yet, release lock and proceed (shouldn't happen but handle gracefully)
-                await r.delete(lock_key)
-                # Continue to process request normally
-                return await call_next(request)
-
-            # Check for existing cached response (double-check after acquiring lock)
-            cached = await r.get(cache_key)
-            if cached:
-                # Release lock since we found cached response
-                await r.delete(lock_key)
-                logger.info(
-                    "Idempotent request detected - returning cached response",
-                    extra={
-                        "idempotency_key": idempotency_key[:16] + "...",
-                        "path": request.url.path,
-                    },
-                )
-                try:
-                    cached_data = json.loads(cached)
-                    return JSONResponse(
-                        content=cached_data.get("body", {}),
-                        status_code=cached_data.get("status_code", 200),
-                        headers=cached_data.get("headers", {}),
-                    )
-                except json.JSONDecodeError:
-                    logger.warning("Failed to parse cached idempotency response")
-                    # Do not reprocess - idempotency would be violated (duplicate mutations)
-                    return JSONResponse(
-                        content={"error": "Cached response corrupted"},
-                        status_code=503,
-                    )
-
-            # Process request (we hold the lock)
-            try:
-                response = await call_next(request)
-            finally:
-                # Always release lock
-                await r.delete(lock_key)
-
-            # Cache successful responses (2xx status codes)
-            if 200 <= response.status_code < 300:
-                try:
-                    # Read response body
-                    response_body = b""
-                    async for chunk in response.body_iterator:
-                        response_body += chunk
-
-                    # Parse JSON if possible
-                    try:
-                        body_json = json.loads(response_body.decode())
-                    except (json.JSONDecodeError, UnicodeDecodeError):
-                        body_json = {"raw": response_body.decode(errors="ignore")[:100]}
-
-                    # Cache response for 1 hour
-                    cache_data = {
-                        "body": body_json,
-                        "status_code": response.status_code,
-                        "headers": dict(response.headers),
-                    }
-                    await r.setex(cache_key, 3600, json.dumps(cache_data))
-
-                    # Return new response with body
-                    return JSONResponse(
-                        content=body_json,
-                        status_code=response.status_code,
-                        headers=dict(response.headers),
-                    )
-                except Exception as e:
-                    logger.warning("Failed to cache idempotency response: %s", e)
-                    # Return original response if caching fails
-                    return response
-            else:
-                # Don't cache error responses
-                return response
-
-        except Exception as e:
-            logger.warning("Idempotency check failed (Redis unavailable): %s", e)
-            # Fail open - process request normally if Redis is down
-            return await call_next(request)
-    else:
-        # No Redis - can't provide idempotency (log warning in production)
-        if _settings.env.value == "prod":
-            logger.warning(
-                "Idempotency-Key provided but Redis not available - idempotency disabled"
-            )
-        return await call_next(request)
-
-    # @app.middleware("http")
-    # async def latency_middleware(request: Request, call_next):
-    #     """Track API latency and performance metrics (H3: API Performance Monitoring)."""
-    #     return await call_next(request)
-    """Track API latency and performance metrics (H3: API Performance Monitoring).
-
-    M4: Enhanced with OpenTelemetry span attributes for distributed tracing.
-    """
-    # M4: Get current span (created by FastAPI instrumentation) and add attributes
-    from opentelemetry import trace
-
-    span = trace.get_current_span()
-    if span and span.get_span_context().is_valid:
-        # Add request attributes to existing span
-        span.set_attribute("http.method", request.method)
-        span.set_attribute("http.url", str(request.url))
-        span.set_attribute("http.route", request.url.path)
+        span = trace.get_current_span()
+        if span and span.get_span_context().is_valid:
+            span.set_attribute("http.method", request.method)
+            span.set_attribute("http.url", str(request.url))
+            span.set_attribute("http.route", request.url.path)
+    except Exception:
+        span = None
 
     start_time = time.time()
     path = request.url.path
@@ -641,95 +466,55 @@ async def _get_tenant_info(auth_header: str) -> tuple[str | None, TenantTier]:
         response = await call_next(request)
         duration = time.time() - start_time
 
-        # M4: Add response attributes to span
         if span and span.get_span_context().is_valid:
             span.set_attribute("http.status_code", response.status_code)
             span.set_attribute(
                 "http.response_size", response.headers.get("content-length", "0")
             )
 
-        # Record latency metric
         observe(
             "api.latency",
             duration,
-            tags={
-                "path": path,
-                "method": method,
-                "status_code": str(response.status_code),
-            },
+            tags={"path": path, "method": method, "status_code": str(response.status_code)},
         )
 
-        # Track slow requests (>1 second)
         if duration > 1.0:
             logger.warning(
                 "Slow API request detected",
-                extra={
-                    "path": path,
-                    "method": method,
-                    "duration": duration,
-                    "status_code": response.status_code,
-                },
+                extra={"path": path, "method": method, "duration": duration, "status_code": response.status_code},
             )
-            incr(
-                "api.slow_requests",
-                tags={
-                    "path": path,
-                    "method": method,
-                    "status_code": str(response.status_code),
-                },
-            )
+            incr("api.slow_requests", tags={"path": path, "method": method, "status_code": str(response.status_code)})
 
-        # Track request count
-        incr(
-            "api.requests",
-            tags={
-                "path": path,
-                "method": method,
-                "status_code": str(response.status_code),
-            },
-        )
-
+        incr("api.requests", tags={"path": path, "method": method, "status_code": str(response.status_code)})
         return response
     except Exception as exc:
         duration = time.time() - start_time
-
-        # M4: Record exception in span
         if span and span.get_span_context().is_valid:
             span.record_exception(exc)
-            span.set_status(trace.Status(trace.StatusCode.ERROR, str(exc)))
+            from opentelemetry import trace as _trace
+
+            span.set_status(_trace.Status(_trace.StatusCode.ERROR, str(exc)))
             span.set_attribute("http.status_code", 500)
 
-        # Record error latency
-        observe(
-            "api.latency",
-            duration,
-            tags={
-                "path": path,
-                "method": method,
-                "status_code": "500",
-                "error": "true",
-            },
-        )
-        incr(
-            "api.errors",
-            tags={
-                "path": path,
-                "method": method,
-                "error_type": type(exc).__name__,
-            },
-        )
+        observe("api.latency", duration, tags={"path": path, "method": method, "status_code": "500", "error": "true"})
+        incr("api.errors", tags={"path": path, "method": method, "error_type": type(exc).__name__})
         raise
 
-    # @app.middleware("http")
-    # async def rate_limiting_middleware(request: Request, call_next):
-    #     """Tenant-aware rate limiting middleware for API endpoints."""
-    #     return await call_next(request)
+
+# ---------------------------------------------------------------------------
+# Tenant-Aware Rate Limiting Middleware
+# ---------------------------------------------------------------------------
+
+
+@app.middleware("http")
+async def rate_limiting_middleware(request: Request, call_next):
     """Tenant-aware rate limiting middleware for API endpoints."""
     if _is_exempt_path(request.url.path):
         return await call_next(request)
 
     client_ip = get_client_ip(request)
     auth_header = request.headers.get("Authorization", "")
+
     tenant_id, tenant_tier = await _get_tenant_info(auth_header)
 
     if tenant_id:
@@ -740,44 +525,29 @@ async def _get_tenant_info(auth_header: str) -> tuple[str | None, TenantTier]:
             endpoint=request.url.path,
         )
         if not allowed:
-            incr(
-                "api.rate_limit_exceeded",
-                tags={"tenant_id": str(tenant_id), "endpoint": request.url.path},
-            )
+            incr("api.rate_limit_exceeded", tags={"tenant_id": str(tenant_id), "endpoint": request.url.path})
             return JSONResponse(
                 status_code=429,
                 content={
                     "error": {
                         "code": "RATE_LIMIT_EXCEEDED",
-                        "message": f"Rate limit exceeded. Limit: {metadata.get('limit', 'unknown')} requests/minute. Try again in {metadata.get('reset_in', 60)} seconds.",
+                        "message": f"Rate limit exceeded. Limit: {metadata.get('limit', 'unknown')} requests/minute. "
+                        f"Try again in {metadata.get('reset_in', 60)} seconds.",
                     }
                 },
             )
     else:
-        ip_limiter = get_rate_limiter(
-            f"api:{client_ip}", max_calls=100, window_seconds=60
-        )
+        ip_limiter = get_rate_limiter(f"api:{client_ip}", max_calls=100, window_seconds=60)
         if not await ip_limiter.acquire():
             incr("api.rate_limit_exceeded", tags={"ip_hash": mask_ip(client_ip)})
             return JSONResponse(
                 status_code=429,
-                content={
-                    "error": {
-                        "code": "RATE_LIMIT_EXCEEDED",
-                        "message": "Rate limit exceeded. Please try again later.",
-                    }
-                },
+                content={"error": {"code": "RATE_LIMIT_EXCEEDED", "message": "Rate limit exceeded. Please try again later."}},
             )
 
     response = await call_next(request)
-    # CRITICAL: never return None (causes "NoneType object is not callable" in ASGI)
     if response is None:
-        return JSONResponse(
-            status_code=500,
-            content={
-                "error": {"code": "INTERNAL_SERVER_ERROR", "message": "No response"}
-            },
-        )
+        return JSONResponse(status_code=500, content={"error": {"code": "INTERNAL_SERVER_ERROR", "message": "No response"}})
     return response
 
 
@@ -826,6 +596,14 @@ def _mount_sub_routers() -> None:
 
     async def _get_tenant_id_from_context(ctx=Depends(get_tenant_context)) -> str:
         return str(ctx.tenant_id)
+
+    # Core routes extracted from main.py (PERF-001)
+    import api.core_routes as core_routes_mod
+
+    app.dependency_overrides[core_routes_mod._get_pool] = get_pool
+    app.dependency_overrides[core_routes_mod._get_user_id] = get_current_user_id
+    app.dependency_overrides[core_routes_mod._get_tenant_ctx] = get_tenant_context
+    app.include_router(core_routes_mod.router)
 
     import api.admin as admin_mod
 
@@ -1385,770 +1163,9 @@ async def get_tenant_context(
 
 
 # ---------------------------------------------------------------------------
-# Pydantic models
+# Pydantic models and inline endpoints have been extracted to core_routes.py
+# (PERF-001). They are mounted in _mount_sub_routers() below.
 # ---------------------------------------------------------------------------
-
-
-class ResumeParseResponse(BaseModel):
-    user_id: str
-    profile: CanonicalProfile
-    resume_url: str | None = None
-
-
-class AnswerItem(BaseModel):
-    input_id: str = Field(
-        ..., min_length=1, max_length=100, description="Input identifier"
-    )
-    answer: str = Field(
-        ..., max_length=5000, description="Answer text (max 5000 characters)"
-    )
-
-    @field_validator("answer")
-    @classmethod
-    def sanitize_answer(cls, v: str) -> str:
-        """MEDIUM: Sanitize HTML and prompt injection in user input."""
-        from packages.backend.domain.sanitization import sanitize_text_input
-        from shared.ai_validation import sanitize_for_ai
-
-        v = sanitize_text_input(v, max_length=5000)
-        # Prompt injection protection before answers reach agent LLM
-        r = sanitize_for_ai(v, max_length=5000, min_length=None)
-        return r.sanitized_input or v[:5000] if r.is_valid else v[:5000]
-
-
-class ResumeTaskRequest(BaseModel):
-    application_id: str = Field(
-        ..., min_length=36, max_length=36, description="Application identifier"
-    )
-    answers: list[AnswerItem] = Field(
-        ...,
-        max_length=100,  # HIGH: Limit to prevent DoS
-        description="List of answers (max 100)",
-    )
-
-
-class ApplicationInputOut(BaseModel):
-    id: str
-    selector: str
-    question: str
-    field_type: str
-    answer: str | None
-    resolved: bool
-    meta: dict[str, Any] | None = None
-
-
-class ResumeTaskResponse(BaseModel):
-    application_id: str
-    status: str
-    message: str
-    unresolved_inputs: list[ApplicationInputOut]
-
-
-class ApplicationDetailResponse(BaseModel):
-    application: dict[str, Any]
-    inputs: list[dict[str, Any]]
-    events: list[dict[str, Any]]
-
-
-# ---------------------------------------------------------------------------
-# M5: Answer Memory (Smart Pre-Fill) + User Dashboard
-# ---------------------------------------------------------------------------
-
-
-class SaveAnswerRequest(BaseModel):
-    field_label: str = Field(
-        ..., min_length=1, max_length=200, description="Field label"
-    )
-    field_type: str = Field(default="text", max_length=50, description="Field type")
-    answer_value: str = Field(
-        ..., max_length=5000, description="Answer value (max 5000 characters)"
-    )
-
-    @field_validator("field_label")
-    @classmethod
-    def sanitize_field_label(cls, v: str) -> str:
-        from packages.backend.domain.sanitization import sanitize_text_input
-
-        return sanitize_text_input(v, max_length=200)
-
-    @field_validator("field_type")
-    @classmethod
-    def sanitize_field_type(cls, v: str) -> str:
-        from packages.backend.domain.sanitization import sanitize_text_input
-
-        return sanitize_text_input(v, max_length=50)
-
-    @field_validator("answer_value")
-    @classmethod
-    def sanitize_answer(cls, v: str) -> str:
-        from packages.backend.domain.sanitization import sanitize_text_input
-
-        return sanitize_text_input(v, max_length=5000)
-
-
-@app.get("/me/answer-memory")
-async def get_answer_memory(
-    user_id: str = Depends(get_current_user_id),
-    db: asyncpg.Pool = Depends(get_pool),
-) -> list[dict[str, Any]]:
-    """Get memorized answers for smart pre-fill."""
-    async with db.acquire() as conn:
-        rows = await conn.fetch(
-            """SELECT field_label, field_type, answer_value, use_count, last_used_at
-               FROM public.answer_memory WHERE user_id = $1
-               ORDER BY use_count DESC, last_used_at DESC LIMIT 200""",
-            user_id,
-        )
-    return [dict(r) for r in rows]
-
-
-@app.post("/me/answer-memory")
-async def save_answer_memory(
-    body: SaveAnswerRequest,
-    user_id: str = Depends(get_current_user_id),
-    db: asyncpg.Pool = Depends(get_pool),
-) -> dict[str, str]:
-    """Save an answer for future smart pre-fill."""
-    async with db.acquire() as conn:
-        await conn.execute(
-            """INSERT INTO public.answer_memory (user_id, field_label, field_type, answer_value)
-               VALUES ($1, $2, $3, $4)
-               ON CONFLICT (user_id, field_label)
-               DO UPDATE SET answer_value = $4, use_count = answer_memory.use_count + 1,
-                             last_used_at = now()""",
-            user_id,
-            body.field_label,
-            body.field_type,
-            body.answer_value,
-        )
-    return {"status": "saved"}
-
-
-class RichSkillRequest(BaseModel):
-    skill: str = Field(..., min_length=1, max_length=100, description="Skill name")
-    confidence: float = Field(
-        default=0.5, ge=0.0, le=1.0, description="Confidence level (0.0-1.0)"
-    )
-    years_actual: float | None = Field(
-        default=None, ge=0.0, le=50.0, description="Years of experience"
-    )
-    context: str = Field(default="", max_length=500, description="Context description")
-    last_used: str | None = Field(
-        default=None, max_length=50, description="Last used date"
-    )
-    verified: bool = Field(default=False, description="Whether skill is verified")
-    related_to: list[str] = Field(
-        default_factory=list, max_length=20, description="Related skills (max 20)"
-    )
-    source: str = Field(default="manual", max_length=50, description="Skill source")
-    project_count: int = Field(
-        default=0, ge=0, le=1000, description="Number of projects using this skill"
-    )
-
-    @field_validator("skill", "context", "last_used", "source")
-    @classmethod
-    def sanitize_text(cls, v: str | None) -> str | None:
-        """BC4: Sanitize free-text fields to prevent XSS."""
-        if v is None:
-            return None
-        from packages.backend.domain.sanitization import sanitize_text_input
-
-        return sanitize_text_input(v, max_length=500)
-
-    @field_validator("related_to")
-    @classmethod
-    def sanitize_related_to(cls, v: list[str]) -> list[str]:
-        """BC4: Sanitize related skill names."""
-        from packages.backend.domain.sanitization import sanitize_text_input
-
-        return [sanitize_text_input(x, max_length=100) for x in (v or [])[:20]]
-
-
-class SaveSkillsRequest(BaseModel):
-    skills: list[RichSkillRequest] = Field(
-        ...,
-        max_length=500,  # HIGH: Limit to prevent DoS with large skill lists
-        description="List of skills (max 500)",
-    )
-
-
-@app.get("/me/skills")
-async def get_user_skills(
-    user_id: str = Depends(get_current_user_id),
-    db: asyncpg.Pool = Depends(get_pool),
-) -> list[dict[str, Any]]:
-    """Get user's rich skills with confidence and metadata."""
-    async with db.acquire() as conn:
-        rows = await conn.fetch(
-            """SELECT skill, confidence, years_actual, context, last_used, verified,
-                      related_to, source, project_count, created_at, updated_at
-               FROM public.user_skills WHERE user_id = $1
-               ORDER BY confidence DESC, skill""",
-            user_id,
-        )
-    return [dict(r) for r in rows]
-
-
-@app.post("/me/skills")
-async def save_user_skills(
-    body: SaveSkillsRequest,
-    user_id: str = Depends(get_current_user_id),
-    db: asyncpg.Pool = Depends(get_pool),
-) -> dict[str, Any]:
-    """Save user's rich skills (upsert)."""
-    logger.info(
-        "[SKILLS] Saving skills for user",
-        extra={"user_id": user_id, "skill_count": len(body.skills)},
-    )
-
-    async with db.acquire() as conn:
-        async with conn.transaction():
-            # Clear existing skills (empty list = clear all)
-            await conn.execute(
-                "DELETE FROM public.user_skills WHERE user_id = $1", user_id
-            )
-
-            if not body.skills:
-                logger.info(
-                    "[SKILLS] Cleared all skills for user",
-                    extra={"user_id": user_id},
-                )
-                return {"status": "saved", "count": 0}
-
-            for skill in body.skills:
-                try:
-                    await conn.execute(
-                        """INSERT INTO public.user_skills
-                           (user_id, skill, confidence, years_actual, context, last_used,
-                            verified, related_to, source, project_count)
-                           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)""",
-                        user_id,
-                        skill.skill,
-                        skill.confidence,
-                        skill.years_actual,
-                        skill.context,
-                        skill.last_used,
-                        skill.verified,
-                        skill.related_to,
-                        skill.source,
-                        skill.project_count,
-                    )
-                except Exception as e:
-                    logger.error(
-                        "[SKILLS] Failed to insert skill",
-                        extra={
-                            "user_id": user_id,
-                            "skill": skill.skill,
-                            "error": str(e),
-                        },
-                    )
-                    raise
-
-            # MEDIUM: Use centralized calculate_completeness() instead of SQL increments
-            # MEDIUM: Add null check for user_id (OB-008: return proper body even in edge case)
-            if not user_id:
-                logger.warning("Cannot update completeness: user_id is None")
-                return {"status": "saved", "count": len(body.skills)}
-
-            from packages.backend.domain.deep_profile import calculate_completeness
-            from packages.backend.domain.profile_assembly import assemble_profile
-
-            deep_profile = await assemble_profile(conn, user_id)
-            if deep_profile:
-                completeness_score = calculate_completeness(deep_profile)
-                # Verify user exists before updating
-                user_exists = await conn.fetchval(
-                    "SELECT EXISTS(SELECT 1 FROM public.users WHERE id = $1)",
-                    user_id,
-                )
-                if user_exists:
-                    await conn.execute(
-                        "UPDATE public.users SET profile_completeness = $1 WHERE id = $2",
-                        completeness_score,
-                        user_id,
-                    )
-
-    logger.info(
-        "[SKILLS] Skills saved successfully",
-        extra={"user_id": user_id, "count": len(body.skills)},
-    )
-    return {"status": "saved", "count": len(body.skills)}
-
-
-class WorkStyleRequest(BaseModel):
-    autonomy_preference: str = Field(
-        default="medium",
-        pattern="^(low|medium|high)$",  # HIGH: Validate enum values
-        description="Autonomy preference",
-    )
-    learning_style: str = Field(
-        default="building",
-        pattern="^(building|studying|mixed|docs|hands_on)$",
-        description="Learning style",
-    )
-    company_stage_preference: str = Field(
-        default="flexible",
-        pattern="^(startup|early_startup|growth|enterprise|flexible)$",
-        description="Company stage preference",
-    )
-    communication_style: str = Field(
-        default="mixed",
-        pattern="^(async|sync|mixed|flexible)$",
-        description="Communication style",
-    )
-    pace_preference: str = Field(
-        default="steady",
-        pattern="^(fast|steady|relaxed|methodical|flexible)$",
-        description="Pace preference",
-    )
-    ownership_preference: str = Field(
-        default="team",
-        pattern="^(individual|team|mixed|solo|lead|flexible)$",
-        description="Ownership preference",
-    )
-    career_trajectory: str = Field(
-        default="open",
-        pattern="^(open|focused|exploring|ic|tech_lead|manager|founder)$",
-        description="Career trajectory (ic, tech_lead, manager, founder, open, focused, exploring)",
-    )
-
-    model_config = ConfigDict(extra="ignore")
-
-
-@app.get("/me/work-style")
-async def get_work_style(
-    user_id: str = Depends(get_current_user_id),
-    db: asyncpg.Pool = Depends(get_pool),
-) -> dict[str, Any] | None:
-    """Get user's work style profile."""
-    async with db.acquire() as conn:
-        row = await conn.fetchrow(
-            """SELECT autonomy_preference, learning_style, company_stage_preference,
-                      communication_style, pace_preference, ownership_preference,
-                      career_trajectory, created_at, updated_at
-               FROM public.work_style_profiles WHERE user_id = $1""",
-            user_id,
-        )
-    return dict(row) if row else None
-
-
-@app.post("/me/work-style")
-async def save_work_style(
-    body: WorkStyleRequest,
-    user_id: str = Depends(get_current_user_id),
-    db: asyncpg.Pool = Depends(get_pool),
-) -> dict[str, Any]:
-    """Save user's work style profile."""
-    logger.info(
-        "[WORK_STYLE] Saving work style for user",
-        extra={"user_id": user_id},
-    )
-
-    # HIGH: Wrap multi-table updates in transaction to ensure atomicity
-    from packages.backend.domain.repositories import db_transaction
-
-    async with db_transaction(db) as conn:
-        # Check if user has already saved work style (only add completeness on first save)
-        await conn.fetchval(
-            "SELECT 1 FROM public.work_style_profiles WHERE user_id = $1 LIMIT 1",
-            user_id,
-        )
-
-        await conn.execute(
-            """INSERT INTO public.work_style_profiles
-               (user_id, autonomy_preference, learning_style, company_stage_preference,
-                communication_style, pace_preference, ownership_preference, career_trajectory)
-               VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-               ON CONFLICT (user_id) DO UPDATE SET
-                autonomy_preference = $2,
-                learning_style = $3,
-                company_stage_preference = $4,
-                communication_style = $5,
-                pace_preference = $6,
-                ownership_preference = $7,
-                career_trajectory = $8,
-                updated_at = now()""",
-            user_id,
-            body.autonomy_preference,
-            body.learning_style,
-            body.company_stage_preference,
-            body.communication_style,
-            body.pace_preference,
-            body.ownership_preference,
-            body.career_trajectory,
-        )
-
-        # MEDIUM: Use centralized calculate_completeness() instead of SQL increments
-        # Recalculate completeness after work style is saved
-        # MEDIUM: Add null check for user_id
-        if not user_id:
-            logger.warning("Cannot update completeness: user_id is None")
-            return {"status": "saved"}
-
-        from packages.backend.domain.deep_profile import calculate_completeness
-        from packages.backend.domain.profile_assembly import assemble_profile
-
-        deep_profile = await assemble_profile(conn, user_id)
-        if deep_profile:
-            completeness_score = calculate_completeness(deep_profile)
-            # Verify user exists before updating
-            user_exists = await conn.fetchval(
-                "SELECT EXISTS(SELECT 1 FROM public.users WHERE id = $1)",
-                user_id,
-            )
-            if user_exists:
-                await conn.execute(
-                    "UPDATE public.users SET profile_completeness = $1 WHERE id = $2",
-                    completeness_score,
-                    user_id,
-                )
-
-        # Sync work_style to profile_data JSONB so the scoring engine can read it
-        existing = await conn.fetchrow(
-            "SELECT profile_data FROM public.profiles WHERE user_id = $1",
-            user_id,
-        )
-        if existing:
-            pd = existing["profile_data"]
-            profile_data = json.loads(pd) if isinstance(pd, str) else (pd or {})
-            profile_data["work_style"] = body.model_dump()
-            await conn.execute(
-                "UPDATE public.profiles SET profile_data = $1 WHERE user_id = $2",
-                json.dumps(profile_data),
-                user_id,
-            )
-
-    logger.info("[WORK_STYLE] Saved successfully", extra={"user_id": user_id})
-    return {"status": "saved"}
-
-
-@app.get("/me/dashboard")
-async def user_dashboard(
-    ctx: TenantContext = Depends(get_tenant_context),
-    db: asyncpg.Pool = Depends(get_pool),
-) -> dict[str, Any]:
-    """User dashboard data for mobile v3 home screen + widget."""
-    user_id = ctx.user_id
-    tenant_id = ctx.tenant_id
-    async with db.acquire() as conn:
-        counts = await conn.fetchrow(
-            """SELECT
-                COUNT(*) FILTER (WHERE status IN ('QUEUED','PROCESSING'))::int AS active_count,
-                COUNT(*) FILTER (WHERE status = 'REQUIRES_INPUT')::int AS hold_count,
-                COUNT(*) FILTER (WHERE status IN ('APPLIED','SUBMITTED','COMPLETED','REGISTERED')
-                                 AND updated_at::date = CURRENT_DATE)::int AS completed_today,
-                COUNT(*) FILTER (WHERE status IN ('APPLIED','SUBMITTED','COMPLETED','REGISTERED')
-                                 AND updated_at >= date_trunc('week', now()))::int AS completed_week,
-                COUNT(*)::int AS total_all_time
-               FROM public.applications
-               WHERE user_id = $1 AND (tenant_id = $2 OR tenant_id IS NULL)""",
-            user_id,
-            tenant_id,
-        )
-        recent = await conn.fetch(
-            """SELECT a.id, j.title AS job_title, a.status::text, a.updated_at
-               FROM public.applications a
-               LEFT JOIN public.jobs j ON j.id = a.job_id
-               WHERE a.user_id = $1 AND (a.tenant_id = $2 OR a.tenant_id IS NULL)
-               ORDER BY a.updated_at DESC LIMIT 10""",
-            user_id,
-            tenant_id,
-        )
-
-    return {
-        **(
-            dict(counts)
-            if counts
-            else {
-                "active_count": 0,
-                "hold_count": 0,
-                "completed_today": 0,
-                "completed_week": 0,
-                "total_all_time": 0,
-            }
-        ),
-        "recent": [dict(r) for r in recent],
-    }
-
-
-@app.get("/me/team/members")
-async def get_team_members(
-    ctx: TenantContext = Depends(get_tenant_context),
-    db: asyncpg.Pool = Depends(get_pool),
-) -> list[dict[str, Any]]:
-    """Get tenant members for the current user's workspace (team page)."""
-    async with db.acquire() as conn:
-        rows = await conn.fetch(
-            """
-            SELECT tm.user_id, tm.role, tm.created_at,
-                   u.email, u.full_name, u.avatar_url
-            FROM public.tenant_members tm
-            LEFT JOIN public.users u ON u.id = tm.user_id
-            WHERE tm.tenant_id = $1
-            ORDER BY
-                CASE tm.role WHEN 'OWNER' THEN 0 WHEN 'ADMIN' THEN 1 ELSE 2 END,
-                tm.created_at ASC
-            """,
-            ctx.tenant_id,
-        )
-    return [
-        {
-            "user_id": str(r["user_id"]),
-            "email": r["email"],
-            "full_name": r["full_name"],
-            "avatar_url": r["avatar_url"],
-            "role": r["role"],
-            "created_at": r["created_at"].isoformat() if r["created_at"] else None,
-        }
-        for r in rows
-    ]
-
-
-# ---------------------------------------------------------------------------
-# Routes
-# ---------------------------------------------------------------------------
-
-# -- 1. Resume Parse ---------------------------------------------------
-
-
-@app.post("/webhook/resume_parse", response_model=ResumeParseResponse)
-async def resume_parse(
-    file: UploadFile = File(...),
-    ctx: TenantContext = Depends(get_tenant_context),
-    db: asyncpg.Pool = Depends(get_pool),
-) -> ResumeParseResponse:
-    """Upload PDF → extract text → LLM parse → normalize → upsert profile."""
-    user_id = ctx.user_id
-    incr("api.resume_parse.requests", tags={"tenant_id": ctx.tenant_id})
-    if file.content_type not in ("application/pdf",):
-        raise HTTPException(status_code=400, detail="Only PDF files are accepted")
-
-    # Pre-check Content-Length header to reject before reading body into memory
-    if file.size and file.size > _settings.max_upload_size_bytes:
-        raise HTTPException(
-            status_code=413,
-            detail=f"File too large. Maximum size is {_settings.max_upload_size_bytes // 1_048_576} MB",
-        )
-    pdf_bytes = await file.read()
-    if len(pdf_bytes) > _settings.max_upload_size_bytes:
-        raise HTTPException(
-            status_code=413,
-            detail=f"File too large. Maximum size is {_settings.max_upload_size_bytes // 1_048_576} MB",
-        )
-
-    # MIME validation: verify PDF magic bytes (prevent content-type spoofing)
-    if len(pdf_bytes) < 8 or not pdf_bytes.startswith(b"%PDF-"):
-        raise HTTPException(
-            status_code=400,
-            detail="Invalid PDF format - file content does not match declared type",
-        )
-
-    # Virus scan before processing
-    from shared.virus_scanner import is_file_type_allowed, scan_uploaded_file
-
-    filename = file.filename or "resume.pdf"
-    if not is_file_type_allowed(filename, file.content_type or "application/pdf"):
-        raise HTTPException(status_code=400, detail="File type not allowed")
-    scan_result = await scan_uploaded_file(pdf_bytes, filename)
-    if not scan_result.clean:
-        logger.warning(
-            "[RESUME] Virus scan failed",
-            extra={"tenant_id": ctx.tenant_id, "filename": filename[:50]},
-        )
-        incr("api.resume_parse.virus_scan_failed", tags={"tenant_id": ctx.tenant_id})
-        raise HTTPException(
-            status_code=400,
-            detail="File security scan failed. Please upload a different file.",
-        )
-
-    resume_url, canonical_dict = await process_resume_upload(
-        user_id=user_id,
-        tenant_id=ctx.tenant_id,
-        file_bytes=pdf_bytes,
-        filename=file.filename or "resume.pdf",
-        content_type=file.content_type or "application/pdf",
-        db_pool=db,
-        storage=get_storage_service(),
-    )
-
-    incr("api.resume_parse.success", tags={"tenant_id": ctx.tenant_id})
-    return ResumeParseResponse(
-        user_id=user_id,
-        profile=CanonicalProfile.model_validate(canonical_dict),
-        resume_url=resume_url,
-    )
-
-
-# -- 2. Resume Task (answer hold questions) ----------------------------
-
-
-@app.post("/agent/resume_task", response_model=ResumeTaskResponse)
-async def resume_task(
-    body: ResumeTaskRequest,
-    background_tasks: BackgroundTasks,
-    ctx: TenantContext = Depends(get_tenant_context),
-    db: asyncpg.Pool = Depends(get_pool),
-) -> ResumeTaskResponse:
-    """User answers hold questions → update inputs → emit events → re-queue."""
-    incr("api.resume_task.requests", tags={"tenant_id": ctx.tenant_id})
-    # Verify ownership + tenant scope
-    async with db.acquire() as conn:
-        app_row = await ApplicationRepo.get_by_id_and_user(
-            conn, body.application_id, ctx.user_id, tenant_id=ctx.tenant_id
-        )
-    if app_row is None:
-        logger.info(
-            "[RESUME_TASK] Application not found",
-            extra={"application_id": body.application_id, "tenant_id": ctx.tenant_id},
-        )
-        incr("api.resume_task.not_found", tags={"tenant_id": ctx.tenant_id})
-        raise HTTPException(
-            status_code=404, detail="Application not found or not owned by user"
-        )
-
-    if app_row["status"] not in ("REQUIRES_INPUT",):
-        logger.info(
-            "[RESUME_TASK] Status conflict",
-            extra={
-                "application_id": body.application_id,
-                "status": app_row["status"],
-                "tenant_id": ctx.tenant_id,
-            },
-        )
-        incr(
-            "api.resume_task.status_conflict",
-            tags={"status": app_row["status"], "tenant_id": ctx.tenant_id},
-        )
-        raise HTTPException(
-            status_code=409,
-            detail=f"Application status is '{app_row['status']}', expected REQUIRES_INPUT",
-        )
-
-    async with db_transaction(db) as conn:
-        # Update each answer and mark resolved (scope by application_id to prevent IDOR)
-        await InputRepo.update_answers(
-            conn,
-            [{"input_id": a.input_id, "answer": a.answer} for a in body.answers],
-            application_id=body.application_id,
-        )
-
-        # Emit USER_ANSWERED event per answer
-        for a in body.answers:
-            await EventRepo.emit(
-                conn,
-                body.application_id,
-                "USER_ANSWERED",
-                {
-                    "input_id": a.input_id,
-                    "answer": a.answer,
-                },
-                tenant_id=ctx.tenant_id,
-            )
-
-        # Re-queue so the worker picks it up
-        updated = await ApplicationRepo.update_status(
-            conn, body.application_id, "QUEUED"
-        )
-        if updated is None:
-            raise HTTPException(status_code=404, detail="Application not found")
-
-        # Emit RETRY_SCHEDULED
-        await EventRepo.emit(
-            conn,
-            body.application_id,
-            "RETRY_SCHEDULED",
-            {
-                "answered_count": len(body.answers),
-            },
-            tenant_id=ctx.tenant_id,
-        )
-
-        # Fetch remaining unresolved inputs for the response
-        remaining = await InputRepo.get_unresolved(conn, body.application_id)
-
-    # Server-side analytics: status changed
-    await emit_analytics_event(
-        db,
-        APPLICATION_STATUS_CHANGED,
-        tenant_id=ctx.tenant_id,
-        user_id=ctx.user_id,
-        properties={
-            "application_id": body.application_id,
-            "from_status": "REQUIRES_INPUT",
-            "to_status": "QUEUED",
-        },
-    )
-
-    # Optional: nudge (no-op with polling; placeholder for pg_notify)
-    background_tasks.add_task(_nudge_worker, body.application_id)
-
-    incr("api.resume_task.success", tags={"tenant_id": ctx.tenant_id})
-    return ResumeTaskResponse(
-        application_id=body.application_id,
-        status=str(updated["status"]),
-        message="Answers saved; application re-queued for the agent.",
-        unresolved_inputs=[
-            ApplicationInputOut(
-                id=str(r["id"]),
-                selector=r["selector"],
-                question=r["question"],
-                field_type=r["field_type"],
-                answer=r["answer"],
-                resolved=r["resolved"],
-                meta=(
-                    json.loads(r["meta"])
-                    if isinstance(r["meta"], str)
-                    else r.get("meta")
-                ),
-            )
-            for r in remaining
-        ],
-    )
-
-
-async def _nudge_worker(application_id: str) -> None:
-    """Placeholder for pg_notify or similar push. Worker polls regardless."""
-    logger.info("Nudge: application %s re-queued", application_id)
-
-
-# -- 3. Debug endpoint -------------------------------------------------
-
-
-@app.get("/applications/{application_id}", response_model=ApplicationDetailResponse)
-async def get_application_detail(
-    application_id: str = FastAPIPath(...),
-    ctx: TenantContext = Depends(get_tenant_context),
-    db: asyncpg.Pool = Depends(get_pool),
-) -> ApplicationDetailResponse:
-    """Application detail endpoint scoped to the requesting user's tenant."""
-    validate_uuid(application_id, "application_id")
-    async with db.acquire() as conn:
-        detail = await ApplicationRepo.get_detail(
-            conn, application_id, tenant_id=ctx.tenant_id, user_id=ctx.user_id
-        )
-        if detail is None:
-            raise HTTPException(status_code=404, detail="Application not found")
-
-        serialized = detail.to_serializable()
-        app_dict = serialized["application"]
-
-        job = (
-            await JobRepo.get_by_id(conn, app_dict["job_id"])
-            if app_dict.get("job_id")
-            else None
-        )
-        if job:
-            app_dict["company"] = job.get("company") or ""
-            app_dict["job_title"] = job.get("title") or ""
-
-        unresolved = next((inp for inp in detail.inputs if not inp.resolved), None)
-        if unresolved:
-            app_dict["hold_question"] = unresolved.question
-
-        if app_dict.get("updated_at"):
-            app_dict["last_activity"] = app_dict["updated_at"]
-
-    return ApplicationDetailResponse(**serialized)
 
 
 # ---------------------------------------------------------------------------
@@ -2320,65 +1337,6 @@ async def healthz(
         response["pool"] = pool_stats
 
     return response
-
-
-# ---------------------------------------------------------------------------
-# Storage endpoint - serve files from Render Disk or local storage
-# ---------------------------------------------------------------------------
-@app.get("/api/storage/{bucket}/{path:path}")
-async def serve_storage_file(
-    bucket: str,
-    path: str,
-    user_id: str = Depends(get_current_user_id),
-    tenant_ctx: TenantContext = Depends(get_tenant_context),
-):
-    """Serve files from storage (e.g., resumes, avatars)."""
-    # SECURITY: Prevent path traversal with canonicalization
-
-    # Validate bucket name (alphanumeric, hyphens, underscores only)
-    if not re.match(r"^[a-zA-Z0-9_-]+$", bucket):
-        raise HTTPException(status_code=400, detail="Invalid bucket name")
-
-    # SECURITY: Ensure user can only access their own tenant's files
-    # Add tenant_id prefix to prevent cross-tenant access
-    tenant_id = tenant_ctx.tenant_id or ""
-    if not tenant_id:
-        raise HTTPException(status_code=401, detail="Authentication required")
-
-    # Validate path components - prevent path traversal (incl. encoded variants)
-    from urllib.parse import unquote
-
-    decoded_path = unquote(path)
-    if ".." in decoded_path or ".." in path:
-        raise HTTPException(status_code=400, detail="Invalid path")
-    if "%2e" in path.lower() or "%252e" in path.lower():
-        raise HTTPException(status_code=400, detail="Invalid path")
-    normalized_path = os.path.normpath(decoded_path)
-    if normalized_path.startswith("/") or normalized_path.startswith("\\"):
-        raise HTTPException(status_code=400, detail="Invalid path")
-
-    # SECURITY: Add tenant isolation to storage path
-    # Only allow access to files within user's tenant directory
-    storage_path = f"{tenant_id}/{bucket}/{normalized_path}"
-
-    storage = get_storage_service()
-
-    try:
-        data = await storage.download_file(storage_path)
-    except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid path")
-    except FileNotFoundError:
-        raise HTTPException(status_code=404, detail="File not found")
-    except Exception:
-        logger.exception("Storage download failed for %s", storage_path)
-        raise HTTPException(status_code=500, detail="Failed to retrieve file")
-
-    # Determine content type based on file extension
-    content_type = (
-        mimetypes.guess_type(normalized_path)[0] or "application/octet-stream"
-    )
-
-    return Response(content=data, media_type=content_type)
 
 
 # ---------------------------------------------------------------------------

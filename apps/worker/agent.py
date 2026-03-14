@@ -151,28 +151,56 @@ class FormField(TypedDict):
 
 
 async def create_db_pool():
-    """Create database connection pool."""
+    """Create database connection pool.
+
+    SSL handling:
+      - If db_ssl_ca_cert_path is set, use full CA verification.
+      - If DATABASE_URL contains ``sslmode=require``, use ``ssl="require"``
+        which encrypts the connection (Render PostgreSQL default).
+      - Otherwise (local dev), disable SSL to avoid asyncpg upgrade errors.
+    """
     settings = get_settings()
-    import ssl
 
     from shared.db import resolve_dsn_ipv4
     dsn = resolve_dsn_ipv4(settings.database_url)
 
-    # Use SSL but don't verify certificate for self-signed certs on Render
-    # The connection is still encrypted, just not verified against a CA
-    ctx = ssl.create_default_context(purpose=ssl.Purpose.SERVER_AUTH)
-    ctx.check_hostname = False
-    ctx.verify_mode = ssl.CERT_NONE
+    ssl_arg = _get_worker_ssl_config(settings)
 
     return await asyncpg.create_pool(
         dsn,
         min_size=settings.db_pool_min,
         max_size=settings.db_pool_max,
         statement_cache_size=0,
-        ssl=ctx,
+        ssl=ssl_arg,
         timeout=30.0,
         command_timeout=60.0,
     )
+
+
+def _get_worker_ssl_config(settings) -> object:
+    """Derive SSL configuration for the worker database pool.
+
+    Mirrors the API's ``DatabasePoolManager._get_ssl_config`` logic so both
+    processes use the same security posture.
+
+    Returns:
+        An ``ssl.SSLContext`` when a CA cert is configured,
+        ``"require"`` when the DSN requests SSL (encrypted, no MITM
+        protection — acceptable for Render internal networking), or
+        ``False`` for plaintext local-dev connections.
+    """
+    import ssl
+
+    if getattr(settings, "db_ssl_ca_cert_path", None):
+        ctx = ssl.create_default_context(cafile=settings.db_ssl_ca_cert_path)
+        return ctx
+
+    # Render PostgreSQL URLs include ?sslmode=require — honour that.
+    if settings.database_url and "sslmode=require" in settings.database_url:
+        return "require"
+
+    # Local dev: disable SSL to prevent "rejected SSL upgrade" errors.
+    return False
 
 
 async def claim_task(pool: asyncpg.Pool) -> dict | None:
@@ -340,36 +368,44 @@ async def extract_form_fields_single_step(
     return fields
 
 
+NEXT_BUTTON_SELECTORS: list[str] = [
+    'button:has-text("Next")',
+    'button:has-text("Continue")',
+    'button:has-text("Continue to")',
+    'button:has-text("Next Step")',
+    'button:has-text("Proceed")',
+    'button:has-text("Forward")',
+    'button:has-text("Advance")',
+    'button:has-text("Next Page")',
+    'button:has-text("Continue Application")',
+    'button:has-text("Next Section")',
+    'button:has-text("Step")',
+    'input[type="button"][value*="Next" i]',
+    'input[type="button"][value*="Continue" i]',
+    'input[type="submit"][value*="Next" i]',
+    'input[type="submit"][value*="Continue" i]',
+    'button[aria-label*="Next" i]',
+    'button[aria-label*="Continue" i]',
+    'button[class*="next"]',
+    'button[class*="continue"]',
+    'a[role="button"]:has-text("Next")',
+    'a[role="button"]:has-text("Continue")',
+    ".next-button",
+    ".continue-button",
+    ".btn-next",
+    ".btn-continue",
+]
+"""Playwright selectors for multi-step form 'Next'/'Continue' buttons.
+
+Shared by :func:`detect_next_button` and :func:`click_next_button` to
+avoid duplication.  Custom selectors can be prepended via the
+*custom_next_selectors* parameter on :func:`click_next_button`.
+"""
+
+
 async def detect_next_button(page: Page) -> bool:
     """Check if there's a 'Next' / 'Continue' button (not a Submit)."""
-    next_selectors = [
-        'button:has-text("Next")',
-        'button:has-text("Continue")',
-        'button:has-text("Continue to")',
-        'button:has-text("Next Step")',
-        'button:has-text("Proceed")',
-        'button:has-text("Forward")',
-        'button:has-text("Advance")',
-        'button:has-text("Next Page")',
-        'button:has-text("Continue Application")',
-        'button:has-text("Next Section")',
-        'button:has-text("Step")',
-        'input[type="button"][value*="Next" i]',
-        'input[type="button"][value*="Continue" i]',
-        'input[type="submit"][value*="Next" i]',
-        'input[type="submit"][value*="Continue" i]',
-        'button[aria-label*="Next" i]',
-        'button[aria-label*="Continue" i]',
-        'button[class*="next"]',
-        'button[class*="continue"]',
-        'a[role="button"]:has-text("Next")',
-        'a[role="button"]:has-text("Continue")',
-        ".next-button",
-        ".continue-button",
-        ".btn-next",
-        ".btn-continue",
-    ]
-    for sel in next_selectors:
+    for sel in NEXT_BUTTON_SELECTORS:
         btn = page.locator(sel).first
         if await btn.count() > 0 and await btn.is_visible():
             return True
@@ -380,33 +416,7 @@ async def click_next_button(
     page: Page, custom_next_selectors: list[str] | None = None
 ) -> bool:
     """Click the Next/Continue button and wait for the step transition."""
-    next_selectors = (custom_next_selectors or []) + [
-        'button:has-text("Next")',
-        'button:has-text("Continue")',
-        'button:has-text("Continue to")',
-        'button:has-text("Next Step")',
-        'button:has-text("Proceed")',
-        'button:has-text("Forward")',
-        'button:has-text("Advance")',
-        'button:has-text("Next Page")',
-        'button:has-text("Continue Application")',
-        'button:has-text("Next Section")',
-        'button:has-text("Step")',
-        'input[type="button"][value*="Next" i]',
-        'input[type="button"][value*="Continue" i]',
-        'input[type="submit"][value*="Next" i]',
-        'input[type="submit"][value*="Continue" i]',
-        'button[aria-label*="Next" i]',
-        'button[aria-label*="Continue" i]',
-        'button[class*="next"]',
-        'button[class*="continue"]',
-        'a[role="button"]:has-text("Next")',
-        'a[role="button"]:has-text("Continue")',
-        ".next-button",
-        ".continue-button",
-        ".btn-next",
-        ".btn-continue",
-    ]
+    next_selectors = (custom_next_selectors or []) + NEXT_BUTTON_SELECTORS
     for sel in next_selectors:
         btn = page.locator(sel).first
         if await btn.count() > 0 and await btn.is_visible():
@@ -552,356 +562,14 @@ async def map_fields_via_llm(
 
 
 # ---------------------------------------------------------------------------
-# Playwright: form filling (handles all input types)
+# Playwright: form filling and submission (extracted to form_filling.py)
 # ---------------------------------------------------------------------------
-
-
-async def fill_form_from_mapping(
-    page: Page,
-    field_values: dict[str, str],
-    form_fields: list[FormField],
-    resume_path: str | None = None,
-    ctx: dict | None = None,
-    get_portfolio_path: Callable[[dict], Any] | None = None,
-    get_document_path: Callable[[dict, str], Any] | None = None,
-    behavior_simulator: Any | None = None,
-) -> None:
-    """Fill each field using selector → value from the LLM mapping.
-    When behavior_simulator (HumanBehaviorSimulator) is provided, uses human-like
-    typing for text/textarea/email/tel to reduce bot detection."""
-    field_lookup: dict[str, FormField] = {f["selector"]: f for f in form_fields}
-
-    for selector, value in field_values.items():
-        ff = field_lookup.get(selector)
-        field_type = ff["type"] if ff else "text"
-
-        try:
-            # MEDIUM: Wait for field availability and check visibility
-            try:
-                # Wait for selector to be available
-                await page.wait_for_selector(selector, state="attached", timeout=10000)
-                el = page.locator(selector).first
-                # Wait for field to be visible
-                await el.wait_for(state="visible", timeout=5000)
-
-                # Check if field is enabled
-                if not await el.is_enabled():
-                    logger.warning("Field %s is disabled, skipping", selector)
-                    incr(
-                        "agent.field_visibility.disabled",
-                        tags={"selector": selector[:50]},
-                    )
-                    continue
-            except Exception as wait_error:
-                logger.warning(
-                    "Field %s not found or not visible, skipping: %s",
-                    selector,
-                    wait_error,
-                )
-                incr("agent.field_visibility.timeout", tags={"selector": selector[:50]})
-                continue
-
-            step_idx = ff["step_index"] if ff else "?"
-
-            if field_type == "select":
-                await _fill_select(el, value)
-            elif field_type == "radio":
-                await _fill_radio(page, selector, el, value)
-            elif field_type == "checkbox":
-                await _fill_checkbox(el, value)
-            elif field_type == "textarea":
-                if behavior_simulator:
-                    result = await behavior_simulator.type_humanlike(
-                        page, selector, value or ""
-                    )
-                    if not result.success:
-                        logger.warning(
-                            "Humanlike textarea fill failed for %s: %s",
-                            selector,
-                            result.error,
-                        )
-                else:
-                    await el.fill(value)
-            elif field_type == "file":
-                # LOW: Handle different file types (resume, portfolio, documents)
-                file_path = None
-                value_lower = (value or "").lower()
-
-                if "resume" in value_lower or value_lower.endswith(".pdf"):
-                    file_path = resume_path
-                elif "portfolio" in value_lower and ctx and get_portfolio_path:
-                    file_path = await get_portfolio_path(ctx)
-                elif ctx and get_document_path:
-                    doc_type_hint = (
-                        value_lower.split()[0] if value_lower else "document"
-                    )
-                    file_path = await get_document_path(ctx, doc_type_hint)
-                else:
-                    file_path = None
-
-                if file_path and os.path.exists(file_path):
-                    await el.set_input_files(file_path)
-                    logger.info("Uploaded file: %s for field %s", file_path, selector)
-                else:
-                    logger.warning(
-                        "File upload skipped: no file path available for %s (value: %s)",
-                        selector,
-                        value,
-                    )
-            else:
-                if behavior_simulator and field_type in (
-                    "text",
-                    "email",
-                    "tel",
-                    "password",
-                ):
-                    result = await behavior_simulator.type_humanlike(
-                        page, selector, value or ""
-                    )
-                    if not result.success:
-                        logger.warning(
-                            "Humanlike fill failed for %s: %s",
-                            selector,
-                            result.error,
-                        )
-                        await el.fill(value)
-                else:
-                    await el.fill(value)
-
-            logger.info("Filled [step:%s] %s = %s", step_idx, selector, value[:60])
-
-            # HIGH: Validate field was actually filled after attempting
-            try:
-                # Wait a brief moment for value to be set
-                await page.wait_for_timeout(100)
-
-                # Verify the field has the expected value
-                actual_value = await el.input_value() if field_type != "file" else None
-                if actual_value is not None:
-                    # For text fields, check if value matches (allowing for formatting differences)
-                    if field_type in ["text", "textarea", "email", "tel"]:
-                        if (
-                            value.lower().strip() not in actual_value.lower().strip()
-                            and actual_value.lower().strip()
-                            not in value.lower().strip()
-                        ):
-                            logger.warning(
-                                "Field value mismatch: expected '%s', got '%s' for selector %s",
-                                value[:50],
-                                actual_value[:50],
-                                selector,
-                            )
-                            incr(
-                                "agent.field_validation.mismatch",
-                                tags={"field_type": field_type},
-                            )
-                    # For select fields, verify option was selected
-                    elif field_type == "select":
-                        selected_text = await el.evaluate(
-                            "el => el.options[el.selectedIndex]?.text || ''"
-                        )
-                        if (
-                            value.lower() not in selected_text.lower()
-                            and selected_text.lower() not in value.lower()
-                        ):
-                            logger.warning(
-                                "Select value mismatch: expected '%s', got '%s' for selector %s",
-                                value,
-                                selected_text,
-                                selector,
-                            )
-                            incr(
-                                "agent.field_validation.mismatch",
-                                tags={"field_type": "select"},
-                            )
-            except Exception as validation_error:
-                logger.debug(
-                    "Field validation check failed (non-critical): %s", validation_error
-                )
-                # Don't fail the entire fill operation if validation check fails
-
-        except Exception as exc:
-            logger.warning("Could not fill %s: %s", selector, exc)
-            incr(
-                "agent.field_fill.failed",
-                tags={"field_type": field_type, "error": type(exc).__name__},
-            )
-
-
-async def _fill_select(el: Any, value: str) -> None:
-    # Try by value first, fall back to label
-    try:
-        await el.select_option(value=value)
-    except Exception as e:
-        logger.debug("Select by value failed, trying by label: %s", e)
-        await el.select_option(label=value)
-
-
-async def _fill_radio(page: Page, selector: str, el: Any, value: str) -> None:
-    """Click radio with matching value, handling quoted values properly."""
-    try:
-        # Try exact match first (handles quoted values)
-        radio = page.locator(f'{selector}[value="{value}"]').first
-        if await radio.count() > 0:
-            await radio.check()
-            return
-    except Exception as e:
-        # Fallback: try with escaped quotes for complex values
-        logger.debug("Radio exact match failed, trying escaped quotes: %s", e)
-        escaped_value = value.replace('"', '\\"')
-        radio = page.locator(f'{selector}[value="{escaped_value}"]').first
-        if await radio.count() > 0:
-            await radio.check()
-            return
-
-    # Final fallback: click the element directly
-    await el.check()
-
-
-async def _fill_checkbox(el: Any, value: str) -> None:
-    should_check = value.lower() in ("true", "yes", "1", "on")
-    if should_check:
-        await el.check()
-    else:
-        await el.uncheck()
-
-
-SUCCESS_INDICATORS = (
-    "thank you",
-    "application received",
-    "submitted",
-    "success",
-    "confirmation",
-    "application complete",
-    "we've received",
-    "thank you for applying",
-    "your application has been",
+from .form_filling import (  # noqa: E402
+    ERROR_INDICATORS,
+    SUCCESS_INDICATORS,
+    fill_form_from_mapping,
+    submit_form,
 )
-ERROR_INDICATORS = (
-    "please correct",
-    "invalid",
-    "required field",
-    "error submitting",
-    "submission failed",
-)
-
-
-async def _verify_submit_success(page: Page, strict: bool = False) -> bool:
-    """Check page content for success/error indicators after submit.
-
-    strict: when True (no navigation occurred), require success indicators.
-    When False (navigation completed), require no error indicators.
-    """
-    try:
-        content = (await page.content()).lower()
-        import re
-
-        validation_patterns = [
-            r'<div[^>]*class="[^"]*error[^"]*"[^>]*>(.*?)</div>',
-            r'<span[^>]*class="[^"]*error[^"]*"[^>]*>(.*?)</span>',
-            r'<p[^>]*class="[^"]*error[^"]*"[^>]*>(.*?)</p>',
-            r'<div[^>]*class="[^"]*validation[^"]*"[^>]*>(.*?)</div>',
-            r'<form[^>]*class="[^"]*error[^"]*"[^>]*>(.*?)</form>',
-        ]
-        validation_content = ""
-        for pattern in validation_patterns:
-            matches = re.findall(pattern, content, re.DOTALL | re.IGNORECASE)
-            validation_content += " ".join(matches)
-
-        for ind in ERROR_INDICATORS:
-            if ind in validation_content:
-                logger.warning("Error indicator in validation wrapper: %r", ind)
-                return False
-        for ind in SUCCESS_INDICATORS:
-            if ind in content:
-                return True
-        if strict:
-            logger.warning(
-                "Submit click completed but no success indicator found; treating as uncertain"
-            )
-            return False
-        return True
-    except Exception as e:
-        logger.debug("Could not verify submit success: %s", e)
-        return not strict
-
-
-async def submit_form(page: Page, selectors: list[str] | None = None) -> bool:
-    """Click the submit button and wait for navigation or network idle.
-
-    HIGH: Implements retry logic for transient submission failures.
-    Verifies success indicators on post-submit page.
-    """
-    submit_selectors = selectors or [
-        'button[type="submit"]',
-        'input[type="submit"]',
-        'button:has-text("Submit")',
-        'button:has-text("Apply")',
-        'button:has-text("Send Application")',
-        'button:has-text("Send")',
-    ]
-
-    max_retries = 2
-    base_delay = 1.0
-    last_error = None
-
-    for attempt in range(max_retries):
-        for sel in submit_selectors:
-            btn = page.locator(sel).first
-            if await btn.count() > 0:
-                try:
-                    async with page.expect_navigation(
-                        wait_until="networkidle", timeout=30_000
-                    ):
-                        await btn.click()
-                    return await _verify_submit_success(page)
-                except Exception as e:
-                    last_error = e
-                    # Check if error is retryable
-                    is_retryable = (
-                        isinstance(e, (TimeoutError, ConnectionError))
-                        or "timeout" in str(e).lower()
-                        or "network" in str(e).lower()
-                    )
-
-                    if is_retryable and attempt < max_retries - 1:
-                        # HIGH: Exponential backoff for retryable errors
-                        delay = base_delay * (2**attempt) + (random.random() * 0.3)
-                        logger.warning(
-                            "Form submission failed (attempt %d/%d), retrying in %.2fs: %s",
-                            attempt + 1,
-                            max_retries,
-                            delay,
-                            e,
-                        )
-                        await asyncio.sleep(delay)
-                        break  # Retry with same selector
-                    else:
-                        # F16: Don't assume success when navigation times out - check for success indicators
-                        logger.debug(
-                            "Form submission didn't trigger navigation, falling back to click: %s",
-                            e,
-                        )
-                        try:
-                            await btn.click()
-                            await page.wait_for_timeout(3000)
-                            return await _verify_submit_success(page, strict=True)
-                            logger.warning(
-                                "Submit click completed but no success indicator found; treating as uncertain"
-                            )
-                            return False
-                        except Exception as fallback_error:
-                            logger.debug(
-                                "Fallback click also failed: %s", fallback_error
-                            )
-                            continue  # Try next selector
-        # If all selectors failed and we have retries left, wait and retry
-        if attempt < max_retries - 1 and last_error:
-            delay = base_delay * (2**attempt)
-            logger.warning("All submit selectors failed, retrying in %.2fs", delay)
-            await asyncio.sleep(delay)
-
-    return False
 
 
 # ---------------------------------------------------------------------------

@@ -46,10 +46,8 @@ class Settings(BaseSettings):
     # SECURITY: Database URL must be provided via DATABASE_URL environment variable
     # Hardcoded credentials are a critical security vulnerability
     database_url: str = ""  # Required - must be set via DATABASE_URL env var
-    db_pool_min: int = 10  # Increased for better baseline performance
-    db_pool_max: int = (
-        100  # CRITICAL: Increased from 20 to 100 for 5000+ concurrent users
-    )
+    db_pool_min: int = 5
+    db_pool_max: int = 25  # Per-process limit; use PgBouncer for higher concurrency
 
     # ── Web App ──────────────────────────────────────────────────
     app_base_url: str = "https://sorce-web.onrender.com"
@@ -90,9 +88,7 @@ class Settings(BaseSettings):
     # ── Playwright / Agent ───────────────────────────────────────
     playwright_browser_type: str = "chromium"
     playwright_headless: bool = True
-    max_concurrent_browser_contexts: int = (
-        50  # CRITICAL: Increased from 1 to 50 for scalability (5000+ users)
-    )
+    max_concurrent_browser_contexts: int = 5  # Each context uses ~500MB RAM; scale via worker replicas
 
     # ── Agent tuning ─────────────────────────────────────────────
     poll_interval_seconds: int = 5
@@ -122,8 +118,8 @@ class Settings(BaseSettings):
     enabled_blueprints: str = "job-app,grant,staffing-agency"  # comma-separated list
 
     # ── Security ─────────────────────────────────────────────────
-    csrf_secret: str = "dev-csrf-secret-change-in-production"  # Required in prod - generate with: secrets.token_hex(32)
-    jwt_secret: str = "dev-secret-key-change-in-production"  # Default for local dev only - change in production
+    csrf_secret: str = ""  # REQUIRED — generate with: python -c "import secrets; print(secrets.token_hex(32))"
+    jwt_secret: str = ""  # REQUIRED — generate with: python -c "import secrets; print(secrets.token_hex(32))"
     request_id_header: str = "X-Request-ID"
     # Comma-separated CORS origins (overrides/augments built-in list). No wildcards.
     cors_allowed_origins: str = ""

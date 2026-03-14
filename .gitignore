@@ -111,6 +111,9 @@ scripts/setup/
 sonar-report.json
 .scannerwork/
 
+# Archived one-off scripts (moved from repo root during cleanup)
+_scripts_archive/
+
 # Misc temporary files
 *.tmp
 *.temp
@@ -121,6 +124,44 @@ sonar-report.json
 analysis_output/
 render_audit_results.json
 audit-report-*.txt
+audit-output.txt
+ruff_errors.json
+CODEBASE_AUDIT_REPORT.md
+COMPREHENSIVE_PRODUCTION_READINESS_AUDIT.md
+PRODUCTION_READINESS_AUDIT_REPORT.md
+API_BUILD_FIX_SUMMARY.md
+CRITICAL_FIX_REQUIRED.md
+EMERGENCY_FIX.md
+IMPLEMENTATION_SUMMARY.md
+
+# Deployment / debug artifacts (contain service IDs, tokens, etc.)
+deploy_check.json
+deploy_history.json
+latest_deploy.json
+services.json
+services_status.json
+services_response.json
+render_services.json
+render_full.json
+full_api_response.json
+render_api_test_report.json
+pooler_config.json
+projects.json
+service_config.json
+admin_service.json
+api_env.json
+api_logs.json
+final_config.json
+minimal_config.json
+simple_config.json
+minimal_service.json
+create_service.json
+create_service_clean.json
+phase15_audit_results.json
+production_readiness_report.json
+integration_test_report.json
+deployment_status_summary.md
+jobhuntin-job-sync-logs.json
 
 # E2E test reports (Playwright)
 jobhuntin-e2e-tests/reports/
