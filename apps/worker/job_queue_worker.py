@@ -60,6 +60,12 @@ async def create_db_pool() -> asyncpg.Pool:
 
 async def run_queue_loop() -> None:
     db_pool = await create_db_pool()
+    
+    # Create tables if they don't exist
+    async with db_pool.acquire() as conn:
+        from packages.backend.domain.job_queue import create_job_queue_tables
+        await create_job_queue_tables(conn)
+    
     queue = BackgroundJobQueue(db_pool)
 
     # LOW: Register match score pre-computation job handler
