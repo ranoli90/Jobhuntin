@@ -2163,14 +2163,11 @@ async def get_application_detail(
 async def health(
     request: Request,
     db: asyncpg.Pool = Depends(get_pool),
-) -> SuccessResponse[dict[str, str]]:
+) -> dict[str, Any]:
     """Basic health check with dependency validation.
 
     M8: Include database and Redis health checks to ensure all critical
     dependencies are available before reporting healthy status.
-    
-    Returns standardized response format:
-    {"success": true, "data": {...}, "meta": {"version": "1.0", "timestamp": "...", "request_id": "..."}}
     """
     s = get_settings()
     checks = {
@@ -2204,19 +2201,11 @@ async def health(
     redis_healthy = checks["redis"] in ("healthy", "not_configured")
 
     if db_healthy and redis_healthy:
-        return success_response({"status": "ok", "checks": checks}, request=request)
+        return {"status": "ok", "checks": checks}
     else:
         return JSONResponse(
             status_code=503,
-            content=ErrorResponse(
-                success=False,
-                error=ErrorInfo(
-                    code="SERVICE_UNAVAILABLE",
-                    message="One or more dependencies are unhealthy",
-                    details=[],
-                    request_id=getattr(request.state, "request_id", None),
-                ),
-            ).model_dump(),
+            content={"error": {"code": "SERVICE_UNAVAILABLE", "message": "One or more dependencies are unhealthy"}},
         )
 
 
