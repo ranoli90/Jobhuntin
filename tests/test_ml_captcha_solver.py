@@ -6,7 +6,10 @@ Validates ML CAPTCHA detection, solving, and fallback mechanisms.
 from __future__ import annotations
 
 try:
-    from packages.backend.domain.ml_captcha_solver import MLCaptchaSolver, EnhancedCaptchaDetector
+    from packages.backend.domain.ml_captcha_solver import (
+        EnhancedCaptchaDetector,
+        MLCaptchaSolver,
+    )
     ML_CAPTCHA_AVAILABLE = True
 except ImportError:
     ML_CAPTCHA_AVAILABLE = False
@@ -57,7 +60,7 @@ class TestEnhancedCaptchaDetector:
         detector = EnhancedCaptchaDetector()
         expected_types = [
             "recaptcha_v2",
-            "recaptcha_v3", 
+            "recaptcha_v3",
             "hcaptcha",
             "image_captcha",
             "text_captcha",
@@ -74,8 +77,8 @@ class TestCAPTCHAIntegration:
 
     def test_handler_loads_without_ml(self) -> None:
         """CAPTCHA handler should load without ML dependencies."""
-        from packages.backend.domain.captcha_handler import CaptchaHandler, ML_AVAILABLE
-        
+        from packages.backend.domain.captcha_handler import CaptchaHandler
+
         handler = CaptchaHandler()
         assert handler.detector is not None
         assert handler.solver is not None
@@ -84,7 +87,7 @@ class TestCAPTCHAIntegration:
     def test_ml_availability_flag(self) -> None:
         """ML availability flag should be correctly set."""
         from packages.backend.domain.captcha_handler import ML_AVAILABLE
-        
+
         # ML_AVAILABLE should be False if dependencies not installed
         # This is expected in the test environment
         assert isinstance(ML_AVAILABLE, bool)
@@ -139,8 +142,8 @@ class TestCAPTCHAFallback:
     def test_fallback_to_external_services(self) -> None:
         """System should fallback to external services when ML fails."""
         # This is tested implicitly by the handler loading without ML dependencies
-        from packages.backend.domain.captcha_handler import CaptchaHandler, ML_AVAILABLE
-        
+        from packages.backend.domain.captcha_handler import CaptchaHandler
+
         handler = CaptchaHandler()
         # Should not raise an exception even without ML
         assert handler.detector is not None
@@ -148,15 +151,15 @@ class TestCAPTCHAFallback:
 
     def test_graceful_degradation(self) -> None:
         """System should gracefully degrade when ML dependencies missing."""
-        from packages.backend.domain.captcha_handler import CaptchaHandler, ML_AVAILABLE
-        
+        from packages.backend.domain.captcha_handler import ML_AVAILABLE, CaptchaHandler
+
         handler = CaptchaHandler()
         # The enhanced detector should fall back to basic detection
         if ML_AVAILABLE:
             assert handler.detector.enhanced_detector is not None
         else:
             assert handler.detector.enhanced_detector is None
-        
+
         # The solver should still work with external services
         assert handler.solver.ml_solver is None if not ML_AVAILABLE else handler.solver.ml_solver is not None
 

@@ -452,7 +452,7 @@ async def create_job_queue_tables(conn: asyncpg.Connection) -> None:
         CREATE TYPE public.job_priority AS ENUM ('low', 'normal', 'high', 'critical');
         """
     )
-    
+
     # Create the main background_jobs table
     await conn.execute(
         """
@@ -487,7 +487,7 @@ async def create_job_queue_tables(conn: asyncpg.Connection) -> None:
         CREATE INDEX IF NOT EXISTS idx_background_jobs_locked ON public.background_jobs (locked_at, lock_expires_at);
         """
     )
-    
+
     # Try to create alert tables - these may fail if auth.users doesn't exist
     try:
         await conn.execute(
@@ -503,7 +503,7 @@ async def create_job_queue_tables(conn: asyncpg.Connection) -> None:
         )
     except Exception as e:
         logger.warning("Could not create job_alert_log table: %s", e)
-    
+
     # Check and create job_alerts table with proper column handling for existing tables
     try:
         await conn.execute(
@@ -512,7 +512,7 @@ async def create_job_queue_tables(conn: asyncpg.Connection) -> None:
             CREATE TYPE public.alert_frequency AS ENUM ('daily', 'weekly', 'immediate');
             """
         )
-        
+
         # Check if table exists using information_schema
         table_exists = await conn.fetchval(
             """
@@ -522,7 +522,7 @@ async def create_job_queue_tables(conn: asyncpg.Connection) -> None:
             )
             """
         )
-        
+
         if not table_exists:
             # Table doesn't exist, create it with all columns including status
             await conn.execute(
@@ -563,7 +563,7 @@ async def create_job_queue_tables(conn: asyncpg.Connection) -> None:
                 )
                 """
             )
-            
+
             if not status_col_exists:
                 await conn.execute(
                     """
@@ -571,7 +571,7 @@ async def create_job_queue_tables(conn: asyncpg.Connection) -> None:
                     """
                 )
                 logger.info("Added 'status' column to job_alerts table")
-            
+
             # Check if tenant_id column exists (for older tables)
             tenant_col_exists = await conn.fetchval(
                 """
@@ -581,7 +581,7 @@ async def create_job_queue_tables(conn: asyncpg.Connection) -> None:
                 )
                 """
             )
-            
+
             if not tenant_col_exists:
                 await conn.execute(
                     """
@@ -591,7 +591,7 @@ async def create_job_queue_tables(conn: asyncpg.Connection) -> None:
                 logger.info("Added 'tenant_id' column to job_alerts table")
     except Exception as e:
         logger.warning("Could not create job_alerts table: %s", e)
-    
+
     logger.info("Job queue tables created/verified")
 
 

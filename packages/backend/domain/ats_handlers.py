@@ -593,17 +593,17 @@ class OracleTaleoHandler(ATSSpecificHandler):
         try:
             # Wait for Taleo form to load
             await page.wait_for_selector('.career-section', timeout=5000)
-            
+
             # Handle iframe if present
             iframe = await page.query_selector('iframe[src*="taleo"]')
             if iframe:
                 await page.wait_for_selector('iframe[src*="taleo"]', timeout=3000)
-                
+
             # Check for multi-step form
             next_button = await page.query_selector('.ftlButton:has-text("Next")')
             if next_button:
                 ctx['is_multi_step'] = True
-                
+
         except Exception:
             pass
 
@@ -615,7 +615,7 @@ class OracleTaleoHandler(ATSSpecificHandler):
                 file_input = await page.query_selector('input[type="file"]')
                 if file_input:
                     await file_input.set_input_files(ctx['resume_path'])
-                    
+
         except Exception:
             pass
 
@@ -626,12 +626,12 @@ class OracleTaleoHandler(ATSSpecificHandler):
             error_elements = await page.query_selector('.error, .validation-error, .field-error')
             if error_elements:
                 ctx['has_validation_errors'] = True
-                
+
             # Handle any confirm dialogs
             confirm_button = await page.query_selector('button:has-text("Confirm")')
             if confirm_button:
                 await confirm_button.click()
-                
+
         except Exception:
             pass
 
@@ -707,12 +707,12 @@ class SAPSuccessFactorsHandler(ATSSpecificHandler):
         try:
             # Wait for SuccessFactors form to load
             await page.wait_for_selector('.career-site, .job-application', timeout=5000)
-            
+
             # Check for multi-step form
             next_button = await page.query_selector('button:has-text("Next")')
             if next_button:
                 ctx['is_multi_step'] = True
-                
+
         except Exception:
             pass
 
@@ -724,7 +724,7 @@ class SAPSuccessFactorsHandler(ATSSpecificHandler):
                 file_input = await page.query_selector('input[type="file"]')
                 if file_input:
                     await file_input.set_input_files(ctx['resume_path'])
-                    
+
         except Exception:
             pass
 
@@ -735,7 +735,7 @@ class SAPSuccessFactorsHandler(ATSSpecificHandler):
             error_elements = await page.query_selector('.error, .validation-error, .field-error')
             if error_elements:
                 ctx['has_validation_errors'] = True
-                
+
         except Exception:
             pass
 

@@ -32,9 +32,8 @@ sys.path.insert(0, repo_root)
 sys.path.insert(0, os.path.join(repo_root, "apps"))
 sys.path.insert(0, os.path.join(repo_root, "packages"))
 
-from worker.agent import ApplicationAgent
-
 from backend.domain.repositories import record_event
+from worker.agent import ApplicationAgent
 
 # ---------------------------------------------------------------------------
 # Fake application HTML – two-step form

@@ -2,8 +2,8 @@
 """Add missing DATABASE_URL and LLM_API_KEY to Render service"""
 
 import json
-import urllib.request
 import urllib.error
+import urllib.request
 
 RENDER_API_KEY = "rnd_UiMNNzGNDphD0fyZsatrlHwM5QfF"
 API_SERVICE_ID = "srv-d6p4l03h46gs73ftvuj0"
@@ -30,7 +30,7 @@ def set_env_var(key, value):
     """Set an environment variable via POST"""
     url = f"https://api.render.com/v1/services/{API_SERVICE_ID}/env-vars"
     data = {"key": key, "value": value}
-    
+
     req = urllib.request.Request(
         url,
         data=json.dumps(data).encode(),
@@ -40,7 +40,7 @@ def set_env_var(key, value):
         },
         method="POST"
     )
-    
+
     try:
         with urllib.request.urlopen(req, timeout=30) as resp:
             print(f"[OK] {key}: {resp.status}")

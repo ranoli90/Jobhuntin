@@ -2,8 +2,8 @@
 """Delete the old DATABASE_URL to use the linked one with sslmode"""
 
 import json
-import urllib.request
 import urllib.error
+import urllib.request
 
 RENDER_API_KEY = "rnd_UiMNNzGNDphD0fyZsatrlHwM5QfF"
 API_SERVICE_ID = "srv-d6p4l03h46gs73ftvuj0"
@@ -27,7 +27,7 @@ for item in env_vars:
     if key == "DATABASE_URL":
         # The cursor is the ID for delete
         db_url_id = item.get("cursor")
-        print(f"Found DATABASE_URL entry:")
+        print("Found DATABASE_URL entry:")
         print(f"  Key: {key}")
         print(f"  Value: {ev.get('value')}")
         print(f"  Cursor (ID): {db_url_id}")
@@ -72,7 +72,7 @@ for item in env_vars:
     key = ev.get("key")
     value = ev.get("value", "")
     if key is None or key == "DATABASE_URL":
-        print(f"Entry:")
+        print("Entry:")
         print(f"  Key: {key}")
         print(f"  Value: {value}")
         if "sslmode" in value:

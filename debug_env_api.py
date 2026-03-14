@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 """Debug env vars API response"""
-import os
 import json
 import urllib.request
 
@@ -11,7 +10,7 @@ headers = {'Authorization': f'Bearer {API_KEY}', 'Accept': 'application/json'}
 svc_id = 'srv-d6p4l03h46gs73ftvuj0'  # jobhuntin-api
 
 req = urllib.request.Request(
-    f'https://api.render.com/v1/services/{svc_id}/env-vars', 
+    f'https://api.render.com/v1/services/{svc_id}/env-vars',
     headers=headers
 )
 with urllib.request.urlopen(req, timeout=30) as resp:

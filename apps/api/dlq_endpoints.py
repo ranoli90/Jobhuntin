@@ -172,7 +172,10 @@ async def get_dlq_items(
             pool, ctx.user_id, ctx, tenant_id
         )
     else:
-        from packages.backend.domain.tenant import TenantScopeError, require_system_admin
+        from packages.backend.domain.tenant import (
+            TenantScopeError,
+            require_system_admin,
+        )
 
         async with pool.acquire() as conn:
             try:
@@ -246,7 +249,10 @@ async def get_dlq_stats(
             pool, ctx.user_id, ctx, tenant_id
         )
     else:
-        from packages.backend.domain.tenant import TenantScopeError, require_system_admin
+        from packages.backend.domain.tenant import (
+            TenantScopeError,
+            require_system_admin,
+        )
 
         async with pool.acquire() as conn:
             try:
@@ -392,7 +398,10 @@ async def bulk_delete_dlq_items(
             pool, ctx.user_id, ctx, request.tenant_id
         )
     else:
-        from packages.backend.domain.tenant import TenantScopeError, require_system_admin
+        from packages.backend.domain.tenant import (
+            TenantScopeError,
+            require_system_admin,
+        )
 
         async with pool.acquire() as conn:
             try:
@@ -483,7 +492,10 @@ async def get_concurrent_usage(
             )
         stats = await tracker.get_stats()
 
-        from packages.backend.domain.tenant import TenantScopeError, require_system_admin
+        from packages.backend.domain.tenant import (
+            TenantScopeError,
+            require_system_admin,
+        )
 
         active_by_tenant = stats.active_by_tenant
         async with pool.acquire() as conn:

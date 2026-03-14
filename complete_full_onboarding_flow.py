@@ -4,9 +4,10 @@ Complete full onboarding flow from authentication to completion.
 """
 
 import asyncio
-from playwright.async_api import async_playwright
 import json
 import urllib.request
+
+from playwright.async_api import async_playwright
 
 EMAIL = "testuser_2252d514@test.com"
 # Use existing session token

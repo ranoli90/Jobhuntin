@@ -19,7 +19,9 @@ import asyncpg  # noqa: E402
 from packages.backend.domain.follow_up_reminders import (
     create_follow_up_manager,  # noqa: E402
 )
-from packages.backend.domain.job_queue import create_follow_up_reminders_table  # noqa: E402
+from packages.backend.domain.job_queue import (
+    create_follow_up_reminders_table,  # noqa: E402
+)
 from shared.config import get_settings  # noqa: E402
 from shared.logging_config import get_logger  # noqa: E402
 
@@ -40,7 +42,7 @@ async def create_db_pool() -> asyncpg.Pool:
 
     settings = get_settings()
     from shared.db import resolve_dsn_ipv4
-    
+
     dsn = resolve_dsn_ipv4(settings.database_url)
     # Use SSL but don't verify certificate for self-signed certs on Render
     # The connection is still encrypted, just not verified against a CA
@@ -60,11 +62,11 @@ async def create_db_pool() -> asyncpg.Pool:
 
 async def run_reminders_loop() -> None:
     db_pool = await create_db_pool()
-    
+
     # Create tables if they don't exist
     async with db_pool.acquire() as conn:
         await create_follow_up_reminders_table(conn)
-    
+
     manager = create_follow_up_manager(db_pool)
 
     logger.info(

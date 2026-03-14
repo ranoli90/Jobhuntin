@@ -5,6 +5,7 @@ This script actually clicks buttons and fills forms as instructed.
 """
 
 import asyncio
+
 from playwright.async_api import async_playwright
 
 # Use valid session token from earlier successful authentication

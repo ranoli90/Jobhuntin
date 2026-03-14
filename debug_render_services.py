@@ -4,11 +4,10 @@ Render Service Debugger
 Fetches logs and checks/fixes environment variables for all services
 """
 
-import os
-import sys
 import json
-import urllib.request
+import sys
 import urllib.error
+import urllib.request
 
 # Render API Configuration
 RENDER_API_KEY = "rnd_UiMNNzGNDphD0fyZsatrlHwM5QfF"
@@ -24,7 +23,7 @@ def api_get(path):
     """Make GET request to Render API"""
     url = f"https://api.render.com/v1{path}"
     req = urllib.request.Request(
-        url, 
+        url,
         headers={"Authorization": f"Bearer {RENDER_API_KEY}"}
     )
     try:
@@ -55,21 +54,21 @@ def main():
     print("=" * 70)
     print("RENDER SERVICE DEBUGGER")
     print("=" * 70)
-    
+
     # Get all services first
     print("\n[1] Fetching all services...")
     services = get_services()
     if not services:
         print("Failed to fetch services. Check API key.")
         return 1
-    
+
     # Normalize services list
     svc_list = []
     for item in services:
         s = item.get("service", item) if isinstance(item, dict) else item
         if isinstance(s, dict) and s.get("id"):
             svc_list.append(s)
-    
+
     print(f"\nFound {len(svc_list)} services:")
     for s in svc_list:
         status = s.get("suspended", "active")
@@ -77,15 +76,15 @@ def main():
         print(f"  - {s.get('name')} ({s.get('type')}) [{status}]")
         if url and url != "N/A":
             print(f"    URL: {url}")
-    
+
     # Check API service environment
     print("\n" + "=" * 70)
     print("[2] Checking API Service Environment Variables...")
     print("=" * 70)
-    
+
     api_service_id = SERVICES["api"]
     env_vars = get_env_vars(api_service_id)
-    
+
     if env_vars:
         # Extract keys
         keys_present = set()
@@ -97,29 +96,29 @@ def main():
                 keys_present.add(key)
                 if key == "DATABASE_URL":
                     db_url_value = ev.get("value", "")
-        
+
         print(f"\nCurrent environment variables ({len(keys_present)}):")
         for key in sorted(keys_present):
             # Mask secrets
-            secret_keys = ["DATABASE_URL", "REDIS_URL", "JWT_SECRET", "CSRF_SECRET", 
+            secret_keys = ["DATABASE_URL", "REDIS_URL", "JWT_SECRET", "CSRF_SECRET",
                           "LLM_API_KEY", "RESEND_API_KEY", "WEBHOOK_SIGNING_SECRET",
                           "SUPABASE_SERVICE_KEY", "STRIPE_SECRET_KEY"]
             if key in secret_keys:
                 print(f"  - {key}: [SECRET]")
             else:
                 print(f"  - {key}")
-        
+
         # Check DATABASE_URL for sslmode
         print("\n[DATABASE_URL Analysis]")
         if db_url_value:
             print(f"  Current value: {db_url_value}")
             if "sslmode" in db_url_value:
-                print(f"  SSL mode: Found in URL")
+                print("  SSL mode: Found in URL")
             else:
-                print(f"  SSL mode: MISSING! This is likely causing the SSL error!")
+                print("  SSL mode: MISSING! This is likely causing the SSL error!")
         else:
             print("  Could not retrieve DATABASE_URL value")
-        
+
         # Check for required vars
         required = ["DATABASE_URL", "REDIS_URL", "APP_BASE_URL", "ENV"]
         print("\nRequired vars check:")
@@ -130,12 +129,12 @@ def main():
                 print(f"  [MISSING] {key}!")
     else:
         print("Could not fetch environment variables")
-    
+
     # Fetch API logs
     print("\n" + "=" * 70)
     print("[3] Fetching API Service Logs...")
     print("=" * 70)
-    
+
     logs = get_service_logs(api_service_id, limit=50)
     if logs:
         # Handle response format
@@ -150,12 +149,12 @@ def main():
             print(f"  [{timestamp}] {message}")
     else:
         print("Could not fetch logs")
-    
+
     # Fetch SEO logs
     print("\n" + "=" * 70)
     print("[4] Fetching SEO Worker Logs...")
     print("=" * 70)
-    
+
     seo_service_id = SERVICES["seo"]
     seo_logs = get_service_logs(seo_service_id, limit=50)
     if seo_logs:
@@ -169,11 +168,11 @@ def main():
             print(f"  [{timestamp}] {message}")
     else:
         print("Could not fetch SEO logs")
-    
+
     print("\n" + "=" * 70)
     print("LOG FETCH COMPLETE")
     print("=" * 70)
-    
+
     return 0
 
 if __name__ == "__main__":

@@ -25,7 +25,6 @@ from shared.config import get_settings  # noqa: E402
 from shared.data_retention import (  # noqa: E402
     DataRetentionPolicy,
     DataType,
-    DeleteMode,
     get_retention_policy,
 )
 from shared.logging_config import get_logger  # noqa: E402

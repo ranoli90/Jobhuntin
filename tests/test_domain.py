@@ -8,7 +8,6 @@ from __future__ import annotations
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-
 from backend.domain.models import (
     ApplicationStatus,
     CanonicalProfile,
@@ -250,6 +249,7 @@ class TestLLMClient:
     async def test_successful_call_with_response_format(self):
         """LLMClient should parse response into Pydantic model."""
         from backend.llm.client import LLMClient
+
         from shared.config import Settings
 
         settings = Settings(
@@ -284,6 +284,7 @@ class TestLLMClient:
     async def test_raw_dict_return_without_response_format(self):
         """Without response_format, should return raw dict."""
         from backend.llm.client import LLMClient
+
         from shared.config import Settings
 
         settings = Settings(
@@ -304,8 +305,8 @@ class TestLLMClient:
     async def test_retry_on_transient_error(self):
         """Should retry on server errors then succeed."""
         import httpx
-
         from backend.llm.client import LLMClient
+
         from shared.config import Settings
 
         settings = Settings(
@@ -338,6 +339,7 @@ class TestLLMClient:
     async def test_validation_error_not_retried(self):
         """Schema validation failures should not be retried."""
         from backend.llm.client import LLMClient, LLMValidationError
+
         from shared.config import Settings
 
         settings = Settings(
@@ -481,9 +483,9 @@ class TestLLMClientEdgeCases:
     @pytest.mark.asyncio
     async def test_timeout_raises_error(self):
         """Request timeout should raise LLMError after retries exhausted."""
-        import httpx
         import os
 
+        import httpx
         from backend.llm.client import LLMClient, LLMError
 
         old_model = os.environ.get("LLM_MODEL")
@@ -522,6 +524,7 @@ class TestLLMClientEdgeCases:
     async def test_llm_client_accepts_empty_response_format(self):
         """LLMClient should handle empty response format gracefully."""
         from backend.llm.client import LLMClient
+
         from shared.config import Settings
 
         settings = Settings(
@@ -542,6 +545,7 @@ class TestLLMClientEdgeCases:
     async def test_llm_client_accepts_empty_response_format(self):
         """LLMClient should handle empty response format gracefully."""
         from backend.llm.client import LLMClient
+
         from shared.config import Settings
 
         settings = Settings(

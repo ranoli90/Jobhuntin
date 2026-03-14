@@ -13,13 +13,13 @@ from urllib.parse import quote
 
 import httpx
 import jwt as pyjwt
+from api.dependencies import get_pool
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import JSONResponse, RedirectResponse
 from pydantic import BaseModel, EmailStr, Field
 
-from api.dependencies import get_pool
-from packages.backend.domain.session_manager import SessionManager
 from packages.backend.domain.masking import mask_ip
+from packages.backend.domain.session_manager import SessionManager
 from shared.config import Settings, settings_dependency
 from shared.logging_config import get_logger
 from shared.metrics import RateLimiter, get_rate_limiter, incr

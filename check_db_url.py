@@ -22,6 +22,6 @@ for item in env_vars:
         print(f"  Key: {key}")
         print(f"  Value: {value}")
         if "sslmode" in value:
-            print(f"  SSL mode: FOUND in URL")
+            print("  SSL mode: FOUND in URL")
         else:
-            print(f"  SSL mode: MISSING!")
+            print("  SSL mode: MISSING!")

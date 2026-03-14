@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 """Check DATABASE_URL for workers"""
-import os
 import json
 import urllib.request
 
@@ -15,21 +14,21 @@ workers = [
 
 for worker_id, worker_name in workers:
     print(f"\n{worker_name}:")
-    
+
     # Get env vars
     req = urllib.request.Request(
-        f'https://api.render.com/v1/services/{worker_id}/env-vars', 
+        f'https://api.render.com/v1/services/{worker_id}/env-vars',
         headers=headers
     )
     with urllib.request.urlopen(req, timeout=30) as resp:
         env_vars = json.loads(resp.read().decode())
-    
+
     for item in env_vars:
         key = item.get('envVar', {}).get('key', '')
         value = item.get('envVar', {}).get('value', '')
         if key == 'DATABASE_URL':
             print(f"  DATABASE_URL: {value}")
             if 'sslmode' in value:
-                print(f"    sslmode present")
+                print("    sslmode present")
             else:
-                print(f"    ERROR: sslmode MISSING!")
+                print("    ERROR: sslmode MISSING!")

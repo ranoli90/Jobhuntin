@@ -18,7 +18,7 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Optional
 
 from playwright.async_api import Page
 
@@ -237,7 +237,7 @@ class IndeedHandler(JobBoardHandler):
         try:
             # Wait for Indeed job page to load
             await page.wait_for_selector('[data-tn-component]', timeout=5000)
-            
+
             # Check if this is an Indeed Apply job
             indeed_apply = await page.query_selector('.indeed-apply, [data-tn-element="IndeedApply"]')
             if indeed_apply:
@@ -245,7 +245,7 @@ class IndeedHandler(JobBoardHandler):
                 logger.info("Detected Indeed Apply job")
             else:
                 ctx['is_indeed_apply'] = False
-                
+
         except Exception as e:
             logger.debug(f"Indeed pre-apply hook error: {e}")
 
@@ -261,7 +261,7 @@ class IndeedHandler(JobBoardHandler):
                 logger.info("Indeed application successful")
             else:
                 ctx['application_successful'] = False
-                
+
         except Exception as e:
             logger.debug(f"Indeed post-apply hook error: {e}")
 
@@ -335,11 +335,11 @@ class LinkedInHandler(JobBoardHandler):
             login_button = await page.query_selector('a[href*="/login"], button:has-text("Sign in")')
             if login_button:
                 return False
-            
+
             # Look for logged in indicators
             profile_nav = await page.query_selector('.global-nav__primary-link, .nav-item')
             return profile_nav is not None
-            
+
         except Exception:
             return True  # Assume logged in if we can't check
 
@@ -349,20 +349,20 @@ class LinkedInHandler(JobBoardHandler):
             # Navigate to login page
             await page.goto('https://www.linkedin.com/login')
             await page.wait_for_selector('#username', timeout=10000)
-            
+
             # Fill login form
             await page.fill('#username', credentials.get('email', ''))
             await page.fill('#password', credentials.get('password', ''))
-            
+
             # Submit login
             await page.click('button[type="submit"]')
-            
+
             # Wait for login completion
             await page.wait_for_selector('.global-nav__primary-link', timeout=10000)
-            
+
             logger.info("LinkedIn login successful")
             return True
-            
+
         except Exception as e:
             logger.error(f"LinkedIn login failed: {e}")
             return False
@@ -372,7 +372,7 @@ class LinkedInHandler(JobBoardHandler):
         try:
             # Wait for LinkedIn job page to load
             await page.wait_for_selector('.jobs-top-card', timeout=5000)
-            
+
             # Check if Easy Apply is available
             easy_apply_button = await page.query_selector('button[aria-label*="Easy Apply"]')
             if easy_apply_button:
@@ -380,7 +380,7 @@ class LinkedInHandler(JobBoardHandler):
                 logger.info("LinkedIn Easy Apply available")
             else:
                 ctx['easy_apply_available'] = False
-                
+
         except Exception as e:
             logger.debug(f"LinkedIn pre-apply hook error: {e}")
 
@@ -451,11 +451,11 @@ class ZipRecruiterHandler(JobBoardHandler):
             login_button = await page.query_selector('a[href*="/login"], button:has-text("Sign in")')
             if login_button:
                 return False
-            
+
             # Look for logged in indicators
             profile_nav = await page.query_selector('.nav-profile, .user-menu')
             return profile_nav is not None
-            
+
         except Exception:
             return True
 
@@ -465,20 +465,20 @@ class ZipRecruiterHandler(JobBoardHandler):
             # Navigate to login page
             await page.goto('https://www.ziprecruiter.com/login')
             await page.wait_for_selector('#email', timeout=10000)
-            
+
             # Fill login form
             await page.fill('#email', credentials.get('email', ''))
             await page.fill('#password', credentials.get('password', ''))
-            
+
             # Submit login
             await page.click('button[type="submit"]')
-            
+
             # Wait for login completion
             await page.wait_for_selector('.nav-profile', timeout=10000)
-            
+
             logger.info("ZipRecruiter login successful")
             return True
-            
+
         except Exception as e:
             logger.error(f"ZipRecruiter login failed: {e}")
             return False

@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Add missing environment variables to worker services."""
 
-import urllib.request
 import json
 import time
+import urllib.request
 
 API_KEY = "rnd_UiMNNzGNDphD0fyZsatrlHwM5QfF"
 BASE_URL = "https://api.render.com/v1"
@@ -32,16 +32,16 @@ def set_env_var(svc_id, key, value):
         "Accept": "application/json",
         "Content-Type": "application/json"
     }
-    
+
     data = json.dumps([{"key": key, "value": value}])
-    
+
     req = urllib.request.Request(
         f"{BASE_URL}/services/{svc_id}/env-vars",
         headers=headers,
         data=data.encode(),
         method="PUT"
     )
-    
+
     try:
         with urllib.request.urlopen(req, timeout=30) as response:
             return response.status in (200, 201, 204)
@@ -74,31 +74,31 @@ print(f"Found CSRF_SECRET: {csrf_secret[:8] if csrf_secret else 'None'}...")
 # Add env vars to each worker
 for svc_id in WORKER_SERVICES:
     print(f"\n=== Processing {svc_id} ===")
-    
+
     # Get current env vars
     current = get(f"/services/{svc_id}/env-vars")
     current_keys = set()
     for item in current:
         ev = item.get("envVar", item) if isinstance(item, dict) else item
         current_keys.add(ev.get("key", ""))
-    
+
     print(f"Current env vars: {current_keys}")
-    
+
     # Add REDIS_URL if missing
     if redis_url and "REDIS_URL" not in current_keys:
-        print(f"  Adding REDIS_URL...")
+        print("  Adding REDIS_URL...")
         set_env_var(svc_id, "REDIS_URL", redis_url)
-    
+
     # Add JWT_SECRET if missing
     if jwt_secret and "JWT_SECRET" not in current_keys:
-        print(f"  Adding JWT_SECRET...")
+        print("  Adding JWT_SECRET...")
         set_env_var(svc_id, "JWT_SECRET", jwt_secret)
-    
+
     # Add CSRF_SECRET if missing
     if csrf_secret and "CSRF_SECRET" not in current_keys:
-        print(f"  Adding CSRF_SECRET...")
+        print("  Adding CSRF_SECRET...")
         set_env_var(svc_id, "CSRF_SECRET", csrf_secret)
-    
+
     time.sleep(1)  # Rate limit
 
 print("\n=== Done! ===")

@@ -5,10 +5,11 @@ Tests all phases: onboarding, dashboard, job matching, job details, application.
 """
 
 import asyncio
-from playwright.async_api import async_playwright
 import json
-import time
 import re
+import time
+
+from playwright.async_api import async_playwright
 
 EMAIL = "testuser_2252d514@test.com"
 

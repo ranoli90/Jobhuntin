@@ -2,8 +2,8 @@
 """Comprehensive API route testing - find 500/502 errors."""
 import json
 import sys
-from urllib.request import Request, urlopen
 from urllib.error import HTTPError, URLError
+from urllib.request import Request, urlopen
 
 BASE = "http://127.0.0.1:8000"
 
@@ -107,7 +107,7 @@ def main():
                 if status and status not in (200, 201, 204, 301, 302):
                     errors.append((method.upper(), test_path, f"Unexpected {status}"))
 
-    print(f"\n--- Results ---")
+    print("\n--- Results ---")
     print(f"Tested: {tested}")
     print(f"200 OK: {ok_200} (public: {ok_200_public})")
     print(f"401 (auth required): {ok_401}")

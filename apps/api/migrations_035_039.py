@@ -16,16 +16,16 @@ async def run_migrations(pool: Pool) -> None:
     async with pool.acquire() as conn:
         # Migration 035: Job Quality Fields
         await _run_migration_035(conn)
-        
+
         # Migration 036: Companies Table
         await _run_migration_036(conn)
-        
+
         # Migration 037: Analytics Tables
         await _run_migration_037(conn)
-        
+
         # Migration 038: Data Retention Tables
         await _run_migration_038(conn)
-        
+
         # Migration 039: User Consents
         await _run_migration_039(conn)
 
@@ -35,20 +35,20 @@ async def _run_migration_035(conn: asyncpg.Connection) -> None:
     # Spam detection fields
     await conn.execute("ALTER TABLE jobs ADD COLUMN IF NOT EXISTS is_spam BOOLEAN DEFAULT FALSE")
     await conn.execute("ALTER TABLE jobs ADD COLUMN IF NOT EXISTS spam_score FLOAT")
-    
+
     # Salary validation fields
     await conn.execute("ALTER TABLE jobs ADD COLUMN IF NOT EXISTS salary_validated BOOLEAN")
     await conn.execute("ALTER TABLE jobs ADD COLUMN IF NOT EXISTS salary_validation_notes TEXT")
-    
+
     # Duplicate detection
     await conn.execute("ALTER TABLE jobs ADD COLUMN IF NOT EXISTS canonical_job_id UUID REFERENCES jobs(id)")
-    
+
     # Company verification
     await conn.execute("ALTER TABLE jobs ADD COLUMN IF NOT EXISTS company_score FLOAT")
-    
+
     # Quality flags
     await conn.execute("ALTER TABLE jobs ADD COLUMN IF NOT EXISTS quality_flags JSONB")
-    
+
     # Indexes
     await conn.execute("CREATE INDEX IF NOT EXISTS idx_jobs_is_spam ON jobs(is_spam)")
     await conn.execute("CREATE INDEX IF NOT EXISTS idx_jobs_canonical_job_id ON jobs(canonical_job_id)")
@@ -90,7 +90,7 @@ async def _run_migration_036(conn: asyncpg.Connection) -> None:
             CONSTRAINT unique_company_domain UNIQUE (domain)
         )
     """)
-    
+
     # Indexes
     await conn.execute("CREATE INDEX IF NOT EXISTS idx_companies_domain ON companies(domain)")
     await conn.execute("CREATE INDEX IF NOT EXISTS idx_companies_name ON companies(name)")
@@ -99,7 +99,7 @@ async def _run_migration_036(conn: asyncpg.Connection) -> None:
     await conn.execute("CREATE INDEX IF NOT EXISTS idx_companies_is_verified ON companies(is_verified) WHERE is_verified = TRUE")
     await conn.execute("CREATE INDEX IF NOT EXISTS idx_companies_suspicious ON companies(is_suspicious) WHERE is_suspicious = TRUE")
     await conn.execute("CREATE INDEX IF NOT EXISTS idx_companies_known_scam ON companies(known_scam) WHERE known_scam = TRUE")
-    
+
     # Add company_id to jobs
     await conn.execute("ALTER TABLE jobs ADD COLUMN IF NOT EXISTS company_id UUID REFERENCES companies(id)")
     await conn.execute("CREATE INDEX IF NOT EXISTS idx_jobs_company_id ON jobs(company_id)")
@@ -122,7 +122,7 @@ async def _run_migration_037(conn: asyncpg.Connection) -> None:
     await conn.execute("CREATE INDEX IF NOT EXISTS idx_user_events_created_at ON user_events(created_at)")
     await conn.execute("CREATE INDEX IF NOT EXISTS idx_user_events_user_type ON user_events(user_id, event_type)")
     await conn.execute("CREATE INDEX IF NOT EXISTS idx_user_events_user_created ON user_events(user_id, created_at DESC)")
-    
+
     # Job views
     await conn.execute("""
         CREATE TABLE IF NOT EXISTS job_views (
@@ -138,7 +138,7 @@ async def _run_migration_037(conn: asyncpg.Connection) -> None:
     await conn.execute("CREATE INDEX IF NOT EXISTS idx_job_views_created_at ON job_views(created_at)")
     await conn.execute("CREATE INDEX IF NOT EXISTS idx_user_job_views ON job_views(user_id, job_id)")
     await conn.execute("CREATE INDEX IF NOT EXISTS idx_job_views_engagement ON job_views(job_id, created_at DESC)")
-    
+
     # Application outcomes
     await conn.execute("""
         CREATE TABLE IF NOT EXISTS application_outcomes (
@@ -175,7 +175,7 @@ async def _run_migration_038(conn: asyncpg.Connection) -> None:
         )
     """)
     await conn.execute("CREATE INDEX IF NOT EXISTS idx_retention_policies_data_type ON retention_policies(data_type)")
-    
+
     # Data retention logs
     await conn.execute("""
         CREATE TABLE IF NOT EXISTS data_retention_logs (
@@ -191,7 +191,7 @@ async def _run_migration_038(conn: asyncpg.Connection) -> None:
     await conn.execute("CREATE INDEX IF NOT EXISTS idx_data_retention_logs_job_id ON data_retention_logs(job_id)")
     await conn.execute("CREATE INDEX IF NOT EXISTS idx_data_retention_logs_data_type ON data_retention_logs(data_type)")
     await conn.execute("CREATE INDEX IF NOT EXISTS idx_data_retention_logs_created_at ON data_retention_logs(created_at DESC)")
-    
+
     # Trigger function
     await conn.execute("""
         CREATE OR REPLACE FUNCTION update_retention_policy_timestamp()
@@ -209,7 +209,7 @@ async def _run_migration_038(conn: asyncpg.Connection) -> None:
             FOR EACH ROW
             EXECUTE FUNCTION update_retention_policy_timestamp()
     """)
-    
+
     # Default policies (ignore conflicts)
     await conn.execute("""
         INSERT INTO retention_policies (data_type, retention_days, description, legal_basis, allow_soft_delete, batch_size, requires_archive)
@@ -250,7 +250,7 @@ async def _run_migration_039(conn: asyncpg.Connection) -> None:
     await conn.execute("CREATE INDEX IF NOT EXISTS idx_user_consents_type ON user_consents(consent_type)")
     await conn.execute("CREATE INDEX IF NOT EXISTS idx_user_consents_granted_at ON user_consents(granted_at DESC)")
     await conn.execute("CREATE INDEX IF NOT EXISTS idx_user_consents_ip ON user_consents(ip_address)")
-    
+
     # Consent audit log
     await conn.execute("""
         CREATE TABLE IF NOT EXISTS consent_audit_log (
@@ -270,7 +270,7 @@ async def _run_migration_039(conn: asyncpg.Connection) -> None:
     await conn.execute("CREATE INDEX IF NOT EXISTS idx_consent_audit_user_id ON consent_audit_log(user_id)")
     await conn.execute("CREATE INDEX IF NOT EXISTS idx_consent_audit_anonymous_id ON consent_audit_log(anonymous_id)")
     await conn.execute("CREATE INDEX IF NOT EXISTS idx_consent_audit_created_at ON consent_audit_log(created_at DESC)")
-    
+
     # Consent policies
     await conn.execute("""
         CREATE TABLE IF NOT EXISTS consent_policies (

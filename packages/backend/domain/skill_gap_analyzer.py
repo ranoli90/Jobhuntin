@@ -7,7 +7,7 @@ with estimated learning times and resources.
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, List, Optional, Set
+from typing import Any, Dict, List, Optional
 
 from packages.backend.domain.skills_taxonomy import (
     SkillsTaxonomy,
@@ -636,7 +636,7 @@ class SkillGapAnalyzer:
             if gap.priority == "high":
                 recommendation["reason"] = f"Critical skill for target role (demand: {gap.demand_score:.0%})"
             elif gap.priority == "medium":
-                recommendation["reason"] = f"Valued skill to strengthen your profile"
+                recommendation["reason"] = "Valued skill to strengthen your profile"
 
             recommendations.append(recommendation)
 

@@ -22,7 +22,6 @@ import re
 import uuid
 from dataclasses import dataclass, field
 from difflib import SequenceMatcher
-from typing import Any
 from urllib.parse import urlparse
 
 from shared.logging_config import get_logger
@@ -150,7 +149,7 @@ def normalize_url(url: str) -> str:
 
     try:
         parsed = urlparse(url.lower().strip())
-        
+
         # Remove common tracking parameters
         tracking_params = {
             "utm_source",
@@ -163,22 +162,22 @@ def normalize_url(url: str) -> str:
             "mc_cid",
             "mc_eid",
         }
-        
+
         # Parse and rebuild URL without tracking params
         from urllib.parse import parse_qs, urlencode
-        
+
         query_params = parse_qs(parsed.query)
         clean_params = {k: v for k, v in query_params.items() if k not in tracking_params}
-        
+
         # Reconstruct path, removing trailing slashes and www
         path = parsed.path.rstrip("/")
         if path.startswith("/www."):
             path = path[4:]
-        
+
         # Rebuild URL
         clean_query = urlencode(clean_params, doseq=True)
         netloc = parsed.netloc.replace("www.", "")
-        
+
         return f"{netloc}{path}" + (f"?{clean_query}" if clean_query else "")
     except Exception:
         # Fallback: simple normalization

@@ -28,16 +28,15 @@ def _ensure_playwright_browsers():
     """Ensure Playwright browsers are installed, install if missing."""
     import subprocess
     import sys
-    import os
-    
+
     logger.info("Starting Playwright browser check...")
-    
+
     # First, check what browsers are already installed
     cache_paths = [
         os.path.expanduser("~/.cache/ms-playwright"),
         "/opt/render/.cache/ms-playwright",
     ]
-    
+
     for cache_path in cache_paths:
         if os.path.exists(cache_path):
             try:
@@ -47,7 +46,7 @@ def _ensure_playwright_browsers():
                 logger.warning(f"Could not list browser cache: {e}")
         else:
             logger.info(f"Browser cache not found at {cache_path}")
-    
+
     try:
         # Run playwright install to ensure browsers are present
         # This is a synchronous operation that works in any context
@@ -72,13 +71,12 @@ def _ensure_playwright_browsers():
 
 def _get_ssl_config() -> Any:
     """Get SSL configuration for database connections."""
-    import ssl
     # Use SSL with proper verification - Render's PostgreSQL uses DigiCert signed certificates
     # Only disable verification in development/local environments if needed
     s = get_settings()
     # Check s.env (not s.environment) - the Settings class uses 'env' attribute
     is_local = s.env == Environment.LOCAL if hasattr(s, 'env') else False
-    
+
     if is_local:
         # For local development - allow self-signed certs
         ctx = ssl.create_default_context(purpose=ssl.Purpose.SERVER_AUTH)
@@ -92,7 +90,7 @@ def _get_ssl_config() -> Any:
         ctx = ssl.create_default_context(purpose=ssl.Purpose.SERVER_AUTH)
         ctx.check_hostname = False
         ctx.verify_mode = ssl.CERT_NONE
-    
+
     return ctx
 
 
@@ -294,7 +292,7 @@ class BrowserPoolManager:
         from playwright.async_api import async_playwright
 
         s = get_settings()
-        
+
         try:
             self._playwright = await async_playwright().start()
             logger.info("Playwright initialized successfully")
@@ -309,7 +307,7 @@ class BrowserPoolManager:
                 if s.browserless_token and "token=" not in url:
                     separator = "&" if "?" in url else "?"
                     url = f"{url}{separator}token={s.browserless_token}"
-                
+
                 self._browser = await self._playwright.chromium.connect_over_cdp(url)
                 self._is_remote = True
                 self._is_headless = True  # Remote browsers are typically headless
@@ -327,35 +325,35 @@ class BrowserPoolManager:
                 {"headless": False, "channel": None, "description": "headed chromium"},
                 {"headless": True, "channel": "chromium", "description": "chromium with channel"},
             ]
-            
+
             browser_started = False
             last_error = None
-            
+
             for attempt in launch_attempts:
                 try:
                     logger.info("Attempting to launch %s...", attempt["description"])
                     launch_params = {"headless": attempt["headless"]}
                     if attempt["channel"]:
                         launch_params["channel"] = attempt["channel"]
-                    
+
                     self._browser = await self._playwright.chromium.launch(**launch_params)
                     self._is_headless = attempt["headless"]
                     browser_started = True
                     logger.info("Successfully launched %s", attempt["description"])
                     break
-                    
+
                 except Exception as e:
                     last_error = e
                     logger.warning("Failed to launch %s: %s", attempt["description"], e)
                     continue
-            
+
             if not browser_started:
                 logger.error("All browser launch attempts failed")
                 raise RuntimeError(f"Failed to launch browser after {len(launch_attempts)} attempts. Last error: {last_error}") from last_error
-            
+
             self._is_remote = False
             logger.info("Launched local Chromium (headless=%s, remote=%s)", self._is_headless, self._is_remote)
-        
+
         # Validate browser is properly initialized
         try:
             # Test browser with a simple operation
@@ -411,7 +409,7 @@ class BrowserPoolManager:
                     ]
                 ),
             )
-            
+
             async with self._lock:
                 self._active_contexts += 1
                 self._total_contexts_created += 1
@@ -419,7 +417,7 @@ class BrowserPoolManager:
             incr("browser.context.created")
             observe("browser.active_contexts", float(self._active_contexts))
             return ctx
-            
+
         except Exception as e:
             logger.error("Failed to create browser context: %s", e)
             incr("browser.context.create_failed")
@@ -462,7 +460,7 @@ class BrowserPoolManager:
             "context_use_counts": len(self._context_use_counts),
             "healthy": False,
         }
-        
+
         try:
             if self._browser:
                 # Test browser with a quick context creation/cleanup
@@ -475,13 +473,13 @@ class BrowserPoolManager:
         except Exception as e:
             status["browser_status"] = f"error: {str(e)}"
             logger.warning("Browser health check failed: %s", e)
-        
+
         return status
 
     async def shutdown(self) -> None:
         """Close the browser and Playwright."""
         logger.info("Shutting down BrowserPoolManager...")
-        
+
         if self._browser:
             try:
                 await self._browser.close()
@@ -490,7 +488,7 @@ class BrowserPoolManager:
                 logger.warning("Error closing browser: %s", exc)
             finally:
                 self._browser = None
-                
+
         if self._playwright:
             try:
                 await self._playwright.stop()
@@ -499,12 +497,12 @@ class BrowserPoolManager:
                 logger.warning("Error stopping Playwright: %s", exc)
             finally:
                 self._playwright = None
-        
+
         # Reset state
         async with self._lock:
             self._active_contexts = 0
             self._context_use_counts.clear()
-        
+
         logger.info("BrowserPoolManager shutdown complete")
 
     def get_stats(self) -> dict[str, Any]:
@@ -540,12 +538,12 @@ class WorkerScaler:
         # Initialize BrowserPoolManager (supports local and remote browsers)
         self.browser_pool = BrowserPoolManager()
         await self.browser_pool.start()
-        
+
         # Verify browser pool health before starting workers
         health_status = await self.browser_pool.health_check()
         if not health_status["healthy"]:
             raise RuntimeError(f"Browser pool health check failed: {health_status['browser_status']}")
-        
+
         logger.info("Browser pool health check passed: %s", health_status["browser_status"])
 
         async def context_factory():
@@ -657,7 +655,7 @@ async def main() -> None:
     """Entry point for scaled worker."""
     # Ensure Playwright browsers are installed
     _ensure_playwright_browsers()
-    
+
     s = get_settings()
     count = s.worker_instance_count
 

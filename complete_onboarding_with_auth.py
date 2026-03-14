@@ -7,6 +7,7 @@ Obtain JWT from magic link email (token param) or from auth flow.
 
 import asyncio
 import os
+
 import httpx
 from playwright.async_api import async_playwright
 

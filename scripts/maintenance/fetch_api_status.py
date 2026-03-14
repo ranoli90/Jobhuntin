@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
 """Fetch Render service logs and environment variables, fix issues, and trigger redeploy."""
 
-import os
-import sys
-import time
 import json
+import time
 import urllib.request
 
 API_KEY = "rnd_UiMNNzGNDphD0fyZsatrlHwM5QfF"
@@ -50,7 +48,7 @@ def put(path: str, data: dict):
 
 def main():
     print(f"=== Fetching information for service: {SERVICE_ID} ===\n")
-    
+
     # Get service details
     print("--- Service Details ---")
     try:
@@ -60,7 +58,7 @@ def main():
         print(f"Service Status: {service.get('service', {}).get('status') if isinstance(service.get('service'), dict) else 'N/A'}")
     except Exception as e:
         print(f"Error getting service: {e}")
-    
+
     # Get environment variables
     print("\n--- Current Environment Variables ---")
     try:
@@ -78,7 +76,7 @@ def main():
     except Exception as e:
         print(f"Error getting env vars: {e}")
         current_vars = {}
-    
+
     # Get recent deploys
     print("\n--- Recent Deploys ---")
     try:
@@ -93,7 +91,7 @@ def main():
             print(f"  [{created}] status={status}")
     except Exception as e:
         print(f"Error getting deploys: {e}")
-    
+
     # Get recent events (often contain failure reasons)
     print("\n--- Recent Events ---")
     try:
@@ -109,7 +107,7 @@ def main():
             print(f"  [{ts}] {typ}: {reason}")
     except Exception as e:
         print(f"Error getting events: {e}")
-    
+
     # Get logs
     print("\n--- Recent Logs (last 50) ---")
     try:
@@ -131,26 +129,26 @@ def main():
             print("  (No log entries returned)")
     except Exception as e:
         print(f"  Logs API error: {e}")
-    
+
     # Check critical env vars
     print("\n--- Critical Environment Variables Check ---")
     required_critical = [
         "DATABASE_URL",
-        "ENV", 
+        "ENV",
         "LLM_API_KEY",
         "JWT_SECRET",
     ]
-    
+
     for key in required_critical:
         if key in current_vars:
             print(f"  ✓ {key} is set")
         else:
             print(f"  ✗ {key} is MISSING")
-    
+
     # Check DATABASE_URL format
     db_url = current_vars.get("DATABASE_URL", "")
     if db_url:
-        print(f"\n--- DATABASE_URL Analysis ---")
+        print("\n--- DATABASE_URL Analysis ---")
         print(f"Current: {db_url[:50]}...")
         expected_host = "dpg-d6p53ghr0fns73e4da20-a"
         if expected_host in db_url:

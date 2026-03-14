@@ -4,6 +4,7 @@ Script to directly complete the JobHuntin onboarding flow by actually clicking a
 """
 
 import asyncio
+
 from playwright.async_api import async_playwright
 
 # Magic link token

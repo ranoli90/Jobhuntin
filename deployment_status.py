@@ -5,24 +5,23 @@ Monitors deployment and provides automated fixes.
 """
 
 import subprocess
-import time
-import json
 from pathlib import Path
+
 
 def check_deployment_status():
     """Check deployment status from multiple sources"""
     print("🔍 Checking Deployment Status...")
     print("=" * 60)
-    
+
     # Check API health
     print("1. API Health Check...")
     try:
         result = subprocess.run([
-            'curl', '-s', '-o', '/dev/null', 
+            'curl', '-s', '-o', '/dev/null',
             '-w', '%{http_code}',
             'https://sorce-api.onrender.com/health'
         ], capture_output=True, text=True, timeout=10)
-        
+
         status_code = result.stdout.strip()
         if status_code == '200':
             print("✅ API is responding (200 OK)")
@@ -30,7 +29,7 @@ def check_deployment_status():
             print(f"❌ API not responding (HTTP {status_code})")
     except Exception as e:
         print(f"❌ Health check failed: {e}")
-    
+
     # Check web frontend
     print("\n2. Web Frontend Check...")
     try:
@@ -39,7 +38,7 @@ def check_deployment_status():
             '-w', '%{http_code}',
             'https://sorce-web.onrender.com'
         ], capture_output=True, text=True, timeout=10)
-        
+
         status_code = result.stdout.strip()
         if status_code == '200':
             print("✅ Web frontend is responding (200 OK)")
@@ -47,7 +46,7 @@ def check_deployment_status():
             print(f"❌ Web frontend not responding (HTTP {status_code})")
     except Exception as e:
         print(f"❌ Web check failed: {e}")
-    
+
     # Check admin dashboard
     print("\n3. Admin Dashboard Check...")
     try:
@@ -56,7 +55,7 @@ def check_deployment_status():
             '-w', '%{http_code}',
             'https://sorce-admin.onrender.com'
         ], capture_output=True, text=True, timeout=10)
-        
+
         status_code = result.stdout.strip()
         if status_code == '200':
             print("✅ Admin dashboard is responding (200 OK)")
@@ -69,12 +68,12 @@ def check_git_status():
     """Check git status"""
     print("\n📋 Git Status...")
     print("=" * 60)
-    
+
     try:
         result = subprocess.run([
             'git', 'status', '--porcelain=2'
         ], capture_output=True, text=True, timeout=10)
-        
+
         if result.returncode == 0:
             if result.stdout.strip():
                 print("✅ Working directory is clean")
@@ -90,12 +89,12 @@ def check_recent_commits():
     """Check recent commits"""
     print("\n📝 Recent Commits...")
     print("=" * 60)
-    
+
     try:
         result = subprocess.run([
             'git', 'log', '--oneline', '-5'
         ], capture_output=True, text=True, timeout=10)
-        
+
         if result.returncode == 0:
             print("Recent commits:")
             for line in result.stdout.strip().split('\n'):
@@ -108,7 +107,7 @@ def check_recent_commits():
 def create_deployment_script():
     """Create deployment script"""
     print("\n🚀 Creating Deployment Script...")
-    
+
     deployment_script = '''#!/bin/bash
 # Deployment Script for JobHuntin
 # Run this to trigger and monitor deployment
@@ -162,18 +161,18 @@ echo "API: $(curl -s -o /dev/null -w "%{http_code}" https://sorce-api.onrender.c
 echo "Web: $(curl -s -o /dev/null -w "%{http_code}" https://sorce-web.onrender.com)"
 echo "Admin: $(curl -s -o /dev/null -w "%{http_code}" https://sorce-admin.onrender.com)"
 '''
-    
+
     script_file = Path("deploy_and_monitor.sh")
     script_file.write_text(deployment_script)
     script_file.chmod(0o755)
-    
+
     print(f"✅ Deployment script created: {script_file}")
     print("🚀 Run with: ./deploy_and_monitor.sh")
 
 def create_troubleshooting_guide():
     """Create troubleshooting guide"""
     print("\n📚 Creating Troubleshooting Guide...")
-    
+
     guide = '''# JobHuntin Deployment Troubleshooting Guide
 
 ## Quick Status Check
@@ -292,7 +291,7 @@ git commit -m "Emergency fix"
 git push origin main
 ```
 '''
-    
+
     guide_file = Path("TROUBLESHOOTING.md")
     guide_file.write_text(guide)
     print(f"✅ Troubleshooting guide created: {guide_file}")
@@ -301,16 +300,16 @@ def main():
     """Main function"""
     print("🔍 JobHuntin Deployment Status Tool")
     print("=" * 60)
-    
+
     # Run all checks
     check_deployment_status()
     check_git_status()
     check_recent_commits()
-    
+
     # Create helpful files
     create_deployment_script()
     create_troubleshooting_guide()
-    
+
     print("\n📊 SUMMARY")
     print("=" * 60)
     print("✅ Status check complete")

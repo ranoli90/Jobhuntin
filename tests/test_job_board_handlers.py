@@ -6,12 +6,12 @@ Validates job board platform detection, login handling, and form automation.
 from __future__ import annotations
 
 from packages.backend.domain.job_board_handlers import (
+    GlassdoorHandler,
+    IndeedHandler,
     JobBoardDetectionResult,
     JobBoardPlatform,
-    IndeedHandler,
     LinkedInHandler,
     ZipRecruiterHandler,
-    GlassdoorHandler,
     detect_job_board_platform,
     get_job_board_handler,
 )
@@ -207,12 +207,12 @@ class TestJobBoardPlatformEnum:
         # Test login requirements based on platform detection results
         linkedin_result = detect_job_board_platform("https://www.linkedin.com/jobs/12345")
         assert linkedin_result.requires_login == True
-        
+
         ziprecruiter_result = detect_job_board_platform("https://www.ziprecruiter.com/jobs/12345")
         assert ziprecruiter_result.requires_login == True
-        
+
         indeed_result = detect_job_board_platform("https://www.indeed.com/rc/clk?jk=12345")
         assert indeed_result.requires_login == False
-        
+
         glassdoor_result = detect_job_board_platform("https://www.glassdoor.com/job-listing/12345")
         assert glassdoor_result.requires_login == False

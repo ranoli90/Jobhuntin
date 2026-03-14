@@ -10,11 +10,11 @@ Tests critical endpoints that must work for production:
 import uuid
 
 import pytest
+from api.dependencies import get_pool
 from asgi_lifespan import LifespanManager
 from fastapi.testclient import TestClient
 from httpx import ASGITransport, AsyncClient
 
-from api.dependencies import get_pool
 from apps.api.main import app
 from shared.config import get_settings
 

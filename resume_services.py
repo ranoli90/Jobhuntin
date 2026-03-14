@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
 """Unsuspend services using correct Render API"""
-import os
 import json
 import urllib.request
 
 API_KEY = 'rnd_UiMNNzGNDphD0fyZsatrlHwM5QfF'
 headers = {
-    'Authorization': f'Bearer {API_KEY}', 
+    'Authorization': f'Bearer {API_KEY}',
     'Accept': 'application/json',
     'Content-Type': 'application/json'
 }
@@ -23,7 +22,7 @@ for svc in services:
         svc_id = s['id']
         svc_name = s['name']
         print(f"Resuming {svc_name} ({svc_id})...")
-        
+
         # Use POST to /services/:id/resume
         data = json.dumps({}).encode()
         req = urllib.request.Request(

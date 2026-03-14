@@ -5,9 +5,9 @@ import sys
 # Add project root to sys.path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../packages")))
 
+from backend.llm.client import LLMClient
 from pydantic import BaseModel
 
-from backend.llm.client import LLMClient
 from shared.config import get_settings
 
 

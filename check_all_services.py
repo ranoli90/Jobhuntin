@@ -1,12 +1,10 @@
 #!/usr/bin/env python3
 """Check status of all Render services."""
 
-import os
-import sys
-import time
 import json
-import urllib.request
+import time
 import urllib.error
+import urllib.request
 
 API_KEY = "rnd_UiMNNzGNDphD0fyZsatrlHwM5QfF"
 BASE_URL = "https://api.render.com/v1"
@@ -46,27 +44,27 @@ def check_service(svc_id: str, name: str, svc_type: str):
     print(f"Service: {name} ({svc_type})")
     print(f"ID: {svc_id}")
     print(f"{'='*60}")
-    
+
     # Get service details
     service = get(f"/services/{svc_id}")
     if "error" in service:
         print(f"ERROR: {service}")
         return
-    
+
     # Get the actual service data - it might be nested
     svc_data = service.get("service", service)
-    
+
     print(f"State: {service.get('state', 'unknown')}")
     print(f"Status: {svc_data.get('status', 'unknown')}")
     print(f"Dashboard: {svc_data.get('dashboardUrl', 'N/A')}")
-    
+
     # Get environment variables count
     env_vars = get(f"/services/{svc_id}/env-vars")
     if isinstance(env_vars, list):
         print(f"Env Vars: {len(env_vars)}")
     else:
         print(f"Env Vars: Error fetching - {env_vars.get('error', 'unknown')}")
-    
+
     # Get recent deploys
     deploys = get(f"/services/{svc_id}/deploys?limit=3")
     print("\nRecent Deploys:")
@@ -79,7 +77,7 @@ def check_service(svc_id: str, name: str, svc_type: str):
                 print(f"  [{created}] {status}")
     else:
         print(f"  Error: {deploys.get('error', 'unknown')}")
-    
+
     # Get recent events (often contain crash info)
     events = get(f"/services/{svc_id}/events?limit=5")
     print("\nRecent Events:")
@@ -100,11 +98,11 @@ def main():
     print("="*60)
     print("RENDER SERVICES STATUS CHECK")
     print("="*60)
-    
+
     for svc_id, name, svc_type in SERVICES:
         check_service(svc_id, name, svc_type)
         time.sleep(0.5)  # Rate limit
-    
+
     print("\n" + "="*60)
     print("CHECK COMPLETE")
     print("="*60)

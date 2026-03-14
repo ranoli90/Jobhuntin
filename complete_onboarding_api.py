@@ -2,6 +2,7 @@
 """Complete onboarding via API, then test dashboard."""
 
 import asyncio
+
 import httpx
 import jwt as pyjwt
 from playwright.async_api import async_playwright

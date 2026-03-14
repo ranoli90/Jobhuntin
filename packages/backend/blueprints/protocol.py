@@ -14,7 +14,11 @@ from typing import Protocol, runtime_checkable
 
 import asyncpg
 
-from packages.backend.domain.core_models import ActorProfile, DomMappingResult, FormField
+from packages.backend.domain.core_models import (
+    ActorProfile,
+    DomMappingResult,
+    FormField,
+)
 
 
 @runtime_checkable

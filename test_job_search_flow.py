@@ -5,9 +5,10 @@ Tests: job listing, match scores, filters, job details, application process, AI 
 """
 
 import asyncio
-from playwright.async_api import async_playwright
 import json
 import time
+
+from playwright.async_api import async_playwright
 
 SESSION_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxZGRmOTc3YS1hNmM2LTRkMzAtODc4Mi1lYjgwNmJhZDYwNTAiLCJlbWFpbCI6InRlc3R1c2VyXzIyNTJkNTE0QHRlc3QuY29tIiwiYXVkIjoiYXV0aGVudGljYXRlZCIsImp0aSI6IjRlOTZkN2MzLTkyYWUtNGMwOC05NDUwLWRhYjYwY2NkNjdkZSIsInNlc3Npb25faWQiOiJmYzJjZmUwZS04ZDc3LTRmNzMtYmRkZS0yNjkwYWE2NDA1Y2IiLCJpYXQiOjE3NzMxMTQ3NTIsIm5iZiI6MTc3MzExNDc1MiwiZXhwIjoxNzczNzE5NTUyfQ.17bFNT76vtC2ri3TQnS2P-H4P2QOmROOgxjrcDkz-lE"
 
@@ -338,7 +339,7 @@ async def test_job_search_flow():
                                             continue
 
                                     break
-                    except Exception as e:
+                    except Exception:
                         continue
                 if job_clicked:
                     break

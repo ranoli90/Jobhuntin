@@ -12,8 +12,8 @@ sys.path.insert(0, _root)
 sys.path.insert(0, os.path.join(_root, "packages"))
 
 import asyncpg
-
 from backend.domain.email_digest import run_weekly_digest
+
 from shared.config import get_settings
 from shared.logging_config import get_logger
 

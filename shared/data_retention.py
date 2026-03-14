@@ -7,7 +7,7 @@ methods to check if data exceeds retention and to get data eligible for deletion
 from __future__ import annotations
 
 import os
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime, timedelta
 from enum import StrEnum
 from typing import Any

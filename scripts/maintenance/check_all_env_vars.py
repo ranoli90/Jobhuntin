@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 """Comprehensive check of environment variables and deploy issues."""
 
-import os
-import sys
 import json
 import urllib.request
 
@@ -25,7 +23,7 @@ def get(path: str):
 
 def main():
     print(f"=== Comprehensive check for service: {SERVICE_ID} ===\n")
-    
+
     # Get environment variables
     print("--- All Environment Variables ---")
     env_vars = get(f"/services/{SERVICE_ID}/env-vars")
@@ -35,19 +33,19 @@ def main():
         key = ev.get("key")
         value = ev.get("value", "")
         current_vars[key] = value
-        
+
     # Print all keys
     print("\nAll environment variable keys found:")
     for key in sorted(current_vars.keys()):
         print(f"  - {key}")
-    
+
     # Check what's missing
     print("\n--- Checking Required Environment Variables ---")
-    
+
     # Required for API to work
     required = [
         "ENV",
-        "DATABASE_URL", 
+        "DATABASE_URL",
         "JWT_SECRET",
         "CSRF_SECRET",
         "WEBHOOK_SIGNING_SECRET",
@@ -56,7 +54,7 @@ def main():
         "PYTHONPATH",
         "PORT",
     ]
-    
+
     # Recommended
     recommended = [
         "LLM_API_KEY",
@@ -70,7 +68,7 @@ def main():
         "LOG_LEVEL",
         "LOG_JSON",
     ]
-    
+
     print("\nRequired (must be set):")
     all_good = True
     for key in required:
@@ -79,14 +77,14 @@ def main():
         else:
             print(f"  [MISSING] {key}")
             all_good = False
-    
+
     print("\nRecommended (for full functionality):")
     for key in recommended:
         if key in current_vars and current_vars[key]:
             print(f"  [OK] {key}")
         else:
             print(f"  [MISSING] {key}")
-    
+
     # Check DATABASE_URL format
     print("\n--- DATABASE_URL Analysis ---")
     db_url = current_vars.get("DATABASE_URL", "")
@@ -96,7 +94,7 @@ def main():
         print(f"  [OK] Contains correct host: {expected_host}")
     else:
         print(f"  [ERROR] Does NOT contain expected host: {expected_host}")
-    
+
     # Get deploy details to find error messages
     print("\n--- Deploy Error Details ---")
     try:
@@ -111,14 +109,14 @@ def main():
             print(f"\nDeploy at {created}:")
             print(f"  Status: {status}")
             print(f"  ID: {dep.get('id')}")
-            
+
             # Try to get build logs
             build_id = dep.get("buildId")
             if build_id:
                 print(f"  Build ID: {build_id}")
     except Exception as e:
         print(f"Error getting deploy details: {e}")
-    
+
     # Get the latest build to see errors
     print("\n--- Latest Build Details ---")
     try:

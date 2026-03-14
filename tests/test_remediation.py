@@ -85,7 +85,6 @@ async def test_job_match_cache_repo(db_pool, clean_db):
     """
     import asyncpg
     import pytest
-
     from backend.domain.repositories import JobMatchCacheRepo
 
     async with db_pool.acquire() as conn:

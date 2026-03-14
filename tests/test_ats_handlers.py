@@ -8,8 +8,8 @@ from __future__ import annotations
 from backend.domain.ats_handlers import (
     ATSDetectionResult,
     ATSPlatform,
-    CAPTCHADetection,
     BrassringHandler,
+    CAPTCHADetection,
     GreenhouseHandler,
     IcimsHandler,
     LeverHandler,

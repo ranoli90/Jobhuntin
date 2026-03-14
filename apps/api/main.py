@@ -62,8 +62,6 @@ from packages.backend.domain.repositories import (
 from packages.backend.domain.resume import process_resume_upload
 from packages.backend.domain.tenant import TenantContext, resolve_tenant_context
 from shared.api_response import (
-    ErrorResponse,
-    ErrorInfo,
     SuccessResponse,
     success_response,
 )

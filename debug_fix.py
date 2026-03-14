@@ -2,8 +2,8 @@
 """Debug the DATABASE_URL fix"""
 
 import json
-import urllib.request
 import urllib.error
+import urllib.request
 
 RENDER_API_KEY = "rnd_UiMNNzGNDphD0fyZsatrlHwM5QfF"
 API_SERVICE_ID = "srv-d6p4l03h46gs73ftvuj0"
@@ -30,21 +30,21 @@ for item in env_vars:
     if key == "DATABASE_URL":
         ev_id = ev.get("id")
         current_value = ev.get("value", "")
-        
-        print(f"\n\nDATABASE_URL details:")
+
+        print("\n\nDATABASE_URL details:")
         print(f"  ID: {ev_id}")
         print(f"  Current value: {current_value}")
-        
+
         # Add sslmode=require
         if "?" in current_value:
             new_value = current_value + "&sslmode=require"
         else:
             new_value = current_value + "?sslmode=require"
-        
+
         print(f"  New value: {new_value}")
-        
+
         # Try to update
-        print(f"\n  Attempting PUT to update...")
+        print("\n  Attempting PUT to update...")
         put_url = f"https://api.render.com/v1/services/{API_SERVICE_ID}/env-vars/{ev_id}"
         put_req = urllib.request.Request(
             put_url,
@@ -55,7 +55,7 @@ for item in env_vars:
             },
             method="PUT"
         )
-        
+
         try:
             with urllib.request.urlopen(put_req, timeout=30) as resp:
                 print(f"  Status: {resp.status}")

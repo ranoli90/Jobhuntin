@@ -20,7 +20,7 @@ logger = get_logger("sorce.captcha_handler")
 
 # Import ML solver
 try:
-    from .ml_captcha_solver import MLCaptchaSolver, EnhancedCaptchaDetector
+    from .ml_captcha_solver import EnhancedCaptchaDetector, MLCaptchaSolver
     ML_AVAILABLE = True
 except ImportError:
     ML_AVAILABLE = False
@@ -48,7 +48,7 @@ class CaptchaDetector:
             self.enhanced_detector = EnhancedCaptchaDetector()
         else:
             self.enhanced_detector = None
-            
+
         self.captcha_selectors = {
             CaptchaType.RECAPTCHA_V2: [
                 ".g-recaptcha",
@@ -90,7 +90,7 @@ class CaptchaDetector:
         # Use enhanced detector if available
         if self.enhanced_detector:
             return await self.enhanced_detector.detect_captcha_enhanced(page)
-        
+
         # Fallback to original detection
         detected = {
             "has_captcha": False,
@@ -185,7 +185,7 @@ class CaptchaSolver:
             if isinstance(val, str)
             else []
         )
-        
+
         # Initialize ML solver if available
         if ML_AVAILABLE:
             self.ml_solver = MLCaptchaSolver()
@@ -240,7 +240,7 @@ class CaptchaSolver:
         self, image_base64: str, instructions: str = ""
     ) -> Optional[str]:
         """Solve image CAPTCHA using ML first, then external services."""
-        
+
         # Try ML solving first if available
         if self.ml_solver:
             try:
@@ -252,7 +252,7 @@ class CaptchaSolver:
                     return ml_result
             except Exception as e:
                 logger.debug(f"ML CAPTCHA solving failed: {e}")
-        
+
         # Fallback to external services
         if not self.enabled_solvers:
             logger.warning("No CAPTCHA solvers configured")

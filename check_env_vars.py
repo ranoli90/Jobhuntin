@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 """Check environment variables for all services"""
-import os
 import json
 import urllib.request
 
@@ -18,15 +17,15 @@ for svc in services:
     svc_id = s['id']
     svc_name = s['name']
     svc_type = s['type']
-    
+
     print(f"\n{'='*60}")
     print(f"Service: {svc_name} ({svc_type})")
     print(f"ID: {svc_id}")
     print(f"{'='*60}")
-    
+
     # Get env vars
     req = urllib.request.Request(
-        f'https://api.render.com/v1/services/{svc_id}/env-vars', 
+        f'https://api.render.com/v1/services/{svc_id}/env-vars',
         headers=headers
     )
     try:

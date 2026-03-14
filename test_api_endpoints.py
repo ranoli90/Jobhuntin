@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
 """Test all API endpoints - public and auth-required."""
-import json
-import subprocess
 import sys
-from urllib.request import Request, urlopen
 from urllib.error import HTTPError, URLError
+from urllib.request import Request, urlopen
 
 BASE = "http://127.0.0.1:8000"
 

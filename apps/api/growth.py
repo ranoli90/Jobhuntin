@@ -12,7 +12,10 @@ from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 
 from packages.backend.domain.email_digest import run_weekly_digest
-from packages.backend.domain.notifications import deactivate_push_token, register_push_token
+from packages.backend.domain.notifications import (
+    deactivate_push_token,
+    register_push_token,
+)
 from packages.backend.domain.referrals import get_referral_stats, redeem_referral_code
 from packages.backend.domain.repositories import db_transaction
 from shared.config import get_settings

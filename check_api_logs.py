@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
 """Quick check for API service logs using render-dashboard logs."""
 
-import subprocess
 import urllib.request
-import json
-import time
+
 
 def check_api_direct():
     """Try different API endpoints to diagnose the 502."""
@@ -13,10 +11,10 @@ def check_api_direct():
         "https://jobhuntin-api.onrender.com/health",
         "https://jobhuntin-api.onrender.com/docs",
     ]
-    
+
     print("API ENDPOINT DIAGNOSTICS:")
     print("-" * 50)
-    
+
     for url in urls:
         try:
             req = urllib.request.Request(url, headers={'User-Agent': 'Jobhuntin-Diag/1.0'})

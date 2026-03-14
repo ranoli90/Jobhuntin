@@ -331,7 +331,7 @@ class JobSpyClient:
     def _generate_external_id(self, source: str, job_url: str, row) -> str:
         """Generate a unique external ID for the job."""
         import re
-        from urllib.parse import urlparse, parse_qs
+        from urllib.parse import parse_qs, urlparse
 
         # Strip known tracking parameters to avoid duplicate jobs
         parsed = urlparse(job_url)

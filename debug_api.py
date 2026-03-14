@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 """Debug the API response"""
-import os
 import json
 import urllib.request
 

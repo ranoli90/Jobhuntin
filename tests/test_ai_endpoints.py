@@ -7,9 +7,6 @@ import json
 from unittest.mock import AsyncMock, patch
 
 import pytest
-
-# Import the actual classes from the API
-from apps.api.ai_endpoints import RoleSuggestionRequest
 from backend.llm.contracts import (
     JobMatchScore_V1,
     LocationSuggestionResponse_V1,
@@ -22,6 +19,9 @@ from backend.llm.contracts import (
     build_role_suggestion_prompt,
     build_salary_suggestion_prompt,
 )
+
+# Import the actual classes from the API
+from apps.api.ai_endpoints import RoleSuggestionRequest
 
 
 class TestPromptBuilders:

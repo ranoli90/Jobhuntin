@@ -1,7 +1,7 @@
 # Simple integration test for Phase 13.1 and 14.1
 
-import sys
 import os
+import sys
 
 # Add the project root to Python path
 project_root = os.path.dirname(os.path.abspath(__file__))

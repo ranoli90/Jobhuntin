@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
 """Add env vars using PUT method"""
-import os
 import json
 import urllib.request
 
 API_KEY = 'rnd_UiMNNzGNDphD0fyZsatrlHwM5QfF'
 headers = {
-    'Authorization': f'Bearer {API_KEY}', 
+    'Authorization': f'Bearer {API_KEY}',
     'Accept': 'application/json',
     'Content-Type': 'application/json'
 }

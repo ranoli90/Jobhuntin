@@ -40,7 +40,7 @@ async def create_db_pool() -> asyncpg.Pool:
 
     settings = get_settings()
     from shared.db import resolve_dsn_ipv4
-    
+
     dsn = resolve_dsn_ipv4(settings.database_url)
     # Use SSL but don't verify certificate for self-signed certs on Render
     # The connection is still encrypted, just not verified against a CA
@@ -60,13 +60,16 @@ async def create_db_pool() -> asyncpg.Pool:
 
 async def run_queue_loop() -> None:
     db_pool = await create_db_pool()
-    
+
     # Create tables if they don't exist
     async with db_pool.acquire() as conn:
-        from packages.backend.domain.job_queue import create_job_queue_tables, create_follow_up_reminders_table
+        from packages.backend.domain.job_queue import (
+            create_follow_up_reminders_table,
+            create_job_queue_tables,
+        )
         await create_job_queue_tables(conn)
         await create_follow_up_reminders_table(conn)
-    
+
     queue = BackgroundJobQueue(db_pool)
 
     # LOW: Register match score pre-computation job handler

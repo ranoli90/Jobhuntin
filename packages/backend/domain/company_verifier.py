@@ -17,14 +17,12 @@ import re
 import socket
 import ssl
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import Any
 from urllib.parse import urlparse
 
-import aiohttp
-
-from shared.logging_config import get_logger
 from shared.cache_strategies import CacheStrategy, InMemoryCache
+from shared.logging_config import get_logger
 
 logger = get_logger("sorce.company_verifier")
 

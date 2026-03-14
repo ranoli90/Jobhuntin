@@ -38,7 +38,7 @@ async def create_db_pool():
 
     settings = get_settings()
     from shared.db import resolve_dsn_ipv4
-    
+
     dsn = resolve_dsn_ipv4(settings.database_url)
     # Use SSL but don't verify certificate for self-signed certs on Render
     # The connection is still encrypted, just not verified against a CA

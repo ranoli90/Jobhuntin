@@ -3,10 +3,9 @@
 from __future__ import annotations
 
 import asyncio
-import json
 from typing import Any
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 
 from shared.config import get_settings
@@ -28,27 +27,27 @@ async def get_browser_pool() -> Any:
     The browser pool is created once and reused for all subsequent requests.
     """
     global _browser_pool
-    
+
     if _browser_pool is not None:
         return _browser_pool
-    
+
     async with _browser_pool_lock:
         # Double-check after acquiring lock
         if _browser_pool is not None:
             return _browser_pool
-            
+
         from .scaling import BrowserPoolManager
         _browser_pool = BrowserPoolManager()
         await _browser_pool.start()
         logger.info("Browser pool initialized for health checks")
-        
+
     return _browser_pool
 
 
 async def shutdown_browser_pool() -> None:
     """Shutdown the browser pool gracefully."""
     global _browser_pool
-    
+
     if _browser_pool is not None:
         try:
             await _browser_pool.shutdown()
@@ -64,7 +63,7 @@ async def health_check() -> JSONResponse:
     """Health check endpoint for worker service."""
     try:
         s = get_settings()
-        
+
         # Basic service health
         health_data = {
             "status": "healthy",
@@ -73,7 +72,7 @@ async def health_check() -> JSONResponse:
             "timestamp": asyncio.get_event_loop().time(),
             "checks": {},
         }
-        
+
         # Check database connectivity
         try:
             from shared.db import get_db_pool
@@ -84,20 +83,20 @@ async def health_check() -> JSONResponse:
         except Exception as e:
             health_data["checks"]["database"] = {"status": "unhealthy", "message": f"Database connection failed: {e}"}
             health_data["status"] = "unhealthy"
-        
+
         # Check browser pool - use shared singleton instead of creating new one
         try:
             browser_pool = await get_browser_pool()
             browser_health = await browser_pool.health_check()
-            
+
             health_data["checks"]["browser"] = browser_health
             if not browser_health["healthy"]:
                 health_data["status"] = "unhealthy"
-                
+
         except Exception as e:
             health_data["checks"]["browser"] = {"status": "unhealthy", "message": f"Browser health check failed: {e}"}
             health_data["status"] = "unhealthy"
-        
+
         # Check configuration
         try:
             config_checks = {
@@ -106,21 +105,21 @@ async def health_check() -> JSONResponse:
                 "agent_enabled": s.agent_enabled,
             }
             health_data["checks"]["configuration"] = config_checks
-            
+
             if not all(config_checks.values()):
                 health_data["status"] = "degraded"
-                
+
         except Exception as e:
             health_data["checks"]["configuration"] = {"status": "error", "message": f"Configuration check failed: {e}"}
-        
+
         # Return appropriate HTTP status
         status_code = 200 if health_data["status"] == "healthy" else 503
-        
+
         return JSONResponse(
             content=health_data,
             status_code=status_code,
         )
-        
+
     except Exception as e:
         logger.error("Health check failed: %s", e)
         return JSONResponse(
@@ -141,7 +140,7 @@ async def readiness_check() -> JSONResponse:
         # Use shared browser pool instead of creating new one
         browser_pool = await get_browser_pool()
         browser_health = await browser_pool.health_check()
-        
+
         if browser_health["healthy"]:
             return JSONResponse(
                 content={
@@ -160,7 +159,7 @@ async def readiness_check() -> JSONResponse:
                 },
                 status_code=503,
             )
-        
+
     except Exception as e:
         logger.error("Readiness check failed: %s", e)
         return JSONResponse(
@@ -188,7 +187,7 @@ async def liveness_check() -> JSONResponse:
 
 if __name__ == "__main__":
     import uvicorn
-    
+
     logger.info("Starting worker health check service...")
     uvicorn.run(
         "health:app",

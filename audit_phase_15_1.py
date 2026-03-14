@@ -2,11 +2,11 @@
 Phase 15.1 Database & Performance Audit Script
 """
 
-import sys
 import asyncio
-from pathlib import Path
-from typing import Dict, Any
 import json
+import sys
+from pathlib import Path
+from typing import Any, Dict
 
 # Add project root to Python path
 project_root = Path(__file__).parent
@@ -15,6 +15,7 @@ sys.path.insert(0, str(project_root))
 # Import database connection
 try:
     import asyncpg
+
     from shared.logging_config import get_logger
 
     logger = get_logger("phase15_audit")

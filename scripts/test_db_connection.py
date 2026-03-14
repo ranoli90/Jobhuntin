@@ -19,8 +19,9 @@ async def test_connection(db_url):
 
 if __name__ == "__main__":
     import os
+
     from dotenv import load_dotenv
-    
+
     load_dotenv()
     db_url = os.getenv("DATABASE_URL")
     asyncio.run(test_connection(db_url))

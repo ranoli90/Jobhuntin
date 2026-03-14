@@ -1340,7 +1340,7 @@ class FormAgent:
             page_content = await page.content()
         except Exception as e:
             logger.debug("Could not get page content for ATS detection: %s", e)
-        
+
         # First try ATS detection
         result = detect_ats_platform(url, page_content)
         if result.platform != ATSPlatform.UNKNOWN and result.confidence >= 0.5:
@@ -1359,7 +1359,7 @@ class FormAgent:
                 except Exception as e:
                     logger.warning("ATS pre_fill_hook failed: %s", e)
                 return
-        
+
         # If no ATS detected, try job board detection
         if JOB_BOARD_HANDLERS_AVAILABLE:
             job_board_result = detect_job_board_platform(url, page_content)
@@ -1374,7 +1374,7 @@ class FormAgent:
                         job_board_result.confidence,
                         type(handler).__name__,
                     )
-                    
+
                     # Handle login if required
                     if job_board_result.requires_login:
                         login_status = await handler.check_login_status(page)
@@ -1392,13 +1392,13 @@ class FormAgent:
                                 logger.warning(f"{job_board_result.platform.value} credentials not found")
                                 ctx["login_required"] = True
                                 return
-                    
+
                     try:
                         await handler.pre_apply_hook(page, ctx)
                     except Exception as e:
                         logger.warning("Job board pre_apply_hook failed: %s", e)
                     return
-        
+
         # No platform detected
         ctx["ats_handler"] = None
         ctx["job_board_handler"] = None
@@ -1474,7 +1474,7 @@ class FormAgent:
         max_step = max((f["step_index"] for f in form_fields), default=0)
         ats_handler = ctx.get("ats_handler")
         job_board_handler = ctx.get("job_board_handler")
-        
+
         for step in range(max_step + 1):
             step_values = {
                 sel: val
@@ -1498,7 +1498,7 @@ class FormAgent:
                     skip_selectors = ats_handler.get_skip_selectors()
                 elif job_board_handler:
                     skip_selectors = job_board_handler.get_skip_selectors()
-                
+
                 behavior_sim = HumanBehaviorSimulator(HumanBehaviorConfig())
                 await fill_form_from_mapping(
                     page,
@@ -1518,7 +1518,7 @@ class FormAgent:
                     custom_next = ats_handler.get_custom_selectors().get("next")
                 elif job_board_handler:
                     custom_next = job_board_handler.get_application_selectors().get("continue_button")
-                    
+
                 advanced = await click_next_button(page, custom_next)
                 if not advanced:
                     logger.warning(
@@ -2080,7 +2080,7 @@ class FormAgent:
         base_selectors = ctx["blueprint"].submit_button_selectors()
         ats_handler = ctx.get("ats_handler")
         job_board_handler = ctx.get("job_board_handler")
-        
+
         # Get submit selectors from handler (ATS or job board)
         submit_selectors = base_selectors
         if ats_handler:
@@ -2095,14 +2095,14 @@ class FormAgent:
                 apply_selectors = job_board_handler.get_application_selectors().get("apply_button")
                 if apply_selectors:
                     submit_selectors = apply_selectors + base_selectors
-                    
+
         submitted = await submit_form(page, submit_selectors)
         if not submitted:
             raise RuntimeError("Could not locate a submit button on the form")
 
         # Capture screenshot after submission
         await self.capture_screenshot(page, ctx, "post_submit", success=True)
-        
+
         # Run post-apply hooks for job board handlers
         if job_board_handler:
             try:
@@ -2543,7 +2543,7 @@ def _ensure_playwright_browsers():
     """Ensure Playwright browsers are installed, install if missing."""
     import subprocess
     import sys
-    
+
     try:
         # Run playwright install to ensure browsers are present
         result = subprocess.run(

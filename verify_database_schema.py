@@ -18,13 +18,13 @@ Outputs:
 Author: JobHuntin Development Team
 """
 
-import sys
 import logging
 import re
-from pathlib import Path
-from typing import List, Tuple, Optional
+import sys
 from dataclasses import dataclass
 from datetime import datetime
+from pathlib import Path
+from typing import List, Optional, Tuple
 
 # Add project root to Python path
 project_root = Path(__file__).resolve().parent

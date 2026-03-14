@@ -2,11 +2,10 @@
 """
 Quick script to pull logs from all Render services
 """
-import requests
-import json
 import os
 import sys
-from datetime import datetime, timedelta
+
+import requests
 
 # Set UTF-8 encoding for Windows
 if sys.platform == 'win32':
@@ -34,9 +33,9 @@ def get_service_logs(service_id, limit=500):
     """Get logs for a specific service"""
     url = f"{BASE_URL}/services/{service_id}/logs"
     params = {"limit": limit}
-    
+
     response = requests.get(url, headers=HEADERS, params=params)
-    
+
     if response.status_code == 200:
         return response.json()
     else:
@@ -49,27 +48,27 @@ def analyze_logs(logs, service_name):
     if not logs:
         print(f"\n{'='*60}")
         print(f"SERVICE: {service_name}")
-        print(f"   No logs found")
+        print("   No logs found")
         return
-    
+
     errors = []
     warnings = []
-    
+
     for log in logs:
         message = log.get("message", "").lower()
         timestamp = log.get("timestamp", "")[:19]  # Just the date/time part
-        
+
         if "error" in message or "exception" in message or "failed" in message or "traceback" in message:
             errors.append((timestamp, log.get("message", "")))
         elif "warning" in message or "warn" in message:
             warnings.append((timestamp, log.get("message", "")))
-    
+
     print(f"\n{'='*60}")
     print(f"SERVICE: {service_name}")
     print(f"   Total logs: {len(logs)}")
     print(f"   Errors: {len(errors)}")
     print(f"   Warnings: {len(warnings)}")
-    
+
     if errors:
         print(f"\nERRORS ({len(errors)}):")
         for i, (ts, msg) in enumerate(errors[:10]):  # Show first 10 errors
@@ -77,7 +76,7 @@ def analyze_logs(logs, service_name):
             if i >= 9:
                 print(f"   ... and {len(errors) - 10} more errors")
                 break
-    
+
     if warnings:
         print(f"\nWARNINGS ({len(warnings)}):")
         for i, (ts, msg) in enumerate(warnings[:5]):  # Show first 5 warnings
@@ -88,19 +87,19 @@ def analyze_logs(logs, service_name):
 
 def main():
     print("Pulling logs from all Render services...")
-    print(f"   Time range: Last 24 hours")
+    print("   Time range: Last 24 hours")
     print()
-    
+
     for service_name, service_id in SERVICES.items():
         print(f"Fetching logs for {service_name}...")
         logs_data = get_service_logs(service_id)
-        
+
         if logs_data and "logs" in logs_data:
             logs = logs_data.get("logs", [])
             analyze_logs(logs, service_name)
         else:
             analyze_logs(None, service_name)
-    
+
     print(f"\n{'='*60}")
     print("Done!")
 

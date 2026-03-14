@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
 """Unsuspend services using PATCH method"""
-import os
 import json
 import urllib.request
 
 API_KEY = 'rnd_UiMNNzGNDphD0fyZsatrlHwM5QfF'
 headers = {
-    'Authorization': f'Bearer {API_KEY}', 
+    'Authorization': f'Bearer {API_KEY}',
     'Accept': 'application/json',
     'Content-Type': 'application/json'
 }
@@ -20,7 +19,7 @@ service_ids = [
 
 for svc_id, name in service_ids:
     print(f"\nTrying to unsuspend {name} ({svc_id})...")
-    
+
     # Use PATCH method to update suspended status
     data = json.dumps({"suspended": "not_suspended"}).encode()
     req = urllib.request.Request(

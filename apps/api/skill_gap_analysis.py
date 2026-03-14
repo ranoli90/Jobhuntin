@@ -6,15 +6,15 @@ and job requirements, with personalized recommendations and learning resources.
 
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
 from packages.backend.domain.skill_gap_analyzer import (
     SkillGapAnalyzer,
     get_skill_gap_analyzer,
 )
-from packages.backend.domain.tenant import TenantContext
 from packages.backend.domain.skills_taxonomy import get_skills_taxonomy
+from packages.backend.domain.tenant import TenantContext
 from shared.logging_config import get_logger
 
 logger = get_logger("sorce.api.skill_gap")

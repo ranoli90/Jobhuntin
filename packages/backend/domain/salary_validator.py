@@ -10,7 +10,6 @@ migrations/035_job_quality_fields.sql migration.
 
 from __future__ import annotations
 
-import math
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -47,7 +46,7 @@ ROLE_SALARY_DATA: dict[str, dict[str, float]] = {
     "penetration tester": {"min": 100000, "median": 140000, "max": 200000, "std": 25000},
     # Product roles
     "product manager": {"min": 100000, "median": 140000, "max": 200000, "std": 25000},
-    "senior product manager": {"min": 140000, "median": 180000, "max": 250000, "std": 30000],
+    "senior product manager": {"min": 140000, "median": 180000, "max": 250000, "std": 30000},
     "principal product manager": {"min": 180000, "median": 230000, "max": 320000, "std": 40000},
     "product owner": {"min": 80000, "median": 120000, "max": 170000, "std": 22000},
     "associate product manager": {"min": 70000, "median": 100000, "max": 140000, "std": 18000},

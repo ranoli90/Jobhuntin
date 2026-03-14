@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 """Set environment variables on a Render service."""
 
-import os
 import json
-import urllib.request
 import urllib.error
+import urllib.request
 
 RENDER_API_KEY = "rnd_UiMNNzGNDphD0fyZsatrlHwM5QfF"
 SERVICE_ID = "srv-d6p4l03h46gs73ftvuj0"

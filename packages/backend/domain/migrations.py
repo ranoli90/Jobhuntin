@@ -37,7 +37,7 @@ async def run_migrations(conn: asyncpg.Connection, base_path: pathlib.Path) -> N
                 pass
         if buf.strip():
             stmts.append(buf.strip())
-        
+
         # Also handle statements separated by \n\n for complex blocks
         # Join all and try to execute as single transaction for CREATE statements
         for stmt in stmts:
@@ -47,7 +47,7 @@ async def run_migrations(conn: asyncpg.Connection, base_path: pathlib.Path) -> N
             if _skip.search(stmt):
                 skip += 1
                 continue
-            
+
             # Try to execute - if it fails due to dependency, try as a transaction
             try:
                 await conn.execute(stmt)
@@ -95,7 +95,7 @@ async def run_migrations(conn: asyncpg.Connection, base_path: pathlib.Path) -> N
         schema_sql = schema_sql.replace("REFERENCES auth.users (id)", "")
         if "-- Row-Level Security" in schema_sql:
             schema_sql = schema_sql.split("-- Row-Level Security")[0]
-        
+
         # Execute entire schema as a single transaction
         try:
             await conn.execute(schema_sql)

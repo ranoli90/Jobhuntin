@@ -6,7 +6,6 @@ Validates the "Precision Matcher" archetype implementation.
 from __future__ import annotations
 
 import pytest
-
 from backend.domain.embeddings import (
     compute_text_hash,
     cosine_similarity,

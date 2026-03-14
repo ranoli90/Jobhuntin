@@ -5,11 +5,12 @@ Tests: Authentication, Full Onboarding, Dashboard, Job Matching, Job Details, Ap
 """
 
 import asyncio
-from playwright.async_api import async_playwright
 import json
-import time
-import re
 import os
+import re
+import time
+
+from playwright.async_api import async_playwright
 
 EMAIL = "testuser_2252d514@test.com"
 

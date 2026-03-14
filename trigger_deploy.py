@@ -2,8 +2,8 @@
 """Check database links and trigger deploy"""
 
 import json
-import urllib.request
 import urllib.error
+import urllib.request
 
 RENDER_API_KEY = "rnd_UiMNNzGNDphD0fyZsatrlHwM5QfF"
 API_SERVICE_ID = "srv-d6p4l03h46gs73ftvuj0"

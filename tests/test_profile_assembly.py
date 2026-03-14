@@ -6,7 +6,6 @@ import uuid
 
 import asyncpg
 import pytest
-
 from backend.domain.profile_assembly import assemble_profile
 
 

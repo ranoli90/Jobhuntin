@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
 """Trigger deploys for all workers"""
-import os
 import json
 import urllib.request
 
 API_KEY = 'rnd_UiMNNzGNDphD0fyZsatrlHwM5QfF'
 headers = {
-    'Authorization': f'Bearer {API_KEY}', 
+    'Authorization': f'Bearer {API_KEY}',
     'Accept': 'application/json',
     'Content-Type': 'application/json'
 }
@@ -22,7 +21,7 @@ workers = [
 
 for worker_id, worker_name in workers:
     print(f"Triggering deploy for {worker_name}...")
-    
+
     # Trigger deploy
     data = json.dumps({}).encode()
     req = urllib.request.Request(

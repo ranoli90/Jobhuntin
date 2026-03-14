@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """List ALL Render services including databases and Redis"""
-import os
 import json
+import os
 import urllib.request
 
 API_KEY = os.environ.get('RENDER_API_KEY', 'rnd_UiMNNzGNDphD0fyZsatrlHwM5QfF')

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Analyze all services and check environment variables."""
 
-import urllib.request
 import json
+import urllib.request
 
 API_KEY = "rnd_UiMNNzGNDphD0fyZsatrlHwM5QfF"
 BASE_URL = "https://api.render.com/v1"
@@ -34,7 +34,7 @@ print("="*70)
 for svc_id, name, svc_type in SERVICES:
     print(f"\n[{name}] ({svc_type})")
     print("-" * 50)
-    
+
     # Get env vars
     env_vars = get(f"/services/{svc_id}/env-vars")
     if isinstance(env_vars, list):

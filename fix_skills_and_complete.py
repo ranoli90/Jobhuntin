@@ -5,6 +5,7 @@ Uses comprehensive debugging to find the correct selectors.
 """
 
 import asyncio
+
 from playwright.async_api import async_playwright
 
 SESSION_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxZGRmOTc3YS1hNmM2LTRkMzAtODc4Mi1lYjgwNmJhZDYwNTAiLCJlbWFpbCI6InRlc3R1c2VyXzIyNTJkNTE0QHRlc3QuY29tIiwiYXVkIjoiYXV0aGVudGljYXRlZCIsImp0aSI6IjRlOTZkN2MzLTkyYWUtNGMwOC05NDUwLWRhYjYwY2NkNjdkZSIsInNlc3Npb25faWQiOiJmYzJjZmUwZS04ZDc3LTRmNzMtYmRkZS0yNjkwYWE2NDA1Y2IiLCJpYXQiOjE3NzMxMTQ3NTIsIm5iZiI6MTc3MzExNDc1MiwiZXhwIjoxNzczNzE5NTUyfQ.17bFNT76vtC2ri3TQnS2P-H4P2QOmROOgxjrcDkz-lE"
@@ -339,7 +340,7 @@ async def fix_and_complete():
         page_text = await page.inner_text("body")
         step_indicator = ""
         try:
-            step_elem = page.locator("text=/STEP \d+ OF \d+/i").first
+            step_elem = page.locator(r"text=/STEP \d+ OF \d+/i").first
             if await step_elem.is_visible(timeout=2000):
                 step_indicator = await step_elem.text_content() or ""
         except:
@@ -444,7 +445,7 @@ async def fix_and_complete():
         page_text = await page.inner_text("body")
         step_indicator = ""
         try:
-            step_elem = page.locator("text=/STEP \d+ OF \d+/i").first
+            step_elem = page.locator(r"text=/STEP \d+ OF \d+/i").first
             if await step_elem.is_visible(timeout=2000):
                 step_indicator = await step_elem.text_content() or ""
         except:
@@ -528,7 +529,7 @@ async def fix_and_complete():
         page_text = await page.inner_text("body")
         step_indicator = ""
         try:
-            step_elem = page.locator("text=/STEP \d+ OF \d+/i").first
+            step_elem = page.locator(r"text=/STEP \d+ OF \d+/i").first
             if await step_elem.is_visible(timeout=2000):
                 step_indicator = await step_elem.text_content() or ""
         except:

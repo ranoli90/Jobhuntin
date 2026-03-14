@@ -7,9 +7,10 @@ Opens the Render dashboard directly to view logs
 import webbrowser
 from pathlib import Path
 
+
 def open_dashboard_logs():
     """Open Render dashboard logs directly"""
-    
+
     # Direct URLs for the jobhuntin-api service
     dashboard_urls = [
         "https://dashboard.render.com/web/srv-d6p4l03h46gs73ftvuj0",
@@ -17,21 +18,21 @@ def open_dashboard_logs():
         "https://dashboard.render.com/services/jobhuntin-api/logs",
         "https://dashboard.render.com/services/jobhuntin-api/events"
     ]
-    
+
     print("🔍 Opening Render Dashboard Logs...")
     print("=" * 60)
-    
+
     for i, url in enumerate(dashboard_urls, 1):
         print(f"{i}. {url}")
         try:
             webbrowser.open(url)
-            print(f"   ✅ Opened in browser")
+            print("   ✅ Opened in browser")
         except Exception as e:
             print(f"   ❌ Failed to open: {e}")
-        
+
         if i < len(dashboard_urls):
             input("Press Enter to continue to next URL...")
-    
+
     print("\n📋 What to look for in the logs:")
     print("=" * 60)
     print("1. Recent deployment errors")
@@ -39,7 +40,7 @@ def open_dashboard_logs():
     print("3. Database connection issues")
     print("4. Environment variable problems")
     print("5. Startup failures")
-    
+
     print("\n🔍 Common Error Patterns:")
     print("=" * 60)
     print("- ModuleNotFoundError: Missing imports")
@@ -48,14 +49,14 @@ def open_dashboard_logs():
     print("- KeyError: Missing environment variables")
     print("- SyntaxError: Code syntax issues")
     print("- HTTP 503/500: Service startup failures")
-    
+
     print("\n💡 Quick Fix Checklist:")
     print("=" * 60)
     print("✅ API Key: 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")
     print("✅ JWT Secret: 5ac9f551548b8c8eb2f45db7da24bec59e48039bf37daf8f988cbb2acde45ceec")
     print("✅ CSRF Secret: f900e6e287d1da3c644b7121e9b68fb6035e7a9f829b8ce2e6fb")
     print("✅ PYTHONPATH: apps:packages:.")
-    
+
     print("\n🌐 Service URLs:")
     print("=" * 60)
     print("API: https://sorce-api.onrender.com")
@@ -106,7 +107,7 @@ def create_log_summary():
 3. Test API health endpoint
 4. Monitor deployment progress
 """
-    
+
     summary_file = Path("LOG_ANALYSIS_TEMPLATE.md")
     summary_file.write_text(summary)
     print(f"📝 Log analysis template created: {summary_file}")

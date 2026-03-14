@@ -5,6 +5,7 @@ Picks up from current state and completes: Contact → Work Style → Career Goa
 """
 
 import asyncio
+
 from playwright.async_api import async_playwright
 
 # Valid session token

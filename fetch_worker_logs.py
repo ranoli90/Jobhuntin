@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 """Fetch logs from workers to diagnose crash"""
-import os
 import json
 import urllib.request
 
@@ -17,10 +16,10 @@ for worker_id, worker_name in workers:
     print(f"\n{'='*60}")
     print(f"LOGS: {worker_name}")
     print(f"{'='*60}")
-    
+
     # Get recent logs
     req = urllib.request.Request(
-        f'https://api.render.com/v1/services/{worker_id}/logs?limit=50', 
+        f'https://api.render.com/v1/services/{worker_id}/logs?limit=50',
         headers=headers
     )
     try:

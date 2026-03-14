@@ -2,8 +2,8 @@
 Phase 12.1 Agent Improvements - Missing Components Audit
 """
 
-import sys
 import os
+import sys
 
 # Add the project root to Python path
 project_root = os.path.dirname(os.path.abspath(__file__))

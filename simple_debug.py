@@ -5,9 +5,9 @@ Finds all errors quickly with multiple debugging approaches.
 """
 
 import os
+import subprocess
 import sys
 import traceback
-import subprocess
 from pathlib import Path
 
 # Add project root to Python path
@@ -18,7 +18,7 @@ def test_imports_fast():
     """Fast import testing with detailed errors"""
     print("Testing Critical Imports...")
     print("=" * 50)
-    
+
     imports_to_test = [
         ("FastAPI", "from fastapi import FastAPI"),
         ("Main API", "from api.main import app"),
@@ -28,9 +28,9 @@ def test_imports_fast():
         ("Shared Config", "import shared.config"),
         ("Workers", "from apps.worker.scaling import main"),
     ]
-    
+
     failed_imports = []
-    
+
     for name, import_stmt in imports_to_test:
         try:
             exec(import_stmt)
@@ -38,7 +38,7 @@ def test_imports_fast():
         except Exception as e:
             print(f"❌ {name}: {type(e).__name__}: {e}")
             failed_imports.append((name, import_stmt, str(e), traceback.format_exc()))
-    
+
     if failed_imports:
         print(f"\n🚨 {len(failed_imports)} FAILED IMPORTS:")
         for name, import_stmt, error, tb in failed_imports:
@@ -46,26 +46,26 @@ def test_imports_fast():
             print(f"   Import: {import_stmt}")
             print(f"   Error: {error}")
             print(f"   Traceback:\n{tb}")
-    
+
     return len(failed_imports) == 0
 
 def test_api_startup():
     """Test API startup"""
     print("\nTesting API Startup...")
     print("=" * 50)
-    
+
     try:
         os.environ['PYTHONPATH'] = 'apps:packages:.'
         os.environ['env'] = 'local'
-        
+
         from api.main import app
         print("✅ App imported")
-        
+
         routes = [route.path for route in app.routes]
         print(f"✅ {len(routes)} routes loaded")
-        
+
         return True
-        
+
     except Exception as e:
         print(f"❌ API Startup Failed: {type(e).__name__}: {e}")
         print("\n📋 Full Traceback:")
@@ -76,9 +76,9 @@ def test_syntax():
     """Test syntax of all Python files"""
     print("\nTesting Python Syntax...")
     print("=" * 50)
-    
+
     syntax_errors = []
-    
+
     # Test key files
     key_files = [
         "apps/api/main.py",
@@ -87,35 +87,35 @@ def test_syntax():
         "packages/backend/llm/client.py",
         "apps/worker/scaling.py",
     ]
-    
+
     for file_path in key_files:
         try:
             result = subprocess.run([
                 sys.executable, '-m', 'py_compile', file_path
             ], capture_output=True, text=True, cwd=project_root)
-            
+
             if result.returncode == 0:
                 print(f"✅ {file_path}")
             else:
                 print(f"❌ {file_path}: {result.stderr}")
                 syntax_errors.append((file_path, result.stderr))
-                
+
         except Exception as e:
             print(f"❌ {file_path}: {e}")
             syntax_errors.append((file_path, str(e)))
-    
+
     if syntax_errors:
         print(f"\n🚨 {len(syntax_errors)} SYNTAX ERRORS:")
         for file_path, error in syntax_errors:
             print(f"\n📝 {file_path}:")
             print(f"   Error: {error}")
-    
+
     return len(syntax_errors) == 0
 
 def create_debug_commands():
     """Create debug command shortcuts"""
     print("\nCreating Debug Commands...")
-    
+
     debug_commands = '''
 # Debug Commands for JobHuntin API
 
@@ -153,7 +153,7 @@ except Exception as e:
     traceback.print_exc()
 "
 '''
-    
+
     commands_file = project_root / "debug_commands.txt"
     commands_file.write_text(debug_commands)
     print(f"Debug commands saved to: {commands_file}")
@@ -162,20 +162,20 @@ def check_render_config():
     """Check render.yaml configuration"""
     print("\nChecking render.yaml...")
     print("=" * 50)
-    
+
     render_file = project_root / "render.yaml"
     if render_file.exists():
         content = render_file.read_text()
-        
+
         # Check for common issues
         issues = []
-        
+
         if 'PYTHONPATH=apps:packages:.' in content and 'PYTHONPATH' in content:
             issues.append("PYTHONPATH defined in both startCommand and envVars")
-        
+
         if content.count('PYTHONPATH=apps:packages:.') > 1:
             issues.append("Multiple PYTHONPATH assignments in startCommand")
-        
+
         if issues:
             print("Configuration Issues Found:")
             for issue in issues:
@@ -189,40 +189,40 @@ def main():
     """Main debug function"""
     print("JobHuntin API Debug Tool")
     print("=" * 50)
-    
+
     # Run all tests
     results = {
         'imports': test_imports_fast(),
         'syntax': test_syntax(),
         'api_startup': test_api_startup(),
     }
-    
+
     # Additional checks
     check_render_config()
     create_debug_commands()
-    
+
     # Summary
     print("\nDEBUG SUMMARY:")
     print("=" * 50)
-    
+
     for test_name, result in results.items():
         status = "PASS" if result else "FAIL"
         print(f"{test_name:15} {status}")
-    
+
     # Quick recommendations
     print("\nQUICK FIXES:")
     print("=" * 50)
-    
+
     if not results['imports']:
         print("All imports working! Try deployment now.")
         print("Check API: https://sorce-api.onrender.com/health")
-    
+
     if not results['syntax']:
         print("All syntax correct!")
-    
+
     if not results['api_startup']:
         print("API can start successfully!")
-    
+
     if not all(results.values()):
         print("\nDEBUG OPTIONS:")
         print("1. Run: python debug_commands.txt (copy commands)")

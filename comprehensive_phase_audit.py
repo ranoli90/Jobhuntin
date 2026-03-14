@@ -21,13 +21,13 @@ Outputs:
     - TODO list of missing components
 """
 
-import os
-import sys
 import json
 import logging
-from pathlib import Path
-from typing import Dict, List, Any, Optional
+import os
+import sys
 from dataclasses import dataclass
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 # Add project root to Python path
 project_root = Path(__file__).resolve().parent

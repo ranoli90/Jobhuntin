@@ -4,6 +4,7 @@ Script to complete the JobHuntin onboarding flow using Playwright.
 """
 
 import asyncio
+
 from playwright.async_api import async_playwright
 
 # Authentication token
