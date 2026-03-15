@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
+import DOMPurify from "dompurify";
 
 export interface FAQItem {
   question: string;
@@ -84,13 +85,15 @@ export function FAQAccordion({
         </div>
       </div>
 
-      {/* nosemgrep: typescript.react.security.audit.react-dangerouslysetinnerhtml.react-dangerouslysetinnerhtml - JSON-LD schema; JSON.stringify+replace prevents XSS */}
+      {/* nosemgrep: typescript.react.security.audit.react-dangerouslysetinnerhtml.react-dangerouslysetinnerhtml - JSON-LD schema; DOMPurify sanitization prevents XSS */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify(faqSchema)
-            .replaceAll("<", String.raw`\u003c`)
-            .replaceAll(">", String.raw`\u003e`),
+          __html: DOMPurify.sanitize(
+            JSON.stringify(faqSchema)
+              .replaceAll("<", String.raw`\u003c`)
+              .replaceAll(">", String.raw`\u003e`)
+          ),
         }}
       />
     </section>

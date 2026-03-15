@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import asyncio
 import json
-import pickle
+import base64
 import time
 from collections import defaultdict
 from dataclasses import dataclass, field
@@ -184,15 +184,17 @@ class MemoryCache:
                 # Serialize and possibly compress value
                 if self.compression_enabled:
                     try:
-                        serialized_value = pickle.dumps(
-                            value, protocol=pickle.HIGHEST_PROTOCOL
-                        )
+                        # Use JSON + base64 instead of pickle for security
+                        json_data = json.dumps(value, default=str)
+                        serialized_value = base64.b64encode(json_data.encode('utf-8'))
                     except Exception:
                         serialized_value = json.dumps(value, default=str).encode(
                             "utf-8"
                         )
                 else:
-                    serialized_value = pickle.dumps(value)
+                    # Use JSON + base64 instead of pickle for security
+                    json_data = json.dumps(value, default=str)
+                    serialized_value = base64.b64encode(json_data.encode('utf-8'))
 
                 # Calculate size
                 size_bytes = len(serialized_value)

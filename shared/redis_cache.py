@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import asyncio
 import json
-import pickle
+import base64
 import time
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
@@ -193,10 +193,15 @@ class RedisCache:
 
                 # Deserialize
                 try:
-                    value = pickle.loads(data)  # nosec B301 - internal cache, data from our Redis
-                except (pickle.PickleError, TypeError):
-                    # Fallback to JSON
-                    value = json.loads(data.decode("utf-8"))
+                    # Use JSON + base64 instead of pickle for security
+                    json_data = base64.b64decode(data).decode('utf-8')
+                    value = json.loads(json_data)
+                except (ValueError, TypeError, json.JSONDecodeError):
+                    # Fallback to direct JSON
+                    try:
+                        value = json.loads(data.decode("utf-8"))
+                    except (UnicodeDecodeError, json.JSONDecodeError):
+                        value = None
 
                 # Update access statistics
                 access_time_ms = (time.time() - start_time) * 1000
@@ -234,9 +239,11 @@ class RedisCache:
 
             # Serialize value
             try:
-                data = pickle.dumps(value)
-            except (pickle.PickleError, TypeError):
-                # Fallback to JSON
+                # Use JSON + base64 instead of pickle for security
+                json_data = json.dumps(value, default=str)
+                data = base64.b64encode(json_data.encode('utf-8'))
+            except (TypeError, ValueError):
+                # Fallback to direct JSON
                 data = json.dumps(value, default=str).encode("utf-8")
 
             # Calculate size
@@ -689,7 +696,9 @@ class MemoryCache:
 
             async with self._lock:
                 # Calculate size
-                size_bytes = len(pickle.dumps(value))
+                # Use JSON + base64 instead of pickle for security
+                json_data = json.dumps(value, default=str)
+                size_bytes = len(base64.b64encode(json_data.encode('utf-8')))
 
                 # Check if eviction is needed
                 if len(self._cache) >= self.max_size:
