@@ -1001,8 +1001,10 @@ class AIOboardingManager:
     def _initialize_ai_prompts(self) -> Dict[str, str]:
         """Initialize AI prompt templates."""
         return {
-            "question_generation": "Generate personalized onboarding questions based on user context and flow
-configuration.",
+            "question_generation": (
+                "Generate personalized onboarding questions based on user context and "
+                "flow configuration."
+            ),
             "follow_up": "Generate relevant follow-up questions based on user responses.",
             "suggestions": "Generate personalized next step suggestions based on user profile and progress.",
             "profile_extraction": "Extract structured profile data from user responses.",

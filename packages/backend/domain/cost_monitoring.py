@@ -374,8 +374,10 @@ class CostMonitor:
                 {
                     "category": "database",
                     "title": "Review database tier",
-                    "description": f"Database costs are ${db_cost:.2f}/month. Consider optimizing queries or
-downgrading tier.",
+                    "description": (
+                        f"Database costs are ${db_cost:.2f}/month. "
+                        f"Consider optimizing queries or downgrading tier."
+                    ),
                     "potential_savings": db_cost * 0.2,
                 }
             )
