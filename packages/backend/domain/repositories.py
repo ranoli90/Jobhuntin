@@ -444,7 +444,8 @@ class ProfileRepo:
             VALUES ($1, $2::jsonb, $3, $4)
             ON CONFLICT (user_id) DO UPDATE
                 SET profile_data = EXCLUDED.profile_data,
-                    resume_url   = CASE WHEN EXCLUDED.resume_url = '' THEN NULL ELSE COALESCE(NULLIF(EXCLUDED.resume_url, ''), profiles.resume_url) END,
+                    resume_url   = CASE WHEN EXCLUDED.resume_url = '' THEN NULL ELSE COALESCE(
+    NULLIF(EXCLUDED.resume_url, ''), profiles.resume_url) END,
                     tenant_id    = COALESCE(EXCLUDED.tenant_id, profiles.tenant_id),
                     updated_at   = now()
             RETURNING id, user_id, profile_data, resume_url, tenant_id, created_at, updated_at
@@ -592,7 +593,8 @@ class JobRepo:
                     params.append(f"%{escape_ilike(keywords_value)}%")
                     n = len(params)
                     conditions.append(
-                        "(j.title ILIKE ${" + str(n) + "} OR j.description ILIKE ${" + str(n) + "} OR j.company ILIKE ${" + str(n) + "})"
+                        "(
+    j.title ILIKE ${" + str(n) + "} OR j.description ILIKE ${" + str(n) + "} OR j.company ILIKE ${" + str(n) + "})"
                     )
 
             if "company_name" in filters:

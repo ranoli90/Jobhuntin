@@ -182,7 +182,8 @@ async def save_consent(
             await conn.execute(
                 """
                 INSERT INTO user_consents
-                (user_id, anonymous_id, consent_type, granted, granted_at, revoked_at, ip_address, user_agent, version, source)
+                (
+    user_id, anonymous_id, consent_type, granted, granted_at, revoked_at, ip_address, user_agent, version, source)
                 VALUES ($1, $2, $3, $4, NOW(), NULL, $5, $6, $7, 'web')
                 ON CONFLICT
                     (CASE WHEN $1::uuid IS NOT NULL THEN user_id ELSE NULL END,
@@ -399,7 +400,8 @@ async def export_consent_data(
         # Get all consent records
         consent_rows = await conn.fetch(
             """
-            SELECT id, consent_type, granted, granted_at, revoked_at, ip_address, user_agent, version, source, created_at, updated_at
+            SELECT id, consent_type, granted, granted_at, revoked_at, ip_address, user_agent, version, source,
+created_at, updated_at
             FROM user_consents
             WHERE ($1::uuid IS NOT NULL AND user_id = $1)
                OR ($2 IS NOT NULL AND anonymous_id = $2)

@@ -585,7 +585,8 @@ class CaptchaHandler:
                         hcaptcha.getResponse = function() {{ return '{solution}'; }};
                     }}
                     // Set the response in hidden fields
-                    var hiddenInputs = document.querySelectorAll('input[name="g-recaptcha-response"], input[name="h-captcha-response"]');
+                    var hiddenInputs = document.querySelectorAll(
+    'input[name="g-recaptcha-response"], input[name="h-captcha-response"]');
                     hiddenInputs.forEach(function(input) {{
                         input.value = '{solution}';
                     }});

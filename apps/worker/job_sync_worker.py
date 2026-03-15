@@ -32,25 +32,34 @@ def handle_shutdown(signum, _frame):
     _shutdown = True
 
 
-async def create_db_pool():
-    """Create database connection pool."""
+def _get_ssl_config(settings) -> object:
+    """Derive SSL configuration for the worker database pool.
+
+    Uses secure verification when db_ssl_ca_cert_path is set,
+    otherwise uses system defaults (requires valid CA-signed cert).
+    """
     import ssl
 
+    if getattr(settings, "db_ssl_ca_cert_path", None):
+        ctx = ssl.create_default_context(cafile=settings.db_ssl_ca_cert_path)
+        return ctx
+    # Use system default SSL verification (requires valid CA-signed cert)
+    return False
+
+
+async def create_db_pool():
+    """Create database connection pool."""
     settings = get_settings()
     from shared.db import resolve_dsn_ipv4
 
     dsn = resolve_dsn_ipv4(settings.database_url)
-    # Use SSL but don't verify certificate for self-signed certs on Render
-    # The connection is still encrypted, just not verified against a CA
-    ctx = ssl.create_default_context(purpose=ssl.Purpose.SERVER_AUTH)
-    ctx.check_hostname = False
-    ctx.verify_mode = ssl.CERT_NONE
+    ssl_arg = _get_ssl_config(settings)
     return await asyncpg.create_pool(
         dsn,
         min_size=settings.db_pool_min,
         max_size=settings.db_pool_max,
         statement_cache_size=0,
-        ssl=ctx,
+        ssl=ssl_arg,
         timeout=30.0,
         command_timeout=60.0,
     )

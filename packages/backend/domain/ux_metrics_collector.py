@@ -694,7 +694,9 @@ class UXMetricsCollector:
                 metric_name=metric.metric_name,
                 alert_type="threshold_breach",
                 severity=severity,
-                message=f"Metric {metric.metric_name} breached {threshold_level} threshold: {metric.value} {metric.unit} > {threshold_value} {metric.unit}",
+                message =
+    f"Metric {metric.metric_name} breached {threshold_level} threshold: {metric.value} {metric.unit} > {threshold_value}
+    {metric.unit}",
                 current_value=metric.value,
                 threshold_value=threshold_value,
                 created_at=datetime.now(timezone.utc),

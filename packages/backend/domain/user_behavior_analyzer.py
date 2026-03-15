@@ -1416,7 +1416,8 @@ class UserBehaviorAnalyzer:
                 day_counts[day] += 1
 
             # Find peak times
-            peak_hour = max(hour_counts.keys(), key=lambda x: int(hour_counts[x]))  # type: ignore[arg-type, return-value]
+            peak_hour = max(
+    hour_counts.keys(), key=lambda x: int(hour_counts[x]))  # type: ignore[arg-type, return-value]
             peak_day = max(day_counts.keys(), key=lambda x: int(day_counts[x]))  # type: ignore[arg-type, return-value]
 
             return {
@@ -1678,7 +1679,8 @@ class UserBehaviorAnalyzer:
                     counts: Dict[str, int] = defaultdict(int)  # type: ignore[assignment]
                     for value in values:
                         counts[value] += 1
-                    aggregated[key] = max(counts.keys(), key=lambda x: int(counts[x]))  # type: ignore[arg-type, return-value]
+                    aggregated[key] = max(
+    counts.keys(), key=lambda x: int(counts[x]))  # type: ignore[arg-type, return-value]
                 elif isinstance(values[0], dict):
                     # Aggregate dictionaries
                     aggregated[key] = self._aggregate_characteristics(values)

@@ -83,7 +83,9 @@ class RateLimitHeadersMiddleware(BaseHTTPMiddleware):
         if forwarded:
             # SECURITY: Use rightmost IP (closest to server) to prevent spoofing
             # Value used as internal rate-limit key only, not returned to client
-            return f"ip:{forwarded.split(',')[-1].strip()}"  # nosemgrep: python.flask.security.audit.directly-returned-format-string.directly-returned-format-string
+            return f"ip:{forwarded.split(
+    ',
+    ')[-1].strip()}"  # nosemgrep: python.flask.security.audit.directly-returned-format-string.directly-returned-format-string
 
         return f"ip:{request.client.host if request.client else 'unknown'}"
 

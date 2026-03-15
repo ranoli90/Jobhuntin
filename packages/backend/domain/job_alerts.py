@@ -453,7 +453,8 @@ class JobAlertService:
                 <h3 style="margin: 0 0 8px; font-size: 16px;">{safe_title}</h3>
                 <p style="margin: 0 0 4px; color: #64748B;">{safe_company}</p>
                 {f'<p style="margin: 0 0 4px; color: #64748B;">{safe_location}</p>' if safe_location else ""}
-                {f'<p style="margin: 0 0 8px; color: #10B981; font-weight: 600;">{salary_str}</p>' if salary_str else ""}
+                {f'<p style =
+    "margin: 0 0 8px; color: #10B981; font-weight: 600;">{salary_str}</p>' if salary_str else ""}
                 <a href="{safe_url}" style="color: #3B82F6; text-decoration: none; font-weight: 600;">View Job →</a>
             </div>
             """
@@ -468,7 +469,9 @@ class JobAlertService:
         safe_alert_name = html.escape(str(alert.name or ""))
 
         return f"""
-        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #1E293B;">
+        <div style =
+    "font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #1E293B;">
             <div style="text-align: center; margin-bottom: 24px;">
                 <h1 style="color: #3B82F6; margin: 0; font-size: 24px;">JobHuntin</h1>
                 <p style="color: #64748B; margin: 4px 0 0;">New Jobs Matching Your Alert</p>
@@ -483,11 +486,14 @@ class JobAlertService:
             {more_html}
 
             <div style="text-align: center; margin: 30px 0;">
-                <a href="sorce://alerts/{alert.id}" style="background: #3B82F6; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600;">Manage Alert</a>
+                <a href =
+    "sorce://alerts/{alert.id}" style="background: #3B82F6; color: white; padding: 12px 24px; border-radius: 8px; text-d
+    ecoration: none; font-weight: 600;">Manage Alert</a>
             </div>
 
             <p style="color: #94A3B8; font-size: 12px; text-align: center; margin-top: 40px;">
-                You're receiving this because you created a job alert. <a href="sorce://settings/alerts" style="color: #94A3B8;">Manage your alerts</a>
+                You're receiving this because you created a job alert. <a href =
+    "sorce://settings/alerts" style="color: #94A3B8;">Manage your alerts</a>
             </p>
         </div>
         """

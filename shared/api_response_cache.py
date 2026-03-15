@@ -500,7 +500,8 @@ class ResponseCache:
             return default
 
         try:
-            cache_file = f"/tmp/api_cache/{hashlib.md5(key.encode() if isinstance(key, str) else key, usedforsecurity=False).hexdigest()}.cache"
+            cache_file = f"/tmp/api_cache/{hashlib.md5(
+    key.encode() if isinstance(key, str) else key, usedforsecurity=False).hexdigest()}.cache"
 
             import os
 
@@ -573,7 +574,8 @@ class ResponseCache:
             return
 
         try:
-            cache_file = f"/tmp/api_cache/{hashlib.md5(entry.key.encode() if isinstance(entry.key, str) else entry.key, usedforsecurity=False).hexdigest()}.cache"
+            cache_file = f"/tmp/api_cache/{hashlib.md5(
+    entry.key.encode() if isinstance(entry.key, str) else entry.key, usedforsecurity=False).hexdigest()}.cache"
             metadata_file = f"{cache_file}.meta"
 
             import os
@@ -634,7 +636,8 @@ class ResponseCache:
                 deleted = True
         elif cache_level == CacheLevel.DISK:
             if key in self.disk_cache:
-                cache_file = f"/tmp/api_cache/{hashlib.md5(key.encode() if isinstance(key, str) else key, usedforsecurity=False).hexdigest()}.cache"
+                cache_file = f"/tmp/api_cache/{hashlib.md5(
+    key.encode() if isinstance(key, str) else key, usedforsecurity=False).hexdigest()}.cache"
                 metadata_file = f"{cache_file}.meta"
 
                 try:
@@ -945,7 +948,8 @@ class ResponseCache:
         if stats["memory_entries"] > self.config.max_memory_entries * 0.9:
             health_status = "degraded"
             issues.append(
-                f"Memory cache at {stats['memory_entries']} entries ({stats['total_entries']} max: {self.config.max_memory_entries})"
+                f"Memory cache at {stats['memory_entries']} entries (
+    {stats['total_entries']} max: {self.config.max_memory_entries})"
             )
 
         # Check Redis health

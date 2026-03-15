@@ -220,7 +220,8 @@ async def get_pool() -> asyncpg.Pool:
         from fastapi import HTTPException
         raise HTTPException(
             status_code=503,
-            detail="Database connection not available. The service may be starting up or experiencing connectivity issues."
+            detail =
+    "Database connection not available. The service may be starting up or experiencing connectivity issues."
         )
     return _pool_manager.pool
 

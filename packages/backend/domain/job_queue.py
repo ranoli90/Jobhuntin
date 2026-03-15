@@ -476,12 +476,14 @@ async def create_job_queue_tables(conn: asyncpg.Connection) -> None:
             tenant_id UUID,
             created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
 
-            CONSTRAINT valid_status CHECK (status IN ('pending', 'queued', 'running', 'completed', 'failed', 'cancelled'))
+            CONSTRAINT valid_status CHECK (
+    status IN ('pending', 'queued', 'running', 'completed', 'failed', 'cancelled'))
         );
 
         CREATE INDEX IF NOT EXISTS idx_background_jobs_status_scheduled ON public.background_jobs (status, scheduled_at)
             WHERE status IN ('pending', 'queued');
-        CREATE INDEX IF NOT EXISTS idx_background_jobs_queue_priority ON public.background_jobs (queue, priority, created_at);
+        CREATE INDEX IF NOT EXISTS idx_background_jobs_queue_priority ON public.background_jobs (
+    queue, priority, created_at);
         CREATE INDEX IF NOT EXISTS idx_background_jobs_dedup ON public.background_jobs (dedup_key)
             WHERE dedup_key IS NOT NULL;
         CREATE INDEX IF NOT EXISTS idx_background_jobs_locked ON public.background_jobs (locked_at, lock_expires_at);

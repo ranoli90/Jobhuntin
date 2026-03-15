@@ -492,7 +492,8 @@ class DatabasePerformanceManager:
                     alert_type="threshold_breach",
                     severity=threshold_type,
                     title=f"Performance Alert: {metric.metric_name}",
-                    message=f"{metric.metric_name} exceeded threshold: {metric.value} {metric.unit} > {metric.threshold} {metric.unit}",
+                    message =
+    f"{metric.metric_name} exceeded threshold: {metric.value} {metric.unit} > {metric.threshold} {metric.unit}",
                     metric_name=metric.metric_name,
                     current_value=metric.value,
                     threshold_value=metric.threshold,

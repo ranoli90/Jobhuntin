@@ -163,7 +163,8 @@ async def update_email_preferences(
         async with pool.acquire() as conn:
             await conn.execute(
                 """
-                INSERT INTO public.email_preferences (user_id, status_changes, security, usage_alerts, marketing, weekly_digest)
+                INSERT INTO public.email_preferences (
+    user_id, status_changes, security, usage_alerts, marketing, weekly_digest)
                 VALUES ($1, $2, $3, $4, $5, $6)
                 ON CONFLICT (user_id) DO UPDATE SET
                     status_changes = EXCLUDED.status_changes,
@@ -486,7 +487,6 @@ async def get_email_log(
         raise HTTPException(status_code=403, detail="Admin access required")
     try:
         # Whitelist of allowed filter fields to prevent SQL injection
-        allowed_filters = {"user_id", "email_type"}
         conditions = []
         params = []
         n = 1
@@ -505,14 +505,16 @@ async def get_email_log(
         where = (" AND " + " AND ".join(conditions)) if conditions else ""
         
         async with pool.acquire() as conn:
-            # nosemgrep: python.lang.security.audit.sqli.asyncpg-sqli.asyncpg-sqli - parameterized query with filter whitelist
+            # nosemgrep: python.lang.security.audit.sqli.asyncpg-sqli.
+# asyncpg-sqli - parameterized query with filter whitelist
             total = await conn.fetchval(
                 f"SELECT COUNT(*)::int FROM public.email_communications_log WHERE 1=1 {where}",
                 *params,
             )
             fetch_params = params + [limit, offset]
             lim_off = f"LIMIT ${len(fetch_params) - 1} OFFSET ${len(fetch_params)}"
-            # nosemgrep: python.lang.security.audit.sqli.asyncpg-sqli.asyncpg-sqli - parameterized query with filter whitelist
+            # nosemgrep: python.lang.security.audit.sqli.asyncpg-sqli.
+# asyncpg-sqli - parameterized query with filter whitelist
             rows = await conn.fetch(
                 f"""
                 SELECT id, user_id, email_type, template_name, recipient, sent_at

@@ -817,12 +817,14 @@ class MonitoringSystem:
 
             if critical_checks:
                 recommendations.append(
-                    f"Address {len(critical_checks)} critical health check(s): {', '.join([c.name for c in critical_checks])}"
+                    f"Address {len(
+    critical_checks)} critical health check(s): {', '.join([c.name for c in critical_checks])}"
                 )
 
             if warning_checks:
                 recommendations.append(
-                    f"Monitor {len(warning_checks)} warning health check(s): {', '.join([c.name for c in warning_checks])}"
+                    f"Monitor {len(
+    warning_checks)} warning health check(s): {', '.join([c.name for c in warning_checks])}"
                 )
 
             # Analyze slow checks

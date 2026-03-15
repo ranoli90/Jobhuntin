@@ -127,7 +127,8 @@ async def get_behavior_insights(
     ),
     behavior_pattern: Optional[str] = Query(
         None,
-        regex="^(linear_navigation|nonlinear_navigation|task_oriented|exploratory|power_user|casual_user|frustrated|satisfied|efficient|inefficient)$",
+        regex="^(
+    linear_navigation|nonlinear_navigation|task_oriented|exploratory|power_user|casual_user|frustrated|satisfied|efficient|inefficient)$",
     ),
     db_pool=Depends(get_db_pool),
     current_user=Depends(get_current_user),

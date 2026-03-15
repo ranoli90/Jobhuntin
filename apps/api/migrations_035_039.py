@@ -52,7 +52,8 @@ async def _run_migration_035(conn: asyncpg.Connection) -> None:
     # Indexes
     await conn.execute("CREATE INDEX IF NOT EXISTS idx_jobs_is_spam ON jobs(is_spam)")
     await conn.execute("CREATE INDEX IF NOT EXISTS idx_jobs_canonical_job_id ON jobs(canonical_job_id)")
-    await conn.execute("CREATE INDEX IF NOT EXISTS idx_jobs_company_score ON jobs(company_score) WHERE company_score IS NOT NULL")
+    await conn.execute(
+    "CREATE INDEX IF NOT EXISTS idx_jobs_company_score ON jobs(company_score) WHERE company_score IS NOT NULL")
 
 
 async def _run_migration_036(conn: asyncpg.Connection) -> None:
@@ -94,11 +95,26 @@ async def _run_migration_036(conn: asyncpg.Connection) -> None:
     # Indexes
     await conn.execute("CREATE INDEX IF NOT EXISTS idx_companies_domain ON companies(domain)")
     await conn.execute("CREATE INDEX IF NOT EXISTS idx_companies_name ON companies(name)")
-    await conn.execute("CREATE INDEX IF NOT EXISTS idx_companies_reputation_score ON companies(reputation_score) WHERE reputation_score IS NOT NULL")
-    await conn.execute("CREATE INDEX IF NOT EXISTS idx_companies_company_score ON companies(company_score) WHERE company_score IS NOT NULL")
-    await conn.execute("CREATE INDEX IF NOT EXISTS idx_companies_is_verified ON companies(is_verified) WHERE is_verified = TRUE")
-    await conn.execute("CREATE INDEX IF NOT EXISTS idx_companies_suspicious ON companies(is_suspicious) WHERE is_suspicious = TRUE")
-    await conn.execute("CREATE INDEX IF NOT EXISTS idx_companies_known_scam ON companies(known_scam) WHERE known_scam = TRUE")
+    await conn.execute(
+        "CREATE INDEX IF NOT EXISTS idx_companies_reputation_score "
+        "ON companies(reputation_score) WHERE reputation_score IS NOT NULL"
+    )
+    await conn.execute(
+        "CREATE INDEX IF NOT EXISTS idx_companies_company_score "
+        "ON companies(company_score) WHERE company_score IS NOT NULL"
+    )
+    await conn.execute(
+        "CREATE INDEX IF NOT EXISTS idx_companies_is_verified "
+        "ON companies(is_verified) WHERE is_verified = TRUE"
+    )
+    await conn.execute(
+        "CREATE INDEX IF NOT EXISTS idx_companies_suspicious "
+        "ON companies(is_suspicious) WHERE is_suspicious = TRUE"
+    )
+    await conn.execute(
+        "CREATE INDEX IF NOT EXISTS idx_companies_known_scam "
+        "ON companies(known_scam) WHERE known_scam = TRUE"
+    )
 
     # Add company_id to jobs
     await conn.execute("ALTER TABLE jobs ADD COLUMN IF NOT EXISTS company_id UUID REFERENCES companies(id)")
@@ -121,7 +137,8 @@ async def _run_migration_037(conn: asyncpg.Connection) -> None:
     await conn.execute("CREATE INDEX IF NOT EXISTS idx_user_events_event_type ON user_events(event_type)")
     await conn.execute("CREATE INDEX IF NOT EXISTS idx_user_events_created_at ON user_events(created_at)")
     await conn.execute("CREATE INDEX IF NOT EXISTS idx_user_events_user_type ON user_events(user_id, event_type)")
-    await conn.execute("CREATE INDEX IF NOT EXISTS idx_user_events_user_created ON user_events(user_id, created_at DESC)")
+    await conn.execute(
+    "CREATE INDEX IF NOT EXISTS idx_user_events_user_created ON user_events(user_id, created_at DESC)")
 
     # Job views
     await conn.execute("""
@@ -151,9 +168,11 @@ async def _run_migration_037(conn: asyncpg.Connection) -> None:
             updated_at TIMESTAMPTZ DEFAULT NOW()
         )
     """)
-    await conn.execute("CREATE INDEX IF NOT EXISTS idx_application_outcomes_application_id ON application_outcomes(application_id)")
+    await conn.execute(
+    "CREATE INDEX IF NOT EXISTS idx_application_outcomes_application_id ON application_outcomes(application_id)")
     await conn.execute("CREATE INDEX IF NOT EXISTS idx_application_outcomes_status ON application_outcomes(status)")
-    await conn.execute("CREATE INDEX IF NOT EXISTS idx_application_outcomes_created_at ON application_outcomes(created_at)")
+    await conn.execute(
+    "CREATE INDEX IF NOT EXISTS idx_application_outcomes_created_at ON application_outcomes(created_at)")
 
 
 async def _run_migration_038(conn: asyncpg.Connection) -> None:
@@ -190,7 +209,8 @@ async def _run_migration_038(conn: asyncpg.Connection) -> None:
     """)
     await conn.execute("CREATE INDEX IF NOT EXISTS idx_data_retention_logs_job_id ON data_retention_logs(job_id)")
     await conn.execute("CREATE INDEX IF NOT EXISTS idx_data_retention_logs_data_type ON data_retention_logs(data_type)")
-    await conn.execute("CREATE INDEX IF NOT EXISTS idx_data_retention_logs_created_at ON data_retention_logs(created_at DESC)")
+    await conn.execute(
+    "CREATE INDEX IF NOT EXISTS idx_data_retention_logs_created_at ON data_retention_logs(created_at DESC)")
 
     # Trigger function
     await conn.execute("""
@@ -212,13 +232,23 @@ async def _run_migration_038(conn: asyncpg.Connection) -> None:
 
     # Default policies (ignore conflicts)
     await conn.execute("""
-        INSERT INTO retention_policies (data_type, retention_days, description, legal_basis, allow_soft_delete, batch_size, requires_archive)
+        INSERT INTO retention_policies (
+    data_type, retention_days, description, legal_basis, allow_soft_delete, batch_size, requires_archive)
         VALUES 
-            ('session_logs', 90, 'Session logs for security auditing', 'Legitimate interest - Security monitoring', TRUE, 5000, FALSE),
-            ('analytics_events', 365, 'Analytics events for product improvement', 'Consent - Analytics tracking', TRUE, 10000, FALSE),
-            ('application_data', 30, 'Job application data after account deletion', 'GDPR Art. 17 - Right to erasure', TRUE, 1000, TRUE),
-            ('uploaded_resumes', 0, 'Uploaded resumes - retained while account active', 'Contract performance', TRUE, 500, TRUE),
-            ('api_logs', 90, 'API request logs for debugging and security', 'Legitimate interest - API monitoring', TRUE, 10000, FALSE)
+            (
+    'session_logs', 90, 'Session logs for security auditing', 'Legitimate interest - Security monitoring', TRUE, 5000,
+    FALSE),
+            (
+    'analytics_events', 365, 'Analytics events for product improvement', 'Consent - Analytics tracking', TRUE, 10000,
+    FALSE),
+            (
+    'application_data', 30, 'Job application data after account deletion', 'GDPR Art. 17 - Right to erasure', TRUE,
+    1000, TRUE),
+            (
+    'uploaded_resumes', 0, 'Uploaded resumes - retained while account active', 'Contract performance', TRUE, 500, TRUE),
+            (
+    'api_logs', 90, 'API request logs for debugging and security', 'Legitimate interest - API monitoring', TRUE, 10000,
+    FALSE)
         ON CONFLICT (data_type) DO NOTHING
     """)
 

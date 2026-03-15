@@ -204,9 +204,12 @@ async def get_conversion_funnel(conn: asyncpg.Connection) -> dict[str, Any]:
         WITH funnel AS (
             SELECT
                 (SELECT COUNT(*) FROM auth.users) AS total_signups,
-                (SELECT COUNT(*) FROM auth.users WHERE id IN (SELECT DISTINCT user_id FROM public.applications)) AS activated,
+                (
+    SELECT COUNT(*) FROM auth.users WHERE id IN (SELECT DISTINCT user_id FROM public.applications)) AS activated,
                 (SELECT COUNT(*) FROM public.tenants WHERE plan != 'FREE') AS converted,
-                (SELECT COUNT(*) FROM public.tenants WHERE plan IN ('PRO', 'TEAM', 'ENTERPRISE') AND stripe_subscription_status = 'active') AS active_paid
+                (
+    SELECT COUNT(*) FROM public.tenants WHERE plan IN ('PRO', 'TEAM',
+    'ENTERPRISE') AND stripe_subscription_status = 'active') AS active_paid
         )
         SELECT * FROM funnel
         """

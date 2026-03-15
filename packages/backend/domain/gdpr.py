@@ -152,7 +152,8 @@ async def delete_user_data(
             (
                 "DELETE FROM public.analytics_events WHERE user_id = $1"
                 if not retain_analytics
-                else "UPDATE public.analytics_events SET user_id = NULL, properties = properties - 'email' WHERE user_id = $1"
+                else "UPDATE public.analytics_events SET user_id =
+    NULL, properties = properties - 'email' WHERE user_id = $1"
             ),
             user_id,
         )

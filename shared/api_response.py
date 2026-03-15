@@ -2,7 +2,8 @@
 
 This module provides standardized response formats for all API endpoints:
 - SuccessResponse: `{"success": true, "data": {...}, "meta": {"version": "1.0", "timestamp": "ISO8601"}}`
-- ErrorResponse: `{"success": false, "error": {"code": "ERROR_CODE", "message": "...", "details": [...], "request_id": "..."}}`
+- ErrorResponse: `{"success": false, "error": {"code": "ERROR_CODE", "message": "...", "details": [...], "request_id":
+"..."}}`
 
 Usage:
     from shared.api_response import SuccessResponse, ErrorResponse, success_response, error_response

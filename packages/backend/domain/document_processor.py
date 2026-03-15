@@ -200,7 +200,8 @@ class DocumentProcessor:
 
             if is_scanned:
                 logger.debug(
-                    f"PDF appears scanned: {len(text_content.strip())} chars, {sum(len(page.get_images()) for page in doc)} images"
+                    f"PDF appears scanned: {len(
+    text_content.strip())} chars, {sum(len(page.get_images()) for page in doc)} images"
                 )
 
             return is_scanned

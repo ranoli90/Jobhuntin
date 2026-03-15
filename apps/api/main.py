@@ -542,12 +542,14 @@ async def rate_limiting_middleware(request: Request, call_next):
             incr("api.rate_limit_exceeded", tags={"ip_hash": mask_ip(client_ip)})
             return JSONResponse(
                 status_code=429,
-                content={"error": {"code": "RATE_LIMIT_EXCEEDED", "message": "Rate limit exceeded. Please try again later."}},
+                content =
+    {"error": {"code": "RATE_LIMIT_EXCEEDED", "message": "Rate limit exceeded. Please try again later."}},
             )
 
     response = await call_next(request)
     if response is None:
-        return JSONResponse(status_code=500, content={"error": {"code": "INTERNAL_SERVER_ERROR", "message": "No response"}})
+        return JSONResponse(
+    status_code=500, content={"error": {"code": "INTERNAL_SERVER_ERROR", "message": "No response"}})
     return response
 
 

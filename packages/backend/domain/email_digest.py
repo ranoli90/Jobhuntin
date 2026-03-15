@@ -101,7 +101,9 @@ def render_digest_html(user_name: str | None, stats: dict[str, Any]) -> str:
         companies_html += f"<li>{safe_company} ({c['count']} apps)</li>"
 
     return f"""
-    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #1E293B;">
+    <div style =
+    "font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #1E293B;">
         <div style="text-align: center; margin-bottom: 24px;">
             <h1 style="color: #3B82F6; margin: 0; font-size: 24px;">Sorce</h1>
             <p style="color: #64748B; margin: 4px 0 0;">Your Weekly Job Search Report</p>
@@ -114,7 +116,8 @@ def render_digest_html(user_name: str | None, stats: dict[str, Any]) -> str:
             <table style="width: 100%; border-collapse: collapse;">
                 <tr>
                     <td style="text-align: center; padding: 8px;">
-                        <div style="font-size: 28px; font-weight: 700; color: #3B82F6;">{stats["total_applications"]}</div>
+                        <div style =
+    "font-size: 28px; font-weight: 700; color: #3B82F6;">{stats["total_applications"]}</div>
                         <div style="font-size: 12px; color: #64748B;">Applied</div>
                     </td>
                     <td style="text-align: center; padding: 8px;">
@@ -133,16 +136,21 @@ def render_digest_html(user_name: str | None, stats: dict[str, Any]) -> str:
             </table>
         </div>
 
-        {"<div style='margin: 20px 0;'><strong>Top companies this week:</strong><ul>" + companies_html + "</ul></div>" if companies_html else ""}
+        {"<div style =
+    'margin: 20px 0;'><strong>Top companies this week:</strong><ul>" + companies_html +
+    "</ul></div>" if companies_html else ""}
 
         {_hold_cta(stats["on_hold"]) if stats["on_hold"] > 0 else ""}
 
         <div style="text-align: center; margin: 30px 0;">
-            <a href="sorce://feed" style="background: #3B82F6; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600;">Open Sorce</a>
+            <a href =
+    "sorce://feed" style="background: #3B82F6; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: no
+    ne; font-weight: 600;">Open Sorce</a>
         </div>
 
         <p style="color: #94A3B8; font-size: 12px; text-align: center; margin-top: 40px;">
-            You're receiving this because you use Sorce. <a href="sorce://settings" style="color: #94A3B8;">Unsubscribe</a>
+            You're receiving this because you use Sorce. <a href =
+    "sorce://settings" style="color: #94A3B8;">Unsubscribe</a>
         </p>
     </div>
     """
@@ -150,7 +158,8 @@ def render_digest_html(user_name: str | None, stats: dict[str, Any]) -> str:
 
 def _hold_cta(count: int) -> str:
     return f"""
-    <div style="background: #FEF3C7; border-radius: 8px; padding: 14px; margin: 16px 0; border-left: 4px solid #F59E0B;">
+    <div style =
+    "background: #FEF3C7; border-radius: 8px; padding: 14px; margin: 16px 0; border-left: 4px solid #F59E0B;">
         <strong>{count} application(s) need your input.</strong> Answer the questions so Sorce can finish submitting.
         <a href="sorce://applications" style="color: #D97706; font-weight: 600;"> Review now →</a>
     </div>

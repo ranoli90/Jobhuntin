@@ -30,7 +30,8 @@ async def get_churn_prediction(
     conn: asyncpg.Connection, limit: int = 30
 ) -> list[dict[str, Any]]:
     rows = await conn.fetch(
-        "SELECT * FROM public.mv_churn_prediction ORDER BY churn_risk_level DESC, days_since_last_activity DESC LIMIT $1",
+        "SELECT * FROM public.mv_churn_prediction ORDER BY churn_risk_level DESC, days_since_last_activity DESC LIMIT
+$1",
         limit,
     )
     return [dict(r) for r in rows]

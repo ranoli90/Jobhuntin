@@ -911,7 +911,9 @@ async def list_cover_letter_templates(
 
 Dear [Hiring Manager's Name],
 
-I am writing to express my interest in the [Job Title] position at [Company Name], as advertised. With my background in [Your Field/Industry] and experience in [Key Skills/Experience], I am excited about the opportunity to contribute to your team.
+I am writing to express my interest in the [Job Title] position at [Company Name], as advertised. With my background in
+[Your Field/Industry] and experience in [Key Skills/Experience], I am excited about the opportunity to contribute to
+your team.
 
 [Body paragraph 1 - Highlight relevant experience and achievements]
 
@@ -948,7 +950,8 @@ Dear [Hiring Manager's Name],
 
 What if I told you that [hook - interesting fact about your experience]?
 
-That's the kind of innovative thinking I bring to [Company Name] as a candidate for the [Job Title] role. With [X years] of experience in [Your Field], I've developed a unique perspective on [relevant topic].
+That's the kind of innovative thinking I bring to [Company Name] as a candidate for the [Job Title] role. With [X
+years] of experience in [Your Field], I've developed a unique perspective on [relevant topic].
 
 [Body - Tell your story and connect it to the role]
 
@@ -985,13 +988,19 @@ Best regards,
 
 Dear [Hiring Manager's Name],
 
-I am writing to express my strong interest in the [Job Title] position at [Company Name]. As a [Your Current Role] with [X] years of executive experience in [Your Industry], I have a proven track record of [key achievement 1] and [key achievement 2].
+I am writing to express my strong interest in the [Job Title] position at [Company Name]. As a [Your Current Role] with
+[X] years of executive experience in [Your Industry], I have a proven track record of [key achievement 1] and [key
+achievement 2].
 
-Throughout my career, I have demonstrated expertise in [key area 1], [key area 2], and [key area 3]. Notably, I led [specific project] that resulted in [quantifiable result], and spearheaded [initiative] that improved [metric] by [percentage].
+Throughout my career, I have demonstrated expertise in [key area 1], [key area 2], and [key area 3]. Notably, I led
+[specific project] that resulted in [quantifiable result], and spearheaded [initiative] that improved [metric] by
+[percentage].
 
-I am particularly drawn to [Company Name] because of your reputation for [company strength] and your commitment to [company value]. The opportunity to [specific opportunity] aligns perfectly with my professional goals.
+I am particularly drawn to [Company Name] because of your reputation for [company strength] and your commitment to
+[company value]. The opportunity to [specific opportunity] aligns perfectly with my professional goals.
 
-I would welcome the opportunity to discuss how my leadership experience and strategic vision can contribute to your team's success.
+I would welcome the opportunity to discuss how my leadership experience and strategic vision can contribute to your
+team's success.
 
 Thank you for your time and consideration.
 
@@ -1035,7 +1044,9 @@ Sincerely,
 
 Dear [Hiring Manager's Name],
 
-I am writing to apply for the [Job Title] position at [Company Name]. As a [Your Current Role] with [X] years of experience in software development, I have extensive expertise in [primary technology stack] and a strong background in [secondary technologies].
+I am writing to apply for the [Job Title] position at [Company Name]. As a [Your Current Role] with [X] years of
+experience in software development, I have extensive expertise in [primary technology stack] and a strong background in
+[secondary technologies].
 
 My technical expertise includes:
 - [Programming Language 1]: [experience level] years
@@ -1044,11 +1055,16 @@ My technical expertise includes:
 - [Database Technology]: [experience level] years
 - [Cloud Platform]: [experience level] years
 
-In my current role at [Current Company], I have successfully [key technical achievement 1] and [key technical achievement 2]. Notably, I [specific technical project] that improved [technical metric] by [percentage] and [another technical project] that enhanced [business outcome].
+In my current role at [Current Company], I have successfully [key technical achievement 1] and [key technical
+achievement 2]. Notably, I [specific technical project] that improved [technical metric] by [percentage] and [another
+technical project] that enhanced [business outcome].
 
-I am particularly interested in [Company Name] because of your [technical innovation/tech stack] and your work in [specific technical area]. The opportunity to [technical challenge] aligns perfectly with my skills and career aspirations.
+I am particularly interested in [Company Name] because of your [technical innovation/tech stack] and your work in
+[specific technical area]. The opportunity to [technical challenge] aligns perfectly with my skills and career
+aspirations.
 
-I would be excited to discuss how my technical background and problem-solving abilities can contribute to your engineering team.
+I would be excited to discuss how my technical background and problem-solving abilities can contribute to your
+engineering team.
 
 Thank you for considering my application.
 
@@ -1094,13 +1110,20 @@ Best regards,
 
 Dear [Hiring Manager's Name],
 
-I am writing to express my strong interest in the [Job Title] position at [Company Name]. As a recent [Your Degree] graduate from [Your University], I am eager to begin my professional career and contribute my fresh perspective and enthusiasm to your team.
+I am writing to express my strong interest in the [Job Title] position at [Company Name]. As a recent [Your Degree]
+graduate from [Your University], I am eager to begin my professional career and contribute my fresh perspective and
+enthusiasm to your team.
 
-During my studies, I developed strong skills in [relevant skill 1], [relevant skill 2], and [relevant skill 3]. I also gained practical experience through [internship/project 1] and [internship/project 2], where I [specific achievement 1] and [specific achievement 2].
+During my studies, I developed strong skills in [relevant skill 1], [relevant skill 2], and [relevant skill 3]. I also
+gained practical experience through [internship/project 1] and [internship/project 2], where I [specific achievement 1]
+and [specific achievement 2].
 
-I am particularly excited about [Company Name] because of your [company reputation] and your commitment to [company value]. The opportunity to [entry-level opportunity] would allow me to apply my academic knowledge and learn from experienced professionals like you.
+I am particularly excited about [Company Name] because of your [company reputation] and your commitment to [company
+value]. The opportunity to [entry-level opportunity] would allow me to apply my academic knowledge and learn from
+experienced professionals like you.
 
-I am a quick learner, highly motivated, and ready to contribute my energy and fresh ideas to your team. I would be grateful for the chance to discuss how my educational background and enthusiasm can benefit [Company Name].
+I am a quick learner, highly motivated, and ready to contribute my energy and fresh ideas to your team. I would be
+grateful for the chance to discuss how my educational background and enthusiasm can benefit [Company Name].
 
 Thank you for considering my application.
 
@@ -1144,13 +1167,21 @@ Sincerely,
 
 Dear [Hiring Manager's Name],
 
-I am writing to express my interest in the [Job Title] position at [Company Name]. While my background has been in [Previous Industry], I am actively transitioning to [New Industry] and bring valuable transferable skills from my [X] years of professional experience.
+I am writing to express my interest in the [Job Title] position at [Company Name]. While my background has been in
+[Previous Industry], I am actively transitioning to [New Industry] and bring valuable transferable skills from my [X]
+years of professional experience.
 
-Throughout my career in [Previous Industry], I have developed strong skills in [transferable skill 1], [transferable skill 2], and [transferable skill 3]. These skills, combined with my experience in [relevant experience area], have prepared me well for success in [New Industry].
+Throughout my career in [Previous Industry], I have developed strong skills in [transferable skill 1], [transferable
+skill 2], and [transferable skill 3]. These skills, combined with my experience in [relevant experience area], have
+prepared me well for success in [New Industry].
 
-I have been actively upskilling through [training/certification 1] and [training/certification 2], and I am passionate about [new industry passion]. My unique perspective, combining [previous industry insight] with [new industry knowledge], allows me to approach challenges with [unique approach].
+I have been actively upskilling through [training/certification 1] and [training/certification 2], and I am passionate
+about [new industry passion]. My unique perspective, combining [previous industry insight] with [new industry
+knowledge], allows me to approach challenges with [unique approach].
 
-I am particularly drawn to [Company Name] because of your [company innovation/industry leadership] and your commitment to [company value]. The opportunity to [career change opportunity] would allow me to apply my diverse experience while learning from your team.
+I am particularly drawn to [Company Name] because of your [company innovation/industry leadership] and your commitment
+to [company value]. The opportunity to [career change opportunity] would allow me to apply my diverse experience while
+learning from your team.
 
 I would be excited to discuss how my transferable skills and fresh perspective can contribute to your team's success.
 
@@ -1297,7 +1328,8 @@ async def generate_cover_letter_enhanced(
 
 Dear Hiring Manager,
 
-I am excited to apply for the [Job Title] position at [Company Name]. With my background in software development and experience building scalable applications, I am confident I can contribute to your team's success.  # noqa: E501
+I am excited to apply for the [Job Title] position at [Company Name]. With my background in software development and
+experience building scalable applications, I am confident I can contribute to your team's success.  # noqa: E501
 
 [Personalized content based on job and profile]
 
@@ -1320,7 +1352,8 @@ Sincerely,
                         Company: {job_data.get("company_name", job_data.get("company", "Unknown"))}
                         Location: {job_data.get("location", "Unknown")}
                         Remote: {job_data.get("remote", False)}
-                        Salary: ${job_data.get("salary_min", "Not specified")} - ${job_data.get("salary_max", "Not specified")}
+                        Salary: ${job_data.get(
+    "salary_min", "Not specified")} - ${job_data.get("salary_max", "Not specified")}
                         Job Type: {job_data.get("job_type", "Not specified")}
                         Description: {job_data.get("description", "No description available")}
                         Requirements: {job_data.get("requirements", [])}
@@ -1350,7 +1383,8 @@ Length: {length}
 
 Focus areas: {focus_areas_str}
 
-Make it specific to the job and company. Include relevant skills and experience from the profile that match the job requirements. Keep it professional and concise."""
+Make it specific to the job and company. Include relevant skills and experience from the profile that match the job
+requirements. Keep it professional and concise."""
 
         result = await client.call(
             prompt=prompt,

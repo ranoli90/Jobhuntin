@@ -277,8 +277,10 @@ EXTRACT_FORM_FIELDS_JS = """
         if (el.id) return '#' + el.id;
         if (el.name) return el.tagName.toLowerCase() + '[name="' + el.name + '"]';
         // Try data attributes as fallback
-        if (el.getAttribute('data-field-id')) return el.tagName.toLowerCase() + '[data-field-id="' + el.getAttribute('data-field-id') + '"]';
-        if (el.getAttribute('data-testid')) return el.tagName.toLowerCase() + '[data-testid="' + el.getAttribute('data-testid') + '"]';
+        if (
+    el.getAttribute('data-field-id')) return el.tagName.toLowerCase() + '[data-field-id="' + el.getAttribute('data-field-id') + '"]';
+        if (
+    el.getAttribute('data-testid')) return el.tagName.toLowerCase() + '[data-testid="' + el.getAttribute('data-testid') + '"]';
         // Try label association
         if (el.id && document.querySelector('label[for="' + el.id + '"]')) {
             const label = document.querySelector('label[for="' + el.id + '"]');
@@ -456,7 +458,8 @@ async def extract_all_form_fields(page: Page) -> list[FormField]:
 # ---------------------------------------------------------------------------
 
 
-MAP_PROMPT_TEMPLATE = """You are a job-application autofill assistant. Your goal is to fill a web form using the user's profile data.
+MAP_PROMPT_TEMPLATE =
+    """You are a job-application autofill assistant. Your goal is to fill a web form using the user's profile data.
 
 ## Canonical User Profile
 {profile_json}
@@ -808,7 +811,8 @@ class FormAgent:
                 [
                     {
                         "selector": "captcha",
-                        "question": "Human verification (CAPTCHA) required. Please complete the CAPTCHA on the application page and retry.",
+                        "question": "Human verification (
+    CAPTCHA) required. Please complete the CAPTCHA on the application page and retry.",
                     }
                 ],
                 [],
@@ -985,7 +989,8 @@ class FormAgent:
 
                 if is_retryable and attempt < max_retries - 1:
                     # HIGH: Exponential backoff with jitter
-                    delay = base_delay * (2**attempt) + ((secrets.randbelow(500) / 1000) * 0.5)  # Use secrets for jitter
+                    delay = base_delay * (
+    2**attempt) + ((secrets.randbelow(500) / 1000) * 0.5)  # Use secrets for jitter
                     logger.warning(
                         "Page navigation failed (attempt %d/%d), retrying in %.2fs: %s",
                         attempt + 1,
@@ -2167,11 +2172,15 @@ async def worker_loop() -> None:
             import secrets
 
             _ua_pool = [
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
-                "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+                "Mozilla/5.0 (
+    Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+                "Mozilla/5.0 (
+    Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
+                "Mozilla/5.0 (
+    Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
                 "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:124.0) Gecko/20100101 Firefox/124.0",
-                "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4.1 Safari/605.1.15",
+                "Mozilla/5.0 (
+    Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4.1 Safari/605.1.15",
             ]
             
             # Use secrets for better randomness even for fingerprinting

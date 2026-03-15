@@ -1259,7 +1259,8 @@ def _generate_vacuum_recommendations(
                     priority = "high"
                     impact_score = 0.8
                     cost = "medium"
-                    reasoning = f"Table {table_name} hasn't been VACUUMed in {stats.get('avg_vacuum_age_days', 0):.1f} days"
+                    reasoning = f"Table {table_name} hasn't been VACUUMed in {stats.get(
+    'avg_vacuum_age_days', 0):.1f} days"
                 else:
                     priority = "medium"
                     impact_score = 0.6
@@ -1304,7 +1305,8 @@ def _generate_bloat_recommendations(
                         "priority": "high",
                         "impact_score": 0.7,
                         "implementation_cost": "high",
-                        "reasoning": f"Table {table_name} has high dead tuple ratio: {stats['dead_tuples']}/{stats['reltuples']} ({stats['dead_tuples'] / stats['reltuples'] * 100:.1f}%)",
+                        "reasoning": f"Table {table_name} has high dead tuple ratio: {stats['dead_tuples']}/{stats['reltuples']} (
+    {stats['dead_tuples'] / stats['reltuples'] * 100:.1f}%)",
                         "sql_statement": f"VACUUM FULL {table_name}",
                         "estimated_benefit": "Reduced bloat and improved performance",
                         "risks": ["Temporary performance impact during VACUUM"],
@@ -1318,7 +1320,8 @@ def _generate_bloat_recommendations(
                         "priority": "medium",
                         "impact_score": 0.5,
                         "implementation_cost": "medium",
-                        "reasoning": f"Table {table_name} has moderate dead tuple ratio: {stats['dead_tuples']}/{stats['reltuples']} ({stats['dead_tuples'] / stats['reltuples'] * 100:.1f}%)",
+                        "reasoning": f"Table {table_name} has moderate dead tuple ratio: {stats['dead_tuples']}/{stats['reltuples']} (
+    {stats['dead_tuples'] / stats['reltuples'] * 100:.1f}%)",
                         "sql_statement": f"VACUUM {table_name}",
                         "estimated_benefit": "Reduced bloat and improved performance",
                         "risks": ["Temporary performance impact during VACUUM"],

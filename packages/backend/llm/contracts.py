@@ -109,7 +109,10 @@ class ResumeParseResponse_V1(BaseModel):
 RESUME_PARSE_PROMPT_V1 = """Extract from resume. Return JSON only:
 {resume_text}
 
-Keys: contact(full_name,email,phone,location,linkedin_url,portfolio_url), education[](institution,degree,field_of_study,start_date,end_date,gpa), experience[](company,title,start_date,end_date,location,responsibilities[]), skills(technical[],soft[]), certifications[], languages[], summary.
+Keys: contact(
+    full_name,email,phone,location,linkedin_url,portfolio_url), education[](institution,degree,field_of_study,
+    start_date,end_date,gpa), experience[](company,title,start_date,end_date,location,responsibilities[]),
+    skills(technical[],soft[]), certifications[], languages[], summary.
 Empty string/array if missing."""
 
 
@@ -302,7 +305,8 @@ class RoleSuggestionResponse_V1(BaseModel):
 ROLE_SUGGESTION_PROMPT_V1 = """Suggest roles for candidate. Return JSON only:
 {profile_json}
 
-Keys: suggested_roles[](3-5), primary_role, experience_level(entry|mid|senior|staff|principal|executive), confidence(0-1), reasoning."""
+Keys: suggested_roles[](
+    3-5), primary_role, experience_level(entry|mid|senior|staff|principal|executive), confidence(0-1), reasoning."""
 
 
 def build_role_suggestion_prompt(
@@ -437,7 +441,8 @@ JOB_MATCH_PROMPT_V1 = """Score candidate-job match. Return JSON only.
 Profile: {profile_json}
 Job: {job_json}
 
-Keys: score(0-100), skill_match(0-1), experience_match(0-1), location_match(0-1), culture_signals[], red_flags[], summary."""
+Keys: score(
+    0-100), skill_match(0-1), experience_match(0-1), location_match(0-1), culture_signals[], red_flags[], summary."""
 
 
 def build_job_match_prompt(profile_dict: dict, job_dict: dict) -> str:

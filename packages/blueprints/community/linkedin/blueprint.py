@@ -19,12 +19,15 @@ class LinkedInBlueprint:
     def build_profile_parse_prompt(self, raw_text: str) -> str:
         return f"""Extract professional profile information from the following resume text.
 Return JSON with keys: full_name, email, phone, location, city, state, country,
-headline, summary, experience (list of {{title, company, start_date, end_date, description, location, employment_type}}),
+headline, summary, experience (
+    list of {{title, company, start_date, end_date, description, location, employment_type}}),
 education (list of {{school, degree, field, start_date, end_date, gpa, activities}}),
 skills (list of strings with proficiency levels), certifications (list of {{name, issuer, date, url}}),
 languages (list of {{language, proficiency}}), linkedin_url, portfolio_url, github_url,
 projects (list of {{name, description, technologies, url}}), publications (list of {{title, publisher, date, url}}),
-honors_awards (list of {{name, issuer, date}}), volunteer_experience (list of {{organization, role, start_date, end_date, description}}).
+honors_awards (
+    list of {{name, issuer, date}}), volunteer_experience (list of {{organization, role, start_date, end_date,
+    description}}).
 
 Focus on professional networking and career progression.
 Include LinkedIn-specific fields like headline and summary.

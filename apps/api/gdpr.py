@@ -254,7 +254,8 @@ async def export_user_data(
                     )
                     continue
 
-                # nosemgrep: python.lang.security.audit.sqli.asyncpg-sqli.asyncpg-sqli - parameterized query with table whitelist
+                # nosemgrep: python.lang.security.audit.sqli.asyncpg-sqli.
+# asyncpg-sqli - parameterized query with table whitelist
                 rows = await conn.fetch(
                     f"SELECT * FROM {table} WHERE {user_col} = $1",
                     user_id,

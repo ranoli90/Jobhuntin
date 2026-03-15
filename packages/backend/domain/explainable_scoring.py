@@ -89,7 +89,12 @@ class ExplainableMatchScore(BaseModel):
     timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
     def to_audit_log(self) -> str:
-        return f"[{self.timestamp.isoformat()}] Job {self.job_id}: Score {self.overall_score:.2%} (CI: {self.confidence_interval_lower:.2%}-{self.confidence_interval_upper:.2%}). {self.applied_reasoning}"
+        timestamp = self.timestamp.isoformat()
+        score_range = f"{self.confidence_interval_lower:.2%}-{self.confidence_interval_upper:.2%}"
+        return (
+            f"[{timestamp}] Job {self.job_id}: Score {self.overall_score:.2%} "
+            f"(CI: {score_range}). {self.applied_reasoning}"
+        )
 
 
 class ExplainableScoringEngine:
@@ -384,7 +389,8 @@ class ExplainableScoringEngine:
                 f"Executed application: Good match detected. "
                 f"Profile alignment scored {overall_score:.0%} based on "
                 f"skill matching and semantic similarity. "
-                f"Job requirements align with your background in {', '.join(skills_evidence[:2]) if skills_evidence else 'relevant areas'}."
+                f"Job requirements align with your background in {', '.join(
+    skills_evidence[:2]) if skills_evidence else 'relevant areas'}."
             )
         else:
             return (

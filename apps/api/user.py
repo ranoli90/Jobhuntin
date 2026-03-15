@@ -477,7 +477,8 @@ async def create_application(
             if existing_app:
                 # Return appropriate response for duplicate application
                 logger.info(
-                    f"[APPLICATION] Duplicate application prevented: user={ctx.user_id}, job={body.job_id}, existing_status={existing_app['status']}"
+                    f"[APPLICATION] Duplicate application prevented: user =
+    {ctx.user_id}, job={body.job_id}, existing_status={existing_app['status']}"
                 )
                 result = {
                     "status": "duplicate",
@@ -541,7 +542,8 @@ async def create_application(
         if existing_app:
             # Return appropriate response for duplicate application
             logger.info(
-                f"[APPLICATION] Duplicate application prevented: user={ctx.user_id}, job={body.job_id}, existing_status={existing_app['status']}"
+                f"[APPLICATION] Duplicate application prevented: user =
+    {ctx.user_id}, job={body.job_id}, existing_status={existing_app['status']}"
             )
             result = {
                 "status": "duplicate",
@@ -963,7 +965,8 @@ async def update_application_status(
         # Ensure only whitelisted fields are used
         set_clause = ", ".join(field for field in update_fields if any(allowed in field for allowed in allowed_fields))
         
-        # nosemgrep: python.lang.security.audit.sqli.asyncpg-sqli.asyncpg-sqli - parameterized query with field whitelist
+        # nosemgrep: python.lang.security.audit.sqli.asyncpg-sqli.
+# asyncpg-sqli - parameterized query with field whitelist
         await conn.execute(
             f"""
             UPDATE public.applications

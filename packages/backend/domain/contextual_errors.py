@@ -228,7 +228,8 @@ ERROR_REGISTRY: dict[str, ContextualError] = {
         solutions=[
             ErrorSolution(
                 title="Password requirements",
-                description="Your password must be at least 8 characters and include uppercase, lowercase, number, and special character.",
+                description =
+    "Your password must be at least 8 characters and include uppercase, lowercase, number, and special character.",
             ),
         ],
     ),

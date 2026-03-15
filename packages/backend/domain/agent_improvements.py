@@ -1,5 +1,6 @@
 """
-Phase 12.1 Agent Improvements - Enhanced button detection, OAuth/SSO handling, document types, concurrent usage tracking, DLQ inspection, screenshot capture.
+Phase 12.1 Agent Improvements - Enhanced button detection, OAuth/SSO handling, document types, concurrent usage
+tracking, DLQ inspection, screenshot capture.
 
 This module provides comprehensive agent improvements for better form filling, error handling, and monitoring.
 """

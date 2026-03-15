@@ -1,6 +1,7 @@
 """
 Phase 12.1 Agent Improvements API endpoints.
-Enhanced button detection, OAuth/SSO handling, document types, concurrent usage tracking, DLQ management, screenshot capture.
+Enhanced button detection, OAuth/SSO handling, document types, concurrent usage tracking, DLQ management, screenshot
+capture.
 """
 
 from __future__ import annotations

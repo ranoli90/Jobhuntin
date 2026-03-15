@@ -529,7 +529,8 @@ class CommonSchemas:
                 min_length=8,
                 max_length=128,
                 pattern=r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]",
-                error_message="Password must contain at least 8 characters, including uppercase, lowercase, number, and special character",
+                error_message =
+    "Password must contain at least 8 characters, including uppercase, lowercase, number, and special character",
             ),
             ValidationField(
                 name="first_name",

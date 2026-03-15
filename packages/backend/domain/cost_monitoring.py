@@ -374,7 +374,8 @@ class CostMonitor:
                 {
                     "category": "database",
                     "title": "Review database tier",
-                    "description": f"Database costs are ${db_cost:.2f}/month. Consider optimizing queries or downgrading tier.",
+                    "description": f"Database costs are ${db_cost:.2f}/month. Consider optimizing queries or
+downgrading tier.",
                     "potential_savings": db_cost * 0.2,
                 }
             )
@@ -386,7 +387,8 @@ class CostMonitor:
                 {
                     "category": "ai_llm",
                     "title": "Optimize LLM usage",
-                    "description": f"AI costs are ${ai_cost:.2f}/month. Consider caching responses or using smaller models.",
+                    "description": f"AI costs are ${ai_cost:.2f}/month. Consider caching responses or using smaller
+models.",
                     "potential_savings": ai_cost * 0.3,
                 }
             )
@@ -398,7 +400,8 @@ class CostMonitor:
                 {
                     "category": "storage",
                     "title": "Review storage usage",
-                    "description": f"Storage costs are ${storage_cost:.2f}/month. Consider cleaning up old files or using lifecycle policies.",
+                    "description": f"Storage costs are ${storage_cost:.2f}/month. Consider cleaning up old files or
+using lifecycle policies.",
                     "potential_savings": storage_cost * 0.25,
                 }
             )

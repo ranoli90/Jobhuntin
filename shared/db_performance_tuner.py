@@ -198,8 +198,10 @@ class PerformanceTuner:
                 # Cache hit ratios
                 cache_stats = await conn.fetchrow("""
                     SELECT
-                        sum(heap_blks_hit) / nullif(sum(heap_blks_hit) + sum(heap_blks_read), 0) * 100 as heap_cache_hit_ratio,
-                        sum(idx_blks_hit) / nullif(sum(idx_blks_hit) + sum(idx_blks_read), 0) * 100 as index_cache_hit_ratio
+                        sum(
+    heap_blks_hit) / nullif(sum(heap_blks_hit) + sum(heap_blks_read), 0) * 100 as heap_cache_hit_ratio,
+                        sum(
+    idx_blks_hit) / nullif(sum(idx_blks_hit) + sum(idx_blks_read), 0) * 100 as index_cache_hit_ratio
                     FROM pg_stat_database
                     WHERE datname = current_database()
                 """)

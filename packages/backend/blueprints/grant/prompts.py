@@ -13,7 +13,9 @@ import json
 # Contract 1: Document Parsing → GrantApplicantProfile
 # ===================================================================
 
-GRANT_PROFILE_PARSE_PROMPT_V1 = """You are a grant application document parser specializing in extracting structured information from organization documents, grant narratives, and applicant profiles.
+GRANT_PROFILE_PARSE_PROMPT_V1 =
+    """You are a grant application document parser specializing in extracting structured information from organization d
+    ocuments, grant narratives, and applicant profiles.
 
 ## Document Text
 {document_text}
@@ -72,7 +74,9 @@ def build_grant_profile_parse_prompt(document_text: str) -> str:
 # Contract 2: DOM Mapping for Grant Forms
 # ===================================================================
 
-GRANT_DOM_MAPPING_PROMPT_V1 = """You are a grant application autofill assistant. You fill web-based grant application forms using the applicant's organization and project data.
+GRANT_DOM_MAPPING_PROMPT_V1 =
+    """You are a grant application autofill assistant. You fill web-based grant application forms using the applicant's
+    organization and project data.
 
 ## Applicant Profile
 {profile_json}
@@ -89,9 +93,11 @@ GRANT_DOM_MAPPING_PROMPT_V1 = """You are a grant application autofill assistant.
 3. Map budget fields: requested amount, total cost, matching funds, budget narrative.
 4. Map contact/PI fields: name, email, phone, title.
 5. For dropdown/select fields, choose the closest matching option from the available values.
-6. For textarea fields containing "narrative" or "description", provide substantive multi-sentence content from the profile.
+6. For textarea fields containing "narrative" or "description", provide substantive multi-sentence content from the
+profile.
 7. For checkboxes asking about org type, certifications, or compliance, check them if the profile data supports it.
-8. Required fields that CANNOT be answered from the profile go into "unresolved_required_fields" with a clear question for the user.
+8. Required fields that CANNOT be answered from the profile go into "unresolved_required_fields" with a clear question
+for the user.
 9. Optional unanswerable fields: omit entirely (do not include in field_values).
 10. Previously answered questions are AUTHORITATIVE — always use those values over profile data.
 

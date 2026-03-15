@@ -260,7 +260,8 @@ class AIService:
                 raise ValueError(text_result.error_message or "Invalid resume text")
             sanitized_text = text_result.sanitized_input or resume_text[:10000]
             step_result = sanitize_for_ai(current_step[:500], max_length=500, min_length=None)
-            sanitized_step = step_result.sanitized_input or current_step[:500] if step_result.is_valid else current_step[:500]
+            sanitized_step =
+    step_result.sanitized_input or current_step[:500] if step_result.is_valid else current_step[:500]
 
             # Get AI response
             prompt = self._build_onboarding_questions_prompt(

@@ -771,7 +771,9 @@ class PerformanceMonitor:
                     alert_type="threshold_warning",
                     severity=AlertSeverity.WARNING,
                     title=f"Performance Warning: {metric.name}",
-                    message=f"{metric.name} exceeded warning threshold: {metric.value} {metric.unit} > {threshold.warning_threshold} {metric.unit}",
+                    message =
+    f"{metric.name} exceeded warning threshold: {metric.value} {metric.unit} > {threshold.warning_threshold} {metric.uni
+    t}",
                     metric_name=metric.name,
                     current_value=metric.value,
                     threshold_value=threshold.warning_threshold,
@@ -790,7 +792,9 @@ class PerformanceMonitor:
                     alert_type="threshold_critical",
                     severity=AlertSeverity.CRITICAL,
                     title=f"Performance Critical: {metric.name}",
-                    message=f"{metric.name} exceeded critical threshold: {metric.value} {metric.unit} > {threshold.critical_threshold} {metric.unit}",
+                    message =
+    f"{metric.name} exceeded critical threshold: {metric.value} {metric.unit} > {threshold.critical_threshold} {metric.u
+    nit}",
                     metric_name=metric.name,
                     current_value=metric.value,
                     threshold_value=threshold.critical_threshold,

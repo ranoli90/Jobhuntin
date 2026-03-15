@@ -282,7 +282,8 @@ async def list_jobs(
 
             # Get total count for pagination
             # HIGH: Fix pagination total count - apply same filters to count query
-            count_query = "SELECT COUNT(*) as total FROM public.jobs j LEFT JOIN public.companies c ON j.company_id = c.id WHERE j.is_active = true"
+            count_query = "SELECT COUNT(
+    *) as total FROM public.jobs j LEFT JOIN public.companies c ON j.company_id = c.id WHERE j.is_active = true"
             count_params: list[Any] = []
             count_param_index = 1
 
@@ -293,7 +294,8 @@ async def list_jobs(
                     count_params.append(f"%{escape_ilike(filters['location'])}%")
                     count_param_index += 1
                 if "keywords" in filters and filters.get("keywords"):
-                    count_query += f" AND (j.title ILIKE ${count_param_index} OR j.description ILIKE ${count_param_index} OR j.company ILIKE ${count_param_index})"
+                    count_query += f" AND (
+    j.title ILIKE ${count_param_index} OR j.description ILIKE ${count_param_index} OR j.company ILIKE ${count_param_index})"
                     count_params.append(f"%{escape_ilike(filters['keywords'])}%")
                     count_param_index += 1
                 if "company_name" in filters and filters.get("company_name"):

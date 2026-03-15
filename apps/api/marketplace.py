@@ -147,7 +147,8 @@ async def list_blueprints(
     async with db.acquire() as conn:
         rows = await conn.fetch(base, *params)
         total = await conn.fetchval(
-            "SELECT COUNT(*)::int FROM public.marketplace_blueprints WHERE approval_status = 'approved' AND is_active = true"
+            "SELECT COUNT(
+    *)::int FROM public.marketplace_blueprints WHERE approval_status = 'approved' AND is_active = true"
         )
 
     return {"blueprints": [dict(r) for r in rows], "total": total or 0}
@@ -161,7 +162,8 @@ async def get_blueprint(
     """Get blueprint details by slug."""
     async with db.acquire() as conn:
         row = await conn.fetchrow(
-            """SELECT *, (SELECT COUNT(*)::int FROM public.blueprint_installations WHERE blueprint_id = mb.id) AS installs
+            """SELECT *, (
+    SELECT COUNT(*)::int FROM public.blueprint_installations WHERE blueprint_id = mb.id) AS installs
                FROM public.marketplace_blueprints mb WHERE slug = $1 AND is_active = true""",
             slug,
         )

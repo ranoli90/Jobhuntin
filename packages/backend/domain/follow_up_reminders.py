@@ -466,9 +466,11 @@ class FollowUpManager:
             body_template="""
 Hello {company_name},
 
-I hope you're doing well. I recently submitted my application for the {job_title} position and wanted to follow up to express my continued interest in this opportunity.
+I hope you're doing well. I recently submitted my application for the {job_title} position and wanted to follow up to
+express my continued interest in this opportunity.
 
-My background in {relevant_experience} aligns well with the requirements, and I'm excited about the possibility of contributing to your team.
+My background in {relevant_experience} aligns well with the requirements, and I'm excited about the possibility of
+contributing to your team.
 
 Please let me know if there's any additional information I can provide. I look forward to hearing from you soon.
 
@@ -524,9 +526,11 @@ Dear {interviewer_name},
 
 Thank you so much for taking the time to speak with me today about the {job_title} position at {company_name}.
 
-I really enjoyed learning more about {specific_topic_discussed} and am even more excited about this opportunity after our conversation. My experience in {relevant_experience} seems like a great fit for what you're looking for.
+I really enjoyed learning more about {specific_topic_discussed} and am even more excited about this opportunity after
+our conversation. My experience in {relevant_experience} seems like a great fit for what you're looking for.
 
-Please don't hesitate to reach out if you need any additional information. I look forward to hearing about the next steps.
+Please don't hesitate to reach out if you need any additional information. I look forward to hearing about the next
+steps.
 
 Best regards,
 {user_name}

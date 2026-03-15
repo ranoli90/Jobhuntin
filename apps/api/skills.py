@@ -186,7 +186,8 @@ async def get_skill_suggestions(
         learning_priority.sort(key=lambda x: x["demand_score"], reverse=True)
 
         logger.info(
-            f"[SKILLS] Generated {len(missing_skills)} skill suggestions for role '{request.target_role}' for user {ctx.user_id}"
+            f"[SKILLS] Generated {len(
+    missing_skills)} skill suggestions for role '{request.target_role}' for user {ctx.user_id}"
         )
 
         return SkillSuggestionResponse(

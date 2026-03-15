@@ -255,7 +255,8 @@ class DataResidencyManager:
         incr("data_residency.violation")
         return (
             False,
-            f"Data residency violation: {data_type} stored in {actual_region}, expected {residency.primary_region.value}",
+            f"Data residency violation: {data_type} stored in {actual_region}, expected
+{residency.primary_region.value}",
         )
 
     async def log_cross_region_transfer(

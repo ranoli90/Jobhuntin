@@ -557,7 +557,8 @@ class ReplicaRouter:
             await self.alert_manager.trigger_alert(
                 name="multiple_replicas_unhealthy",
                 severity=AlertSeverity.ERROR,
-                message=f"Multiple replicas unhealthy: {len(monitoring_results['unhealthy_replicas'])}/{len(self.replicas)}",
+                message=f"Multiple replicas unhealthy: {len(
+    monitoring_results['unhealthy_replicas'])}/{len(self.replicas)}",
                 context={
                     "unhealthy_replicas": monitoring_results["unhealthy_replicas"]
                 },

@@ -148,7 +148,8 @@ async def _deliver_webhook(
                 )
             else:
                 await conn.execute(
-                    "UPDATE public.webhook_endpoints SET last_failure_at = now(), failure_count = failure_count + 1 WHERE id = $1",
+                    "UPDATE public.webhook_endpoints SET last_failure_at = now(
+    ), failure_count = failure_count + 1 WHERE id = $1",
                     endpoint["id"],
                 )
 
@@ -198,7 +199,8 @@ async def _deliver_webhook(
                 attempt,
             )
             await conn.execute(
-                "UPDATE public.webhook_endpoints SET last_failure_at = now(), failure_count = failure_count + 1 WHERE id = $1",
+                "UPDATE public.webhook_endpoints SET last_failure_at = now(
+    ), failure_count = failure_count + 1 WHERE id = $1",
                 endpoint["id"],
             )
 

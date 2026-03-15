@@ -339,7 +339,11 @@ class PasswordValidator:
     ) -> tuple[bool, int]:
         # Pwned Passwords API requires SHA1 (k-anonymity); see haveibeenpwned.com/API/v3
         sha1_hash = (
-            hashlib.sha1(password.encode(), usedforsecurity=False).hexdigest().upper()  # nosemgrep: python.lang.security.insecure-hash-algorithms.insecure-hash-algorithm-sha1
+            hashlib.sha1(
+                password.encode(),
+                usedforsecurity=False
+            ).hexdigest().upper()
+        )  # nosemgrep: python.lang.security.insecure-hash-algorithms.insecure-hash-algorithm-sha1
         )
         prefix = sha1_hash[:5]
         suffix = sha1_hash[5:]

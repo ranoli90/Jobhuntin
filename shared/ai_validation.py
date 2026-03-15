@@ -475,7 +475,8 @@ def _check_rate_limit(
     if not allowed:
         return ValidationResult(
             is_valid=False,
-            error_message=f"Rate limit exceeded: {rate_info.get('reason', 'unknown')}. Try again in {rate_info.get('reset_in', 60)} seconds.",
+            error_message=f"Rate limit exceeded: {rate_info.get(
+    'reason', 'unknown')}. Try again in {rate_info.get('reset_in', 60)} seconds.",
             error_code="RATE_LIMIT_EXCEEDED",
         )
     sanitized_data["rate_limit_info"] = rate_info

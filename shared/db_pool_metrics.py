@@ -398,7 +398,8 @@ class PoolMetricsCollector:
                         pool_id,
                         f"degrading_{metric_name}",
                         AlertSeverity.WARNING,
-                        f"Degrading {metric_name}: {recent_value:.2f} vs {older_value:.2f} ({((recent_value / older_value - 1) * 100):.1f}% increase)",
+                        f"Degrading {metric_name}: {recent_value:.2f} vs {older_value:.2f} (
+    {((recent_value / older_value - 1) * 100):.1f}% increase)",
                     )
                 # Check for significant improvement (>20% decrease)
                 elif older_value > 0 and recent_value < older_value * 0.8:
@@ -406,7 +407,8 @@ class PoolMetricsCollector:
                         pool_id,
                         f"improving_{metric_name}",
                         AlertSeverity.INFO,
-                        f"Improving {metric_name}: {recent_value:.2f} vs {older_value:.2f} ({((older_value / recent_value - 1) * 100):.1f}% decrease)",
+                        f"Improving {metric_name}: {recent_value:.2f} vs {older_value:.2f} (
+    {((older_value / recent_value - 1) * 100):.1f}% decrease)",
                     )
 
     async def _create_alert(

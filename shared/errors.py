@@ -102,7 +102,8 @@ class AppException(Exception):
         }
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}(code={self.code.value}, message={self.message}, status_code={self.status_code})"
+        return f"{self.__class__.__name__}(
+    code={self.code.value}, message={self.message}, status_code={self.status_code})"
 
 
 # ---------------------------------------------------------------------------

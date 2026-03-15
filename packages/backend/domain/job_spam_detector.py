@@ -104,7 +104,9 @@ COMPANY_NAME_PATTERNS: list[tuple[re.Pattern[str], float]] = [
     (re.compile(r"^[a-z]{3,6}$", re.IGNORECASE), 0.7),  # Random 3-6 letter company
     (re.compile(r"^[a-z]{1,2}\d{3,}$", re.IGNORECASE), 0.9),  # Letters followed by numbers
     (re.compile(r"\d{4,}", re.IGNORECASE), 0.6),  # Too many numbers
-    (re.compile(r"(home|jobs|work|money|cash|earn|fast|quick|easy|bonus|prize|winners?|gift)", re.IGNORECASE), 0.5),  # Suspicious words
+    (
+    re.compile(r"(home|jobs|work|money|cash|earn|fast|quick|easy|bonus|prize|winners?|gift)", re.IGNORECASE), 0.5),
+    # Suspicious words
     (re.compile(r"^[A-Z]+\s+INC\b", re.IGNORECASE), 0.3),  # All caps with INC
     (re.compile(r"^\d+\s+COMPANY", re.IGNORECASE), 0.7),  # Starting with numbers
 ]

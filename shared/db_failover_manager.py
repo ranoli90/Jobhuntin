@@ -319,7 +319,8 @@ class FailoverManager:
                     SELECT
                         (SELECT COUNT(*) FROM pg_stat_activity WHERE state = 'active') as active_connections,
                         pg_size_pretty(pg_database_size(current_database())) as db_size,
-                        (SELECT EXTRACT(EPOCH FROM (NOW() - max(backend_start))) FROM pg_stat_activity) as max_connection_age
+                        (
+    SELECT EXTRACT(EPOCH FROM (NOW() - max(backend_start))) FROM pg_stat_activity) as max_connection_age
                 """)
 
                 # Check connection count (simplified)

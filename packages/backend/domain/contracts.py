@@ -29,7 +29,8 @@ async def start_enterprise_onboarding(
         """
         INSERT INTO public.enterprise_onboarding (tenant_id, step, custom_domain)
         VALUES ($1, 'domain', $2)
-        ON CONFLICT (tenant_id) DO UPDATE SET custom_domain = COALESCE($2, enterprise_onboarding.custom_domain), updated_at = now()
+        ON CONFLICT (
+    tenant_id) DO UPDATE SET custom_domain = COALESCE($2, enterprise_onboarding.custom_domain), updated_at = now()
         RETURNING *
         """,
         tenant_id,

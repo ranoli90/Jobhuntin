@@ -25,10 +25,16 @@ EXTRACT_FORM_FIELDS_JS = """
     function selectorFor(el) {
         // MEDIUM: Prefer stable selectors (id, name) over nth-of-type
         if (el.id) return '#' + el.id;
-        if (el.name) return el.tagName.toLowerCase() + '[name="' + el.name + '"]';
-        // Try data attributes as fallback
-        if (el.getAttribute('data-field-id')) return el.tagName.toLowerCase() + '[data-field-id="' + el.getAttribute('data-field-id') + '"]';
-        if (el.getAttribute('data-testid')) return el.tagName.toLowerCase() + '[data-testid="' + el.getAttribute('data-testid') + '"]';
+        if (el.name):
+            return el.tagName.toLowerCase() + '[name="' + el.name + '"]'
+        # Try data attributes as fallback
+        if el.getAttribute('data-field-id'):
+            return (
+                el.tagName.toLowerCase() + 
+                '[data-field-id="' + el.getAttribute('data-field-id') + '"]'
+            )
+        if el.getAttribute('data-testid'):
+            return el.tagName.toLowerCase() + '[data-testid="' + el.getAttribute('data-testid') + '"]'
         // Last resort: nth-of-type (fragile, may break with DOM changes)
         // WARNING: This selector is fragile and may break if form structure changes
         const siblings = Array.from(form.querySelectorAll(el.tagName.toLowerCase()));

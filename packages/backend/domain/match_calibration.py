@@ -605,7 +605,8 @@ class MatchScoreCalibrator:
                         return False
 
             logger.info(
-                f"Applied {len([r for r in recommendations if r.confidence > 0.5])} high-confidence recommendations for tenant {tenant_id}"
+                f"Applied {len(
+    [r for r in recommendations if r.confidence > 0.5])} high-confidence recommendations for tenant {tenant_id}"
             )
             return True
 

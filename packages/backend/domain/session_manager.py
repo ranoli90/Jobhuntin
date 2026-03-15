@@ -220,7 +220,8 @@ class SessionManager:
         revoked_by_user_id: str | None = None,
         user_id: str | None = None,
     ) -> dict | None:
-        """Revoke a session. If user_id is provided, only revoke if session belongs to that user (prevents cross-user revocation)."""
+        """Revoke a session. If user_id is provided, only revoke if session belongs to that user (
+    prevents cross-user revocation)."""
         now = datetime.now(timezone.utc)
 
         async with self._pool.acquire() as conn:

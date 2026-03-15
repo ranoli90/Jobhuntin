@@ -219,7 +219,8 @@ class DatabaseHealthChecker:
                     return HealthCheck(
                         name="connection_health",
                         status=HealthStatus.DEGRADED,
-                        message=f"Connection time {conn_time:.1f}ms exceeds threshold {self.thresholds['connection_time_ms']}ms",
+                        message =
+    f"Connection time {conn_time:.1f}ms exceeds threshold {self.thresholds['connection_time_ms']}ms",
                         value=conn_time,
                         threshold=self.thresholds["connection_time_ms"],
                         duration_ms=duration_ms,
@@ -386,7 +387,8 @@ class DatabaseHealthChecker:
                             return HealthCheck(
                                 name="replication_status",
                                 status=HealthStatus.DEGRADED,
-                                message=f"Replication lag {lag_time:.1f}s exceeds threshold {self.thresholds['replication_lag_s']}s",
+                                message =
+    f"Replication lag {lag_time:.1f}s exceeds threshold {self.thresholds['replication_lag_s']}s",
                                 value=lag_time,
                                 threshold=self.thresholds["replication_lag_s"],
                                 duration_ms=duration_ms,
@@ -445,7 +447,8 @@ class DatabaseHealthChecker:
                 return HealthCheck(
                     name="storage_health",
                     status=HealthStatus.HEALTHY,
-                    message=f"Database size {db_size:.1f}MB, largest table: {large_tables[0]['table_name'] if large_tables else 'N/A'}",
+                    message =
+    f"Database size {db_size:.1f}MB, largest table: {large_tables[0]['table_name'] if large_tables else 'N/A'}",
                     value=db_size,
                     duration_ms=duration_ms,
                 )

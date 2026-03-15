@@ -51,7 +51,8 @@ class Settings(BaseSettings):
 
     # ── Web App ──────────────────────────────────────────────────
     app_base_url: str = "https://sorce-web.onrender.com"
-    # Admin dashboard base URL (e.g. http://localhost:5174 or https://admin.jobhuntin.com). Used for admin magic link redirects.
+    # Admin dashboard base URL (e.g. http://localhost:5174 or https://admin.jobhuntin.com).
+# Used for admin magic link redirects.
     app_admin_base_url: str = ""
     # Public URL of the API (for magic link verify redirect). Set API_PUBLIC_URL in prod.
     api_public_url: str = "https://sorce-api.onrender.com"
@@ -105,7 +106,8 @@ class Settings(BaseSettings):
     magic_link_token_ttl_seconds: int = 3600
     # H2: IP Binding - Bind magic link tokens to requesting IP (security feature)
     # When enabled, magic links can only be used from the IP that requested them
-    # This prevents token theft attacks. #9: Default True in prod (override with MAGIC_LINK_BIND_TO_IP=false to disable).
+    # This prevents token theft attacks. #9: Default True in prod (override with MAGIC_LINK_BIND_TO_IP=false to disable)
+# .
     magic_link_bind_to_ip: bool = False
 
     # ── Timeout configuration ─────────────────────────────────────

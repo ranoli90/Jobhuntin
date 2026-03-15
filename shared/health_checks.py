@@ -476,14 +476,16 @@ class HealthChecker:
             critical_checks = [r for r in results if r.status == HealthStatus.CRITICAL]
             if critical_checks:
                 recommendations.append(
-                    f"Address {len(critical_checks)} critical health check(s): {', '.join([c.name for c in critical_checks])}"
+                    f"Address {len(
+    critical_checks)} critical health check(s): {', '.join([c.name for c in critical_checks])}"
                 )
 
             # Warning checks
             warning_checks = [r for r in results if r.status == HealthStatus.WARNING]
             if warning_checks:
                 recommendations.append(
-                    f"Monitor {len(warning_checks)} warning health check(s): {', '.join([c.name for c in warning_checks])}"
+                    f"Monitor {len(
+    warning_checks)} warning health check(s): {', '.join([c.name for c in warning_checks])}"
                 )
 
             # Slow checks

@@ -562,29 +562,37 @@ class EmailCommunicationManager:
     def _get_status_change_template(self) -> str:
         """Get HTML template for status change emails."""
         return """
-        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #1E293B;">
+        <div style =
+    "font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #1E293B;">
             <div style="text-align: center; margin-bottom: 24px;">
                 <h1 style="color: #3B82F6; margin: 0; font-size: 24px;">Sorce</h1>
                 <p style="color: #64748B; margin: 4px 0 0;">Application Status Update</p>
             </div>
 
             <p>Hi {user_name},</p>
-            <p>Your application to <strong>{company}</strong> for the <strong>{job_title}</strong> position has been updated.</p>
+            <p>Your application to <strong>{company}</strong> for the <strong>{job_title}</strong> position has been
+updated.</p>
 
             <div style="background: #F1F5F9; border-radius: 12px; padding: 20px; margin: 20px 0;">
                 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
                     <span style="font-weight: 600; color: #64748B;">Status Change:</span>
-                    <span style="background: #FEF3C7; color: #D97706; padding: 4px 12px; border-radius: 20px; font-size: 14px;">{old_status} → {new_status}</span>
+                    <span style =
+    "background: #FEF3C7; color: #D97706; padding: 4px 12px; border-radius: 20px; font-size: 14px;">{old_status} → {new_
+    status}</span>
                 </div>
                 {reason_block}
             </div>
 
             <div style="text-align: center; margin: 30px 0;">
-                <a href="{web_url}/applications/{application_id}" style="background: #3B82F6; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600;">View Application</a>
+                <a href =
+    "{web_url}/applications/{application_id}" style="background: #3B82F6; color: white; padding: 12px 24px; border-radiu
+    s: 8px; text-decoration: none; font-weight: 600;">View Application</a>
             </div>
 
             <p style="color: #94A3B8; font-size: 12px; text-align: center; margin-top: 40px;">
-                You're receiving this because you use Sorce. <a href="{web_url}/settings/notifications" style="color: #94A3B8;">Manage notifications</a>
+                You're receiving this because you use Sorce. <a href =
+    "{web_url}/settings/notifications" style="color: #94A3B8;">Manage notifications</a>
             </p>
         </div>
         """.format(
@@ -601,7 +609,9 @@ class EmailCommunicationManager:
     def _get_magic_link_expiry_template(self) -> str:
         """Get HTML template for magic link expiry warning."""
         return """
-        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #1E293B;">
+        <div style =
+    "font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #1E293B;">
             <div style="text-align: center; margin-bottom: 24px;">
                 <h1 style="color: #F59E0B; margin: 0; font-size: 24px;">⚠️ Login Link Expiring Soon</h1>
                 <p style="color: #64748B; margin: 4px 0 0;">Sorce Security Notification</p>
@@ -610,12 +620,17 @@ class EmailCommunicationManager:
             <p>Hi {user_name},</p>
             <p>Your secure login link will expire in <strong>{expires_in_hours} hours</strong>.</p>
 
-            <div style="background: #FEF3C7; border-radius: 12px; padding: 20px; margin: 20px 0; border-left: 4px solid #F59E0B;">
-                <p style="margin: 0;"><strong>For your security:</strong> Login links are designed to be temporary and expire after a short period for your protection.</p>
+            <div style =
+    "background: #FEF3C7; border-radius: 12px; padding: 20px; margin: 20px 0; border-left: 4px solid #F59E0B;">
+                <p style =
+    "margin: 0;"><strong>For your security:</strong> Login links are designed to be temporary and expire after a short p
+    eriod for your protection.</p>
             </div>
 
             <div style="text-align: center; margin: 30px 0;">
-                <a href="{login_url}" style="background: #F59E0B; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600;">Use Login Link Now</a>
+                <a href =
+    "{login_url}" style="background: #F59E0B; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: non
+    e; font-weight: 600;">Use Login Link Now</a>
             </div>
 
             <p style="color: #94A3B8; font-size: 12px; text-align: center; margin-top: 40px;">
@@ -627,7 +642,9 @@ class EmailCommunicationManager:
     def _get_magic_link_expired_template(self) -> str:
         """Get HTML template for magic link expired notification."""
         return """
-        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #1E293B;">
+        <div style =
+    "font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #1E293B;">
             <div style="text-align: center; margin-bottom: 24px;">
                 <h1 style="color: #EF4444; margin: 0; font-size: 24px;">🔒 Login Link Expired</h1>
                 <p style="color: #64748B; margin: 4px 0 0;">Sorce Security Notification</p>
@@ -636,12 +653,16 @@ class EmailCommunicationManager:
             <p>Hi {user_name},</p>
             <p>Your secure login link has expired. For your security, login links are only valid for a short time.</p>
 
-            <div style="background: #FEE2E2; border-radius: 12px; padding: 20px; margin: 20px 0; border-left: 4px solid #EF4444;">
-                <p style="margin: 0;"><strong>What happened:</strong> Your login link reached its time limit and is no longer valid.</p>
+            <div style =
+    "background: #FEE2E2; border-radius: 12px; padding: 20px; margin: 20px 0; border-left: 4px solid #EF4444;">
+                <p style =
+    "margin: 0;"><strong>What happened:</strong> Your login link reached its time limit and is no longer valid.</p>
             </div>
 
             <div style="text-align: center; margin: 30px 0;">
-                <a href="{request_new_link_url}" style="background: #3B82F6; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600;">Request New Login Link</a>
+                <a href =
+    "{request_new_link_url}" style="background: #3B82F6; color: white; padding: 12px 24px; border-radius: 8px; text-deco
+    ration: none; font-weight: 600;">Request New Login Link</a>
             </div>
 
             <p style="color: #94A3B8; font-size: 12px; text-align: center; margin-top: 40px;">
@@ -653,14 +674,17 @@ class EmailCommunicationManager:
     def _get_rate_limit_warning_template(self) -> str:
         """Get HTML template for rate limit warning."""
         return """
-        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #1E293B;">
+        <div style =
+    "font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #1E293B;">
             <div style="text-align: center; margin-bottom: 24px;">
                 <h1 style="color: #F59E0B; margin: 0; font-size: 24px;">📊 Usage Limit Warning</h1>
                 <p style="color: #64748B; margin: 4px 0 0;">Sorce Usage Alert</p>
             </div>
 
             <p>Hi {user_name},</p>
-            <p>You're approaching your {limit_type} limit. You've used <strong>{current_usage} of {limit}</strong> allowed uses.</p>
+            <p>You're approaching your {limit_type} limit. You've used <strong>{current_usage} of {limit}</strong>
+allowed uses.</p>
 
             <div style="background: #FEF3C7; border-radius: 12px; padding: 20px; margin: 20px 0;">
                 <div style="margin-bottom: 10px;"><strong>Current Usage:</strong> {current_usage}/{limit}</div>
@@ -668,7 +692,9 @@ class EmailCommunicationManager:
             </div>
 
             <div style="text-align: center; margin: 30px 0;">
-                <a href="{upgrade_url}" style="background: #F59E0B; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600;">View Plans</a>
+                <a href =
+    "{upgrade_url}" style="background: #F59E0B; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: n
+    one; font-weight: 600;">View Plans</a>
             </div>
 
             <p style="color: #94A3B8; font-size: 12px; text-align: center; margin-top: 40px;">
@@ -680,7 +706,9 @@ class EmailCommunicationManager:
     def _get_rate_limit_reached_template(self) -> str:
         """Get HTML template for rate limit reached."""
         return """
-        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #1E293B;">
+        <div style =
+    "font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #1E293B;">
             <div style="text-align: center; margin-bottom: 24px;">
                 <h1 style="color: #EF4444; margin: 0; font-size: 24px;">🚫 Usage Limit Reached</h1>
                 <p style="color: #64748B; margin: 4px 0 0;">Sorce Usage Alert</p>
@@ -689,13 +717,16 @@ class EmailCommunicationManager:
             <p>Hi {user_name},</p>
             <p>You've reached your {limit_type} limit of <strong>{limit}</strong> uses.</p>
 
-            <div style="background: #FEE2E2; border-radius: 12px; padding: 20px; margin: 20px 0; border-left: 4px solid #EF4444;">
+            <div style =
+    "background: #FEE2E2; border-radius: 12px; padding: 20px; margin: 20px 0; border-left: 4px solid #EF4444;">
                 <div style="margin-bottom: 10px;"><strong>Limit Reached:</strong> {limit} uses</div>
                 <div><strong>Resets on:</strong> {reset_time}</div>
             </div>
 
             <div style="text-align: center; margin: 30px 0;">
-                <a href="{upgrade_url}" style="background: #3B82F6; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600;">Upgrade Your Plan</a>
+                <a href =
+    "{upgrade_url}" style="background: #3B82F6; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: n
+    one; font-weight: 600;">Upgrade Your Plan</a>
             </div>
 
             <p style="color: #94A3B8; font-size: 12px; text-align: center; margin-top: 40px;">
@@ -707,21 +738,29 @@ class EmailCommunicationManager:
     def _get_application_success_template(self) -> str:
         """Get HTML template for successful application."""
         return """
-        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #1E293B;">
+        <div style =
+    "font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #1E293B;">
             <div style="text-align: center; margin-bottom: 24px;">
                 <h1 style="color: #10B981; margin: 0; font-size: 24px;">✅ Application Submitted!</h1>
                 <p style="color: #64748B; margin: 4px 0 0;">Sorce Success</p>
             </div>
 
             <p>Hi {user_name},</p>
-            <p>Congratulations! Your application to <strong>{company}</strong> for the <strong>{job_title}</strong> position has been successfully submitted.</p>
+            <p>Congratulations! Your application to <strong>{company}</strong> for the <strong>{job_title}</strong>
+position has been successfully submitted.</p>
 
-            <div style="background: #D1FAE5; border-radius: 12px; padding: 20px; margin: 20px 0; border-left: 4px solid #10B981;">
-                <p style="margin: 0;"><strong>What's next?</strong> Keep an eye on your email for updates from the employer, and check your Sorce dashboard for application status changes.</p>
+            <div style =
+    "background: #D1FAE5; border-radius: 12px; padding: 20px; margin: 20px 0; border-left: 4px solid #10B981;">
+                <p style =
+    "margin: 0;"><strong>What's next?</strong> Keep an eye on your email for updates from the employer,
+    and check your Sorce dashboard for application status changes.</p>
             </div>
 
             <div style="text-align: center; margin: 30px 0;">
-                <a href="{next_steps_url}" style="background: #10B981; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600;">View Application</a>
+                <a href =
+    "{next_steps_url}" style="background: #10B981; color: white; padding: 12px 24px; border-radius: 8px; text-decoration
+    : none; font-weight: 600;">View Application</a>
             </div>
 
             <p style="color: #94A3B8; font-size: 12px; text-align: center; margin-top: 40px;">
@@ -733,23 +772,29 @@ class EmailCommunicationManager:
     def _get_application_failed_template(self) -> str:
         """Get HTML template for failed application."""
         return """
-        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #1E293B;">
+        <div style =
+    "font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #1E293B;">
             <div style="text-align: center; margin-bottom: 24px;">
                 <h1 style="color: #EF4444; margin: 0; font-size: 24px;">⚠️ Application Issue</h1>
                 <p style="color: #64748B; margin: 4px 0 0;">Sorce Alert</p>
             </div>
 
             <p>Hi {user_name},</p>
-            <p>We encountered an issue while submitting your application to <strong>{company}</strong> for the <strong>{job_title}</strong> position.</p>
+            <p>We encountered an issue while submitting your application to <strong>{company}</strong> for the
+<strong>{job_title}</strong> position.</p>
 
-            <div style="background: #FEE2E2; border-radius: 12px; padding: 20px; margin: 20px 0; border-left: 4px solid #EF4444;">
+            <div style =
+    "background: #FEE2E2; border-radius: 12px; padding: 20px; margin: 20px 0; border-left: 4px solid #EF4444;">
                 <p style="margin: 0;"><strong>Error Details:</strong> {error_message}</p>
             </div>
 
             <p>Don't worry - we'll automatically retry the submission. You don't need to take any action right now.</p>
 
             <div style="text-align: center; margin: 30px 0;">
-                <a href="{retry_url}" style="background: #3B82F6; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600;">View Application Status</a>
+                <a href =
+    "{retry_url}" style="background: #3B82F6; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: non
+    e; font-weight: 600;">View Application Status</a>
             </div>
 
             <p style="color: #94A3B8; font-size: 12px; text-align: center; margin-top: 40px;">
@@ -761,23 +806,30 @@ class EmailCommunicationManager:
     def _get_hold_questions_template(self) -> str:
         """Get HTML template for hold questions."""
         return """
-        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #1E293B;">
+        <div style =
+    "font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #1E293B;">
             <div style="text-align: center; margin-bottom: 24px;">
                 <h1 style="color: #F59E0B; margin: 0; font-size: 24px;">❓ Action Required</h1>
                 <p style="color: #64748B; margin: 4px 0 0;">Complete Your Application</p>
             </div>
 
             <p>Hi {user_name},</p>
-            <p>Your application to <strong>{company}</strong> for the <strong>{job_title}</strong> position needs your input to proceed.</p>
+            <p>Your application to <strong>{company}</strong> for the <strong>{job_title}</strong> position needs your
+input to proceed.</p>
 
-            <div style="background: #FEF3C7; border-radius: 12px; padding: 20px; margin: 20px 0; border-left: 4px solid #F59E0B;">
-                <p style="margin: 0;"><strong>Questions waiting:</strong> {question_count} question(s) need your answers</p>
+            <div style =
+    "background: #FEF3C7; border-radius: 12px; padding: 20px; margin: 20px 0; border-left: 4px solid #F59E0B;">
+                <p style="margin: 0;"><strong>Questions waiting:</strong> {question_count} question(
+    s) need your answers</p>
             </div>
 
             <p>Your answers will help us complete the application accurately and increase your chances of success.</p>
 
             <div style="text-align: center; margin: 30px 0;">
-                <a href="{answer_url}" style="background: #F59E0B; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600;">Answer Questions Now</a>
+                <a href =
+    "{answer_url}" style="background: #F59E0B; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: no
+    ne; font-weight: 600;">Answer Questions Now</a>
             </div>
 
             <p style="color: #94A3B8; font-size: 12px; text-align: center; margin-top: 40px;">

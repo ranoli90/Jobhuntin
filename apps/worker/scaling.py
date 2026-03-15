@@ -70,28 +70,17 @@ def _ensure_playwright_browsers():
 
 
 def _get_ssl_config() -> Any:
-    """Get SSL configuration for database connections."""
-    # Use SSL with proper verification - Render's PostgreSQL uses DigiCert signed certificates
-    # Only disable verification in development/local environments if needed
+    """Get SSL configuration for database connections.
+
+    Uses secure verification when db_ssl_ca_cert_path is set,
+    otherwise uses system defaults (requires valid CA-signed cert).
+    """
     s = get_settings()
-    # Check s.env (not s.environment) - the Settings class uses 'env' attribute
-    is_local = s.env == Environment.LOCAL if hasattr(s, 'env') else False
-
-    if is_local:
-        # For local development - allow self-signed certs
-        ctx = ssl.create_default_context(purpose=ssl.Purpose.SERVER_AUTH)
-        ctx.check_hostname = False
-        ctx.verify_mode = ssl.CERT_NONE
-    else:
-        # For production/staging - Render uses self-signed certificates
-        # We use TLS encryption but don't verify the certificate
-        # This is necessary because Render's PostgreSQL uses self-signed certs
-        # The connection is still encrypted, just not verified against a CA
-        ctx = ssl.create_default_context(purpose=ssl.Purpose.SERVER_AUTH)
-        ctx.check_hostname = False
-        ctx.verify_mode = ssl.CERT_NONE
-
-    return ctx
+    if getattr(s, "db_ssl_ca_cert_path", None):
+        ctx = ssl.create_default_context(cafile=s.db_ssl_ca_cert_path)
+        return ctx
+    # Use system default SSL verification (requires valid CA-signed cert)
+    return False
 
 
 async def get_db_pool() -> asyncpg.Pool:
@@ -349,7 +338,8 @@ class BrowserPoolManager:
 
             if not browser_started:
                 logger.error("All browser launch attempts failed")
-                raise RuntimeError(f"Failed to launch browser after {len(launch_attempts)} attempts. Last error: {last_error}") from last_error
+                raise RuntimeError(
+    f"Failed to launch browser after {len(launch_attempts)} attempts. Last error: {last_error}") from last_error
 
             self._is_remote = False
             logger.info("Launched local Chromium (headless=%s, remote=%s)", self._is_headless, self._is_remote)
@@ -366,12 +356,17 @@ class BrowserPoolManager:
 
     # Realistic Chrome user-agent strings for rotation
     _USER_AGENTS = [
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
-        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
+        "Mozilla/5.0 (
+    Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+        "Mozilla/5.0 (
+    Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
+        "Mozilla/5.0 (
+    Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+        "Mozilla/5.0 (
+    Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
         "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+        "Mozilla/5.0 (
+    Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
     ]
 
     # Viewport sizes that look like real desktop monitors
