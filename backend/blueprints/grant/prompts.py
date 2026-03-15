@@ -13,9 +13,8 @@ import json
 # Contract 1: Document Parsing → GrantApplicantProfile
 # ===================================================================
 
-GRANT_PROFILE_PARSE_PROMPT_V1 =
-    """You are a grant application document parser specializing in extracting structured information from organization d
-    ocuments, grant narratives, and applicant profiles.
+GRANT_PROFILE_PARSE_PROMPT_V1 = (
+    """You are a grant application document parser specializing in extracting structured information from organization documents, grant narratives, and applicant profiles.
 
 ## Document Text
 {document_text}

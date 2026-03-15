@@ -793,9 +793,9 @@ class PerformanceMonitor:
                     alert_type="threshold_critical",
                     severity=AlertSeverity.CRITICAL,
                     title=f"Performance Critical: {metric.name}",
-                    message =
-    f"{metric.name} exceeded critical threshold: {metric.value} {metric.unit} > {threshold.critical_threshold} {metric.u
-    nit}",
+                    message=(
+                        f"{metric.name} exceeded critical threshold: {metric.value} {metric.unit} > {threshold.critical_threshold} {metric.unit}"
+                    ),
                     metric_name=metric.name,
                     current_value=metric.value,
                     threshold_value=threshold.critical_threshold,

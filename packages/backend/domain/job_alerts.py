@@ -453,8 +453,7 @@ class JobAlertService:
                 <h3 style="margin: 0 0 8px; font-size: 16px;">{safe_title}</h3>
                 <p style="margin: 0 0 4px; color: #64748B;">{safe_company}</p>
                 {f'<p style="margin: 0 0 4px; color: #64748B;">{safe_location}</p>' if safe_location else ""}
-                {f'<p style =
-    "margin: 0 0 8px; color: #10B981; font-weight: 600;">{salary_str}</p>' if salary_str else ""}
+                {f'<p style="margin: 0 0 8px; color: #10B981; font-weight: 600;">{salary_str}</p>' if salary_str else ""}
                 <a href="{safe_url}" style="color: #3B82F6; text-decoration: none; font-weight: 600;">View Job →</a>
             </div>
             """

@@ -70,7 +70,7 @@ def build_resume_parse_prompt(resume_text: str) -> str:
 # Contract 2: DOM Mapping → field values + unresolved fields (Job App)
 # ===================================================================
 
-DOM_MAPPING_PROMPT_V1 =
+DOM_MAPPING_PROMPT_V1 = (
     """You are a job-application autofill assistant. Your goal is to fill a web form using the user's profile data.
 
 ## Canonical User Profile
