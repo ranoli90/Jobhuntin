@@ -349,8 +349,10 @@ async def recommend_template(
             reasoning = "Creative/design role detected. Stylish format with visual elements recommended."
             confidence = 0.8
         elif recommended_template == "professional":
-            reasoning =
-    "Professional role detected. Clean, traditional format suitable for most industries recommended."
+            reasoning = (
+                "Professional role detected. Clean, traditional format "
+                "suitable for most industries recommended."
+            )
             confidence = 0.75
         else:
             reasoning = (

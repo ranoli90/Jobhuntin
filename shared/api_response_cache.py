@@ -948,8 +948,8 @@ class ResponseCache:
         if stats["memory_entries"] > self.config.max_memory_entries * 0.9:
             health_status = "degraded"
             issues.append(
-                f"Memory cache at {stats['memory_entries']} entries (
-    {stats['total_entries']} max: {self.config.max_memory_entries})"
+                f"Memory cache at {stats['memory_entries']} entries "
+                f"({stats['total_entries']} max: {self.config.max_memory_entries})"
             )
 
         # Check Redis health

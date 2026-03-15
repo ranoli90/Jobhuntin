@@ -297,8 +297,11 @@ async def list_jobs(
                     count_params.append(f"%{escape_ilike(filters['location'])}%")
                     count_param_index += 1
                 if "keywords" in filters and filters.get("keywords"):
-                    count_query += f" AND (
-    j.title ILIKE ${count_param_index} OR j.description ILIKE ${count_param_index} OR j.company ILIKE ${count_param_index})"
+                    count_query += (
+                        f" AND (j.title ILIKE ${count_param_index} OR "
+                        f"j.description ILIKE ${count_param_index} OR "
+                        f"j.company ILIKE ${count_param_index})"
+                    )
                     count_params.append(f"%{escape_ilike(filters['keywords'])}%")
                     count_param_index += 1
                 if "company_name" in filters and filters.get("company_name"):
