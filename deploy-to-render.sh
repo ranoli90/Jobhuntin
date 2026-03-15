@@ -11,9 +11,27 @@ if [ -z "$RENDER_API_TOKEN" ]; then
   echo "❌ RENDER_API_TOKEN not set. Export it: export RENDER_API_TOKEN=your-key"
   exit 1
 fi
-SERVICE_ID_WEB="srv-d63spbogjchc739akan0"  # Web service (jobhuntin-web)
-SERVICE_ID_API="srv-d63l79hr0fns73boblag"    # API service (jobhuntin-api)
-SERVICE_ID_SEO="srv-d66aadsr85hc73dastfg"   # SEO worker service (jobhuntin-seo-engine)
+
+# Check dependencies
+if ! command -v jq &> /dev/null; then
+  echo "❌ jq is not installed. Install it:"
+  echo "   macOS: brew install jq"
+  echo "   Linux: sudo apt-get install jq"
+  exit 1
+fi
+
+# Service IDs must be provided via environment variables (never commit to git)
+SERVICE_ID_WEB="${SERVICE_ID_WEB:-}"
+SERVICE_ID_API="${SERVICE_ID_API:-}"
+SERVICE_ID_SEO="${SERVICE_ID_SEO:-}"
+
+if [ -z "$SERVICE_ID_WEB" ] || [ -z "$SERVICE_ID_API" ] || [ -z "$SERVICE_ID_SEO" ]; then
+  echo "❌ Service IDs not set. Export them:"
+  echo "   export SERVICE_ID_WEB=srv-xxx"
+  echo "   export SERVICE_ID_API=srv-xxx"
+  echo "   export SERVICE_ID_SEO=srv-xxx"
+  exit 1
+fi
 
 echo "🚀 Starting Render deployment for SEO Ranking Engine..."
 
@@ -80,47 +98,13 @@ check_deployment_status() {
 set_environment_variables() {
     local service_id=$1
     local service_name=$2
-    
+
     echo "🔧 Setting environment variables for $service_name..."
-    
-    # Check if Google service account file exists
-    if [ -f "service-account.json" ]; then
-        echo "📄 Found service-account.json file"
-        
-        # Read the service account content
-        service_account_content=$(cat service-account.json | jq -c .)
-        
-        response=$(curl -s -X PATCH \
-            "https://api.render.com/v1/services/$service_id/env-vars" \
-            -H "Accept: application/json" \
-            -H "Authorization: Bearer $RENDER_API_TOKEN" \
-            -H "Content-Type: application/json" \
-            -d "{
-                \"envVars\": [
-                    {
-                        \"key\": \"GOOGLE_SERVICE_ACCOUNT_KEY\",
-                        \"value\": $(echo "$service_account_content" | jq -R .)
-                    },
-                    {
-                        \"key\": \"GOOGLE_SEARCH_CONSOLE_SITE\",
-                        \"value\": \"https://jobhuntin.com\"
-                    },
-                    {
-                        \"key\": \"NODE_ENV\",
-                        \"value\": \"production\"
-                    }
-                ]
-            }")
-        
-        if echo "$response" | grep -q "envVars"; then
-            echo "✅ Environment variables set for $service_name"
-        else
-            echo "⚠️  Could not set environment variables for $service_name"
-            echo "Response: $response"
-        fi
-    else
-        echo "⚠️  service-account.json not found. You'll need to set GOOGLE_SERVICE_ACCOUNT_KEY manually in Render dashboard."
-    fi
+
+    # SECURITY: Google service account key must be set manually in Render dashboard
+    # Never read from local files to prevent secret exposure in git history
+    echo "⚠️  GOOGLE_SERVICE_ACCOUNT_KEY must be set manually in Render dashboard"
+    echo "   Do not use service-account.json files in this repo"
 }
 
 # Main deployment process

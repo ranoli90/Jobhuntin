@@ -73,6 +73,16 @@ from shared.redis_client import close_redis, get_redis
 from shared.storage import get_storage_service
 from shared.telemetry import setup_telemetry
 from shared.validators import validate_uuid
+from contextlib import asynccontextmanager
+import time
+from api.dependencies import (
+    _pool_manager,
+    get_current_user_id,
+    get_pool,
+    require_admin_user_id,
+)
+from shared.metrics import get_rate_limiter
+from shared.middleware import get_client_ip, setup_security_headers
 
 # ---------------------------------------------------------------------------
 # Configuration (loaded from shared.config)
@@ -102,15 +112,7 @@ if _settings.sentry_dsn:
     except ImportError:
         logger.warning("sentry-sdk not installed - error tracking disabled")
 
-from contextlib import asynccontextmanager
-
-from api.dependencies import (
-    _pool_manager,
-    get_current_user_id,
-    get_pool,
-    require_admin_user_id,
-)
-
+# ---------------------------------------------------------------------------
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -342,11 +344,6 @@ async def api_prefix_rewrite_middleware(request: Request, call_next):
 #     return response
 
 
-import time
-
-from shared.metrics import get_rate_limiter
-from shared.middleware import get_client_ip, setup_security_headers
-
 # ---------------------------------------------------------------------------
 # CSRF Protection Middleware
 # ---------------------------------------------------------------------------
@@ -405,7 +402,7 @@ async def _get_tenant_info(auth_header: str) -> tuple[str | None, TenantTier]:
 
         # JWT sub is string; cast to UUID for profiles.user_id (uuid column)
         try:
-            user_id_uuid = uuid.UUID(str(user_id_raw))
+            uuid.UUID(str(user_id_raw))
         except (ValueError, TypeError):
             return None, TenantTier.FREE
 

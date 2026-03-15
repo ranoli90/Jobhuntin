@@ -82,7 +82,8 @@ def _build_saml_response_xml(email: str = "alice@example.com") -> str:
     </saml2:Subject>
     <saml2:AuthnStatement SessionIndex="_session_001">
       <saml2:AuthnContext>
-        <saml2:AuthnContextClassRef>urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport</saml2:AuthnContextClassRef>
+        <saml2:AuthnContextClassRef>urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport</saml2:AuthnContex
+tClassRef>
       </saml2:AuthnContext>
     </saml2:AuthnStatement>
     <saml2:AttributeStatement>

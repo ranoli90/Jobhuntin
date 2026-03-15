@@ -1352,8 +1352,7 @@ Sincerely,
                         Company: {job_data.get("company_name", job_data.get("company", "Unknown"))}
                         Location: {job_data.get("location", "Unknown")}
                         Remote: {job_data.get("remote", False)}
-                        Salary: ${job_data.get(
-    "salary_min", "Not specified")} - ${job_data.get("salary_max", "Not specified")}
+                        Salary: ${job_data.get("salary_min", "Not specified")} - ${job_data.get("salary_max", "Not specified")}
                         Job Type: {job_data.get("job_type", "Not specified")}
                         Description: {job_data.get("description", "No description available")}
                         Requirements: {job_data.get("requirements", [])}

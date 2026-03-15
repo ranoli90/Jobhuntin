@@ -292,9 +292,10 @@ class VoiceInterviewSimulator:
         # Introduction question
         intro_question = InterviewQuestion(
             id=str(uuid.uuid4()),
-            question =
-    f"Welcome! Let's start with: Tell me about yourself and why you're interested in the {job_title} role at {company}."
-    ,
+            question=(
+                f"Welcome! Let's start with: Tell me about yourself and why you're "
+                f"interested in the {job_title} role at {company}."
+            ),
             question_type=InterviewType.BEHAVIORAL,
             difficulty=QuestionComplexity.BASIC,
             phase=InterviewPhase.INTRODUCTION,

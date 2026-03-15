@@ -1,11 +1,113 @@
-# Render Deployment Configuration for SEO Ranking Engine
-# This file configures your automated SEO system to deploy with your backend
+# Render Blueprint for the entire JobHuntin platform
+# This single file is now the **only** source of truth for Render deployments.
 
 services:
-  # Web Application (Frontend) — Static Site
+  # ─────────────────────────────────────────────────────────────────────────
+  # API Services
+  # ─────────────────────────────────────────────────────────────────────────
+  - type: web
+    name: jobhuntin-api
+    env: docker
+    plan: starter
+    region: oregon
+    branch: main
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: ENV
+        value: prod
+      - key: PYTHONPATH
+        value: apps:packages:.
+      - key: STORAGE_TYPE
+        value: render_disk
+      - key: APP_BASE_URL
+        value: https://jobhuntin-web.onrender.com
+      - key: API_PUBLIC_URL
+        value: https://jobhuntin-api.onrender.com
+      - key: MAGIC_LINK_BIND_TO_IP
+        value: "false"
+      - key: LLM_API_BASE
+        value: https://openrouter.ai/api/v1
+      - key: LLM_MODEL
+        value: google/gemini-2.0-flash
+      - key: EMAIL_FROM
+        value: JobHuntin <noreply@jobhuntin.com>
+      - key: DATABASE_URL
+        fromDatabase:
+          name: jobhuntin-db
+          property: internalConnectionString
+      - key: REDIS_URL
+        fromService:
+          name: jobhuntin-redis
+          type: keyvalue
+          property: connectionString
+      - key: LLM_API_KEY
+        sync: false
+      - key: CSRF_SECRET
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: WEBHOOK_SIGNING_SECRET
+        sync: false
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      - key: RESEND_API_KEY
+        sync: false
+      - key: RESEND_WEBHOOK_SECRET
+        sync: false
+      - key: RECAPTCHA_SECRET_KEY
+        sync: false
+
+  - type: web
+    name: jobhuntin-api-staging
+    env: docker
+    plan: starter
+    region: oregon
+    branch: staging
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: ENV
+        value: staging
+      - key: PYTHONPATH
+        value: apps:packages:.
+      - key: STORAGE_TYPE
+        value: render_disk
+      - key: APP_BASE_URL
+        value: https://staging.jobhuntin.com
+      - key: DATABASE_URL
+        fromDatabase:
+          name: jobhuntin-db
+          property: internalConnectionString
+      - key: REDIS_URL
+        fromService:
+          name: jobhuntin-redis
+          type: keyvalue
+          property: connectionString
+      - key: LLM_API_KEY
+        sync: false
+      - key: CSRF_SECRET
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: WEBHOOK_SIGNING_SECRET
+        sync: false
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # Frontend Surfaces
+  # ─────────────────────────────────────────────────────────────────────────
   - type: web
     name: jobhuntin-web
     env: static
+    plan: starter
+    region: oregon
+    branch: main
     buildCommand: npm ci && cd apps/web && npx playwright install chromium && npm run build && cp dist/index.html dist/200.html
     staticPublishPath: apps/web/dist
     headers:
@@ -19,105 +121,49 @@ services:
       - type: rewrite
         source: /*
         destination: /200.html
-    envVars:
-      - key: NODE_VERSION
-        value: 20  # Fix for npm ci segfault (exit status 139)
-      - key: VITE_API_URL
-        value: https://jobhuntin-api.onrender.com
-      - key: VITE_APP_BASE_URL
-        value: https://jobhuntin-web.onrender.com
     autoDeploy: true
-    
-  # Admin Dashboard - Static Site
-  - type: static
-    name: jobhuntin-admin
-    buildCommand: cd apps/web-admin && npm install && npm run build
-    staticPublishPath: apps/web-admin/dist
     envVars:
       - key: NODE_VERSION
         value: "20"
       - key: VITE_API_URL
         value: https://jobhuntin-api.onrender.com
-    autoDeploy: true
-    
-  # API Backend
-  - type: web
-    name: jobhuntin-api
-    env: docker
-    dockerfilePath: ./Dockerfile
-    buildCommand: docker build --target api -t jobhuntin-api .
-    startCommand: uvicorn api.main:app --host 0.0.0.0 --port 10000
-    envVars:
-      - key: PYTHONPATH
-        value: apps:packages:.
-      - key: DATABASE_URL
-        sync: false  # Set in Render dashboard - NEVER hardcode credentials
-      - key: LLM_API_KEY
-        sync: false  # OpenRouter API Key for free NVIDIA models
-      - key: LLM_API_BASE
-        value: https://openrouter.ai/api/v1
-      - key: LLM_MODEL
-        value: google/gemini-2.0-flash
-      - key: env
-        value: prod
-      - key: STORAGE_TYPE
-        value: render_disk
-      - key: APP_BASE_URL
+      - key: VITE_APP_BASE_URL
         value: https://jobhuntin-web.onrender.com
-      - key: CSRF_SECRET
-        sync: false  # Set in Render dashboard
-      - key: JWT_SECRET
-        sync: false  # Set in Render dashboard
-      - key: WEBHOOK_SIGNING_SECRET
-        sync: false  # Set in Render dashboard
-      - key: STRIPE_SECRET_KEY
-        sync: false  # Set in Render dashboard
-      - key: STRIPE_WEBHOOK_SECRET
-        sync: false  # Set in Render dashboard
-      - key: REDIS_URL
-        sync: false  # Set in Render dashboard for caching
-      - key: RESEND_API_KEY
-        sync: false  # Resend API key for magic link emails
-      - key: RESEND_WEBHOOK_SECRET
-        sync: false  # Resend webhook signing secret (optional)
-      - key: RECAPTCHA_SECRET_KEY
-        sync: false  # Google reCAPTCHA v3 secret key
-      - key: EMAIL_FROM
-        value: JobHuntin <noreply@jobhuntin.com>
-      - key: API_PUBLIC_URL
-        value: https://jobhuntin-api.onrender.com
-      - key: MAGIC_LINK_BIND_TO_IP
-        value: "false"  # P1: Security - bind magic links to requesting IP
-    healthCheckPath: /health
+
+  - type: web
+    name: jobhuntin-admin
+    env: static
+    plan: starter
+    region: oregon
+    branch: main
+    buildCommand: cd apps/web-admin && npm install && npm run build
+    staticPublishPath: apps/web-admin/dist
     autoDeploy: true
-    
-  # Background Worker (Modern SEO Engine 2024)
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+      - key: VITE_API_URL
+        value: https://jobhuntin-api.onrender.com
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # Workers
+  # ─────────────────────────────────────────────────────────────────────────
   - type: worker
     name: jobhuntin-seo-engine
     env: node
-    buildCommand: npm ci && cd apps/web && npm ls tsx
+    plan: starter
+    region: oregon
+    branch: main
+    buildCommand: npm ci && cd apps/web && npm ls tsx && npx playwright install chromium
     startCommand: cd apps/web && node --import tsx scripts/seo/modern-seo-engine.ts
+    autoDeploy: true
     envVars:
-      - key: GOOGLE_SERVICE_ACCOUNT_KEY
-        sync: false  # Set in Render dashboard
-      - key: GOOGLE_SEARCH_CONSOLE_SITE
-        value: https://jobhuntin-web.onrender.com
       - key: NODE_ENV
         value: production
       - key: NODE_VERSION
-        value: 20
-      # AI Models for different content types
-      - key: LLM_API_KEY
-        sync: false  # OpenRouter API Key
-      - key: LLM_API_BASE
-        value: https://openrouter.ai/api/v1
-      - key: LLM_MODEL
-        value: openai/gpt-4o-mini  # Main content generation
-      - key: LLM_MODEL_RESEARCH
-        value: anthropic/claude-3-haiku  # Fast research
-      - key: LLM_MODEL_OPTIMIZATION
-        value: google/gemini-flash-1.5  # Title/meta optimization
-      # SEO Engine Configuration
+        value: "20"
+      - key: GOOGLE_SEARCH_CONSOLE_SITE
+        value: https://jobhuntin-web.onrender.com
       - key: SEO_PARALLEL_WORKERS
         value: "5"
       - key: SEO_DAILY_LIMIT
@@ -126,194 +172,242 @@ services:
         value: "20"
       - key: SEO_BATCH_DELAY_MS
         value: "10000"
-      - key: DATABASE_URL
-        sync: false  # For progress tracking - NEVER hardcode
-      - key: REDIS_URL
-        sync: false  # For caching SEO results
-      # Search Console API
-      - key: GSC_API_KEY
-        sync: false
-      # IndexNow API
-      - key: INDEXNOW_API_KEY
-        sync: false
-    autoDeploy: true
-
-  # Background Worker (Job Sync — JobSpy)
-  - type: worker
-    name: jobhuntin-job-sync
-    env: python
-    buildCommand: pip install -r requirements.txt
-    startCommand: . python apps/worker/job_sync_worker.py
-    envVars:
-      - key: DATABASE_URL
-        sync: false  # Set in Render dashboard - NEVER hardcode credentials
-      - key: env
-        value: prod
-      - key: PYTHONPATH
-        value: apps:packages:.
-    autoDeploy: true
-
-  # Background Worker (Job Queue — background_jobs table)
-  - type: worker
-    name: jobhuntin-job-queue
-    env: python
-    buildCommand: pip install -r requirements.txt
-    startCommand: . python apps/worker/job_queue_worker.py
-    envVars:
-      - key: DATABASE_URL
-        sync: false
-      - key: env
-        value: prod
-      - key: PYTHONPATH
-        value: apps:packages:.
-    autoDeploy: true
-
-  # Background Worker (Follow-up Reminders)
-  - type: worker
-    name: jobhuntin-follow-up-reminders
-    env: python
-    buildCommand: pip install -r requirements.txt
-    startCommand: . python apps/worker/follow_up_reminders_worker.py
-    envVars:
-      - key: DATABASE_URL
-        sync: false
-      - key: env
-        value: prod
-      - key: PYTHONPATH
-        value: apps:packages:.
-    autoDeploy: true
-
-  # Background Worker (Auto-Apply Agent)
-  - type: background_worker
-    name: sorce-auto-apply-agent
-    env: python
-    buildCommand: pip install -r requirements.txt && python -m playwright install --with-deps chromium
-    startCommand: python -m apps.worker.startup --instances 2
-    plan: standard  # Production-ready plan for 1000+ users
-    numInstances: 2  # Start with 2 instances, can scale to 20
-    healthCheckPath: /worker/health
-    healthCheckTimeout: 30
-    envVars:
-      - key: PYTHON_VERSION
-        value: "3.12"  # Match Dockerfile Python version
-      - key: PYTHONPATH
-        value: apps:packages:.
-      - key: DATABASE_URL
-        sync: false  # Set in Render dashboard - NEVER hardcode credentials
-      - key: LLM_API_KEY
-        sync: false  # OpenRouter API Key for free NVIDIA models
       - key: LLM_API_BASE
         value: https://openrouter.ai/api/v1
       - key: LLM_MODEL
-        value: google/gemini-2.0-flash
-      - key: AGENT_ENABLED
-        value: true
-      - key: env
+        value: openai/gpt-4o-mini
+      - key: LLM_MODEL_RESEARCH
+        value: anthropic/claude-3-haiku
+      - key: LLM_MODEL_OPTIMIZATION
+        value: google/gemini-flash-1.5
+      - key: DATABASE_URL
+        fromDatabase:
+          name: jobhuntin-db
+          property: internalConnectionString
+      - key: REDIS_URL
+        fromService:
+          name: jobhuntin-redis
+          type: keyvalue
+          property: connectionString
+      - key: LLM_API_KEY
+        sync: false
+      - key: GOOGLE_SERVICE_ACCOUNT_KEY
+        sync: false
+      - key: GSC_API_KEY
+        sync: false
+      - key: INDEXNOW_API_KEY
+        sync: false
+
+  - type: worker
+    name: jobhuntin-job-sync
+    env: python
+    plan: starter
+    region: oregon
+    buildCommand: pip install -r requirements.txt
+    startCommand: PYTHONPATH=apps:packages:. python apps/worker/job_sync_worker.py
+    autoDeploy: true
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: jobhuntin-db
+          property: internalConnectionString
+      - key: ENV
         value: prod
+      - key: PYTHONPATH
+        value: apps:packages:.
+
+  - type: worker
+    name: jobhuntin-job-queue
+    env: python
+    plan: starter
+    region: oregon
+    buildCommand: pip install -r requirements.txt
+    startCommand: PYTHONPATH=apps:packages:. python apps/worker/job_queue_worker.py
+    autoDeploy: true
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: jobhuntin-db
+          property: internalConnectionString
+      - key: ENV
+        value: prod
+      - key: PYTHONPATH
+        value: apps:packages:.
+
+  - type: worker
+    name: jobhuntin-follow-up-reminders
+    env: python
+    plan: starter
+    region: oregon
+    buildCommand: pip install -r requirements.txt
+    startCommand: PYTHONPATH=apps:packages:. python apps/worker/follow_up_reminders_worker.py
+    autoDeploy: true
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: jobhuntin-db
+          property: internalConnectionString
+      - key: ENV
+        value: prod
+      - key: PYTHONPATH
+        value: apps:packages:.
+
+  - type: worker
+    name: sorce-auto-apply-agent
+    env: python
+    plan: standard
+    region: oregon
+    numInstances: 2
+    branch: main
+    buildCommand: pip install -r requirements.txt && python -m playwright install --with-deps chromium
+    startCommand: python -m apps.worker.startup --instances 2
+    healthCheckPath: /worker/health
+    healthCheckTimeout: 30
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12"
+      - key: PYTHONPATH
+        value: apps:packages:.
       - key: STORAGE_TYPE
         value: render_disk
       - key: APP_BASE_URL
         value: https://jobhuntin-web.onrender.com
-      - key: CSRF_SECRET
-        sync: false  # Set in Render dashboard
-      - key: JWT_SECRET
-        sync: false  # Set in Render dashboard
-      - key: WEBHOOK_SIGNING_SECRET
-        sync: false  # Set in Render dashboard
-      - key: REDIS_URL
-        sync: false  # For caching worker results
+      - key: AGENT_ENABLED
+        value: "true"
       - key: WORKER_CONCURRENCY
-        value: "50"  # 50 concurrent tasks per instance
+        value: "5"
       - key: MAX_INSTANCES
-        value: "20"  # Auto-scale up to 20 instances
+        value: "20"
       - key: PYTHONUNBUFFERED
-        value: "1"  # Better logging for production
+        value: "1"
       - key: BROWSER_CONTEXT_MAX_USES
-        value: "10"  # Recycle browser contexts
+        value: "10"
       - key: POLL_INTERVAL_SECONDS
-        value: "2"  # Faster polling for high throughput
+        value: "2"
       - key: LOG_LEVEL
-        value: "INFO"  # Consistent logging level
+        value: INFO
       - key: WORKER_TIMEOUT_SECONDS
-        value: "300"  # 5 minute timeout for worker tasks
+        value: "300"
       - key: ENABLE_METRICS
-        value: "true"  # Enable performance metrics
-    autoDeploy: true
+        value: "true"
+      - key: LLM_API_BASE
+        value: https://openrouter.ai/api/v1
+      - key: LLM_MODEL
+        value: google/gemini-2.0-flash
+      - key: DATABASE_URL
+        fromDatabase:
+          name: jobhuntin-db
+          property: internalConnectionString
+      - key: REDIS_URL
+        fromService:
+          name: jobhuntin-redis
+          type: keyvalue
+          property: connectionString
+      - key: LLM_API_KEY
+        sync: false
+      - key: CSRF_SECRET
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: WEBHOOK_SIGNING_SECRET
+        sync: false
 
-  # Cron: Job Alerts (daily)
+  # ─────────────────────────────────────────────────────────────────────────
+  # Cron Jobs
+  # ─────────────────────────────────────────────────────────────────────────
   - type: cron
     name: jobhuntin-job-alerts-daily
     env: python
+    region: oregon
     schedule: "0 14 * * *"
     buildCommand: pip install -r requirements.txt
-    startCommand: . ALERT_FREQUENCY=daily python scripts/cron/process_job_alerts.py
+    startCommand: PYTHONPATH=apps:packages:. ALERT_FREQUENCY=daily python scripts/cron/process_job_alerts.py
     envVars:
       - key: DATABASE_URL
-        sync: false
-      - key: env
+        fromDatabase:
+          name: jobhuntin-db
+          property: internalConnectionString
+      - key: ENV
         value: prod
-      - key: PYTHONPATH
-        value: apps:packages:.
       - key: ALERT_FREQUENCY
         value: daily
       - key: RESEND_API_KEY
         sync: false
+      - key: RESEND_WEBHOOK_SECRET
+        sync: false
+      - key: JWT_SECRET
+        sync: false
       - key: EMAIL_FROM
         value: noreply@jobhuntin.com
 
-  # Cron: Job Alerts (weekly)
   - type: cron
     name: jobhuntin-job-alerts-weekly
     env: python
+    region: oregon
     schedule: "0 15 * * 1"
     buildCommand: pip install -r requirements.txt
-    startCommand: . ALERT_FREQUENCY=weekly python scripts/cron/process_job_alerts.py
+    startCommand: PYTHONPATH=apps:packages:. ALERT_FREQUENCY=weekly python scripts/cron/process_job_alerts.py
     envVars:
       - key: DATABASE_URL
-        sync: false
-      - key: env
+        fromDatabase:
+          name: jobhuntin-db
+          property: internalConnectionString
+      - key: ENV
         value: prod
-      - key: PYTHONPATH
-        value: apps:packages:.
       - key: ALERT_FREQUENCY
         value: weekly
       - key: RESEND_API_KEY
         sync: false
+      - key: RESEND_WEBHOOK_SECRET
+        sync: false
+      - key: JWT_SECRET
+        sync: false
       - key: EMAIL_FROM
         value: noreply@jobhuntin.com
 
-  # Cron: Weekly Email Digest (Mondays 9am UTC)
   - type: cron
     name: jobhuntin-weekly-digest
     env: python
+    region: oregon
     schedule: "0 9 * * 1"
     buildCommand: pip install -r requirements.txt
-    startCommand: . python scripts/cron/run_weekly_digest.py
+    startCommand: PYTHONPATH=apps:packages:. python scripts/cron/run_weekly_digest.py
     envVars:
       - key: DATABASE_URL
-        sync: false
-      - key: env
+        fromDatabase:
+          name: jobhuntin-db
+          property: internalConnectionString
+      - key: ENV
         value: prod
-      - key: PYTHONPATH
-        value: apps:packages:.
       - key: RESEND_API_KEY
+        sync: false
+      - key: RESEND_WEBHOOK_SECRET
+        sync: false
+      - key: JWT_SECRET
         sync: false
       - key: EMAIL_FROM
         value: noreply@jobhuntin.com
 
-# Environment Variables Setup Instructions:
-# 1. Go to your Render dashboard
-# 2. Add these environment variables to each service:
-#
-# For jobhuntin-api: DATABASE_URL, REDIS_URL, JWT_SECRET, CSRF_SECRET, WEBHOOK_SIGNING_SECRET,
-#   LLM_API_KEY, RESEND_API_KEY, EMAIL_FROM, STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, etc.
-#
-# For jobhuntin-seo-engine: GOOGLE_SERVICE_ACCOUNT_KEY (JSON), GOOGLE_SEARCH_CONSOLE_SITE,
-#   DATABASE_URL, REDIS_URL, LLM_API_KEY.
-#
-# For job-alerts crons: RESEND_API_KEY, EMAIL_FROM (in addition to DATABASE_URL).
+databases:
+  - name: jobhuntin-db
+    databaseName: jobhuntin
+    user: jobhuntin_user
+    plan: basic_256mb
+    region: oregon
+    ipAllowList:
+      - source: 10.0.0.0/8
+        description: Render private network (internal services only)
+      - source: 100.64.0.0/10
+        description: Render private network (internal services only)
 
-# Deployment Commands:
-# Install Render CLI: curl https://render.com/docs/install.sh | sh
-# Deploy: render deploy
-# Check status: render services
+keyValueStores:
+  - name: jobhuntin-redis
+    plan: free
+    region: oregon
+    maxMemoryPolicy: allkeys-lru
+
+# Usage:
+#   render login              # once per environment or export RENDER_API_KEY
+#   render blueprint validate # optional linting step
+#   render blueprint apply render.yaml

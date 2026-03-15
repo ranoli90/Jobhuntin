@@ -147,8 +147,8 @@ async def list_blueprints(
     async with db.acquire() as conn:
         rows = await conn.fetch(base, *params)
         total = await conn.fetchval(
-            "SELECT COUNT(
-    *)::int FROM public.marketplace_blueprints WHERE approval_status = 'approved' AND is_active = true"
+            "SELECT COUNT(*)::int FROM public.marketplace_blueprints "
+            "WHERE approval_status = 'approved' AND is_active = true"
         )
 
     return {"blueprints": [dict(r) for r in rows], "total": total or 0}

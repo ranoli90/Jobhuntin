@@ -334,7 +334,7 @@ async def skill_gap_health_check(
     """
     try:
         # Quick check that analyzer can be instantiated
-        analyzer = get_skill_gap_analyzer()
+        get_skill_gap_analyzer()
         taxonomy = get_skills_taxonomy()
 
         return {

@@ -145,7 +145,9 @@ def generate_manual_instructions():
         {
             "type": "TXT",
             "name": "resend._domainkey",
-            "value": "p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDTNt9gMWn7w5Rqg8AjipC4rSEzRKCB8TZBurKjmKBEsGUR8mXTDi5611NgVspfrdIQB6lPDjnnHBIiVZW+O+n/2FNIyrXxTRHlQXmCjpdr/tZ5NXnfEg65Xqwc5eGI9useCBgeZowiUACLY3nE/xXkBTvyUWvBQs7vbkXhlMSErwIDAQAB",
+            "value": "p =
+    MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDTNt9gMWn7w5Rqg8AjipC4rSEzRKCB8TZBurKjmKBEsGUR8mXTDi5611NgVspfrdIQB6lPDjnnHBIi
+    VZW+O+n/2FNIyrXxTRHlQXmCjpdr/tZ5NXnfEg65Xqwc5eGI9useCBgeZowiUACLY3nE/xXkBTvyUWvBQs7vbkXhlMSErwIDAQAB",
         },
         {
             "type": "MX",

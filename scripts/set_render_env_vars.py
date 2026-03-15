@@ -10,7 +10,9 @@ SERVICE_ID = "srv-d6p4l03h46gs73ftvuj0"
 
 # Environment variables to set
 env_vars = [
-    ("DATABASE_URL", "postgresql://jobhuntin_user:60BpsY53MYOO4fGFlvZKwDpiXB9Up9lL@dpg-d66ck524d50c73bas62g-a:5432/jobhuntin"),
+    (
+    "DATABASE_URL",
+    "postgresql://jobhuntin_user:60BpsY53MYOO4fGFlvZKwDpiXB9Up9lL@dpg-d66ck524d50c73bas62g-a:5432/jobhuntin"),
     ("REDIS_URL", "redis://red-d6761bp5pdvs73e7b3mg:6379"),
     ("ENV", "prod"),
     ("NODE_ENV", "production"),

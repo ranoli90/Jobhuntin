@@ -1,0 +1,333 @@
+# Semgrep configuration for comprehensive security and bug detection
+# This configuration covers:
+# - Security vulnerabilities (OWASP Top 10)
+# - Common bugs and anti-patterns
+# - Code quality issues
+# - Python-specific issues
+# - JavaScript/TypeScript issues
+# - SQL injection prevention
+# - Hardcoded secrets detection
+# - Performance issues
+
+rules:
+  # Security Rules
+  - id: owasp-top-ten
+    patterns:
+      - pattern-either:
+          # SQL Injection
+          - pattern: |
+              $QUERY = "... + $USER_INPUT"
+          - pattern: |
+              execute("... + $USER_INPUT")
+          - pattern: |
+              cursor.execute("... %s" % $USER_INPUT)
+          
+          # Command Injection
+          - pattern: |
+              os.system("... + $USER_INPUT")
+          - pattern: |
+              subprocess.call("... + $USER_INPUT")
+          
+          # Path Traversal
+          - pattern: |
+              open("... + $USER_INPUT")
+          - pattern: |
+              open("../...")
+          
+          # Hardcoded secrets
+          - pattern: |
+              password = "..."
+          - pattern: |
+              api_key = "..."
+          - pattern: |
+              secret_key = "..."
+          - pattern: |
+              $VAR = "sk-..."  # OpenAI API keys
+          - pattern: |
+              $VAR = "ghp_..."  # GitHub tokens
+          
+          # Weak cryptography
+          - pattern: |
+              hashlib.md5(...)
+          - pattern: |
+              hashlib.sha1(...)
+          
+          # Unsafe deserialization
+          - pattern: |
+              pickle.loads(...)
+          - pattern: |
+              eval(...)
+          
+    languages: [python, javascript, typescript]
+    severity: ERROR
+    message: |
+      Security vulnerability detected! This code pattern is commonly associated with
+      OWASP Top 10 security risks including SQL injection, command injection,
+      hardcoded secrets, weak cryptography, or unsafe deserialization.
+
+  # Python-specific Issues
+  - id: python-common-bugs
+    patterns:
+      - pattern-either:
+          # Exception handling
+          - pattern: |
+              except:
+          - pattern: |
+              except Exception:
+              pass
+          
+          # Import issues
+          - pattern: |
+              import *
+          
+          # Mutable default arguments
+          - pattern: |
+              def $FUNC(..., $ARG = []):
+          - pattern: |
+              def $FUNC(..., $ARG = {}):
+          
+          # Comparison issues
+          - pattern: |
+              $X == None
+          - pattern: |
+              $X != None
+          - pattern: |
+              $X == True
+          - pattern: |
+              $X == False
+          
+          # Resource leaks
+          - pattern: |
+              open(...)  # without context manager
+          
+    languages: [python]
+    severity: WARNING
+    message: |
+      Python anti-pattern detected. This includes bare except clauses,
+      star imports, mutable default arguments, incorrect None comparisons,
+      or resource leaks.
+
+  # JavaScript/TypeScript Issues
+  - id: javascript-common-bugs
+    patterns:
+      - pattern-either:
+          # Type coercion issues
+          - pattern: |
+              $X == $Y
+          - pattern: |
+              $X != $Y
+          
+          # Global variable pollution
+          - pattern: |
+              var $VAR = ...
+          
+          # eval usage
+          - pattern: |
+              eval(...)
+          
+          # setTimeout with string
+          - pattern: |
+              setTimeout("...", ...)
+          
+          # Missing return in promise chain
+          - pattern: |
+              .then(($RESULT) => {
+                  $SOME_CODE
+                  // missing return
+              })
+          
+    languages: [javascript, typescript]
+    severity: WARNING
+    message: |
+      JavaScript/TypeScript anti-pattern detected. This includes type coercion
+      issues, global variable pollution, eval usage, setTimeout with strings,
+      or missing returns in promise chains.
+
+  # Performance Issues
+  - id: performance-anti-patterns
+    patterns:
+      - pattern-either:
+          # Database queries in loops
+          - pattern: |
+              for $LOOP:
+                  $DB_QUERY(...)
+          
+          # Inefficient string concatenation
+          - pattern: |
+              $RESULT = ""
+              for $LOOP:
+                  $RESULT += $PART
+          
+          # Large list comprehensions without generator
+          - pattern: |
+              [$FUNC($X) for $X in $VERY_LARGE_LIST]
+          
+    languages: [python]
+    severity: INFO
+    message: |
+      Performance anti-pattern detected. This includes database queries in loops,
+      inefficient string concatenation, or memory-intensive operations.
+
+  # Code Quality Issues
+  - id: code-quality
+    patterns:
+      - pattern-either:
+          # TODO/FIXME comments
+          - pattern: |
+              # TODO
+          - pattern: |
+              # FIXME
+          - pattern: |
+              // TODO
+          - pattern: |
+              // FIXME
+          
+          # Debug code
+          - pattern: |
+              print($DEBUG_INFO)
+          - pattern: |
+              console.log($DEBUG_INFO)
+          
+          # Dead code indicators
+          - pattern: |
+              if False:
+                  $CODE
+          
+    languages: [python, javascript, typescript]
+    severity: INFO
+    message: |
+      Code quality issue detected. This includes TODO/FIXME comments,
+      debug print statements, or potentially dead code.
+
+  # SQL/Database Issues
+  - id: database-security
+    patterns:
+      - pattern-either:
+          # Raw SQL with user input
+          - pattern: |
+              $CURSOR.execute("... + $USER_INPUT")
+          - pattern: |
+              $CURSOR.execute("... %s" % $USER_INPUT)
+          - pattern: |
+              $CURSOR.execute("... {}".format($USER_INPUT))
+          
+          # Missing parameterized queries
+          - pattern: |
+              $CURSOR.execute("SELECT * FROM users WHERE id = " + $USER_ID)
+          
+    languages: [python]
+    severity: ERROR
+    message: |
+      Database security issue detected! Use parameterized queries to prevent
+      SQL injection attacks.
+
+  # Web Security Issues
+  - id: web-security
+    patterns:
+      - pattern-either:
+          # CSRF missing protection
+          - pattern: |
+              @app.route(...)
+              def $HANDLER():
+                  # No CSRF protection
+          
+          # XSS vulnerability
+          - pattern: |
+              return "<html>" + $USER_INPUT + "</html>"
+          
+          # Insecure cookie
+          - pattern: |
+              set_cookie(..., secure=False)
+          
+    languages: [python]
+    severity: ERROR
+    message: |
+      Web security vulnerability detected! This includes missing CSRF protection,
+      XSS vulnerabilities, or insecure cookie settings.
+
+  # Configuration and Environment Issues
+  - id: config-security
+    patterns:
+      - pattern-either:
+          # Hardcoded configuration
+          - pattern: |
+              DATABASE_URL = "postgresql://..."
+          - pattern: |
+              SECRET_KEY = "..."
+          - pattern: |
+              API_KEY = "..."
+          
+          # Debug mode in production
+          - pattern: |
+              app.debug = True
+          
+    languages: [python, javascript, typescript]
+    severity: ERROR
+    message: |
+      Configuration security issue detected! Avoid hardcoded secrets and
+          debug mode in production.
+
+# Auto-generated rules from Semgrep registry
+include:
+  - p/security-audit  # Security vulnerabilities
+  - p/owasp-top-ten   # OWASP Top 10
+  - p/bandit          # Python security
+  - p/flawfinder     # C/C++ security
+  - p/eslint-security # JavaScript security
+  - p/cwe-top-25     # Common Weakness Enumeration
+  - p/secrets        # Hardcoded secrets
+  - p/sql-injection  # SQL injection prevention
+  - p/command-injection  # Command injection prevention
+  - p/path-traversal  # Path traversal prevention
+  - p/unsafe-deserialization  # Unsafe deserialization
+  - p/weak-cryptography  # Weak cryptography
+  - p/cryptographic-misuse  # Cryptographic misuse
+  - p/ssl-checks     # SSL/TLS issues
+  - p/regex          # Regex security
+  - p/xss            # XSS prevention
+  - p/csrf           # CSRF prevention
+  - p/headers        # Security headers
+  - p/logging        # Logging security
+  - p/performance    # Performance issues
+  - p/bandit         # Python security rules
+  - p/flake8         # Python code quality
+  - p/mccabe         # Complexity analysis
+  - p/unused         # Unused code
+  - p/bug            # Common bugs
+  - p/contrib        # Community rules
+  - p/experimental   # Experimental rules
+
+# Exclude patterns
+exclude:
+  - "*.test.py"
+  - "*.spec.js"
+  - "*.spec.ts"
+  - "node_modules/"
+  - ".git/"
+  - "__pycache__/"
+  - "*.pyc"
+  - "venv/"
+  - ".venv/"
+  - "build/"
+  - "dist/"
+  - "migrations/"
+  - "alembic/versions/"
+
+# Path configuration
+paths:
+  - apps/
+  - packages/
+  - shared/
+  - backend/
+  - api/
+  - worker/
+  - scripts/
+  - tests/
+
+# Severity configuration
+severity: INFO
+
+# Output configuration
+output:
+  format: sarif
+  output_path: semgrep-results.sarif

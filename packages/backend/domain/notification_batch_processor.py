@@ -404,7 +404,6 @@ class NotificationBatchProcessor:
         semaphore = asyncio.Semaphore(10)  # Limit concurrent processing
 
         async def process_user_batch(user_batch: UserNotificationBatch):
-            nonlocal successful, failed, skipped
 
             try:
                 async with semaphore:

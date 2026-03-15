@@ -651,7 +651,7 @@ class DuplicateDetector:
         job_hash = self.hash_job(job_data)
 
         # Use the hash to create a deterministic UUID
-        return uuid.UUID(hashlib.md5(job_hash.encode()).hexdigest())
+        return uuid.UUID(hashlib.sha256(job_hash.encode()).hexdigest())
 
     def update_canonical_references(
         self, jobs: list[dict]

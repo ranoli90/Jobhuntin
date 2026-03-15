@@ -219,8 +219,10 @@ class DatabaseHealthChecker:
                     return HealthCheck(
                         name="connection_health",
                         status=HealthStatus.DEGRADED,
-                        message =
-    f"Connection time {conn_time:.1f}ms exceeds threshold {self.thresholds['connection_time_ms']}ms",
+                        message=(
+                            f"Connection time {conn_time:.1f}ms exceeds threshold "
+                            f"{self.thresholds['connection_time_ms']}ms"
+                        ),
                         value=conn_time,
                         threshold=self.thresholds["connection_time_ms"],
                         duration_ms=duration_ms,

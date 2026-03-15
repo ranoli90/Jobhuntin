@@ -282,8 +282,11 @@ async def list_jobs(
 
             # Get total count for pagination
             # HIGH: Fix pagination total count - apply same filters to count query
-            count_query = "SELECT COUNT(
-    *) as total FROM public.jobs j LEFT JOIN public.companies c ON j.company_id = c.id WHERE j.is_active = true"
+            count_query = (
+                "SELECT COUNT(*) as total FROM public.jobs j "
+                "LEFT JOIN public.companies c ON j.company_id = c.id "
+                "WHERE j.is_active = true"
+            )
             count_params: list[Any] = []
             count_param_index = 1
 

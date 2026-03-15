@@ -106,7 +106,8 @@ def manage_render():
                 )
         else:
             print(
-                "Frontend service 'sorce-web' not found. You may need to create it manually via Render dashboard pointing to the web/ directory."
+                "Frontend service 'sorce-web' not found. You may need to create it manually via Render dashboard
+pointing to the web/ directory."
             )
 
     except Exception as e:

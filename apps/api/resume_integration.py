@@ -342,8 +342,10 @@ async def recommend_template(
             reasoning = "Executive-level position detected. Senior format with achievement focus recommended."
             confidence = 0.9
         elif recommended_template == "technical":
-            reasoning =
-    "Technical/engineering role detected. Skills-focused format with technical emphasis recommended."
+            reasoning = (
+                "Technical/engineering role detected. "
+                "Skills-focused format with technical emphasis recommended."
+            )
             confidence = 0.85
         elif recommended_template == "creative":
             reasoning = "Creative/design role detected. Stylish format with visual elements recommended."

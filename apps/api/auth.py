@@ -519,8 +519,10 @@ async def _generate_magic_link(
         if not api_url or "sorce" in api_url.lower() or "api." in api_url.lower():
             api_url = "http://localhost:8000"  # dev fallback
         safe_return = "/"  # Admin always redirects to root
-        verify_url = f"{api_url}/auth/verify-magic?token={quote(
-    token, safe='')}&returnTo={quote(safe_return, safe='')}&admin_redirect=1"
+        verify_url = (
+            f"{api_url}/auth/verify-magic?token={quote(token, safe='')}"
+            f"&returnTo={quote(safe_return, safe='')}&admin_redirect=1"
+        )
         logger.info("[MAGIC_LINK] Using admin verify flow (direct to API)")
         return verify_url, user_identifier
 

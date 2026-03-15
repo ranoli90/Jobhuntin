@@ -68,13 +68,20 @@ async def run_migration():
                 """
                 CREATE TABLE IF NOT EXISTS work_style_profiles (
                     user_id UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
-                    autonomy_preference VARCHAR(20) DEFAULT 'medium' CHECK (autonomy_preference IN ('high', 'medium', 'low')),
-                    learning_style VARCHAR(20) DEFAULT 'building' CHECK (learning_style IN ('docs', 'building', 'pairing', 'courses')),
-                    company_stage_preference VARCHAR(20) DEFAULT 'flexible' CHECK (company_stage_preference IN ('early_startup', 'growth', 'enterprise', 'flexible')),
-                    communication_style VARCHAR(20) DEFAULT 'mixed' CHECK (communication_style IN ('async', 'sync', 'mixed', 'flexible')),
-                    pace_preference VARCHAR(20) DEFAULT 'steady' CHECK (pace_preference IN ('fast', 'steady', 'methodical', 'flexible')),
-                    ownership_preference VARCHAR(20) DEFAULT 'team' CHECK (ownership_preference IN ('solo', 'team', 'lead', 'flexible')),
-                    career_trajectory VARCHAR(20) DEFAULT 'open' CHECK (career_trajectory IN ('ic', 'tech_lead', 'manager', 'founder', 'open')),
+                    autonomy_preference VARCHAR(
+    20) DEFAULT 'medium' CHECK (autonomy_preference IN ('high', 'medium', 'low')),
+                    learning_style VARCHAR(
+    20) DEFAULT 'building' CHECK (learning_style IN ('docs', 'building', 'pairing', 'courses')),
+                    company_stage_preference VARCHAR(
+    20) DEFAULT 'flexible' CHECK (company_stage_preference IN ('early_startup', 'growth', 'enterprise', 'flexible')),
+                    communication_style VARCHAR(
+    20) DEFAULT 'mixed' CHECK (communication_style IN ('async', 'sync', 'mixed', 'flexible')),
+                    pace_preference VARCHAR(
+    20) DEFAULT 'steady' CHECK (pace_preference IN ('fast', 'steady', 'methodical', 'flexible')),
+                    ownership_preference VARCHAR(
+    20) DEFAULT 'team' CHECK (ownership_preference IN ('solo', 'team', 'lead', 'flexible')),
+                    career_trajectory VARCHAR(
+    20) DEFAULT 'open' CHECK (career_trajectory IN ('ic', 'tech_lead', 'manager', 'founder', 'open')),
                     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
                     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
                 )
@@ -97,7 +104,8 @@ async def run_migration():
                     company_stage VARCHAR(20) CHECK (company_stage IN ('early_startup', 'growth', 'enterprise')),
                     pace VARCHAR(20) CHECK (pace IN ('fast', 'steady', 'methodical')),
                     autonomy_level VARCHAR(20) CHECK (autonomy_level IN ('high', 'medium', 'low')),
-                    growth_potential VARCHAR(20) CHECK (growth_potential IN ('ic_path', 'lead_path', 'manager_path', 'limited')),
+                    growth_potential VARCHAR(
+    20) CHECK (growth_potential IN ('ic_path', 'lead_path', 'manager_path', 'limited')),
                     team_size VARCHAR(20) CHECK (team_size IN ('small', 'medium', 'large')),
                     remote_culture VARCHAR(20) CHECK (remote_culture IN ('async_first', 'hybrid', 'onsite_culture')),
                     signals_detected JSONB,

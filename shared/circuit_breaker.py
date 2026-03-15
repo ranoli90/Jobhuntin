@@ -249,8 +249,6 @@ def get_all_circuit_breaker_statuses() -> dict[str, dict[str, Any]]:
     Returns:
         Dictionary mapping circuit breaker names to their status
     """
-    global _breakers, _openrouter_breaker, _email_breaker, _storage_breaker
-
     statuses: dict[str, dict[str, Any]] = {}
 
     # Add named breakers

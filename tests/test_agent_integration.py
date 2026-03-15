@@ -280,7 +280,8 @@ async def test_agent_claim_navigate_fill_submit(form_server, db_pool, clean_db):
     async with db_pool.acquire() as conn:
         # Ensure user and tenant exist (use unique email to avoid ON CONFLICT skipping)
         await conn.execute(
-            "INSERT INTO public.users (id, full_name, email) VALUES ($1, $2, $3) ON CONFLICT (id) DO UPDATE SET full_name = $2, email = $3",
+            "INSERT INTO public.users (
+    id, full_name, email) VALUES ($1, $2, $3) ON CONFLICT (id) DO UPDATE SET full_name = $2, email = $3",
             test_user_id,
             "Test User",
             f"test-{test_user_id}@example.com",
@@ -292,7 +293,8 @@ async def test_agent_claim_navigate_fill_submit(form_server, db_pool, clean_db):
             f"test-{test_tenant_id[:8]}",
         )
         await conn.execute(
-            "INSERT INTO public.tenant_members (tenant_id, user_id, role) VALUES ($1, $2, 'OWNER') ON CONFLICT DO NOTHING",
+            "INSERT INTO public.tenant_members (
+    tenant_id, user_id, role) VALUES ($1, $2, 'OWNER') ON CONFLICT DO NOTHING",
             test_tenant_id,
             test_user_id,
         )

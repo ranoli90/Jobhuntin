@@ -20,6 +20,21 @@ from shared.logging_config import get_logger
 logger = get_logger("cron.job_alerts")
 
 
+def _get_ssl_config(settings) -> object:
+    """Derive SSL configuration for the cron script database pool.
+
+    Uses secure verification when db_ssl_ca_cert_path is set,
+    otherwise uses system defaults (requires valid CA-signed cert).
+    """
+    import ssl
+
+    if getattr(settings, "db_ssl_ca_cert_path", None):
+        ctx = ssl.create_default_context(cafile=settings.db_ssl_ca_cert_path)
+        return ctx
+    # Use system default SSL verification (requires valid CA-signed cert)
+    return False
+
+
 async def main() -> None:
     frequency = os.environ.get("ALERT_FREQUENCY", "daily")
     try:
@@ -29,10 +44,12 @@ async def main() -> None:
         sys.exit(1)
 
     settings = get_settings()
+    ssl_arg = _get_ssl_config(settings)
     pool = await asyncpg.create_pool(
         settings.database_url,
         min_size=1,
         max_size=2,
+        ssl=ssl_arg,
         timeout=30.0,
         command_timeout=60.0,
     )

@@ -38,7 +38,8 @@ def get_latest_deploy_logs(service_id: str) -> bool:
         for item in events[:10]:
             event = item.get("event", item)
             print(
-                f"[{event.get('timestamp', '?')}] {event.get('type', '?')}: {event.get('data', {}).get('reason', 'No reason provided')}"
+                f"[{event.get(
+    'timestamp', '?')}] {event.get('type', '?')}: {event.get('data', {}).get('reason', 'No reason provided')}"
             )
         return True
     print(f"Failed to fetch events: {response.status_code}")

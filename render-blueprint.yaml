@@ -161,8 +161,10 @@ databases:
     user: jobhuntin_user
     databaseName: jobhuntin
     ipAllowList:
-      - source: 0.0.0.0/0
-        description: Allow all (Render services)
+      - source: 10.0.0.0/8
+        description: Render private network (internal services only)
+      - source: 100.64.0.0/10
+        description: Render private network (internal services only)
 
 # ───────────────────────────────────────────────────────────────────────────
 # Redis

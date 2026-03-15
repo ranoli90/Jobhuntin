@@ -55,7 +55,9 @@ def main():
         service = get(f"/services/{SERVICE_ID}")
         print(f"Service Name: {service.get('name')}")
         print(f"Service Type: {service.get('type')}")
-        print(f"Service Status: {service.get('service', {}).get('status') if isinstance(service.get('service'), dict) else 'N/A'}")
+        print(
+    f"Service Status: {service.get('service', {}).get('status') if isinstance(service.get('service'),
+    dict) else 'N/A'}")
     except Exception as e:
         print(f"Error getting service: {e}")
 

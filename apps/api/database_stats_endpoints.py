@@ -1305,8 +1305,11 @@ def _generate_bloat_recommendations(
                         "priority": "high",
                         "impact_score": 0.7,
                         "implementation_cost": "high",
-                        "reasoning": f"Table {table_name} has high dead tuple ratio: {stats['dead_tuples']}/{stats['reltuples']} (
-    {stats['dead_tuples'] / stats['reltuples'] * 100:.1f}%)",
+                        "reasoning": (
+                    f"Table {table_name} has high dead tuple ratio: "
+                    f"{stats['dead_tuples']}/{stats['reltuples']} "
+                    f"({stats['dead_tuples'] / stats['reltuples'] * 100:.1f}%)"
+                ),
                         "sql_statement": f"VACUUM FULL {table_name}",
                         "estimated_benefit": "Reduced bloat and improved performance",
                         "risks": ["Temporary performance impact during VACUUM"],

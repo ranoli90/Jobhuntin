@@ -375,8 +375,8 @@ async def list_webhooks(
     """List registered webhook endpoints."""
     async with db.acquire() as conn:
         rows = await conn.fetch(
-            "SELECT id, url, events, is_active, failure_count, last_success_at, created_at FROM public.webhook_endpoints WHERE tenant_id =
-    $1",
+            "SELECT id, url, events, is_active, failure_count, last_success_at, created_at "
+            "FROM public.webhook_endpoints WHERE tenant_id = $1",
             api_key["tenant_id"],
         )
     return [dict(r) for r in rows]

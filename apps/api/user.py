@@ -477,8 +477,9 @@ async def create_application(
             if existing_app:
                 # Return appropriate response for duplicate application
                 logger.info(
-                    f"[APPLICATION] Duplicate application prevented: user =
-    {ctx.user_id}, job={body.job_id}, existing_status={existing_app['status']}"
+                    f"[APPLICATION] Duplicate application prevented: "
+                    f"user={ctx.user_id}, job={body.job_id}, "
+                    f"existing_status={existing_app['status']}"
                 )
                 result = {
                     "status": "duplicate",

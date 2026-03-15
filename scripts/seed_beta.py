@@ -144,7 +144,8 @@ async def seed_jobs(conn: asyncpg.Connection, count: int = 50) -> int:
         # nosemgrep: python.lang.security.audit.sqli.asyncpg-sqli - fully parameterized $1..$8
         await conn.execute(
             """
-            INSERT INTO public.jobs (id, title, company, location, application_url, description, salary_min, salary_max, source)
+            INSERT INTO public.jobs (
+    id, title, company, location, application_url, description, salary_min, salary_max, source)
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'seed')
             ON CONFLICT DO NOTHING
             """,

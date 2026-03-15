@@ -5,8 +5,8 @@
   "repo": "https://github.com/ranoli90/sorce",
   "branch": "main",
   "rootDir": "",
-  "buildCommand": "pip install -r requirements.txt && playwright install chromium",
-  "startCommand": "python -m apps.worker.scaling --instances 2",
+  "buildCommand": "pip install -r requirements.txt && python -m playwright install --with-deps chromium",
+  "startCommand": "python -m apps.worker.startup --instances 2",
   "serviceDetails": {
     "env": "python",
     "envSpecificDetails": "",
@@ -17,10 +17,10 @@
   },
   "envVars": [
     {"key": "PYTHONPATH", "value": "apps:packages:."},
-    {"key": "env", "value": "prod"},
+    {"key": "ENV", "value": "prod"},
     {"key": "AGENT_ENABLED", "value": "true"},
     {"key": "PYTHONUNBUFFERED", "value": "1"},
-    {"key": "WORKER_CONCURRENCY", "value": "50"},
+    {"key": "WORKER_CONCURRENCY", "value": "5"},
     {"key": "MAX_INSTANCES", "value": "20"},
     {"key": "DATABASE_URL", "sync": false},
     {"key": "DATABASE_READ_URL", "sync": false},
@@ -29,6 +29,6 @@
     {"key": "LLM_MODEL", "value": "google/gemini-2.0-flash"},
     {"key": "REDIS_URL", "sync": false},
     {"key": "STORAGE_TYPE", "value": "render_disk"},
-    {"key": "APP_BASE_URL", "value": "https://sorce-web.onrender.com"}
+    {"key": "APP_BASE_URL", "value": "https://jobhuntin-web.onrender.com"}
   ]
 }

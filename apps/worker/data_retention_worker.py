@@ -143,7 +143,7 @@ async def cleanup_session_logs(
                     break
 
                 id_list = [r["id"] for r in ids]
-                deleted = await conn.execute(
+                await conn.execute(
                     "DELETE FROM session_logs WHERE id = ANY($1)", id_list
                 )
                 count = len(id_list)
@@ -201,7 +201,7 @@ async def cleanup_analytics_events(
                     break
 
                 id_list = [r["id"] for r in ids]
-                deleted = await conn.execute(
+                await conn.execute(
                     "DELETE FROM analytics_events WHERE id = ANY($1)", id_list
                 )
                 count = len(id_list)
@@ -380,7 +380,7 @@ async def cleanup_api_logs(
 
                 id_list = [r["id"] for r in ids]
                 deleted = await conn.execute(
-                    "DELETE FROM api_logs WHERE id = ANY($1)", id_list
+                    "DELETE FROM audit_logs WHERE id = ANY($1)", id_list
                 )
                 count = len(id_list)
                 total_deleted += count

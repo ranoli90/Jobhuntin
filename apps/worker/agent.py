@@ -811,8 +811,10 @@ class FormAgent:
                 [
                     {
                         "selector": "captcha",
-                        "question": "Human verification (
-    CAPTCHA) required. Please complete the CAPTCHA on the application page and retry.",
+                        "question": (
+                            "Human verification (CAPTCHA) required. "
+                            "Please complete the CAPTCHA on the application page and retry."
+                        ),
                     }
                 ],
                 [],

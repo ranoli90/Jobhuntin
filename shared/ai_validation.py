@@ -13,6 +13,8 @@ import hashlib
 import re
 import time
 from collections import defaultdict
+import json as _json
+import threading
 from dataclasses import dataclass
 from typing import Any
 
@@ -193,9 +195,6 @@ def sanitize_dict_for_ai(
         sanitized_input=sanitized,
         warnings=warnings if warnings else None,
     )
-
-
-import json as _json
 
 
 def _check_single_size(
@@ -407,9 +406,9 @@ class AIRateLimiter:
             current = self._concurrent.get(user_id, 0)
             if current > 0:
                 self._concurrent[user_id] = current - 1
+            else:
+                self._concurrent[user_id] = 0
 
-
-import threading
 
 _ai_rate_limiter: AIRateLimiter | None = None
 _ai_rate_limiter_lock = threading.Lock()
@@ -475,8 +474,10 @@ def _check_rate_limit(
     if not allowed:
         return ValidationResult(
             is_valid=False,
-            error_message=f"Rate limit exceeded: {rate_info.get(
-    'reason', 'unknown')}. Try again in {rate_info.get('reset_in', 60)} seconds.",
+            error_message=(
+                f"Rate limit exceeded: {rate_info.get('reason', 'unknown')}. "
+                f"Try again in {rate_info.get('reset_in', 60)} seconds."
+            ),
             error_code="RATE_LIMIT_EXCEEDED",
         )
     sanitized_data["rate_limit_info"] = rate_info
