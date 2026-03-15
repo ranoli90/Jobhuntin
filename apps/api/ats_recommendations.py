@@ -412,14 +412,12 @@ async def get_ats_templates(
 async def get_ats_recommendations_stats(
     ctx: TenantContext = Depends(_get_tenant_ctx),
     industry: Optional[str] = None,
-    date_range: Optional[str] = None,
 ) -> ATSStatsResponse:
     """Get ATS recommendations statistics and analytics.
 
     Args:
         ctx: Tenant context for identification
         industry: Optional industry filter
-        date_range: Optional date range filter
 
     Returns:
         ATS recommendations statistics

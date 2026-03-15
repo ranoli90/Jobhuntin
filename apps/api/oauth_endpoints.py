@@ -93,7 +93,6 @@ def get_oauth_handler() -> OAuthHandler:
 @router.post("/initiate")
 async def initiate_oauth_flow(
     request: OAuthInitiateRequest,
-    http_request: Request,
     ctx: TenantContext = Depends(get_tenant_context),
     oauth_handler: OAuthHandler = Depends(get_oauth_handler),
     rate_limiter: RateLimiter = Depends(_get_oauth_rate_limiter),
@@ -141,7 +140,6 @@ async def initiate_oauth_flow(
 @router.post("/callback")
 async def handle_oauth_callback(
     request: OAuthCallbackRequest,
-    http_request: Request,
     ctx: TenantContext = Depends(get_tenant_context),
     oauth_handler: OAuthHandler = Depends(get_oauth_handler),
     rate_limiter: RateLimiter = Depends(_get_oauth_rate_limiter),

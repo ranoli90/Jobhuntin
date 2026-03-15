@@ -807,55 +807,80 @@ class MonitoringSystem:
         try:
             recommendations = []
 
-            # Analyze health check results
-            critical_checks = [
-                r for r in health_results if r.status == CheckStatus.CRITICAL
-            ]
-            warning_checks = [
-                r for r in health_results if r.status == CheckStatus.WARNING
-            ]
-
-            if critical_checks:
-                recommendations.append(
-                    f"Address {len(critical_checks)} critical health check(s): "
-                    f"{', '.join([c.name for c in critical_checks])}"
-                )
-
-            if warning_checks:
-                recommendations.append(
-                    f"Monitor {len(warning_checks)} warning health check(s): "
-                    f"{', '.join([c.name for c in warning_checks])}"
-                )
-
-            # Analyze slow checks
-            slow_checks = [r for r in health_results if r.duration_ms > 1000]
-            if slow_checks:
-                recommendations.append(
-                    f"Optimize {len(slow_checks)} slow health check(s): {', '.join([c.name for c in slow_checks])}"
-                )
-
-            # Analyze alerts
-            critical_alerts = [
-                a for a in active_alerts if a.severity == AlertSeverity.CRITICAL
-            ]
-            if critical_alerts:
-                recommendations.append(
-                    f"Resolve {len(critical_alerts)} critical alert(s)"
-                )
-
-            # Performance recommendations
-            if len(health_results) > 0:
-                avg_duration = statistics.mean([r.duration_ms for r in health_results])
-                if avg_duration > 500:
-                    recommendations.append(
-                        "Consider optimizing health check performance"
-                    )
+            # Generate health check recommendations
+            recommendations.extend(self._generate_health_check_recommendations(health_results))
+            
+            # Generate alert recommendations
+            recommendations.extend(self._generate_alert_recommendations(active_alerts))
+            
+            # Generate performance recommendations
+            recommendations.extend(self._generate_performance_recommendations(health_results))
 
             return recommendations
 
         except Exception as e:
             logger.error(f"Failed to generate recommendations: {e}")
             return ["Failed to generate recommendations due to system error"]
+
+    def _generate_health_check_recommendations(self, health_results: List[HealthCheckResult]) -> List[str]:
+        """Generate recommendations based on health check results."""
+        recommendations = []
+        
+        # Analyze critical checks
+        critical_checks = [
+            r for r in health_results if r.status == CheckStatus.CRITICAL
+        ]
+        if critical_checks:
+            recommendations.append(
+                f"Address {len(critical_checks)} critical health check(s): "
+                f"{', '.join([c.name for c in critical_checks])}"
+            )
+
+        # Analyze warning checks
+        warning_checks = [
+            r for r in health_results if r.status == CheckStatus.WARNING
+        ]
+        if warning_checks:
+            recommendations.append(
+                f"Monitor {len(warning_checks)} warning health check(s): "
+                f"{', '.join([c.name for c in warning_checks])}"
+            )
+
+        # Analyze slow checks
+        slow_checks = [r for r in health_results if r.duration_ms > 1000]
+        if slow_checks:
+            recommendations.append(
+                f"Optimize {len(slow_checks)} slow health check(s): {', '.join([c.name for c in slow_checks])}"
+            )
+
+        return recommendations
+
+    def _generate_alert_recommendations(self, active_alerts: List[MonitoringAlert]) -> List[str]:
+        """Generate recommendations based on active alerts."""
+        recommendations = []
+        
+        critical_alerts = [
+            a for a in active_alerts if a.severity == AlertSeverity.CRITICAL
+        ]
+        if critical_alerts:
+            recommendations.append(
+                f"Resolve {len(critical_alerts)} critical alert(s)"
+            )
+
+        return recommendations
+
+    def _generate_performance_recommendations(self, health_results: List[HealthCheckResult]) -> List[str]:
+        """Generate performance-based recommendations."""
+        recommendations = []
+        
+        if len(health_results) > 0:
+            avg_duration = statistics.mean([r.duration_ms for r in health_results])
+            if avg_duration > 500:
+                recommendations.append(
+                    "Consider optimizing health check performance"
+                )
+
+        return recommendations
 
     def _start_monitoring(self) -> None:
         """Start background monitoring tasks."""

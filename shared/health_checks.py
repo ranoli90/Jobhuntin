@@ -472,42 +472,60 @@ class HealthChecker:
         try:
             recommendations = []
 
-            # Critical checks
-            critical_checks = [r for r in results if r.status == HealthStatus.CRITICAL]
-            if critical_checks:
-                recommendations.append(
-                    f"Address {len(
-    critical_checks)} critical health check(s): {', '.join([c.name for c in critical_checks])}"
-                )
-
-            # Warning checks
-            warning_checks = [r for r in results if r.status == HealthStatus.WARNING]
-            if warning_checks:
-                recommendations.append(
-                    f"Monitor {len(
-    warning_checks)} warning health check(s): {', '.join([c.name for c in warning_checks])}"
-                )
-
-            # Slow checks
-            slow_checks = [r for r in results if r.duration_ms > 1000]  # > 1 second
-            if slow_checks:
-                recommendations.append(
-                    f"Optimize {len(slow_checks)} slow health check(s): {', '.join([c.name for c in slow_checks])}"
-                )
-
-            # Performance recommendations
-            if len(results) > 0:
-                avg_duration = statistics.mean([r.duration_ms for r in results])
-                if avg_duration > 500:
-                    recommendations.append(
-                        "Consider optimizing health check performance"
-                    )
+            # Generate status-based recommendations
+            recommendations.extend(self._generate_status_recommendations(results))
+            
+            # Generate performance recommendations
+            recommendations.extend(self._generate_performance_recommendations(results))
 
             return recommendations
 
         except Exception as e:
             logger.error(f"Failed to generate recommendations: {e}")
             return ["Failed to generate recommendations"]
+
+    def _generate_status_recommendations(self, results: List[HealthCheckResult]) -> List[str]:
+        """Generate recommendations based on health check status."""
+        recommendations = []
+        
+        # Critical checks
+        critical_checks = [r for r in results if r.status == HealthStatus.CRITICAL]
+        if critical_checks:
+            recommendations.append(
+                f"Address {len(critical_checks)} critical health check(s): "
+                f"{', '.join([c.name for c in critical_checks])}"
+            )
+
+        # Warning checks
+        warning_checks = [r for r in results if r.status == HealthStatus.WARNING]
+        if warning_checks:
+            recommendations.append(
+                f"Monitor {len(warning_checks)} warning health check(s): "
+                f"{', '.join([c.name for c in warning_checks])}"
+            )
+
+        # Slow checks
+        slow_checks = [r for r in results if r.duration_ms > 1000]  # > 1 second
+        if slow_checks:
+            recommendations.append(
+                f"Optimize {len(slow_checks)} slow health check(s): "
+                f"{', '.join([c.name for c in slow_checks])}"
+            )
+
+        return recommendations
+
+    def _generate_performance_recommendations(self, results: List[HealthCheckResult]) -> List[str]:
+        """Generate performance-based recommendations."""
+        recommendations = []
+        
+        if len(results) > 0:
+            avg_duration = statistics.mean([r.duration_ms for r in results])
+            if avg_duration > 500:
+                recommendations.append(
+                    "Consider optimizing health check performance"
+                )
+
+        return recommendations
 
     def _initialize_default_checks(self) -> None:
         """Initialize default health checks."""

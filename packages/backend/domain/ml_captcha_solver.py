@@ -27,6 +27,8 @@ except ImportError:
     CV2_AVAILABLE = False
     logger.warning("OpenCV not available - ML CAPTCHA solving will be limited")
 
+# PyTorch availability check for future ML models
+# Currently using Tesseract OCR as primary method
 try:
     import torch
     import torchvision.transforms as transforms

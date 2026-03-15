@@ -748,61 +748,96 @@ class PerformanceMetrics:
         try:
             recommendations = []
 
-            # Analyze alerts
-            critical_alerts = [a for a in alerts if a.severity == "critical"]
-            if critical_alerts:
-                recommendations.append(
-                    f"Address {len(critical_alerts)} critical performance alerts"
-                )
-
-            warning_alerts = [a for a in alerts if a.severity == "warning"]
-            if warning_alerts:
-                recommendations.append(
-                    f"Monitor {len(warning_alerts)} performance warnings"
-                )
-
-            # Analyze metrics
-            for category_name, category_data in metrics_summary.items():
-                if isinstance(category_data, dict) and "metrics" in category_data:
-                    for metric_name, metric_data in category_data["metrics"].items():
-                        if (
-                            isinstance(metric_data, dict)
-                            and "statistics" in metric_data
-                        ):
-                            stats = metric_data["statistics"]
-
-                            # Check for slow response times
-                            if (
-                                "response_time" in metric_name.lower()
-                                and stats.get("avg_value", 0) > 1000
-                            ):
-                                recommendations.append(
-                                    f"Optimize {metric_name}: average {stats['avg_value']:.1f}ms"
-                                )
-
-                            # Check for high error rates
-                            if (
-                                "error_rate" in metric_name.lower()
-                                and stats.get("avg_value", 0) > 0.05
-                            ):
-                                recommendations.append(
-                                    f"Reduce {metric_name}: average {stats['avg_value']:.2%}"
-                                )
-
-                            # Check for low success rates
-                            if (
-                                "success_rate" in metric_name.lower()
-                                and stats.get("avg_value", 0) < 0.95
-                            ):
-                                recommendations.append(
-                                    f"Improve {metric_name}: average {stats['avg_value']:.2%}"
-                                )
+            # Generate alert recommendations
+            recommendations.extend(self._generate_alert_recommendations(alerts))
+            
+            # Generate metrics recommendations
+            recommendations.extend(self._generate_metrics_recommendations(metrics_summary))
 
             return recommendations
 
         except Exception as e:
             logger.error(f"Failed to generate recommendations: {e}")
             return ["Failed to generate recommendations"]
+
+    def _generate_alert_recommendations(self, alerts: List[MetricAlert]) -> List[str]:
+        """Generate recommendations based on performance alerts."""
+        recommendations = []
+        
+        critical_alerts = [a for a in alerts if a.severity == "critical"]
+        if critical_alerts:
+            recommendations.append(
+                f"Address {len(critical_alerts)} critical performance alerts"
+            )
+
+        warning_alerts = [a for a in alerts if a.severity == "warning"]
+        if warning_alerts:
+            recommendations.append(
+                f"Monitor {len(warning_alerts)} performance warnings"
+            )
+
+        return recommendations
+
+    def _generate_metrics_recommendations(self, metrics_summary: Dict[str, Any]) -> List[str]:
+        """Generate recommendations based on metrics analysis."""
+        recommendations = []
+        
+        for category_name, category_data in metrics_summary.items():
+            if isinstance(category_data, dict) and "metrics" in category_data:
+                recommendations.extend(
+                    self._analyze_category_metrics(category_name, category_data["metrics"])
+                )
+
+        return recommendations
+
+    def _analyze_category_metrics(self, category_name: str, metrics: Dict[str, Any]) -> List[str]:
+        """Analyze metrics within a category and generate recommendations."""
+        recommendations = []
+        
+        for metric_name, metric_data in metrics.items():
+            if (
+                isinstance(metric_data, dict)
+                and "statistics" in metric_data
+            ):
+                stats = metric_data["statistics"]
+                recommendations.extend(
+                    self._analyze_metric_performance(metric_name, stats)
+                )
+
+        return recommendations
+
+    def _analyze_metric_performance(self, metric_name: str, stats: Dict[str, Any]) -> List[str]:
+        """Analyze individual metric performance and generate recommendations."""
+        recommendations = []
+        
+        # Check for slow response times
+        if (
+            "response_time" in metric_name.lower()
+            and stats.get("avg_value", 0) > 1000
+        ):
+            recommendations.append(
+                f"Optimize {metric_name}: average {stats['avg_value']:.1f}ms"
+            )
+
+        # Check for high error rates
+        if (
+            "error_rate" in metric_name.lower()
+            and stats.get("avg_value", 0) > 0.05
+        ):
+            recommendations.append(
+                f"Reduce {metric_name}: average {stats['avg_value']:.2%}"
+            )
+
+        # Check for low success rates
+        if (
+            "success_rate" in metric_name.lower()
+            and stats.get("avg_value", 0) < 0.95
+        ):
+            recommendations.append(
+                f"Improve {metric_name}: average {stats['avg_value']:.2%}"
+            )
+
+        return recommendations
 
     def _start_background_tasks(self) -> None:
         """Start background analysis tasks."""
