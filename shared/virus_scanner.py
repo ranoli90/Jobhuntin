@@ -7,7 +7,7 @@ scanning engines and fallback mechanisms with retry logic.
 from __future__ import annotations
 
 import hashlib
-import subprocess
+import subprocess  # nosec B404 - Used for virus scanning with controlled inputs
 import tempfile
 
 from shared.logging_config import get_logger
@@ -36,8 +36,14 @@ class ClamAVScanner:
     def _check_clamav_available(self) -> bool:
         """Check if ClamAV is available with retry logic."""
         try:
+            # Use full path to clamscan to avoid partial path issues
+            clamscan_path = "/usr/bin/clamscan"  # Common location, could be configurable
             result = subprocess.run(
-                ["clamscan", "--version"], capture_output=True, text=True, timeout=5
+                [clamscan_path, "--version"], 
+                capture_output=True, 
+                text=True, 
+                timeout=5,
+                shell=False  # Explicitly set shell=False for security
             )
             return result.returncode == 0
         except (FileNotFoundError, subprocess.TimeoutExpired):
@@ -46,11 +52,14 @@ class ClamAVScanner:
     @retry_sync(RetryConfigs.FILE_OPERATIONS, "ClamAV scan")
     def _run_clamav_scan(self, file_path: str) -> subprocess.CompletedProcess:
         """Run ClamAV scan with retry logic."""
+        # Use full path to clamscan to avoid partial path issues
+        clamscan_path = "/usr/bin/clamscan"  # Common location, could be configurable
         return subprocess.run(
-            ["clamscan", "--no-summary", file_path],
+            [clamscan_path, "--no-summary", file_path],
             capture_output=True,
             text=True,
             timeout=30,
+            shell=False  # Explicitly set shell=False for security
         )
 
     async def scan_file(self, file_path: str) -> VirusScanResult:

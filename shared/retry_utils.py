@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import asyncio
 import random
+import secrets
 import time
 from dataclasses import dataclass
 from functools import wraps
@@ -39,7 +40,7 @@ class RetryConfig:
         if self.jitter:
             # Add ±25% random jitter
             jitter_range = delay * 0.25
-            delay += random.uniform(-jitter_range, jitter_range)
+            delay += secrets.SystemRandom().uniform(-jitter_range, jitter_range)
 
         return max(0, delay)
 
