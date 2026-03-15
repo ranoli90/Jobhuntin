@@ -317,9 +317,7 @@ async def get_session_details(
 
         # HIGH: Load session from database
         async with db.acquire() as conn:
-            from packages.backend.domain.onboarding_repository import (
-                OnboardingSessionRepo,
-            )
+            from packages.backend.domain.onboarding_repository import OnboardingSessionRepo
 
             session = await OnboardingSessionRepo.load_session(conn, session_id)
 
@@ -373,9 +371,7 @@ async def get_next_question(
 
         # HIGH: Load session from database
         async with db.acquire() as conn:
-            from packages.backend.domain.onboarding_repository import (
-                OnboardingSessionRepo,
-            )
+            from packages.backend.domain.onboarding_repository import OnboardingSessionRepo
 
             session = await OnboardingSessionRepo.load_session(conn, session_id)
 
@@ -435,9 +431,7 @@ async def submit_response(
 
         # HIGH: Load session from database
         async with db.acquire() as conn:
-            from packages.backend.domain.onboarding_repository import (
-                OnboardingSessionRepo,
-            )
+            from packages.backend.domain.onboarding_repository import OnboardingSessionRepo
 
             session = await OnboardingSessionRepo.load_session(conn, session_id)
 
@@ -457,9 +451,7 @@ async def submit_response(
 
             # Single transactional save after processing and getting next question
             async with db.acquire() as conn:
-                from packages.backend.domain.onboarding_repository import (
-                    OnboardingSessionRepo,
-                )
+                from packages.backend.domain.onboarding_repository import OnboardingSessionRepo
 
                 await OnboardingSessionRepo.save_session(conn, session)
 
@@ -508,9 +500,7 @@ async def complete_onboarding(
 
         # HIGH: Load session from database
         async with db.acquire() as conn:
-            from packages.backend.domain.onboarding_repository import (
-                OnboardingSessionRepo,
-            )
+            from packages.backend.domain.onboarding_repository import OnboardingSessionRepo
 
             session = await OnboardingSessionRepo.load_session(conn, session_id)
 
@@ -524,9 +514,7 @@ async def complete_onboarding(
 
         # HIGH: Mark session as completed and save
         async with db.acquire() as conn:
-            from packages.backend.domain.onboarding_repository import (
-                OnboardingSessionRepo,
-            )
+            from packages.backend.domain.onboarding_repository import OnboardingSessionRepo
 
             await OnboardingSessionRepo.mark_completed(conn, session_id)
             await OnboardingSessionRepo.save_session(conn, session)
@@ -657,9 +645,7 @@ async def save_session_progress(
 
         # HIGH: Load and update session from database
         async with db.acquire() as conn:
-            from packages.backend.domain.onboarding_repository import (
-                OnboardingSessionRepo,
-            )
+            from packages.backend.domain.onboarding_repository import OnboardingSessionRepo
 
             session = await OnboardingSessionRepo.load_session(conn, session_id)
 
@@ -742,9 +728,7 @@ async def get_session_progress(
 
         # HIGH: Load session from database
         async with db.acquire() as conn:
-            from packages.backend.domain.onboarding_repository import (
-                OnboardingSessionRepo,
-            )
+            from packages.backend.domain.onboarding_repository import OnboardingSessionRepo
 
             session = await OnboardingSessionRepo.load_session(conn, session_id)
 
@@ -796,9 +780,7 @@ async def delete_session(
         await _verify_session_ownership(session_id, ctx, db)
         # HIGH: Delete session from database
         async with db.acquire() as conn:
-            from packages.backend.domain.onboarding_repository import (
-                OnboardingSessionRepo,
-            )
+            from packages.backend.domain.onboarding_repository import OnboardingSessionRepo
 
             await OnboardingSessionRepo.delete_session(conn, session_id)
 

@@ -8,11 +8,7 @@ import asyncpg
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
-from packages.backend.domain.data_residency import (
-    REGION_CONFIGS,
-    DataRegion,
-    DataResidencyManager,
-)
+from packages.backend.domain.data_residency import REGION_CONFIGS, DataRegion, DataResidencyManager
 from packages.backend.domain.ip_allowlist import IPAllowlistManager
 from shared.logging_config import get_logger
 

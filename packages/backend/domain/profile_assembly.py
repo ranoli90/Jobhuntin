@@ -17,12 +17,7 @@ from shared.logging_config import get_logger
 
 logger = get_logger("sorce.profile_assembly")
 
-from .deep_profile import (
-    DealbreakerConfig,
-    DeepProfile,
-    RichSkill,
-    calculate_completeness,
-)
+from .deep_profile import DealbreakerConfig, DeepProfile, RichSkill, calculate_completeness
 from .work_style import CareerTrajectory, WorkStyleProfile
 
 

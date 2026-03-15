@@ -5,10 +5,10 @@ No authentication required. Rate-limited by IP.
 
 from __future__ import annotations
 
-from api.dependencies import get_pool
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field, field_validator
 
+from api.dependencies import get_pool
 from shared.logging_config import get_logger
 from shared.metrics import incr
 

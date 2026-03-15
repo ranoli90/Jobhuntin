@@ -16,10 +16,7 @@ sys.path.insert(0, os.path.join(_root, "packages"))
 
 import asyncpg  # noqa: E402
 
-from packages.backend.domain.job_queue import (  # noqa: E402
-    BackgroundJobQueue,
-    JobResult,
-)
+from packages.backend.domain.job_queue import BackgroundJobQueue, JobResult  # noqa: E402
 from shared.config import get_settings  # noqa: E402
 from shared.logging_config import get_logger  # noqa: E402
 
@@ -83,9 +80,7 @@ async def run_queue_loop() -> None:
 
     # LOW: Register match score pre-computation job handler
     try:
-        from packages.backend.domain.match_score_precompute import (
-            register_match_score_job_handler,
-        )
+        from packages.backend.domain.match_score_precompute import register_match_score_job_handler
 
         register_match_score_job_handler(queue)
     except Exception as e:

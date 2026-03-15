@@ -24,14 +24,9 @@ import asyncpg
 from playwright.async_api import BrowserContext, Page, async_playwright
 
 from packages.backend.blueprints.registry import get_blueprint, load_default_blueprints
-from packages.backend.domain.ats_handlers import (
-    ATSPlatform,
-    detect_ats_platform,
-    get_handler,
-)
-from packages.backend.domain.ats_handlers import (
-    detect_captcha as detect_captcha_ats,
-)
+from packages.backend.domain.ats_handlers import ATSPlatform, detect_ats_platform
+from packages.backend.domain.ats_handlers import detect_captcha as detect_captcha_ats
+from packages.backend.domain.ats_handlers import get_handler
 from packages.backend.domain.http_apply import try_http_apply_first
 
 # Import job board handlers
@@ -50,9 +45,7 @@ UNSUPPORTED_CAPTCHA_TYPES = frozenset(
     {"cloudflare", "turnstile", "arkose", "friendly_captcha"}
 )
 from packages.backend.domain.email_communications import get_email_communication_manager
-from packages.backend.domain.enhanced_notifications import (
-    get_enhanced_notification_manager,
-)
+from packages.backend.domain.enhanced_notifications import get_enhanced_notification_manager
 from packages.backend.domain.evaluations import record_system_evaluation
 from packages.backend.domain.experiments import get_variant_for_tenant
 from packages.backend.domain.models import CanonicalProfile, normalize_profile
@@ -574,7 +567,6 @@ from .form_filling import (  # noqa: E402
     fill_form_from_mapping,
     submit_form,
 )
-
 
 # ---------------------------------------------------------------------------
 # FormAgent – blueprint-parameterized core engine

@@ -299,9 +299,7 @@ def setup_otel_metrics(service_name: str = "sorce") -> None:
 
     try:
         from opentelemetry import metrics as otel_metrics
-        from opentelemetry.exporter.otlp.proto.http.metric_exporter import (
-            OTLPMetricExporter,
-        )
+        from opentelemetry.exporter.otlp.proto.http.metric_exporter import OTLPMetricExporter
         from opentelemetry.sdk.metrics import MeterProvider
         from opentelemetry.sdk.metrics.export import PeriodicExportingMetricReader
         from opentelemetry.sdk.resources import SERVICE_NAME, Resource

@@ -16,9 +16,7 @@ import asyncpg
 from packages.backend.domain.job_queue import JobResult
 from packages.backend.domain.profile_assembly import assemble_profile
 from packages.backend.domain.repositories import JobRepo
-from packages.backend.domain.semantic_matching import (
-    get_matching_service,
-)
+from packages.backend.domain.semantic_matching import get_matching_service
 from shared.logging_config import get_logger
 from shared.metrics import incr, observe
 
@@ -116,9 +114,7 @@ async def precompute_match_scores(
                         continue
 
                     # Convert profile to dict for matching service
-                    from packages.backend.domain.deep_profile import (
-                        deep_profile_to_llm_dict,
-                    )
+                    from packages.backend.domain.deep_profile import deep_profile_to_llm_dict
 
                     profile_dict = deep_profile_to_llm_dict(profile)
 

@@ -10,10 +10,7 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
-from packages.backend.domain.concurrent_tracker import (
-    ConcurrentTracker,
-    get_concurrent_tracker,
-)
+from packages.backend.domain.concurrent_tracker import ConcurrentTracker, get_concurrent_tracker
 from packages.backend.domain.tenant import TenantContext
 
 router = APIRouter(prefix="/concurrent-usage", tags=["concurrent-usage"])

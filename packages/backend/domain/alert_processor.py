@@ -526,9 +526,7 @@ class AlertProcessor:
         try:
             if action == "send_notification":
                 # Send notification
-                from packages.backend.domain.notification_manager import (
-                    create_notification_manager,
-                )
+                from packages.backend.domain.notification_manager import create_notification_manager
 
                 notification_manager = create_notification_manager(self.db_pool)
 

@@ -22,16 +22,9 @@ from typing import Any
 from urllib.parse import unquote
 
 import asyncpg
-from fastapi import (
-    APIRouter,
-    BackgroundTasks,
-    Depends,
-    File,
-    HTTPException,
-    Request,
-    UploadFile,
-)
+from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException
 from fastapi import Path as FastAPIPath
+from fastapi import Request, UploadFile
 from fastapi.responses import Response
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 

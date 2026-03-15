@@ -18,25 +18,14 @@ from pathlib import Path
 from typing import Any, Literal
 
 import asyncpg
-from fastapi import (
-    APIRouter,
-    BackgroundTasks,
-    Body,
-    Depends,
-    File,
-    HTTPException,
-    Request,
-    UploadFile,
-)
+from fastapi import APIRouter, BackgroundTasks, Body, Depends, File, HTTPException
 from fastapi import Path as FastAPIPath
+from fastapi import Request, UploadFile
 from pydantic import BaseModel, Field, field_validator, model_validator
 
 from packages.backend.domain.document_processor import create_document_processor
 from packages.backend.domain.masking import mask_email
-from packages.backend.domain.quotas import (
-    QuotaExceededError,
-    check_can_create_application,
-)
+from packages.backend.domain.quotas import QuotaExceededError, check_can_create_application
 from packages.backend.domain.repositories import (
     ApplicationRepo,
     EventRepo,
@@ -320,10 +309,7 @@ async def list_applications(
     max(0, offset - limit) if offset > 0 else None
 
     # MEDIUM: Use standardized pagination format
-    from packages.backend.domain.pagination import (
-        PaginatedResponse,
-        create_pagination_meta,
-    )
+    from packages.backend.domain.pagination import PaginatedResponse, create_pagination_meta
 
     pagination_meta = create_pagination_meta(total_count, limit, offset)
 

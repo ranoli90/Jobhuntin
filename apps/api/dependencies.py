@@ -318,10 +318,7 @@ async def require_admin_user_id(
     Item 23: Admin RBAC — any authenticated user could access admin endpoints.
     Raises 403 if not admin.
     """
-    from packages.backend.domain.tenant import (
-        TenantScopeError,
-        require_system_admin,
-    )
+    from packages.backend.domain.tenant import TenantScopeError, require_system_admin
 
     async with db.acquire() as conn:
         # System admin: users.is_system_admin

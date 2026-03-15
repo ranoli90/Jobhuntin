@@ -248,10 +248,7 @@ async def get_tenant_application_detail(
 
     # Mask PII using the masking module unless explicitly unmasked
     if not unmask:
-        from packages.backend.domain.masking import (
-            redact_event_payload,
-            redact_profile_for_support,
-        )
+        from packages.backend.domain.masking import redact_event_payload, redact_profile_for_support
 
         if "profile_data" in serialized and isinstance(
             serialized["profile_data"], dict

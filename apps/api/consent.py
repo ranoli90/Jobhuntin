@@ -15,10 +15,10 @@ from datetime import datetime, timezone
 from typing import Any
 
 import asyncpg
-from api.dependencies import get_current_user_id, get_pool
 from fastapi import APIRouter, Depends, Header, HTTPException, Request
 from pydantic import BaseModel, Field
 
+from api.dependencies import get_current_user_id, get_pool
 from shared.logging_config import get_logger
 
 logger = get_logger("sorce.consent")

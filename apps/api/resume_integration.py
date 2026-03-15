@@ -24,9 +24,7 @@ import asyncpg
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
-from packages.backend.domain.resume_agent_integration import (
-    get_resume_agent_integration,
-)
+from packages.backend.domain.resume_agent_integration import get_resume_agent_integration
 from packages.backend.domain.tenant import TenantContext
 from shared.logging_config import get_logger
 from shared.validators import validate_uuid

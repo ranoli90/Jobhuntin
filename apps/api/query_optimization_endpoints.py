@@ -10,9 +10,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 from apps.api.dependencies import get_current_user, get_db_pool, get_tenant_id
-from packages.backend.domain.query_optimizer import (
-    create_query_optimizer,
-)
+from packages.backend.domain.query_optimizer import create_query_optimizer
 
 router = APIRouter(prefix="/query-optimization", tags=["query-optimization"])
 

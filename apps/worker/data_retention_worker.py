@@ -22,11 +22,7 @@ sys.path.insert(0, os.path.join(_root, "packages"))
 import asyncpg  # noqa: E402
 
 from shared.config import get_settings  # noqa: E402
-from shared.data_retention import (  # noqa: E402
-    DataRetentionPolicy,
-    DataType,
-    get_retention_policy,
-)
+from shared.data_retention import DataRetentionPolicy, DataType, get_retention_policy  # noqa: E402
 from shared.logging_config import get_logger  # noqa: E402
 
 logger = get_logger("sorce.data_retention_worker")

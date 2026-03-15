@@ -113,9 +113,7 @@ async def get_email_manager_dep(pool=Depends(get_pool)):
 
 async def get_notification_manager_dep(pool=Depends(get_pool)):
     """Get enhanced notification manager."""
-    from packages.backend.domain.enhanced_notifications import (
-        get_enhanced_notification_manager,
-    )
+    from packages.backend.domain.enhanced_notifications import get_enhanced_notification_manager
 
     return get_enhanced_notification_manager(pool)
 

@@ -18,19 +18,13 @@ from packages.backend.domain.answer_memory import (
     AnswerMemoryManager,
     InterviewQuestion,
 )
-from packages.backend.domain.application_export import (
-    ApplicationExportManager,
-    ExportConfig,
-)
+from packages.backend.domain.application_export import ApplicationExportManager, ExportConfig
 from packages.backend.domain.application_notes import (
     ApplicationNote,
     ApplicationNotesManager,
     NoteTemplate,
 )
-from packages.backend.domain.application_pipeline import (
-    ApplicationPipelineManager,
-    PipelineView,
-)
+from packages.backend.domain.application_pipeline import ApplicationPipelineManager, PipelineView
 from packages.backend.domain.follow_up_reminders import (
     FollowUpManager,
     FollowUpReminder,
@@ -91,9 +85,7 @@ def get_multi_resume_manager(db=Depends(_get_pool)):
 
 
 def get_application_notes_manager(db=Depends(_get_pool)):
-    from packages.backend.domain.application_notes import (
-        create_application_notes_manager,
-    )
+    from packages.backend.domain.application_notes import create_application_notes_manager
 
     return create_application_notes_manager(db)
 

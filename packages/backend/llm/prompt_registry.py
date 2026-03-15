@@ -67,10 +67,7 @@ def list_prompts() -> dict[str, list[str]]:
 
 def _register_builtin_prompts() -> None:
     """Register the built-in prompt templates from contracts.py."""
-    from packages.backend.llm.contracts import (
-        DOM_MAPPING_PROMPT_V1,
-        RESUME_PARSE_PROMPT_V1,
-    )
+    from packages.backend.llm.contracts import DOM_MAPPING_PROMPT_V1, RESUME_PARSE_PROMPT_V1
 
     register_prompt("resume_parse", "v1", RESUME_PARSE_PROMPT_V1, default=True)
     register_prompt("dom_mapping", "v1", DOM_MAPPING_PROMPT_V1, default=True)

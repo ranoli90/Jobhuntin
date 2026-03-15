@@ -9,10 +9,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-from packages.backend.domain.skills_taxonomy import (
-    SkillsTaxonomy,
-    get_skills_taxonomy,
-)
+from packages.backend.domain.skills_taxonomy import SkillsTaxonomy, get_skills_taxonomy
 from shared.logging_config import get_logger
 
 logger = get_logger("sorce.skill_gap_analyzer")

@@ -13,11 +13,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from packages.backend.domain.audit import record_audit_event
-from packages.backend.domain.tenant import (
-    TenantContext,
-    TenantScopeError,
-    require_system_admin,
-)
+from packages.backend.domain.tenant import TenantContext, TenantScopeError, require_system_admin
 from shared.logging_config import get_logger
 from shared.metrics import incr
 from shared.sql_utils import escape_ilike

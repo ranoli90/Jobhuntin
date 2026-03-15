@@ -20,11 +20,7 @@ import asyncpg
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
-from packages.backend.domain.repositories import (
-    CoverLetterRepo,
-    JobMatchCacheRepo,
-    ProfileRepo,
-)
+from packages.backend.domain.repositories import CoverLetterRepo, JobMatchCacheRepo, ProfileRepo
 from packages.backend.llm import LLMClient
 from packages.backend.llm.contracts import (
     CoverLetterResponse_V1,
@@ -695,10 +691,7 @@ async def semantic_match_job(
     matching and matches the capabilities of ApplyPass/JobRight.
     """
     from packages.backend.domain.masking import strip_pii_for_llm
-    from packages.backend.domain.semantic_matching import (
-        Dealbreakers,
-        get_matching_service,
-    )
+    from packages.backend.domain.semantic_matching import Dealbreakers, get_matching_service
 
     # Strip PII from profile before processing
     sanitized_profile = strip_pii_for_llm(sanitize_dict_input(request.profile))
@@ -803,10 +796,7 @@ async def semantic_match_batch(
     Returns match scores with explanations for each job.
     """
     from packages.backend.domain.masking import strip_pii_for_llm
-    from packages.backend.domain.semantic_matching import (
-        Dealbreakers,
-        get_matching_service,
-    )
+    from packages.backend.domain.semantic_matching import Dealbreakers, get_matching_service
 
     sanitized_profile = strip_pii_for_llm(sanitize_dict_input(request.profile))
 
@@ -1689,10 +1679,7 @@ async def set_match_weights(
     Weights are automatically normalized to sum to 1.0.
     Requires admin privileges in production.
     """
-    from packages.backend.domain.semantic_matching import (
-        MatchWeights,
-        get_matching_service,
-    )
+    from packages.backend.domain.semantic_matching import MatchWeights, get_matching_service
 
     # Normalize weights
     weights = MatchWeights(

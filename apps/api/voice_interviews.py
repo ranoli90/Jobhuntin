@@ -27,9 +27,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
 from packages.backend.domain.tenant import TenantContext
-from packages.backend.domain.voice_interview_simulator import (
-    get_voice_interview_simulator,
-)
+from packages.backend.domain.voice_interview_simulator import get_voice_interview_simulator
 from shared.config import get_settings
 from shared.logging_config import get_logger
 
@@ -343,10 +341,7 @@ async def create_voice_session(
         difficulty = difficulty_map.get(request.difficulty.lower(), "MEDIUM")
 
         # Import enum types
-        from packages.backend.domain.interview_simulator import (
-            InterviewType,
-            QuestionDifficulty,
-        )
+        from packages.backend.domain.interview_simulator import InterviewType, QuestionDifficulty
 
         interview_type_enum = InterviewType(interview_type)
         difficulty_enum = QuestionDifficulty(difficulty)

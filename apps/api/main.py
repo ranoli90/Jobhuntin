@@ -26,25 +26,21 @@ import json
 import mimetypes
 import os
 import re
+import time
 import uuid
+from contextlib import asynccontextmanager
 from typing import Any
 
 import asyncpg
 import jwt as pyjwt
-from fastapi import (
-    BackgroundTasks,
-    Depends,
-    FastAPI,
-    File,
-    HTTPException,
-    Request,
-    UploadFile,
-)
+from fastapi import BackgroundTasks, Depends, FastAPI, File, HTTPException
 from fastapi import Path as FastAPIPath
+from fastapi import Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
+from api.dependencies import _pool_manager, get_current_user_id, get_pool, require_admin_user_id
 from packages.backend.domain.agent_improvements import create_agent_improvements_manager
 from packages.backend.domain.analytics_events import (
     APPLICATION_STATUS_CHANGED,
@@ -61,28 +57,20 @@ from packages.backend.domain.repositories import (
 )
 from packages.backend.domain.resume import process_resume_upload
 from packages.backend.domain.tenant import TenantContext, resolve_tenant_context
-from shared.api_response import (
-    SuccessResponse,
-    success_response,
-)
+from shared.api_response import SuccessResponse, success_response
 from shared.config import Environment, get_settings
 from shared.logging_config import LogContext, get_logger, setup_logging
-from shared.metrics import incr, observe
-from shared.middleware import setup_csrf_middleware, setup_request_id_middleware
+from shared.metrics import get_rate_limiter, incr, observe
+from shared.middleware import (
+    get_client_ip,
+    setup_csrf_middleware,
+    setup_request_id_middleware,
+    setup_security_headers,
+)
 from shared.redis_client import close_redis, get_redis
 from shared.storage import get_storage_service
 from shared.telemetry import setup_telemetry
 from shared.validators import validate_uuid
-from contextlib import asynccontextmanager
-import time
-from api.dependencies import (
-    _pool_manager,
-    get_current_user_id,
-    get_pool,
-    require_admin_user_id,
-)
-from shared.metrics import get_rate_limiter
-from shared.middleware import get_client_ip, setup_security_headers
 
 # ---------------------------------------------------------------------------
 # Configuration (loaded from shared.config)
