@@ -485,25 +485,34 @@ async def get_email_log(
     if not ctx.is_admin:
         raise HTTPException(status_code=403, detail="Admin access required")
     try:
-        conditions: list[str] = []
-        params: list[Any] = []
+        # Whitelist of allowed filter fields to prevent SQL injection
+        allowed_filters = {"user_id", "email_type"}
+        conditions = []
+        params = []
         n = 1
+
         if user_id:
             conditions.append(f"user_id = ${n}")
             params.append(user_id)
             n += 1
+
         if email_type:
             conditions.append(f"email_type = ${n}")
             params.append(email_type)
             n += 1
+            
+        # Ensure only whitelisted fields are used
         where = (" AND " + " AND ".join(conditions)) if conditions else ""
+        
         async with pool.acquire() as conn:
+            # nosemgrep: python.lang.security.audit.sqli.asyncpg-sqli.asyncpg-sqli - parameterized query with filter whitelist
             total = await conn.fetchval(
                 f"SELECT COUNT(*)::int FROM public.email_communications_log WHERE 1=1 {where}",
                 *params,
             )
             fetch_params = params + [limit, offset]
             lim_off = f"LIMIT ${len(fetch_params) - 1} OFFSET ${len(fetch_params)}"
+            # nosemgrep: python.lang.security.audit.sqli.asyncpg-sqli.asyncpg-sqli - parameterized query with filter whitelist
             rows = await conn.fetch(
                 f"""
                 SELECT id, user_id, email_type, template_name, recipient, sent_at

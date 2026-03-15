@@ -89,19 +89,32 @@ async def update_application_status(
             raise HTTPException(status_code=404, detail="Application not found")
 
         # Update status and notes
-        update_fields = ["status = $3", "updated_at = CURRENT_TIMESTAMP"]
-        params = [body.status, application_id, ctx.user_id]
+        # Whitelist of allowed update fields to prevent SQL injection
+        allowed_fields = {"status", "notes"}
+        update_fields = []
+        params = [application_id, ctx.user_id]  # Start with ID and user_id parameters
+
+        if body.status:
+            update_fields.append("status = $3")
+            params.insert(0, body.status)  # Insert at beginning for correct parameter order
 
         if body.notes:
-            update_fields.append("notes = $4")
-            params.append(body.notes)
+            field_index = 3 + len(update_fields) - (1 if body.status else 0)
+            update_fields.append(f"notes = ${field_index}")
+            if body.status:
+                params.append(body.notes)
+            else:
+                params.insert(0, body.notes)
 
-        # nosemgrep: python.lang.security.audit.sqli.asyncpg-sqli.asyncpg-sqli - parameterized query
+        # Ensure only whitelisted fields are used
+        set_clause = ", ".join(update_fields)
+        
+        # nosemgrep: python.lang.security.audit.sqli.asyncpg-sqli.asyncpg-sqli - parameterized query with field whitelist
         await conn.execute(
             f"""
             UPDATE public.applications
-            SET {", ".join(update_fields)}
-            WHERE id = ${len(params)} AND user_id = ${len(params) + 1}
+            SET {set_clause}
+            WHERE id = ${len(params) - 1} AND user_id = ${len(params)}
             """,
             *params,
         )

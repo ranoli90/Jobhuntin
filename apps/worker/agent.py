@@ -15,6 +15,7 @@ import asyncio
 import json
 import os
 import random
+import secrets
 import tempfile
 import time
 from typing import Any, Callable, Optional, TypedDict
@@ -524,7 +525,7 @@ async def _llm_call_with_retry(call_fn, max_retries: int = 3):
         except Exception as e:
             last_exc = e
             if attempt < max_retries - 1:
-                delay = 2**attempt + random.uniform(0, 1)
+                delay = 2**attempt + secrets.randbelow(1000) / 1000  # Use secrets for jitter
                 logger.warning(
                     "LLM call failed (attempt %d/%d), retrying in %.1fs: %s",
                     attempt + 1,
@@ -677,7 +678,7 @@ class FormAgent:
             except Exception as e:
                 retry_count += 1
                 delay = min(2 ** (retry_count - 1), max_retry_delay)
-                jitter = delay * 0.1 * random.random()
+                jitter = delay * 0.1 * (secrets.randbelow(1000) / 1000)  # Use secrets for jitter
                 delay += jitter
 
                 logger.error(
@@ -984,7 +985,7 @@ class FormAgent:
 
                 if is_retryable and attempt < max_retries - 1:
                     # HIGH: Exponential backoff with jitter
-                    delay = base_delay * (2**attempt) + (random.random() * 0.5)
+                    delay = base_delay * (2**attempt) + ((secrets.randbelow(500) / 1000) * 0.5)  # Use secrets for jitter
                     logger.warning(
                         "Page navigation failed (attempt %d/%d), retrying in %.2fs: %s",
                         attempt + 1,
@@ -2163,14 +2164,24 @@ async def worker_loop() -> None:
 
         async def context_factory() -> BrowserContext:
             import random  # nosec B311 - random.choice used for browser fingerprinting, not security purposes
+            import secrets
 
             _ua_pool = [
                 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
                 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
                 "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-                "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
-                "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:124.0) Gecko/20100101 Firefox/124.0",
+                "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4.1 Safari/605.1.15",
             ]
+            
+            # Use secrets for better randomness even for fingerprinting
+            locale = secrets.choice(["en-US", "en-GB", "en-CA"])  # nosec B311 - browser fingerprinting
+            timezone_id = secrets.choice([  # nosec B311 - browser fingerprinting
+                "America/New_York",
+                "America/Chicago",
+                "America/Los_Angeles",
+                "America/Denver",
+            ])
             _vp_pool = [
                 {"width": 1280, "height": 800},
                 {"width": 1366, "height": 768},
@@ -2179,18 +2190,10 @@ async def worker_loop() -> None:
                 {"width": 1920, "height": 1080},
             ]
             return await browser.new_context(  # nosec B311
-                viewport=random.choice(_vp_pool),  # nosec B311 - browser fingerprinting
-                user_agent=random.choice(_ua_pool),  # nosec B311 - browser fingerprinting
-                # nosec B311 - browser fingerprinting
-                locale=random.choice(["en-US", "en-GB", "en-CA"]),
-                timezone_id=random.choice(  # nosec B311 - browser fingerprinting
-                    [
-                        "America/New_York",
-                        "America/Chicago",
-                        "America/Los_Angeles",
-                        "America/Denver",
-                    ]
-                ),
+                viewport=secrets.choice(_vp_pool),  # nosec B311 - browser fingerprinting
+                user_agent=secrets.choice(_ua_pool),  # nosec B311 - browser fingerprinting
+                locale=locale,  # Already set above with secrets.choice
+                timezone_id=timezone_id,  # Already set above with secrets.choice
             )
 
         agent = FormAgent(pool, context_factory)

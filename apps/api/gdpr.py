@@ -228,12 +228,33 @@ async def export_user_data(
                         table_columns = {col for col in table_info[2]}
                         break
 
+                # Whitelist of allowed tables for GDPR export to prevent SQL injection
+                allowed_tables = {
+                    "public.users": "user_id",
+                    "public.user_profiles": "user_id", 
+                    "public.applications": "user_id",
+                    "public.resumes": "user_id",
+                    "public.resume_pdfs": "user_id",
+                    "public.cover_letters": "user_id",
+                    "public.email_communications_log": "user_id",
+                    "public.user_preferences": "user_id",
+                }
+                
+                if table not in allowed_tables:
+                    logger.warning(
+                        f"Invalid table requested for GDPR export: {table}"
+                    )
+                    continue
+                
+                user_col = allowed_tables[table]
+
                 if user_col not in table_columns:
                     logger.warning(
                         f"Invalid column requested for GDPR export: {user_col} on table {table}"
                     )
                     continue
 
+                # nosemgrep: python.lang.security.audit.sqli.asyncpg-sqli.asyncpg-sqli - parameterized query with table whitelist
                 rows = await conn.fetch(
                     f"SELECT * FROM {table} WHERE {user_col} = $1",
                     user_id,

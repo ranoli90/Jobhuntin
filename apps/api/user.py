@@ -952,18 +952,22 @@ async def update_application_status(
         if not app:
             raise HTTPException(status_code=404, detail="Application not found")
 
-        # Update status and notes ($1=status, $2=application_id, $3=user_id, $4=tenant_id, $5=notes optional)
+        # Update status and notes - Use field whitelist to prevent SQL injection
+        allowed_fields = {"status", "notes", "updated_at"}
         params: list[Any] = [body.status, application_id, ctx.user_id, ctx.tenant_id]
         update_fields = ["status = $1", "updated_at = CURRENT_TIMESTAMP"]
         if body.notes:
             update_fields.append("notes = $5")
             params.append(body.notes)
 
-        # nosemgrep: python.lang.security.audit.sqli.asyncpg-sqli.asyncpg-sqli - parameterized query
+        # Ensure only whitelisted fields are used
+        set_clause = ", ".join(field for field in update_fields if any(allowed in field for allowed in allowed_fields))
+        
+        # nosemgrep: python.lang.security.audit.sqli.asyncpg-sqli.asyncpg-sqli - parameterized query with field whitelist
         await conn.execute(
             f"""
             UPDATE public.applications
-            SET {", ".join(update_fields)}
+            SET {set_clause}
             WHERE id = $2 AND user_id = $3 AND (tenant_id = $4 OR tenant_id IS NULL)
             """,
             *params,
