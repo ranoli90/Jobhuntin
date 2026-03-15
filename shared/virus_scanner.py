@@ -39,9 +39,9 @@ class ClamAVScanner:
             # Use full path to clamscan to avoid partial path issues
             clamscan_path = "/usr/bin/clamscan"  # Common location, could be configurable
             result = subprocess.run(
-                [clamscan_path, "--version"], 
-                capture_output=True, 
-                text=True, 
+                [clamscan_path, "--version"],
+                capture_output=True,
+                text=True,
                 timeout=5,
                 shell=False  # Explicitly set shell=False for security
             )

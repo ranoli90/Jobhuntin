@@ -107,7 +107,7 @@ async def update_application_status(
 
         # Ensure only whitelisted fields are used
         set_clause = ", ".join(update_fields)
-        
+
         # nosemgrep: python.lang.security.audit.sqli.asyncpg-sqli.
 # asyncpg-sqli - parameterized query with field whitelist
         await conn.execute(

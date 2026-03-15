@@ -261,7 +261,7 @@ class AIService:
             sanitized_text = text_result.sanitized_input or resume_text[:10000]
             step_result = sanitize_for_ai(current_step[:500], max_length=500, min_length=None)
             sanitized_step = (
-                step_result.sanitized_input or current_step[:500] 
+                step_result.sanitized_input or current_step[:500]
                 if step_result.is_valid else current_step[:500]
             )
 
