@@ -225,8 +225,8 @@ class DatabaseLoadBalancer:
                 selected_pool_id = None
 
                 logger.warning(
-                    f"Query failed on pool {selected_pool_id}, trying next pool (
-    attempt {attempt_count}/{max_attempts}): {e}"
+                    f"Query failed on pool {selected_pool_id}, "
+                    f"trying next pool (attempt {attempt_count}/{max_attempts}): {e}"
                 )
 
         # All pools failed
