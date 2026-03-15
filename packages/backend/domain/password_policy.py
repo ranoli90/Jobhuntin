@@ -344,7 +344,6 @@ class PasswordValidator:
                 usedforsecurity=False
             ).hexdigest().upper()
         )  # nosemgrep: python.lang.security.insecure-hash-algorithms.insecure-hash-algorithm-sha1
-        )
         prefix = sha1_hash[:5]
         suffix = sha1_hash[5:]
 

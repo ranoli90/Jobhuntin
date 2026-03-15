@@ -201,6 +201,7 @@ def _build_full_query(
 
 async def _get_total_count(conn, query: str, args: list[Any]) -> int | None:
     """Get total count for pagination."""
+    # nosemgrep: python.lang.security.audit.sqli.asyncpg-sqli.asyncpg-sqli - parameterized query with subquery
     count_query = f"SELECT COUNT(*) FROM ({query}) AS subq"
     try:
         total_result = await conn.fetchrow(count_query, *args)

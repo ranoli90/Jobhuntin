@@ -593,8 +593,9 @@ class JobRepo:
                     params.append(f"%{escape_ilike(keywords_value)}%")
                     n = len(params)
                     conditions.append(
-                        "(
-    j.title ILIKE ${" + str(n) + "} OR j.description ILIKE ${" + str(n) + "} OR j.company ILIKE ${" + str(n) + "})"
+                        "("
+                        f"j.title ILIKE ${n} OR j.description ILIKE ${n} OR j.company ILIKE ${n})"
+                        ")"
                     )
 
             if "company_name" in filters:

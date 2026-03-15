@@ -771,9 +771,10 @@ class PerformanceMonitor:
                     alert_type="threshold_warning",
                     severity=AlertSeverity.WARNING,
                     title=f"Performance Warning: {metric.name}",
-                    message =
-    f"{metric.name} exceeded warning threshold: {metric.value} {metric.unit} > {threshold.warning_threshold} {metric.uni
-    t}",
+                    message=(
+                        f"{metric.name} exceeded warning threshold: "
+                        f"{metric.value} {metric.unit} > {threshold.warning_threshold} {metric.unit}"
+                    ),
                     metric_name=metric.name,
                     current_value=metric.value,
                     threshold_value=threshold.warning_threshold,

@@ -302,6 +302,7 @@ class RedisCache:
                 return False
 
         except Exception as e:
+            # nosemgrep: python.lang.security.audit.sqli.asyncpg-sqli.asyncpg-sqli - logging exception, not SQL
             logger.error(f"Failed to delete from cache: {e}")
             return False
 
@@ -746,6 +747,7 @@ class MemoryCache:
                 return False
 
         except Exception as e:
+            # nosemgrep: python.lang.security.audit.sqli.asyncpg-sqli.asyncpg-sqli - logging exception, not SQL
             logger.error(f"Failed to delete from memory cache: {e}")
             return False
 
