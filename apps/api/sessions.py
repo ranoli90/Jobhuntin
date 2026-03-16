@@ -18,7 +18,7 @@ from packages.backend.domain.tenant import TenantContext
 from shared.logging_config import get_logger
 from shared.metrics import incr
 
-from api.deps import get_pool, get_tenant_context, get_current_user_id
+from api.deps import get_pool, get_pool as _get_pool, get_tenant_context, get_tenant_context as _get_tenant_ctx, get_current_user_id, get_current_user_id as _get_user_id
 
 logger = get_logger("sorce.api.sessions")
 

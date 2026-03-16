@@ -23,7 +23,7 @@ from pydantic import BaseModel
 from packages.backend.domain import compliance_tracker
 from shared.logging_config import get_logger
 
-from api.deps import get_pool, require_admin_user_id
+from api.deps import get_pool, get_pool as _get_pool, require_admin_user_id, require_admin_user_id as _get_admin_user_id
 
 logger = get_logger("sorce.compliance_reports")
 

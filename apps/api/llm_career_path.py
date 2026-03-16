@@ -29,7 +29,7 @@ from pydantic import BaseModel, Field
 from packages.backend.domain.llm_career_path import get_llm_career_path_analyzer
 from packages.backend.domain.tenant import TenantContext
 
-from api.deps import get_tenant_context
+from api.deps import get_pool as _get_pool, get_tenant_context, get_tenant_context as _get_tenant_ctx
 from shared.ai_validation import sanitize_dict_for_ai, sanitize_for_ai
 from shared.logging_config import get_logger
 

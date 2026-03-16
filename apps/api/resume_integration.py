@@ -29,7 +29,7 @@ from packages.backend.domain.resume_agent_integration import (
 )
 from packages.backend.domain.tenant import TenantContext
 
-from api.deps import get_pool, get_tenant_context
+from api.deps import get_pool, get_pool as _get_pool, get_tenant_context, get_tenant_context as _get_tenant_ctx
 from shared.logging_config import get_logger
 from shared.validators import validate_uuid
 

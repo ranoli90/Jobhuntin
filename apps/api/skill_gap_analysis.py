@@ -17,7 +17,7 @@ from packages.backend.domain.skills_taxonomy import get_skills_taxonomy
 from packages.backend.domain.tenant import TenantContext
 from shared.logging_config import get_logger
 
-from api.deps import get_tenant_context, get_tenant_context as _get_tenant_ctx
+from api.deps import get_pool as _get_pool, get_tenant_context, get_tenant_context as _get_tenant_ctx
 
 logger = get_logger("sorce.api.skill_gap")
 

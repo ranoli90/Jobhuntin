@@ -13,7 +13,7 @@ from packages.backend.domain.career_path import CareerPathAnalyzer, SkillGap
 from packages.backend.domain.repositories import ProfileRepo
 from shared.logging_config import get_logger
 
-from api.deps import get_pool, get_current_user_id
+from api.deps import get_pool, get_pool as _get_pool, get_current_user_id, get_current_user_id as _get_user_id
 
 logger = get_logger("sorce.api.career")
 

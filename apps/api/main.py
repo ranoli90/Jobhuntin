@@ -602,8 +602,8 @@ def _mount_sub_routers() -> None:
 
     import api.export as export_mod
 
-    app.dependency_overrides[export_mod._get_pool] = get_pool
-    app.dependency_overrides[export_mod._get_tenant_ctx] = get_tenant_context
+    app.dependency_overrides[export_mod.get_pool] = get_pool
+    app.dependency_overrides[export_mod.get_tenant_context] = get_tenant_context
     app.include_router(export_mod.router)
 
     import api.analytics as analytics_mod

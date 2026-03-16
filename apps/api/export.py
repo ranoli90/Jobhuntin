@@ -119,8 +119,8 @@ async def _stream_export(
 
 @router.get("/me/export")
 async def export_my_data(
-    ctx: TenantContext = Depends(_get_tenant_ctx),
-    db: asyncpg.Pool = Depends(_get_pool),
+    ctx: TenantContext = Depends(get_tenant_context),
+    db: asyncpg.Pool = Depends(get_pool),
 ):
     """Export all user data as newline-delimited JSON.
 
