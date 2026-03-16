@@ -18,7 +18,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { spawn } from 'child_process';
-import { setInterval } from 'timers';
+import cron from 'node-cron';
 import { loadProgress, saveProgress, logSubmission, getQuotaState } from './supabase-checkpoint.ts';
 import { validateCityName, validateRoleName, sanitizeForShell } from './utils';
 
@@ -112,13 +112,13 @@ function contentExists(location: any, role: any): boolean {
   // Check if location has content sections for this role
   if (location.contentSections && location.contentSections.length > 0) {
     // Check if there's specific content for this role
-    const hasRoleContent = location.contentSections.some((section: any) => 
+    const hasRoleContent = location.contentSections.some((section: any) =>
       section.heading?.toLowerCase().includes(role.name.toLowerCase()) ||
       section.keywords?.some((k: string) => k.toLowerCase().includes(role.name.toLowerCase()))
     );
     if (hasRoleContent) return true;
   }
-  
+
   // Check if role has content sections for this location
   if (role.contentSections && role.contentSections.length > 0) {
     const hasLocationContent = role.contentSections.some((section: any) =>
@@ -127,13 +127,13 @@ function contentExists(location: any, role: any): boolean {
     );
     if (hasLocationContent) return true;
   }
-  
+
   // Check if both have quality scores (indicating they were generated)
-  if (location.contentQuality && location.contentQuality > 70 && 
-      role.contentQuality && role.contentQuality > 70) {
+  if (location.contentQuality && location.contentQuality > 70 &&
+    role.contentQuality && role.contentQuality > 70) {
     return true;
   }
-  
+
   return false;
 }
 
@@ -174,7 +174,7 @@ async function generateContent(city: string, role: string): Promise<boolean> {
     // SECURITY: Validate inputs before passing to spawn
     const safeCity = sanitizeForShell(validateCityName(city));
     const safeRole = sanitizeForShell(validateRoleName(role));
-    
+
     // Pass arguments as an array to spawn correctly
     const childProcess = spawn('npx', ['tsx', 'scripts/seo/generate-city-content.ts', safeCity, safeRole, '--aggressive'], {
       cwd: path.resolve(__dirname, '../..'),
@@ -192,7 +192,7 @@ async function generateContent(city: string, role: string): Promise<boolean> {
     childProcess.on('close', (code: number) => {
       clearTimeout(timeout);
       const duration = ((Date.now() - start) / 1000).toFixed(1);
-      
+
       console.log("\n" + "=".repeat(70));
       if (code === 0) {
         console.log("✅ SUCCESS:", role, "in", city, "completed in", duration, "s");
@@ -203,7 +203,7 @@ async function generateContent(city: string, role: string): Promise<boolean> {
         console.log("❌ FAILED:", role, "in", city, "(exit code", code, ") after", duration, "s");
       }
       console.log("=".repeat(70) + "\n");
-      
+
       resolve(code === 0);
     });
   });
@@ -276,18 +276,18 @@ async function runAutomation(): Promise<void> {
 
   const allCombinations = generatePriorityMatrix();
   const totalAll = allCombinations.length;
-  
+
   // Filter to only combinations that need new content
   const priorityMatrix = filterNeededCombinations(allCombinations);
-  
+
   const totalCombinations = priorityMatrix.length;
   let startIndex = await loadProgress();
-  
+
   // If all content exists, we might want to refresh old content
   if (totalCombinations === 0) {
     console.log('✅ All content already generated!');
     console.log('🔄 Checking for content that needs refreshing (older than 30 days)...');
-    
+
     // Find combinations with stale content (older than 30 days)
     const staleCombinations = allCombinations.filter(item => {
       const lastUpdated = item.location.lastUpdated || item.role.lastUpdated;
@@ -295,7 +295,7 @@ async function runAutomation(): Promise<void> {
       const daysSinceUpdate = (Date.now() - new Date(lastUpdated).getTime()) / (1000 * 60 * 60 * 24);
       return daysSinceUpdate > 30;
     });
-    
+
     if (staleCombinations.length > 0) {
       console.log("📅 Found", staleCombinations.length, "pages to refresh");
       priorityMatrix.push(...staleCombinations);
@@ -304,7 +304,7 @@ async function runAutomation(): Promise<void> {
       return;
     }
   }
-  
+
   if (startIndex >= priorityMatrix.length) {
     startIndex = 0;
   }
@@ -404,10 +404,10 @@ async function runAutomation(): Promise<void> {
  * Continuous monitoring and updates
  */
 function startContinuousMonitoring(): void {
-  console.log('👁️  Starting continuous monitoring...');
+  console.log('👁️  Starting continuous monitoring (Cron: 0 */6 * * *)...');
 
-  // Check for new opportunities every 6 hours
-  setInterval(async () => {
+  // Check for new opportunities every 6 hours (minute 0 of every 6th hour)
+  cron.schedule('0 */6 * * *', async () => {
     console.log('🔍 Running scheduled content audit...');
 
     // Check for trending roles or cities
@@ -421,7 +421,7 @@ function startContinuousMonitoring(): void {
         await generateContent(combo.location, combo.role);
       }
     }
-  }, 6 * 60 * 60 * 1000); // 6 hours
+  });
 }
 
 /**
@@ -437,13 +437,24 @@ async function findTrendingOpportunities(): Promise<any[]> {
 /**
  * Main entry point
  */
-async function main(): Promise<void> {
+async function executeDailyRun(): Promise<void> {
   if (runInProgress) {
     console.log('⚠️ Previous run still in progress. Skipping new run to avoid overlap.');
     return;
   }
   runInProgress = true;
-  console.log('🚀 STARTING AUTOMATED RANKING ENGINE');
+  console.log('🚀 AUTOMATED RANKING ENGINE - DAILY RUN STARTING');
+  try {
+    await runAutomation();
+  } catch (error) {
+    console.error('❌ Automation failed:', error);
+  } finally {
+    runInProgress = false;
+  }
+}
+
+async function main(): Promise<void> {
+  console.log('🚀 INITIALIZING AUTOMATED RANKING ENGINE DAEMON');
   console.log('📅 This will run continuously and generate thousands of pages');
 
   // Ensure required environment variables are set
@@ -463,19 +474,13 @@ async function main(): Promise<void> {
   // Start continuous monitoring
   startContinuousMonitoring();
 
-  try {
-    // Run initial automation
-    await runAutomation();
-  } catch (error) {
-    console.error('❌ Automation failed:', error);
-    // Still schedule next run even if current run fails
-  } finally {
-    runInProgress = false;
-    // Schedule next run (daily) after completion to avoid overlap
-    const nextRunTime = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
-    console.log("⏰ Scheduling next run in 24 hours (" + nextRunTime + ")...");
-    setTimeout(() => { void main(); }, 24 * 60 * 60 * 1000);
-  }
+  // Schedule daily runs at 1:00 AM
+  cron.schedule('0 1 * * *', async () => {
+    await executeDailyRun();
+  });
+
+  // Run initial automation immediately at startup
+  await executeDailyRun();
 }
 
 // Error handling with enhanced logging

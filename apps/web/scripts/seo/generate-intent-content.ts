@@ -104,6 +104,9 @@ async function generateContent(
 ): Promise<string> {
   const template = CONTENT_TEMPLATES[intent] || CONTENT_TEMPLATES.informational;
 
+  // Read SEO requirements passed from the engine (LLM intent logic)
+  const dynamicRequirements = process.env.SEO_REQUIREMENTS || '';
+
   const prompt = `You are an expert SEO content writer. Create a comprehensive, search-optimized article.
 
 TOPIC: "${topic}"
@@ -124,12 +127,14 @@ SEO OPTIMIZATION:
 - Optimize for featured snippets with clear definitions and lists
 - Include "Last Updated: ${new Date().toLocaleDateString()}" near top
 
-E-E-A-T SIGNALS (Critical for 2026):
+E-E-A-T SIGNALS:
 - Write from position of expertise
 - Include specific data/statistics where relevant
 - Reference industry standards/best practices
 - Add authoritativeness through comprehensive coverage
 - Build trust with honest, balanced information
+
+${dynamicRequirements}
 
 CONTENT QUALITY:
 - Hook readers in first 100 words
