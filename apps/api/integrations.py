@@ -26,7 +26,7 @@ from packages.backend.domain.zapier_integration import ZapierIntegrationManager
 from shared.logging_config import get_logger
 from shared.redirect_validation import validate_webhook_url
 
-from api.deps import get_pool, get_current_user_id, get_tenant_id
+from api.deps import get_pool, get_pool as _get_pool, get_current_user_id, get_current_user_id as _get_user_id, get_tenant_id, get_tenant_id as _get_tenant_id
 
 logger = get_logger("sorce.api.integrations")
 

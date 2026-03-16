@@ -16,7 +16,7 @@ from packages.backend.domain.data_residency import (
 from packages.backend.domain.ip_allowlist import IPAllowlistManager
 from shared.logging_config import get_logger
 
-from api.deps import get_pool, get_current_user_id, get_tenant_id
+from api.deps import get_pool, get_pool as _get_pool, get_current_user_id, get_current_user_id as _get_user_id, get_tenant_id, get_tenant_id as _get_tenant_id
 
 logger = get_logger("sorce.api.admin_security")
 

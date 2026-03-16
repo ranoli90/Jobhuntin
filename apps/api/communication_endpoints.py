@@ -16,7 +16,7 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
-from api.deps import get_current_user_id, get_pool, get_tenant_context
+from api.deps import get_current_user_id, get_current_user_id as _get_user_id, get_pool, get_pool as _get_pool, get_tenant_context, get_tenant_context as _get_tenant_ctx
 from packages.backend.domain.enhanced_notifications import (
     NotificationCategory,
     NotificationContent,
