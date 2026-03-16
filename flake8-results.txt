@@ -1,0 +1,972 @@
+[1m.\_scripts_archive\add_env_put.py[m[36m:[m16[36m:[m121[36m:[m [1m[31mE501[m line too long (148 > 120 characters)
+[1m.\_scripts_archive\add_missing_env.py[m[36m:[m19[36m:[m1[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\add_missing_env.py[m[36m:[m27[36m:[m121[36m:[m [1m[31mE501[m line too long (145 > 120 characters)
+[1m.\_scripts_archive\add_missing_env.py[m[36m:[m29[36m:[m1[36m:[m [1m[31mE302[m expected 2 blank lines, found 1
+[1m.\_scripts_archive\add_missing_env.py[m[36m:[m53[36m:[m1[36m:[m [1m[31mE305[m expected 2 blank lines after class or function definition, found 1
+[1m.\_scripts_archive\analyze_services.py[m[36m:[m24[36m:[m1[36m:[m [1m[31mE302[m expected 2 blank lines, found 1
+[1m.\_scripts_archive\analyze_services.py[m[36m:[m30[36m:[m1[36m:[m [1m[31mE305[m expected 2 blank lines after class or function definition, found 1
+[1m.\_scripts_archive\api_key_checker.py[m[36m:[m330[36m:[m20[36m:[m [1m[31mE999[m SyntaxError: unterminated string literal (detected at line 330)
+[1m.\_scripts_archive\api_key_checker_fixed.py[m[36m:[m313[36m:[m12[36m:[m [1m[31mE999[m SyntaxError: invalid syntax
+[1m.\_scripts_archive\apply_render_migrations.py[m[36m:[m15[36m:[m1[36m:[m [1m[31mE302[m expected 2 blank lines, found 1
+[1m.\_scripts_archive\apply_render_migrations.py[m[36m:[m45[36m:[m1[36m:[m [1m[31mE302[m expected 2 blank lines, found 1
+[1m.\_scripts_archive\audit_phase_12_1.py[m[36m:[m213[36m:[m9[36m:[m [1m[31mF841[m local variable 'agent_module' is assigned to but never used
+[1m.\_scripts_archive\audit_phase_15_1.py[m[36m:[m43[36m:[m121[36m:[m [1m[31mE501[m line too long (126 > 120 characters)
+[1m.\_scripts_archive\check_api_logs.py[m[36m:[m34[36m:[m13[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\check_api_logs.py[m[36m:[m42[36m:[m1[36m:[m [1m[31mE305[m expected 2 blank lines after class or function definition, found 1
+[1m.\_scripts_archive\check_service_details.py[m[36m:[m13[36m:[m1[36m:[m [1m[31mE302[m expected 2 blank lines, found 1
+[1m.\_scripts_archive\check_service_details.py[m[36m:[m63[36m:[m1[36m:[m [1m[31mE305[m expected 2 blank lines after class or function definition, found 1
+[1m.\_scripts_archive\check_service_health.py[m[36m:[m13[36m:[m1[36m:[m [1m[31mE302[m expected 2 blank lines, found 1
+[1m.\_scripts_archive\check_service_health.py[m[36m:[m156[36m:[m1[36m:[m [1m[31mE305[m expected 2 blank lines after class or function definition, found 1
+[1m.\_scripts_archive\check_worker_services.py[m[36m:[m13[36m:[m1[36m:[m [1m[31mE302[m expected 2 blank lines, found 1
+[1m.\_scripts_archive\check_worker_services.py[m[36m:[m64[36m:[m1[36m:[m [1m[31mE305[m expected 2 blank lines after class or function definition, found 1
+[1m.\_scripts_archive\complete_all_steps_sequential.py[m[36m:[m10[36m:[m121[36m:[m [1m[31mE501[m line too long (437 > 120 characters)
+[1m.\_scripts_archive\complete_all_steps_sequential.py[m[36m:[m82[36m:[m21[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_all_steps_sequential.py[m[36m:[m115[36m:[m21[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_all_steps_sequential.py[m[36m:[m125[36m:[m21[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_all_steps_sequential.py[m[36m:[m144[36m:[m121[36m:[m [1m[31mE501[m line too long (137 > 120 characters)
+[1m.\_scripts_archive\complete_all_steps_sequential.py[m[36m:[m296[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_all_steps_sequential.py[m[36m:[m307[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_all_steps_sequential.py[m[36m:[m365[36m:[m121[36m:[m [1m[31mE501[m line too long (161 > 120 characters)
+[1m.\_scripts_archive\complete_all_steps_sequential.py[m[36m:[m376[36m:[m121[36m:[m [1m[31mE501[m line too long (161 > 120 characters)
+[1m.\_scripts_archive\complete_all_steps_sequential.py[m[36m:[m450[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_final_steps.py[m[36m:[m10[36m:[m121[36m:[m [1m[31mE501[m line too long (437 > 120 characters)
+[1m.\_scripts_archive\complete_final_steps.py[m[36m:[m65[36m:[m13[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_final_steps.py[m[36m:[m201[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_final_steps.py[m[36m:[m212[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_final_steps.py[m[36m:[m269[36m:[m121[36m:[m [1m[31mE501[m line too long (169 > 120 characters)
+[1m.\_scripts_archive\complete_final_steps.py[m[36m:[m289[36m:[m121[36m:[m [1m[31mE501[m line too long (173 > 120 characters)
+[1m.\_scripts_archive\complete_final_steps.py[m[36m:[m294[36m:[m21[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_final_steps.py[m[36m:[m314[36m:[m121[36m:[m [1m[31mE501[m line too long (173 > 120 characters)
+[1m.\_scripts_archive\complete_final_steps.py[m[36m:[m319[36m:[m21[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_final_steps.py[m[36m:[m330[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_final_steps.py[m[36m:[m395[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_full_onboarding.py[m[36m:[m11[36m:[m121[36m:[m [1m[31mE501[m line too long (437 > 120 characters)
+[1m.\_scripts_archive\complete_full_onboarding.py[m[36m:[m64[36m:[m9[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_full_onboarding.py[m[36m:[m75[36m:[m13[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_full_onboarding.py[m[36m:[m95[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_full_onboarding.py[m[36m:[m141[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_full_onboarding.py[m[36m:[m156[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_full_onboarding.py[m[36m:[m183[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_full_onboarding.py[m[36m:[m250[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_full_onboarding.py[m[36m:[m280[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_full_onboarding.py[m[36m:[m295[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_full_onboarding.py[m[36m:[m317[36m:[m21[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_full_onboarding.py[m[36m:[m335[36m:[m25[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_full_onboarding.py[m[36m:[m362[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_full_onboarding.py[m[36m:[m391[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_full_onboarding.py[m[36m:[m402[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_full_onboarding.py[m[36m:[m417[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_full_onboarding.py[m[36m:[m454[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_full_onboarding.py[m[36m:[m470[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_full_onboarding.py[m[36m:[m498[36m:[m121[36m:[m [1m[31mE501[m line too long (169 > 120 characters)
+[1m.\_scripts_archive\complete_full_onboarding.py[m[36m:[m502[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_full_onboarding.py[m[36m:[m525[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_full_onboarding.py[m[36m:[m567[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_full_onboarding.py[m[36m:[m586[36m:[m21[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_full_onboarding_flow.py[m[36m:[m14[36m:[m121[36m:[m [1m[31mE501[m line too long (437 > 120 characters)
+[1m.\_scripts_archive\complete_full_onboarding_flow.py[m[36m:[m66[36m:[m9[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_full_onboarding_flow.py[m[36m:[m90[36m:[m21[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_full_onboarding_flow.py[m[36m:[m92[36m:[m13[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_full_onboarding_flow.py[m[36m:[m312[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_full_onboarding_flow.py[m[36m:[m327[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_full_onboarding_flow.py[m[36m:[m354[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_full_onboarding_flow.py[m[36m:[m402[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_full_onboarding_flow.py[m[36m:[m413[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_full_onboarding_flow.py[m[36m:[m452[36m:[m121[36m:[m [1m[31mE501[m line too long (169 > 120 characters)
+[1m.\_scripts_archive\complete_full_onboarding_flow.py[m[36m:[m457[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_full_onboarding_flow.py[m[36m:[m511[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_full_onboarding_flow.py[m[36m:[m557[36m:[m13[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_full_onboarding_flow.py[m[36m:[m569[36m:[m13[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding.py[m[36m:[m11[36m:[m121[36m:[m [1m[31mE501[m line too long (434 > 120 characters)
+[1m.\_scripts_archive\complete_onboarding.py[m[36m:[m67[36m:[m9[36m:[m [1m[31mF841[m local variable 'page_content' is assigned to but never used
+[1m.\_scripts_archive\complete_onboarding.py[m[36m:[m94[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding.py[m[36m:[m148[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding.py[m[36m:[m166[36m:[m13[36m:[m [1m[31mF841[m local variable 'page_title' is assigned to but never used
+[1m.\_scripts_archive\complete_onboarding.py[m[36m:[m201[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding.py[m[36m:[m253[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding.py[m[36m:[m284[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding.py[m[36m:[m317[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding.py[m[36m:[m334[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding.py[m[36m:[m374[36m:[m25[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding.py[m[36m:[m378[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding.py[m[36m:[m395[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding.py[m[36m:[m411[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding.py[m[36m:[m427[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding.py[m[36m:[m496[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding.py[m[36m:[m505[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding.py[m[36m:[m537[36m:[m121[36m:[m [1m[31mE501[m line too long (243 > 120 characters)
+[1m.\_scripts_archive\complete_onboarding.py[m[36m:[m541[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding.py[m[36m:[m598[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding_api.py[m[36m:[m14[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m.\_scripts_archive\complete_onboarding_api.py[m[36m:[m105[36m:[m121[36m:[m [1m[31mE501[m line too long (159 > 120 characters)
+[1m.\_scripts_archive\complete_onboarding_direct.py[m[36m:[m11[36m:[m121[36m:[m [1m[31mE501[m line too long (388 > 120 characters)
+[1m.\_scripts_archive\complete_onboarding_direct.py[m[36m:[m60[36m:[m9[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding_direct.py[m[36m:[m114[36m:[m13[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding_direct.py[m[36m:[m139[36m:[m25[36m:[m [1m[31mF841[m local variable 'continue_clicked' is assigned to but never used
+[1m.\_scripts_archive\complete_onboarding_direct.py[m[36m:[m142[36m:[m13[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding_direct.py[m[36m:[m187[36m:[m13[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding_direct.py[m[36m:[m202[36m:[m13[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding_direct.py[m[36m:[m220[36m:[m21[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding_direct.py[m[36m:[m247[36m:[m13[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding_direct.py[m[36m:[m283[36m:[m9[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding_direct.py[m[36m:[m299[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding_direct.py[m[36m:[m316[36m:[m9[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding_direct.py[m[36m:[m332[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding_direct.py[m[36m:[m347[36m:[m21[36m:[m [1m[31mF841[m local variable 'phone_filled' is assigned to but never used
+[1m.\_scripts_archive\complete_onboarding_direct.py[m[36m:[m349[36m:[m13[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding_direct.py[m[36m:[m363[36m:[m13[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding_direct.py[m[36m:[m398[36m:[m29[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding_direct.py[m[36m:[m405[36m:[m13[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding_direct.py[m[36m:[m433[36m:[m29[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding_direct.py[m[36m:[m440[36m:[m13[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding_direct.py[m[36m:[m458[36m:[m13[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding_direct.py[m[36m:[m468[36m:[m17[36m:[m [1m[31mF841[m local variable 'salary_max_filled' is assigned to but never used
+[1m.\_scripts_archive\complete_onboarding_direct.py[m[36m:[m469[36m:[m13[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding_direct.py[m[36m:[m486[36m:[m25[36m:[m [1m[31mF841[m local variable 'remote_checked' is assigned to but never used
+[1m.\_scripts_archive\complete_onboarding_direct.py[m[36m:[m488[36m:[m13[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding_direct.py[m[36m:[m517[36m:[m13[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding_direct.py[m[36m:[m545[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding_direct.py[m[36m:[m572[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding_direct.py[m[36m:[m617[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding_direct.py[m[36m:[m634[36m:[m25[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding_direct.py[m[36m:[m659[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding_direct.py[m[36m:[m695[36m:[m13[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding_direct.py[m[36m:[m709[36m:[m21[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding_direct.py[m[36m:[m726[36m:[m13[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding_direct.py[m[36m:[m740[36m:[m21[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding_direct.py[m[36m:[m755[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding_direct.py[m[36m:[m769[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding_direct.py[m[36m:[m811[36m:[m13[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding_direct.py[m[36m:[m824[36m:[m13[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding_direct.py[m[36m:[m837[36m:[m13[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding_direct.py[m[36m:[m841[36m:[m121[36m:[m [1m[31mE501[m line too long (127 > 120 characters)
+[1m.\_scripts_archive\complete_onboarding_direct.py[m[36m:[m855[36m:[m13[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding_direct.py[m[36m:[m889[36m:[m121[36m:[m [1m[31mE501[m line too long (161 > 120 characters)
+[1m.\_scripts_archive\complete_onboarding_direct.py[m[36m:[m893[36m:[m9[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding_direct.py[m[36m:[m906[36m:[m121[36m:[m [1m[31mE501[m line too long (165 > 120 characters)
+[1m.\_scripts_archive\complete_onboarding_direct.py[m[36m:[m911[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding_direct.py[m[36m:[m935[36m:[m13[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding_direct.py[m[36m:[m952[36m:[m13[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding_direct.py[m[36m:[m978[36m:[m21[36m:[m [1m[31mF841[m local variable 'complete_clicked' is assigned to but never used
+[1m.\_scripts_archive\complete_onboarding_direct.py[m[36m:[m981[36m:[m13[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding_final.py[m[36m:[m10[36m:[m121[36m:[m [1m[31mE501[m line too long (437 > 120 characters)
+[1m.\_scripts_archive\complete_onboarding_final.py[m[36m:[m60[36m:[m9[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding_final.py[m[36m:[m73[36m:[m13[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding_final.py[m[36m:[m114[36m:[m21[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding_final.py[m[36m:[m125[36m:[m121[36m:[m [1m[31mE501[m line too long (130 > 120 characters)
+[1m.\_scripts_archive\complete_onboarding_final.py[m[36m:[m162[36m:[m1[36m:[m [1m[31mW293[m blank line contains whitespace
+[1m.\_scripts_archive\complete_onboarding_final.py[m[36m:[m177[36m:[m1[36m:[m [1m[31mW293[m blank line contains whitespace
+[1m.\_scripts_archive\complete_onboarding_final.py[m[36m:[m180[36m:[m93[36m:[m [1m[31mW291[m trailing whitespace
+[1m.\_scripts_archive\complete_onboarding_final.py[m[36m:[m181[36m:[m121[36m:[m [1m[31mE501[m line too long (121 > 120 characters)
+[1m.\_scripts_archive\complete_onboarding_final.py[m[36m:[m183[36m:[m1[36m:[m [1m[31mW293[m blank line contains whitespace
+[1m.\_scripts_archive\complete_onboarding_final.py[m[36m:[m213[36m:[m66[36m:[m [1m[31mW291[m trailing whitespace
+[1m.\_scripts_archive\complete_onboarding_final.py[m[36m:[m214[36m:[m84[36m:[m [1m[31mW291[m trailing whitespace
+[1m.\_scripts_archive\complete_onboarding_final.py[m[36m:[m267[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding_final.py[m[36m:[m276[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding_final.py[m[36m:[m334[36m:[m13[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding_final.py[m[36m:[m401[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding_final.py[m[36m:[m438[36m:[m121[36m:[m [1m[31mE501[m line too long (157 > 120 characters)
+[1m.\_scripts_archive\complete_onboarding_final.py[m[36m:[m448[36m:[m121[36m:[m [1m[31mE501[m line too long (183 > 120 characters)
+[1m.\_scripts_archive\complete_onboarding_final.py[m[36m:[m503[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding_physical.py[m[36m:[m13[36m:[m121[36m:[m [1m[31mE501[m line too long (437 > 120 characters)
+[1m.\_scripts_archive\complete_onboarding_physical.py[m[36m:[m96[36m:[m13[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding_physical.py[m[36m:[m129[36m:[m13[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding_physical.py[m[36m:[m219[36m:[m121[36m:[m [1m[31mE501[m line too long (161 > 120 characters)
+[1m.\_scripts_archive\complete_onboarding_physical.py[m[36m:[m221[36m:[m13[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding_physical.py[m[36m:[m244[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding_physical.py[m[36m:[m246[36m:[m9[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding_physical.py[m[36m:[m272[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding_physical.py[m[36m:[m294[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding_physical.py[m[36m:[m314[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding_physical.py[m[36m:[m363[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding_physical.py[m[36m:[m418[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding_physical.py[m[36m:[m480[36m:[m25[36m:[m [1m[31mF841[m local variable 'skills_continue_clicked' is assigned to but never used
+[1m.\_scripts_archive\complete_onboarding_physical.py[m[36m:[m509[36m:[m21[36m:[m [1m[31mF841[m local variable 'first_name_filled' is assigned to but never used
+[1m.\_scripts_archive\complete_onboarding_physical.py[m[36m:[m511[36m:[m13[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding_physical.py[m[36m:[m526[36m:[m21[36m:[m [1m[31mF841[m local variable 'last_name_filled' is assigned to but never used
+[1m.\_scripts_archive\complete_onboarding_physical.py[m[36m:[m528[36m:[m13[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding_physical.py[m[36m:[m543[36m:[m21[36m:[m [1m[31mF841[m local variable 'phone_filled' is assigned to but never used
+[1m.\_scripts_archive\complete_onboarding_physical.py[m[36m:[m545[36m:[m13[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding_physical.py[m[36m:[m559[36m:[m13[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding_physical.py[m[36m:[m587[36m:[m21[36m:[m [1m[31mF841[m local variable 'location_filled' is assigned to but never used
+[1m.\_scripts_archive\complete_onboarding_physical.py[m[36m:[m589[36m:[m13[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding_physical.py[m[36m:[m605[36m:[m21[36m:[m [1m[31mF841[m local variable 'role_filled' is assigned to but never used
+[1m.\_scripts_archive\complete_onboarding_physical.py[m[36m:[m607[36m:[m13[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding_physical.py[m[36m:[m618[36m:[m21[36m:[m [1m[31mF841[m local variable 'salary_min_filled' is assigned to but never used
+[1m.\_scripts_archive\complete_onboarding_physical.py[m[36m:[m620[36m:[m13[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding_physical.py[m[36m:[m630[36m:[m17[36m:[m [1m[31mF841[m local variable 'salary_max_filled' is assigned to but never used
+[1m.\_scripts_archive\complete_onboarding_physical.py[m[36m:[m631[36m:[m13[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding_physical.py[m[36m:[m643[36m:[m25[36m:[m [1m[31mF841[m local variable 'remote_checked' is assigned to but never used
+[1m.\_scripts_archive\complete_onboarding_physical.py[m[36m:[m645[36m:[m13[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding_physical.py[m[36m:[m673[36m:[m21[36m:[m [1m[31mF841[m local variable 'preferences_saved' is assigned to but never used
+[1m.\_scripts_archive\complete_onboarding_physical.py[m[36m:[m698[36m:[m121[36m:[m [1m[31mE501[m line too long (593 > 120 characters)
+[1m.\_scripts_archive\complete_onboarding_physical.py[m[36m:[m710[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding_physical.py[m[36m:[m717[36m:[m121[36m:[m [1m[31mE501[m line too long (126 > 120 characters)
+[1m.\_scripts_archive\complete_onboarding_physical.py[m[36m:[m758[36m:[m121[36m:[m [1m[31mE501[m line too long (161 > 120 characters)
+[1m.\_scripts_archive\complete_onboarding_physical.py[m[36m:[m761[36m:[m21[36m:[m [1m[31mF841[m local variable 'goals_filled' is assigned to but never used
+[1m.\_scripts_archive\complete_onboarding_physical.py[m[36m:[m763[36m:[m13[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding_physical.py[m[36m:[m774[36m:[m13[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding_physical.py[m[36m:[m788[36m:[m13[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding_physical.py[m[36m:[m812[36m:[m21[36m:[m [1m[31mF841[m local variable 'complete_clicked' is assigned to but never used
+[1m.\_scripts_archive\complete_onboarding_physical.py[m[36m:[m815[36m:[m13[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding_with_auth.py[m[36m:[m164[36m:[m121[36m:[m [1m[31mE501[m line too long (137 > 120 characters)
+[1m.\_scripts_archive\complete_onboarding_with_auth.py[m[36m:[m238[36m:[m121[36m:[m [1m[31mE501[m line too long (138 > 120 characters)
+[1m.\_scripts_archive\complete_onboarding_with_auth.py[m[36m:[m281[36m:[m21[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding_with_auth.py[m[36m:[m288[36m:[m121[36m:[m [1m[31mE501[m line too long (126 > 120 characters)
+[1m.\_scripts_archive\complete_onboarding_with_auth.py[m[36m:[m304[36m:[m121[36m:[m [1m[31mE501[m line too long (156 > 120 characters)
+[1m.\_scripts_archive\complete_onboarding_with_js.py[m[36m:[m11[36m:[m121[36m:[m [1m[31mE501[m line too long (437 > 120 characters)
+[1m.\_scripts_archive\complete_onboarding_with_js.py[m[36m:[m63[36m:[m9[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding_with_js.py[m[36m:[m77[36m:[m13[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding_with_js.py[m[36m:[m91[36m:[m13[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding_with_js.py[m[36m:[m98[36m:[m76[36m:[m [1m[31mW291[m trailing whitespace
+[1m.\_scripts_archive\complete_onboarding_with_js.py[m[36m:[m99[36m:[m121[36m:[m [1m[31mE501[m line too long (145 > 120 characters)
+[1m.\_scripts_archive\complete_onboarding_with_js.py[m[36m:[m298[36m:[m21[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding_with_js.py[m[36m:[m366[36m:[m29[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding_with_js.py[m[36m:[m376[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding_with_js.py[m[36m:[m387[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding_with_js.py[m[36m:[m441[36m:[m121[36m:[m [1m[31mE501[m line too long (161 > 120 characters)
+[1m.\_scripts_archive\complete_onboarding_with_js.py[m[36m:[m453[36m:[m121[36m:[m [1m[31mE501[m line too long (183 > 120 characters)
+[1m.\_scripts_archive\complete_onboarding_with_js.py[m[36m:[m470[36m:[m121[36m:[m [1m[31mE501[m line too long (161 > 120 characters)
+[1m.\_scripts_archive\complete_onboarding_with_js.py[m[36m:[m536[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_onboarding_with_js.py[m[36m:[m546[36m:[m93[36m:[m [1m[31mW291[m trailing whitespace
+[1m.\_scripts_archive\complete_remaining_onboarding.py[m[36m:[m11[36m:[m121[36m:[m [1m[31mE501[m line too long (437 > 120 characters)
+[1m.\_scripts_archive\complete_remaining_onboarding.py[m[36m:[m59[36m:[m9[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_remaining_onboarding.py[m[36m:[m70[36m:[m13[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_remaining_onboarding.py[m[36m:[m92[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_remaining_onboarding.py[m[36m:[m201[36m:[m29[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_remaining_onboarding.py[m[36m:[m212[36m:[m29[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_remaining_onboarding.py[m[36m:[m245[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_remaining_onboarding.py[m[36m:[m279[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_remaining_onboarding.py[m[36m:[m321[36m:[m25[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_remaining_onboarding.py[m[36m:[m359[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_remaining_onboarding.py[m[36m:[m381[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_remaining_onboarding.py[m[36m:[m396[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_remaining_onboarding.py[m[36m:[m445[36m:[m121[36m:[m [1m[31mE501[m line too long (169 > 120 characters)
+[1m.\_scripts_archive\complete_remaining_onboarding.py[m[36m:[m448[36m:[m29[36m:[m [1m[31mF841[m local variable 'goals_filled' is assigned to but never used
+[1m.\_scripts_archive\complete_remaining_onboarding.py[m[36m:[m450[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_remaining_onboarding.py[m[36m:[m470[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_remaining_onboarding.py[m[36m:[m529[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_remaining_onboarding.py[m[36m:[m574[36m:[m13[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_remaining_onboarding.py[m[36m:[m586[36m:[m13[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_remaining_steps.py[m[36m:[m12[36m:[m121[36m:[m [1m[31mE501[m line too long (437 > 120 characters)
+[1m.\_scripts_archive\complete_remaining_steps.py[m[36m:[m64[36m:[m9[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_remaining_steps.py[m[36m:[m99[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_remaining_steps.py[m[36m:[m147[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_remaining_steps.py[m[36m:[m158[36m:[m21[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_remaining_steps.py[m[36m:[m186[36m:[m25[36m:[m [1m[31mF841[m local variable 'first_filled' is assigned to but never used
+[1m.\_scripts_archive\complete_remaining_steps.py[m[36m:[m188[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_remaining_steps.py[m[36m:[m199[36m:[m25[36m:[m [1m[31mF841[m local variable 'last_filled' is assigned to but never used
+[1m.\_scripts_archive\complete_remaining_steps.py[m[36m:[m201[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_remaining_steps.py[m[36m:[m216[36m:[m25[36m:[m [1m[31mF841[m local variable 'phone_filled' is assigned to but never used
+[1m.\_scripts_archive\complete_remaining_steps.py[m[36m:[m218[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_remaining_steps.py[m[36m:[m267[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_remaining_steps.py[m[36m:[m285[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_remaining_steps.py[m[36m:[m300[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_remaining_steps.py[m[36m:[m323[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_remaining_steps.py[m[36m:[m353[36m:[m121[36m:[m [1m[31mE501[m line too long (169 > 120 characters)
+[1m.\_scripts_archive\complete_remaining_steps.py[m[36m:[m358[36m:[m29[36m:[m [1m[31mF841[m local variable 'goals_filled' is assigned to but never used
+[1m.\_scripts_archive\complete_remaining_steps.py[m[36m:[m360[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_remaining_steps.py[m[36m:[m386[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_remaining_steps.py[m[36m:[m398[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_remaining_steps.py[m[36m:[m417[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_remaining_steps.py[m[36m:[m447[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_remaining_steps.py[m[36m:[m475[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_remaining_steps.py[m[36m:[m502[36m:[m21[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_with_verification.py[m[36m:[m11[36m:[m121[36m:[m [1m[31mE501[m line too long (437 > 120 characters)
+[1m.\_scripts_archive\complete_with_verification.py[m[36m:[m65[36m:[m13[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_with_verification.py[m[36m:[m144[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_with_verification.py[m[36m:[m181[36m:[m121[36m:[m [1m[31mE501[m line too long (169 > 120 characters)
+[1m.\_scripts_archive\complete_with_verification.py[m[36m:[m186[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\complete_with_verification.py[m[36m:[m237[36m:[m21[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\comprehensive_debug.py[m[36m:[m17[36m:[m1[36m:[m [1m[31mE302[m expected 2 blank lines, found 1
+[1m.\_scripts_archive\comprehensive_debug.py[m[36m:[m40[36m:[m1[36m:[m [1m[31mE302[m expected 2 blank lines, found 1
+[1m.\_scripts_archive\comprehensive_debug.py[m[36m:[m79[36m:[m1[36m:[m [1m[31mE302[m expected 2 blank lines, found 1
+[1m.\_scripts_archive\comprehensive_debug.py[m[36m:[m114[36m:[m1[36m:[m [1m[31mE302[m expected 2 blank lines, found 1
+[1m.\_scripts_archive\comprehensive_debug.py[m[36m:[m151[36m:[m1[36m:[m [1m[31mE302[m expected 2 blank lines, found 1
+[1m.\_scripts_archive\comprehensive_debug.py[m[36m:[m184[36m:[m1[36m:[m [1m[31mE302[m expected 2 blank lines, found 1
+[1m.\_scripts_archive\comprehensive_debug.py[m[36m:[m204[36m:[m1[36m:[m [1m[31mW293[m blank line contains whitespace
+[1m.\_scripts_archive\comprehensive_debug.py[m[36m:[m209[36m:[m1[36m:[m [1m[31mW293[m blank line contains whitespace
+[1m.\_scripts_archive\comprehensive_debug.py[m[36m:[m219[36m:[m1[36m:[m [1m[31mW293[m blank line contains whitespace
+[1m.\_scripts_archive\comprehensive_debug.py[m[36m:[m238[36m:[m1[36m:[m [1m[31mE302[m expected 2 blank lines, found 1
+[1m.\_scripts_archive\comprehensive_debug.py[m[36m:[m286[36m:[m1[36m:[m [1m[31mE305[m expected 2 blank lines after class or function definition, found 1
+[1m.\_scripts_archive\comprehensive_e2e_test.py[m[36m:[m105[36m:[m9[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\comprehensive_e2e_test.py[m[36m:[m142[36m:[m9[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\comprehensive_e2e_test.py[m[36m:[m210[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\comprehensive_e2e_test.py[m[36m:[m372[36m:[m21[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\comprehensive_e2e_test.py[m[36m:[m440[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\comprehensive_e2e_test.py[m[36m:[m490[36m:[m29[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\comprehensive_e2e_test.py[m[36m:[m492[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\comprehensive_e2e_test.py[m[36m:[m509[36m:[m121[36m:[m [1m[31mE501[m line too long (155 > 120 characters)
+[1m.\_scripts_archive\comprehensive_e2e_test.py[m[36m:[m636[36m:[m13[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\comprehensive_e2e_test.py[m[36m:[m702[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\configure_api_keys.py[m[36m:[m94[36m:[m1[36m:[m [1m[31mE302[m expected 2 blank lines, found 1
+[1m.\_scripts_archive\configure_api_keys.py[m[36m:[m106[36m:[m1[36m:[m [1m[31mE302[m expected 2 blank lines, found 1
+[1m.\_scripts_archive\configure_api_keys.py[m[36m:[m159[36m:[m1[36m:[m [1m[31mE302[m expected 2 blank lines, found 1
+[1m.\_scripts_archive\configure_api_keys.py[m[36m:[m182[36m:[m1[36m:[m [1m[31mE305[m expected 2 blank lines after class or function definition, found 1
+[1m.\_scripts_archive\debug_full_api_response.py[m[36m:[m14[36m:[m1[36m:[m [1m[31mE302[m expected 2 blank lines, found 1
+[1m.\_scripts_archive\debug_full_api_response.py[m[36m:[m72[36m:[m1[36m:[m [1m[31mE305[m expected 2 blank lines after class or function definition, found 1
+[1m.\_scripts_archive\debug_render_services.py[m[36m:[m22[36m:[m1[36m:[m [1m[31mE302[m expected 2 blank lines, found 1
+[1m.\_scripts_archive\debug_render_services.py[m[36m:[m37[36m:[m9[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\debug_render_services.py[m[36m:[m41[36m:[m1[36m:[m [1m[31mE302[m expected 2 blank lines, found 1
+[1m.\_scripts_archive\debug_render_services.py[m[36m:[m45[36m:[m1[36m:[m [1m[31mE302[m expected 2 blank lines, found 1
+[1m.\_scripts_archive\debug_render_services.py[m[36m:[m49[36m:[m1[36m:[m [1m[31mE302[m expected 2 blank lines, found 1
+[1m.\_scripts_archive\debug_render_services.py[m[36m:[m53[36m:[m1[36m:[m [1m[31mE302[m expected 2 blank lines, found 1
+[1m.\_scripts_archive\debug_render_services.py[m[36m:[m104[36m:[m27[36m:[m [1m[31mE128[m continuation line under-indented for visual indent
+[1m.\_scripts_archive\debug_render_services.py[m[36m:[m105[36m:[m27[36m:[m [1m[31mE128[m continuation line under-indented for visual indent
+[1m.\_scripts_archive\debug_render_services.py[m[36m:[m178[36m:[m1[36m:[m [1m[31mE305[m expected 2 blank lines after class or function definition, found 1
+[1m.\_scripts_archive\debug_services.py[m[36m:[m14[36m:[m1[36m:[m [1m[31mE302[m expected 2 blank lines, found 1
+[1m.\_scripts_archive\debug_services.py[m[36m:[m32[36m:[m121[36m:[m [1m[31mE501[m line too long (121 > 120 characters)
+[1m.\_scripts_archive\debug_services.py[m[36m:[m41[36m:[m1[36m:[m [1m[31mE305[m expected 2 blank lines after class or function definition, found 1
+[1m.\_scripts_archive\debug_services_structure.py[m[36m:[m13[36m:[m1[36m:[m [1m[31mE302[m expected 2 blank lines, found 1
+[1m.\_scripts_archive\debug_services_structure.py[m[36m:[m39[36m:[m1[36m:[m [1m[31mE305[m expected 2 blank lines after class or function definition, found 1
+[1m.\_scripts_archive\debug_skills_step.py[m[36m:[m8[36m:[m121[36m:[m [1m[31mE501[m line too long (437 > 120 characters)
+[1m.\_scripts_archive\debug_skills_step.py[m[36m:[m48[36m:[m9[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\debug_skills_step.py[m[36m:[m62[36m:[m13[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\debug_skills_step.py[m[36m:[m110[36m:[m13[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\debug_skills_step.py[m[36m:[m125[36m:[m13[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\debug_skills_step.py[m[36m:[m177[36m:[m13[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\debug_tool.py[m[36m:[m17[36m:[m1[36m:[m [1m[31mE302[m expected 2 blank lines, found 1
+[1m.\_scripts_archive\debug_tool.py[m[36m:[m52[36m:[m1[36m:[m [1m[31mE302[m expected 2 blank lines, found 1
+[1m.\_scripts_archive\debug_tool.py[m[36m:[m75[36m:[m1[36m:[m [1m[31mE302[m expected 2 blank lines, found 1
+[1m.\_scripts_archive\debug_tool.py[m[36m:[m115[36m:[m1[36m:[m [1m[31mE302[m expected 2 blank lines, found 1
+[1m.\_scripts_archive\debug_tool.py[m[36m:[m162[36m:[m1[36m:[m [1m[31mE302[m expected 2 blank lines, found 1
+[1m.\_scripts_archive\debug_tool.py[m[36m:[m189[36m:[m1[36m:[m [1m[31mE302[m expected 2 blank lines, found 1
+[1m.\_scripts_archive\debug_tool.py[m[36m:[m234[36m:[m1[36m:[m [1m[31mE305[m expected 2 blank lines after class or function definition, found 1
+[1m.\_scripts_archive\deployment_status.py[m[36m:[m67[36m:[m1[36m:[m [1m[31mE302[m expected 2 blank lines, found 1
+[1m.\_scripts_archive\deployment_status.py[m[36m:[m88[36m:[m1[36m:[m [1m[31mE302[m expected 2 blank lines, found 1
+[1m.\_scripts_archive\deployment_status.py[m[36m:[m107[36m:[m1[36m:[m [1m[31mE302[m expected 2 blank lines, found 1
+[1m.\_scripts_archive\deployment_status.py[m[36m:[m135[36m:[m1[36m:[m [1m[31mW293[m blank line contains whitespace
+[1m.\_scripts_archive\deployment_status.py[m[36m:[m138[36m:[m1[36m:[m [1m[31mW293[m blank line contains whitespace
+[1m.\_scripts_archive\deployment_status.py[m[36m:[m141[36m:[m1[36m:[m [1m[31mW293[m blank line contains whitespace
+[1m.\_scripts_archive\deployment_status.py[m[36m:[m144[36m:[m1[36m:[m [1m[31mW293[m blank line contains whitespace
+[1m.\_scripts_archive\deployment_status.py[m[36m:[m146[36m:[m1[36m:[m [1m[31mW293[m blank line contains whitespace
+[1m.\_scripts_archive\deployment_status.py[m[36m:[m154[36m:[m1[36m:[m [1m[31mW293[m blank line contains whitespace
+[1m.\_scripts_archive\deployment_status.py[m[36m:[m172[36m:[m1[36m:[m [1m[31mE302[m expected 2 blank lines, found 1
+[1m.\_scripts_archive\deployment_status.py[m[36m:[m299[36m:[m1[36m:[m [1m[31mE302[m expected 2 blank lines, found 1
+[1m.\_scripts_archive\deployment_status.py[m[36m:[m324[36m:[m1[36m:[m [1m[31mE305[m expected 2 blank lines after class or function definition, found 1
+[1m.\_scripts_archive\diagnose_services.py[m[36m:[m13[36m:[m1[36m:[m [1m[31mE302[m expected 2 blank lines, found 1
+[1m.\_scripts_archive\diagnose_services.py[m[36m:[m74[36m:[m121[36m:[m [1m[31mE501[m line too long (130 > 120 characters)
+[1m.\_scripts_archive\diagnose_services.py[m[36m:[m206[36m:[m1[36m:[m [1m[31mE305[m expected 2 blank lines after class or function definition, found 1
+[1m.\_scripts_archive\end_to_end_integration_test.py[m[36m:[m413[36m:[m9[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\end_to_end_integration_test.py[m[36m:[m446[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\end_to_end_integration_test.py[m[36m:[m485[36m:[m9[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\end_to_end_integration_test.py[m[36m:[m503[36m:[m9[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\end_to_end_integration_test.py[m[36m:[m769[36m:[m13[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\end_to_end_integration_test.py[m[36m:[m788[36m:[m9[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\end_to_end_integration_test.py[m[36m:[m839[36m:[m9[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\end_to_end_integration_test.py[m[36m:[m853[36m:[m9[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\end_to_end_integration_test.py[m[36m:[m865[36m:[m9[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\end_to_end_integration_test.py[m[36m:[m874[36m:[m9[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\end_to_end_integration_test.py[m[36m:[m908[36m:[m9[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\end_to_end_integration_test.py[m[36m:[m917[36m:[m9[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\end_to_end_integration_test.py[m[36m:[m931[36m:[m9[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\end_to_end_integration_test.py[m[36m:[m954[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\end_to_end_integration_test.py[m[36m:[m957[36m:[m9[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\end_to_end_integration_test.py[m[36m:[m966[36m:[m9[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\end_to_end_integration_test.py[m[36m:[m975[36m:[m9[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\end_to_end_integration_test.py[m[36m:[m989[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\end_to_end_integration_test.py[m[36m:[m992[36m:[m9[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\end_to_end_integration_test.py[m[36m:[m1019[36m:[m13[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\end_to_end_integration_test.py[m[36m:[m1032[36m:[m9[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\fetch_render_logs.py[m[36m:[m39[36m:[m121[36m:[m [1m[31mE501[m line too long (123 > 120 characters)
+[1m.\_scripts_archive\fetch_render_logs.py[m[36m:[m216[36m:[m36[36m:[m [1m[31mE128[m continuation line under-indented for visual indent
+[1m.\_scripts_archive\fetch_render_logs.py[m[36m:[m217[36m:[m36[36m:[m [1m[31mE128[m continuation line under-indented for visual indent
+[1m.\_scripts_archive\final_deployment_status.py[m[36m:[m51[36m:[m1[36m:[m [1m[31mE302[m expected 2 blank lines, found 1
+[1m.\_scripts_archive\final_deployment_status.py[m[36m:[m66[36m:[m1[36m:[m [1m[31mE302[m expected 2 blank lines, found 1
+[1m.\_scripts_archive\final_deployment_status.py[m[36m:[m132[36m:[m1[36m:[m [1m[31mE305[m expected 2 blank lines after class or function definition, found 1
+[1m.\_scripts_archive\final_onboarding_complete.py[m[36m:[m8[36m:[m121[36m:[m [1m[31mE501[m line too long (388 > 120 characters)
+[1m.\_scripts_archive\final_onboarding_complete.py[m[36m:[m102[36m:[m121[36m:[m [1m[31mE501[m line too long (133 > 120 characters)
+[1m.\_scripts_archive\final_onboarding_complete.py[m[36m:[m214[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\final_onboarding_complete.py[m[36m:[m219[36m:[m121[36m:[m [1m[31mE501[m line too long (122 > 120 characters)
+[1m.\_scripts_archive\final_onboarding_complete.py[m[36m:[m231[36m:[m121[36m:[m [1m[31mE501[m line too long (124 > 120 characters)
+[1m.\_scripts_archive\fix_db_url_api.py[m[36m:[m31[36m:[m121[36m:[m [1m[31mE501[m line too long (149 > 120 characters)
+[1m.\_scripts_archive\fix_render_env.py[m[36m:[m19[36m:[m1[36m:[m [1m[31mE302[m expected 2 blank lines, found 1
+[1m.\_scripts_archive\fix_render_env.py[m[36m:[m34[36m:[m9[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\fix_render_env.py[m[36m:[m38[36m:[m1[36m:[m [1m[31mE302[m expected 2 blank lines, found 1
+[1m.\_scripts_archive\fix_render_env.py[m[36m:[m58[36m:[m9[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\fix_render_env.py[m[36m:[m62[36m:[m1[36m:[m [1m[31mE302[m expected 2 blank lines, found 1
+[1m.\_scripts_archive\fix_render_env.py[m[36m:[m66[36m:[m1[36m:[m [1m[31mE302[m expected 2 blank lines, found 1
+[1m.\_scripts_archive\fix_render_env.py[m[36m:[m139[36m:[m1[36m:[m [1m[31mE305[m expected 2 blank lines after class or function definition, found 1
+[1m.\_scripts_archive\fix_render_yaml.py[m[36m:[m37[36m:[m1[36m:[m [1m[31mE305[m expected 2 blank lines after class or function definition, found 1
+[1m.\_scripts_archive\fix_skills_and_complete.py[m[36m:[m11[36m:[m121[36m:[m [1m[31mE501[m line too long (437 > 120 characters)
+[1m.\_scripts_archive\fix_skills_and_complete.py[m[36m:[m59[36m:[m9[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\fix_skills_and_complete.py[m[36m:[m71[36m:[m9[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\fix_skills_and_complete.py[m[36m:[m134[36m:[m121[36m:[m [1m[31mE501[m line too long (185 > 120 characters)
+[1m.\_scripts_archive\fix_skills_and_complete.py[m[36m:[m136[36m:[m13[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\fix_skills_and_complete.py[m[36m:[m152[36m:[m13[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\fix_skills_and_complete.py[m[36m:[m192[36m:[m13[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\fix_skills_and_complete.py[m[36m:[m212[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\fix_skills_and_complete.py[m[36m:[m243[36m:[m21[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\fix_skills_and_complete.py[m[36m:[m263[36m:[m13[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\fix_skills_and_complete.py[m[36m:[m299[36m:[m13[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\fix_skills_and_complete.py[m[36m:[m331[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\fix_skills_and_complete.py[m[36m:[m346[36m:[m9[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\fix_skills_and_complete.py[m[36m:[m384[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\fix_skills_and_complete.py[m[36m:[m400[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\fix_skills_and_complete.py[m[36m:[m415[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\fix_skills_and_complete.py[m[36m:[m451[36m:[m9[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\fix_skills_and_complete.py[m[36m:[m477[36m:[m121[36m:[m [1m[31mE501[m line too long (169 > 120 characters)
+[1m.\_scripts_archive\fix_skills_and_complete.py[m[36m:[m480[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\fix_skills_and_complete.py[m[36m:[m503[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\fix_skills_and_complete.py[m[36m:[m535[36m:[m9[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\fix_skills_and_complete.py[m[36m:[m569[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\fix_workers_env.py[m[36m:[m20[36m:[m1[36m:[m [1m[31mE302[m expected 2 blank lines, found 1
+[1m.\_scripts_archive\fix_workers_env.py[m[36m:[m28[36m:[m1[36m:[m [1m[31mE302[m expected 2 blank lines, found 1
+[1m.\_scripts_archive\fix_workers_env.py[m[36m:[m53[36m:[m1[36m:[m [1m[31mE305[m expected 2 blank lines after class or function definition, found 1
+[1m.\_scripts_archive\full_e2e_test.py[m[36m:[m90[36m:[m9[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\full_e2e_test.py[m[36m:[m139[36m:[m121[36m:[m [1m[31mE501[m line too long (130 > 120 characters)
+[1m.\_scripts_archive\full_e2e_test.py[m[36m:[m143[36m:[m121[36m:[m [1m[31mE501[m line too long (169 > 120 characters)
+[1m.\_scripts_archive\full_e2e_test.py[m[36m:[m200[36m:[m1[36m:[m [1m[31mW293[m blank line contains whitespace
+[1m.\_scripts_archive\full_e2e_test.py[m[36m:[m202[36m:[m1[36m:[m [1m[31mW293[m blank line contains whitespace
+[1m.\_scripts_archive\full_e2e_test.py[m[36m:[m206[36m:[m1[36m:[m [1m[31mW293[m blank line contains whitespace
+[1m.\_scripts_archive\full_e2e_test.py[m[36m:[m281[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\full_e2e_test.py[m[36m:[m338[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\full_e2e_test.py[m[36m:[m388[36m:[m29[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\full_e2e_test.py[m[36m:[m390[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\full_e2e_test.py[m[36m:[m407[36m:[m121[36m:[m [1m[31mE501[m line too long (155 > 120 characters)
+[1m.\_scripts_archive\get_all_service_logs.py[m[36m:[m13[36m:[m1[36m:[m [1m[31mE302[m expected 2 blank lines, found 1
+[1m.\_scripts_archive\get_all_service_logs.py[m[36m:[m26[36m:[m1[36m:[m [1m[31mE302[m expected 2 blank lines, found 1
+[1m.\_scripts_archive\get_all_service_logs.py[m[36m:[m39[36m:[m1[36m:[m [1m[31mE302[m expected 2 blank lines, found 1
+[1m.\_scripts_archive\get_all_service_logs.py[m[36m:[m52[36m:[m1[36m:[m [1m[31mE302[m expected 2 blank lines, found 1
+[1m.\_scripts_archive\get_all_service_logs.py[m[36m:[m163[36m:[m121[36m:[m [1m[31mE501[m line too long (132 > 120 characters)
+[1m.\_scripts_archive\get_all_service_logs.py[m[36m:[m184[36m:[m121[36m:[m [1m[31mE501[m line too long (121 > 120 characters)
+[1m.\_scripts_archive\get_all_service_logs.py[m[36m:[m204[36m:[m1[36m:[m [1m[31mE305[m expected 2 blank lines after class or function definition, found 1
+[1m.\_scripts_archive\get_service_details.py[m[36m:[m13[36m:[m1[36m:[m [1m[31mE302[m expected 2 blank lines, found 1
+[1m.\_scripts_archive\get_service_details.py[m[36m:[m26[36m:[m1[36m:[m [1m[31mE302[m expected 2 blank lines, found 1
+[1m.\_scripts_archive\get_service_details.py[m[36m:[m39[36m:[m1[36m:[m [1m[31mE302[m expected 2 blank lines, found 1
+[1m.\_scripts_archive\get_service_details.py[m[36m:[m52[36m:[m1[36m:[m [1m[31mE302[m expected 2 blank lines, found 1
+[1m.\_scripts_archive\get_service_details.py[m[36m:[m56[36m:[m16[36m:[m [1m[31mF823[m local variable 'requests' defined in enclosing scope on line 6 referenced before assignment
+[1m.\_scripts_archive\get_service_details.py[m[36m:[m201[36m:[m1[36m:[m [1m[31mE305[m expected 2 blank lines after class or function definition, found 1
+[1m.\_scripts_archive\get_service_errors.py[m[36m:[m13[36m:[m1[36m:[m [1m[31mE302[m expected 2 blank lines, found 1
+[1m.\_scripts_archive\get_service_errors.py[m[36m:[m127[36m:[m1[36m:[m [1m[31mE305[m expected 2 blank lines after class or function definition, found 1
+[1m.\_scripts_archive\list_services.py[m[36m:[m13[36m:[m1[36m:[m [1m[31mE302[m expected 2 blank lines, found 1
+[1m.\_scripts_archive\list_services.py[m[36m:[m43[36m:[m1[36m:[m [1m[31mE305[m expected 2 blank lines after class or function definition, found 1
+[1m.\_scripts_archive\monitor_deployment.py[m[36m:[m16[36m:[m1[36m:[m [1m[31mE302[m expected 2 blank lines, found 1
+[1m.\_scripts_archive\monitor_deployment.py[m[36m:[m59[36m:[m1[36m:[m [1m[31mE302[m expected 2 blank lines, found 1
+[1m.\_scripts_archive\monitor_deployment.py[m[36m:[m89[36m:[m1[36m:[m [1m[31mE305[m expected 2 blank lines after class or function definition, found 1
+[1m.\_scripts_archive\open_dashboard_logs.py[m[36m:[m67[36m:[m1[36m:[m [1m[31mE302[m expected 2 blank lines, found 1
+[1m.\_scripts_archive\open_dashboard_logs.py[m[36m:[m115[36m:[m1[36m:[m [1m[31mE305[m expected 2 blank lines after class or function definition, found 1
+[1m.\_scripts_archive\production_readiness_verification.py[m[36m:[m492[36m:[m9[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\production_readiness_verification.py[m[36m:[m504[36m:[m9[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\production_readiness_verification.py[m[36m:[m544[36m:[m9[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\production_readiness_verification.py[m[36m:[m557[36m:[m13[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\production_readiness_verification.py[m[36m:[m644[36m:[m9[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\pull_all_logs.py[m[36m:[m32[36m:[m1[36m:[m [1m[31mE302[m expected 2 blank lines, found 1
+[1m.\_scripts_archive\pull_all_logs.py[m[36m:[m46[36m:[m1[36m:[m [1m[31mE302[m expected 2 blank lines, found 1
+[1m.\_scripts_archive\pull_all_logs.py[m[36m:[m88[36m:[m1[36m:[m [1m[31mE302[m expected 2 blank lines, found 1
+[1m.\_scripts_archive\pull_all_logs.py[m[36m:[m106[36m:[m1[36m:[m [1m[31mE305[m expected 2 blank lines after class or function definition, found 1
+[1m.\_scripts_archive\quick_log_puller.py[m[36m:[m187[36m:[m1[36m:[m [1m[31mE305[m expected 2 blank lines after class or function definition, found 1
+[1m.\_scripts_archive\render_log_puller.py[m[36m:[m191[36m:[m1[36m:[m [1m[31mE302[m expected 2 blank lines, found 1
+[1m.\_scripts_archive\render_log_puller.py[m[36m:[m199[36m:[m19[36m:[m [1m[31mF821[m undefined name 'os'
+[1m.\_scripts_archive\render_log_puller.py[m[36m:[m236[36m:[m5[36m:[m [1m[31mF841[m local variable 'log_file' is assigned to but never used
+[1m.\_scripts_archive\render_log_puller.py[m[36m:[m250[36m:[m1[36m:[m [1m[31mE305[m expected 2 blank lines after class or function definition, found 1
+[1m.\_scripts_archive\simple_api_checker.py[m[36m:[m59[36m:[m1[36m:[m [1m[31mE305[m expected 2 blank lines after class or function definition, found 1
+[1m.\_scripts_archive\simple_debug.py[m[36m:[m17[36m:[m1[36m:[m [1m[31mE302[m expected 2 blank lines, found 1
+[1m.\_scripts_archive\simple_debug.py[m[36m:[m52[36m:[m1[36m:[m [1m[31mE302[m expected 2 blank lines, found 1
+[1m.\_scripts_archive\simple_debug.py[m[36m:[m75[36m:[m1[36m:[m [1m[31mE302[m expected 2 blank lines, found 1
+[1m.\_scripts_archive\simple_debug.py[m[36m:[m115[36m:[m1[36m:[m [1m[31mE302[m expected 2 blank lines, found 1
+[1m.\_scripts_archive\simple_debug.py[m[36m:[m161[36m:[m1[36m:[m [1m[31mE302[m expected 2 blank lines, found 1
+[1m.\_scripts_archive\simple_debug.py[m[36m:[m188[36m:[m1[36m:[m [1m[31mE302[m expected 2 blank lines, found 1
+[1m.\_scripts_archive\simple_debug.py[m[36m:[m233[36m:[m1[36m:[m [1m[31mE305[m expected 2 blank lines after class or function definition, found 1
+[1m.\_scripts_archive\skip_skills_complete_rest.py[m[36m:[m10[36m:[m121[36m:[m [1m[31mE501[m line too long (437 > 120 characters)
+[1m.\_scripts_archive\skip_skills_complete_rest.py[m[36m:[m60[36m:[m9[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\skip_skills_complete_rest.py[m[36m:[m120[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\skip_skills_complete_rest.py[m[36m:[m133[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\skip_skills_complete_rest.py[m[36m:[m170[36m:[m121[36m:[m [1m[31mE501[m line too long (169 > 120 characters)
+[1m.\_scripts_archive\skip_skills_complete_rest.py[m[36m:[m173[36m:[m29[36m:[m [1m[31mF841[m local variable 'filled' is assigned to but never used
+[1m.\_scripts_archive\skip_skills_complete_rest.py[m[36m:[m188[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\skip_skills_complete_rest.py[m[36m:[m199[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\skip_skills_complete_rest.py[m[36m:[m223[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\skip_skills_complete_rest.py[m[36m:[m259[36m:[m17[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\test_all_routes.py[m[36m:[m10[36m:[m1[36m:[m [1m[31mE302[m expected 2 blank lines, found 1
+[1m.\_scripts_archive\test_all_routes.py[m[36m:[m25[36m:[m1[36m:[m [1m[31mE302[m expected 2 blank lines, found 1
+[1m.\_scripts_archive\test_all_routes.py[m[36m:[m127[36m:[m1[36m:[m [1m[31mE305[m expected 2 blank lines after class or function definition, found 1
+[1m.\_scripts_archive\test_api_endpoints.py[m[36m:[m34[36m:[m1[36m:[m [1m[31mE302[m expected 2 blank lines, found 1
+[1m.\_scripts_archive\test_api_endpoints.py[m[36m:[m47[36m:[m1[36m:[m [1m[31mE302[m expected 2 blank lines, found 1
+[1m.\_scripts_archive\test_api_endpoints.py[m[36m:[m116[36m:[m1[36m:[m [1m[31mE305[m expected 2 blank lines after class or function definition, found 1
+[1m.\_scripts_archive\test_api_integration.py[m[36m:[m37[36m:[m9[36m:[m [1m[31mF811[m redefinition of unused 'test_endpoint' from line 23
+[1m.\_scripts_archive\test_dashboard.py[m[36m:[m17[36m:[m121[36m:[m [1m[31mE501[m line too long (437 > 120 characters)
+[1m.\_scripts_archive\test_dashboard.py[m[36m:[m71[36m:[m9[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\test_dashboard.py[m[36m:[m177[36m:[m121[36m:[m [1m[31mE501[m line too long (152 > 120 characters)
+[1m.\_scripts_archive\test_dashboard.py[m[36m:[m282[36m:[m13[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\test_dashboard_comprehensive.py[m[36m:[m11[36m:[m121[36m:[m [1m[31mE501[m line too long (437 > 120 characters)
+[1m.\_scripts_archive\test_dashboard_comprehensive.py[m[36m:[m126[36m:[m21[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\test_dashboard_comprehensive.py[m[36m:[m155[36m:[m13[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\test_dashboard_comprehensive.py[m[36m:[m186[36m:[m21[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\test_dashboard_final.py[m[36m:[m60[36m:[m9[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\test_dashboard_final.py[m[36m:[m82[36m:[m13[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\test_job_search_flow.py[m[36m:[m13[36m:[m121[36m:[m [1m[31mE501[m line too long (437 > 120 characters)
+[1m.\_scripts_archive\test_job_search_flow.py[m[36m:[m156[36m:[m13[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\test_job_search_flow.py[m[36m:[m195[36m:[m13[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\test_job_search_flow.py[m[36m:[m235[36m:[m21[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\test_job_search_flow.py[m[36m:[m237[36m:[m13[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\test_job_search_flow.py[m[36m:[m266[36m:[m21[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\test_job_search_flow.py[m[36m:[m268[36m:[m13[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\test_job_search_flow.py[m[36m:[m338[36m:[m41[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\test_job_search_flow.py[m[36m:[m346[36m:[m13[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\test_job_search_flow.py[m[36m:[m386[36m:[m13[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\test_jobs_after_fix.py[m[36m:[m13[36m:[m121[36m:[m [1m[31mE501[m line too long (437 > 120 characters)
+[1m.\_scripts_archive\test_jobs_after_fix.py[m[36m:[m176[36m:[m13[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\test_jobs_after_fix.py[m[36m:[m223[36m:[m21[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\test_jobs_after_fix.py[m[36m:[m238[36m:[m13[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\test_jobs_after_fix.py[m[36m:[m280[36m:[m21[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\test_jobs_after_fix.py[m[36m:[m282[36m:[m13[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\test_jobs_after_fix.py[m[36m:[m310[36m:[m21[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\test_jobs_after_fix.py[m[36m:[m312[36m:[m13[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\test_jobs_comprehensive.py[m[36m:[m14[36m:[m121[36m:[m [1m[31mE501[m line too long (437 > 120 characters)
+[1m.\_scripts_archive\test_jobs_comprehensive.py[m[36m:[m110[36m:[m13[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\test_jobs_comprehensive.py[m[36m:[m227[36m:[m13[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\test_jobs_comprehensive.py[m[36m:[m284[36m:[m21[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\test_jobs_comprehensive.py[m[36m:[m307[36m:[m33[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\test_jobs_comprehensive.py[m[36m:[m310[36m:[m13[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\test_jobs_comprehensive.py[m[36m:[m341[36m:[m13[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\test_jobs_comprehensive.py[m[36m:[m366[36m:[m13[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\test_jobs_comprehensive.py[m[36m:[m391[36m:[m13[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\test_jobs_comprehensive.py[m[36m:[m422[36m:[m21[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\test_jobs_comprehensive.py[m[36m:[m426[36m:[m13[36m:[m [1m[31mE722[m do not use bare 'except'
+[1m.\_scripts_archive\test_simple_integration.py[m[36m:[m60[36m:[m9[36m:[m [1m[31mF841[m local variable 'router' is assigned to but never used
+[1m.\_scripts_archive\unsuspend_all_workers.py[m[36m:[m14[36m:[m1[36m:[m [1m[31mE302[m expected 2 blank lines, found 1
+[1m.\_scripts_archive\unsuspend_all_workers.py[m[36m:[m34[36m:[m1[36m:[m [1m[31mE302[m expected 2 blank lines, found 1
+[1m.\_scripts_archive\unsuspend_all_workers.py[m[36m:[m58[36m:[m5[36m:[m [1m[31mE129[m visually indented line with same indent as next logical line
+[1m.\_scripts_archive\unsuspend_all_workers.py[m[36m:[m103[36m:[m21[36m:[m [1m[31mE129[m visually indented line with same indent as next logical line
+[1m.\_scripts_archive\unsuspend_all_workers.py[m[36m:[m118[36m:[m1[36m:[m [1m[31mE305[m expected 2 blank lines after class or function definition, found 1
+[1m.\alembic\env.py[m[36m:[m15[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m.\apps\api\agent_improvements_endpoints.py[m[36m:[m3[36m:[m121[36m:[m [1m[31mE501[m line too long (125 > 120 characters)
+[1m.\apps\api\ai.py[m[36m:[m914[36m:[m121[36m:[m [1m[31mE501[m line too long (247 > 120 characters)
+[1m.\apps\api\ai.py[m[36m:[m951[36m:[m121[36m:[m [1m[31mE501[m line too long (208 > 120 characters)
+[1m.\apps\api\ai.py[m[36m:[m988[36m:[m121[36m:[m [1m[31mE501[m line too long (250 > 120 characters)
+[1m.\apps\api\ai.py[m[36m:[m990[36m:[m121[36m:[m [1m[31mE501[m line too long (243 > 120 characters)
+[1m.\apps\api\ai.py[m[36m:[m992[36m:[m121[36m:[m [1m[31mE501[m line too long (218 > 120 characters)
+[1m.\apps\api\ai.py[m[36m:[m994[36m:[m121[36m:[m [1m[31mE501[m line too long (131 > 120 characters)
+[1m.\apps\api\ai.py[m[36m:[m1038[36m:[m121[36m:[m [1m[31mE501[m line too long (258 > 120 characters)
+[1m.\apps\api\ai.py[m[36m:[m1047[36m:[m121[36m:[m [1m[31mE501[m line too long (280 > 120 characters)
+[1m.\apps\api\ai.py[m[36m:[m1049[36m:[m121[36m:[m [1m[31mE501[m line too long (237 > 120 characters)
+[1m.\apps\api\ai.py[m[36m:[m1051[36m:[m121[36m:[m [1m[31mE501[m line too long (128 > 120 characters)
+[1m.\apps\api\ai.py[m[36m:[m1097[36m:[m121[36m:[m [1m[31mE501[m line too long (256 > 120 characters)
+[1m.\apps\api\ai.py[m[36m:[m1099[36m:[m121[36m:[m [1m[31mE501[m line too long (268 > 120 characters)
+[1m.\apps\api\ai.py[m[36m:[m1101[36m:[m121[36m:[m [1m[31mE501[m line too long (265 > 120 characters)
+[1m.\apps\api\ai.py[m[36m:[m1103[36m:[m121[36m:[m [1m[31mE501[m line too long (222 > 120 characters)
+[1m.\apps\api\ai.py[m[36m:[m1147[36m:[m121[36m:[m [1m[31mE501[m line too long (266 > 120 characters)
+[1m.\apps\api\ai.py[m[36m:[m1149[36m:[m121[36m:[m [1m[31mE501[m line too long (280 > 120 characters)
+[1m.\apps\api\ai.py[m[36m:[m1151[36m:[m121[36m:[m [1m[31mE501[m line too long (297 > 120 characters)
+[1m.\apps\api\ai.py[m[36m:[m1153[36m:[m121[36m:[m [1m[31mE501[m line too long (262 > 120 characters)
+[1m.\apps\api\ai.py[m[36m:[m1323[36m:[m121[36m:[m [1m[31mE501[m line too long (127 > 120 characters)
+[1m.\apps\api\ai.py[m[36m:[m1353[36m:[m121[36m:[m [1m[31mE501[m line too long (166 > 120 characters)
+[1m.\apps\api\ai_services.py[m[36m:[m263[36m:[m121[36m:[m [1m[31mE501[m line too long (126 > 120 characters)
+[1m.\apps\api\auth.py[m[36m:[m522[36m:[m121[36m:[m [1m[31mE501[m line too long (137 > 120 characters)
+[1m.\apps\api\communication_endpoints.py[m[36m:[m166[36m:[m121[36m:[m [1m[31mE501[m line too long (128 > 120 characters)
+[1m.\apps\api\consent.py[m[36m:[m185[36m:[m121[36m:[m [1m[31mE501[m line too long (127 > 120 characters)
+[1m.\apps\api\consent.py[m[36m:[m402[36m:[m121[36m:[m [1m[31mE501[m line too long (133 > 120 characters)
+[1m.\apps\api\core_routes.py[m[36m:[m25[36m:[m1[36m:[m [1m[31mF401[m 'fastapi.Request' imported but unused
+[1m.\apps\api\database_stats_endpoints.py[m[36m:[m1172[36m:[m1[36m:[m [1m[31mF811[m redefinition of unused '_get_table_vacuum_stats' from line 1103
+[1m.\apps\api\database_stats_endpoints.py[m[36m:[m1262[36m:[m121[36m:[m [1m[31mE501[m line too long (124 > 120 characters)
+[1m.\apps\api\database_stats_endpoints.py[m[36m:[m1307[36m:[m121[36m:[m [1m[31mE501[m line too long (187 > 120 characters)
+[1m.\apps\api\database_stats_endpoints.py[m[36m:[m1321[36m:[m121[36m:[m [1m[31mE501[m line too long (191 > 120 characters)
+[1m.\apps\api\database_stats_endpoints.py[m[36m:[m1334[36m:[m1[36m:[m [1m[31mF811[m redefinition of unused '_get_table_vacuum_stats' from line 1172
+[1m.\apps\api\database_stats_endpoints.py[m[36m:[m1368[36m:[m1[36m:[m [1m[31mF811[m redefinition of unused '_get_all_vacuum_stats' from line 1137
+[1m.\apps\api\dependencies.py[m[36m:[m223[36m:[m121[36m:[m [1m[31mE501[m line too long (123 > 120 characters)
+[1m.\apps\api\job_details.py[m[36m:[m285[36m:[m121[36m:[m [1m[31mE501[m line too long (148 > 120 characters)
+[1m.\apps\api\job_details.py[m[36m:[m296[36m:[m121[36m:[m [1m[31mE501[m line too long (163 > 120 characters)
+[1m.\apps\api\main.py[m[36m:[m25[36m:[m1[36m:[m [1m[31mF401[m 'json' imported but unused
+[1m.\apps\api\main.py[m[36m:[m25[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m.\apps\api\main.py[m[36m:[m26[36m:[m1[36m:[m [1m[31mF401[m 'mimetypes' imported but unused
+[1m.\apps\api\main.py[m[36m:[m26[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m.\apps\api\main.py[m[36m:[m27[36m:[m1[36m:[m [1m[31mF401[m 'os' imported but unused
+[1m.\apps\api\main.py[m[36m:[m27[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m.\apps\api\main.py[m[36m:[m28[36m:[m1[36m:[m [1m[31mF401[m 're' imported but unused
+[1m.\apps\api\main.py[m[36m:[m28[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m.\apps\api\main.py[m[36m:[m29[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m.\apps\api\main.py[m[36m:[m30[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m.\apps\api\main.py[m[36m:[m32[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m.\apps\api\main.py[m[36m:[m33[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m.\apps\api\main.py[m[36m:[m34[36m:[m1[36m:[m [1m[31mF401[m 'fastapi.BackgroundTasks' imported but unused
+[1m.\apps\api\main.py[m[36m:[m34[36m:[m1[36m:[m [1m[31mF401[m 'fastapi.File' imported but unused
+[1m.\apps\api\main.py[m[36m:[m34[36m:[m1[36m:[m [1m[31mF401[m 'fastapi.UploadFile' imported but unused
+[1m.\apps\api\main.py[m[36m:[m34[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m.\apps\api\main.py[m[36m:[m43[36m:[m1[36m:[m [1m[31mF401[m 'fastapi.Path as FastAPIPath' imported but unused
+[1m.\apps\api\main.py[m[36m:[m43[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m.\apps\api\main.py[m[36m:[m44[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m.\apps\api\main.py[m[36m:[m45[36m:[m1[36m:[m [1m[31mF401[m 'fastapi.responses.Response' imported but unused
+[1m.\apps\api\main.py[m[36m:[m45[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m.\apps\api\main.py[m[36m:[m46[36m:[m1[36m:[m [1m[31mF401[m 'pydantic.BaseModel' imported but unused
+[1m.\apps\api\main.py[m[36m:[m46[36m:[m1[36m:[m [1m[31mF401[m 'pydantic.ConfigDict' imported but unused
+[1m.\apps\api\main.py[m[36m:[m46[36m:[m1[36m:[m [1m[31mF401[m 'pydantic.Field' imported but unused
+[1m.\apps\api\main.py[m[36m:[m46[36m:[m1[36m:[m [1m[31mF401[m 'pydantic.field_validator' imported but unused
+[1m.\apps\api\main.py[m[36m:[m46[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m.\apps\api\main.py[m[36m:[m48[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m.\apps\api\main.py[m[36m:[m49[36m:[m1[36m:[m [1m[31mF401[m 'packages.backend.domain.analytics_events.APPLICATION_STATUS_CHANGED' imported but unused
+[1m.\apps\api\main.py[m[36m:[m49[36m:[m1[36m:[m [1m[31mF401[m 'packages.backend.domain.analytics_events.emit_analytics_event' imported but unused
+[1m.\apps\api\main.py[m[36m:[m49[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m.\apps\api\main.py[m[36m:[m53[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m.\apps\api\main.py[m[36m:[m54[36m:[m1[36m:[m [1m[31mF401[m 'packages.backend.domain.models.CanonicalProfile' imported but unused
+[1m.\apps\api\main.py[m[36m:[m54[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m.\apps\api\main.py[m[36m:[m55[36m:[m1[36m:[m [1m[31mF401[m 'packages.backend.domain.repositories.ApplicationRepo' imported but unused
+[1m.\apps\api\main.py[m[36m:[m55[36m:[m1[36m:[m [1m[31mF401[m 'packages.backend.domain.repositories.EventRepo' imported but unused
+[1m.\apps\api\main.py[m[36m:[m55[36m:[m1[36m:[m [1m[31mF401[m 'packages.backend.domain.repositories.InputRepo' imported but unused
+[1m.\apps\api\main.py[m[36m:[m55[36m:[m1[36m:[m [1m[31mF401[m 'packages.backend.domain.repositories.JobRepo' imported but unused
+[1m.\apps\api\main.py[m[36m:[m55[36m:[m1[36m:[m [1m[31mF401[m 'packages.backend.domain.repositories.db_transaction' imported but unused
+[1m.\apps\api\main.py[m[36m:[m55[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m.\apps\api\main.py[m[36m:[m62[36m:[m1[36m:[m [1m[31mF401[m 'packages.backend.domain.resume.process_resume_upload' imported but unused
+[1m.\apps\api\main.py[m[36m:[m62[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m.\apps\api\main.py[m[36m:[m63[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m.\apps\api\main.py[m[36m:[m64[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m.\apps\api\main.py[m[36m:[m68[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m.\apps\api\main.py[m[36m:[m69[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m.\apps\api\main.py[m[36m:[m70[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m.\apps\api\main.py[m[36m:[m71[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m.\apps\api\main.py[m[36m:[m72[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m.\apps\api\main.py[m[36m:[m73[36m:[m1[36m:[m [1m[31mF401[m 'shared.storage.get_storage_service' imported but unused
+[1m.\apps\api\main.py[m[36m:[m73[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m.\apps\api\main.py[m[36m:[m74[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m.\apps\api\main.py[m[36m:[m75[36m:[m1[36m:[m [1m[31mF401[m 'shared.validators.validate_uuid' imported but unused
+[1m.\apps\api\main.py[m[36m:[m75[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m.\apps\api\main.py[m[36m:[m105[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m.\apps\api\main.py[m[36m:[m107[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m.\apps\api\main.py[m[36m:[m345[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m.\apps\api\main.py[m[36m:[m347[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m.\apps\api\main.py[m[36m:[m348[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m.\apps\api\main.py[m[36m:[m365[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m.\apps\api\main.py[m[36m:[m408[36m:[m13[36m:[m [1m[31mF841[m local variable 'user_id_uuid' is assigned to but never used
+[1m.\apps\api\main.py[m[36m:[m545[36m:[m121[36m:[m [1m[31mE501[m line too long (126 > 120 characters)
+[1m.\apps\api\main.py[m[36m:[m550[36m:[m121[36m:[m [1m[31mE501[m line too long (124 > 120 characters)
+[1m.\apps\api\main.py[m[36m:[m1230[36m:[m1[36m:[m [1m[31mW293[m blank line contains whitespace
+[1m.\apps\api\main.py[m[36m:[m1252[36m:[m1[36m:[m [1m[31mW293[m blank line contains whitespace
+[1m.\apps\api\marketplace.py[m[36m:[m150[36m:[m121[36m:[m [1m[31mE501[m line too long (125 > 120 characters)
+[1m.\apps\api\marketplace.py[m[36m:[m164[36m:[m121[36m:[m [1m[31mE501[m line too long (122 > 120 characters)
+[1m.\apps\api\migrations_035_039.py[m[36m:[m13[36m:[m1[36m:[m [1m[31mW293[m blank line contains whitespace
+[1m.\apps\api\migrations_035_039.py[m[36m:[m55[36m:[m121[36m:[m [1m[31mE501[m line too long (130 > 120 characters)
+[1m.\apps\api\migrations_035_039.py[m[36m:[m97[36m:[m121[36m:[m [1m[31mE501[m line too long (149 > 120 characters)
+[1m.\apps\api\migrations_035_039.py[m[36m:[m98[36m:[m121[36m:[m [1m[31mE501[m line too long (140 > 120 characters)
+[1m.\apps\api\migrations_035_039.py[m[36m:[m99[36m:[m121[36m:[m [1m[31mE501[m line too long (129 > 120 characters)
+[1m.\apps\api\migrations_035_039.py[m[36m:[m100[36m:[m121[36m:[m [1m[31mE501[m line too long (132 > 120 characters)
+[1m.\apps\api\migrations_035_039.py[m[36m:[m101[36m:[m121[36m:[m [1m[31mE501[m line too long (126 > 120 characters)
+[1m.\apps\api\migrations_035_039.py[m[36m:[m124[36m:[m121[36m:[m [1m[31mE501[m line too long (122 > 120 characters)
+[1m.\apps\api\migrations_035_039.py[m[36m:[m154[36m:[m121[36m:[m [1m[31mE501[m line too long (132 > 120 characters)
+[1m.\apps\api\migrations_035_039.py[m[36m:[m156[36m:[m121[36m:[m [1m[31mE501[m line too long (124 > 120 characters)
+[1m.\apps\api\migrations_035_039.py[m[36m:[m193[36m:[m121[36m:[m [1m[31mE501[m line too long (127 > 120 characters)
+[1m.\apps\api\migrations_035_039.py[m[36m:[m215[36m:[m121[36m:[m [1m[31mE501[m line too long (141 > 120 characters)
+[1m.\apps\api\migrations_035_039.py[m[36m:[m216[36m:[m15[36m:[m [1m[31mW291[m trailing whitespace
+[1m.\apps\api\migrations_035_039.py[m[36m:[m217[36m:[m121[36m:[m [1m[31mE501[m line too long (135 > 120 characters)
+[1m.\apps\api\migrations_035_039.py[m[36m:[m218[36m:[m121[36m:[m [1m[31mE501[m line too long (134 > 120 characters)
+[1m.\apps\api\migrations_035_039.py[m[36m:[m219[36m:[m121[36m:[m [1m[31mE501[m line too long (137 > 120 characters)
+[1m.\apps\api\migrations_035_039.py[m[36m:[m220[36m:[m121[36m:[m [1m[31mE501[m line too long (129 > 120 characters)
+[1m.\apps\api\migrations_035_039.py[m[36m:[m221[36m:[m121[36m:[m [1m[31mE501[m line too long (135 > 120 characters)
+[1m.\apps\api\resume_integration.py[m[36m:[m345[36m:[m121[36m:[m [1m[31mE501[m line too long (121 > 120 characters)
+[1m.\apps\api\resume_integration.py[m[36m:[m351[36m:[m121[36m:[m [1m[31mE501[m line too long (121 > 120 characters)
+[1m.\apps\api\saved_jobs.py[m[36m:[m28[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m.\apps\api\saved_jobs.py[m[36m:[m29[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m.\apps\api\skill_gap_analysis.py[m[36m:[m337[36m:[m9[36m:[m [1m[31mF841[m local variable 'analyzer' is assigned to but never used
+[1m.\apps\api\skills.py[m[36m:[m189[36m:[m121[36m:[m [1m[31mE501[m line too long (129 > 120 characters)
+[1m.\apps\api\user.py[m[36m:[m480[36m:[m121[36m:[m [1m[31mE501[m line too long (149 > 120 characters)
+[1m.\apps\api\user.py[m[36m:[m544[36m:[m121[36m:[m [1m[31mE501[m line too long (145 > 120 characters)
+[1m.\apps\api\user_behavior_endpoints.py[m[36m:[m130[36m:[m121[36m:[m [1m[31mE501[m line too long (151 > 120 characters)
+[1m.\apps\api\worker_health.py[m[36m:[m23[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m.\apps\api\worker_health.py[m[36m:[m24[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m.\apps\api_v2\router.py[m[36m:[m378[36m:[m121[36m:[m [1m[31mE501[m line too long (143 > 120 characters)
+[1m.\apps\api_v2\webhooks.py[m[36m:[m151[36m:[m121[36m:[m [1m[31mE501[m line too long (131 > 120 characters)
+[1m.\apps\api_v2\webhooks.py[m[36m:[m201[36m:[m121[36m:[m [1m[31mE501[m line too long (127 > 120 characters)
+[1m.\apps\worker\agent.py[m[36m:[m20[36m:[m1[36m:[m [1m[31mF401[m 'typing.Callable' imported but unused
+[1m.\apps\worker\agent.py[m[36m:[m51[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m.\apps\worker\agent.py[m[36m:[m52[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m.\apps\worker\agent.py[m[36m:[m55[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m.\apps\worker\agent.py[m[36m:[m56[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m.\apps\worker\agent.py[m[36m:[m57[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m.\apps\worker\agent.py[m[36m:[m58[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m.\apps\worker\agent.py[m[36m:[m62[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m.\apps\worker\agent.py[m[36m:[m71[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m.\apps\worker\agent.py[m[36m:[m72[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m.\apps\worker\agent.py[m[36m:[m73[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m.\apps\worker\agent.py[m[36m:[m79[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m.\apps\worker\agent.py[m[36m:[m80[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m.\apps\worker\agent.py[m[36m:[m81[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m.\apps\worker\agent.py[m[36m:[m82[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m.\apps\worker\agent.py[m[36m:[m83[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m.\apps\worker\agent.py[m[36m:[m85[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m.\apps\worker\agent.py[m[36m:[m86[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m.\apps\worker\agent.py[m[36m:[m279[36m:[m121[36m:[m [1m[31mE501[m line too long (141 > 120 characters)
+[1m.\apps\worker\agent.py[m[36m:[m280[36m:[m121[36m:[m [1m[31mE501[m line too long (135 > 120 characters)
+[1m.\apps\worker\agent.py[m[36m:[m458[36m:[m121[36m:[m [1m[31mE501[m line too long (133 > 120 characters)
+[1m.\apps\worker\agent.py[m[36m:[m567[36m:[m1[36m:[m [1m[31mF401[m '.form_filling.ERROR_INDICATORS' imported but unused
+[1m.\apps\worker\agent.py[m[36m:[m567[36m:[m1[36m:[m [1m[31mF401[m '.form_filling.SUCCESS_INDICATORS' imported but unused
+[1m.\apps\worker\agent.py[m[36m:[m810[36m:[m121[36m:[m [1m[31mE501[m line too long (140 > 120 characters)
+[1m.\apps\worker\agent.py[m[36m:[m2168[36m:[m121[36m:[m [1m[31mE501[m line too long (130 > 120 characters)
+[1m.\apps\worker\agent.py[m[36m:[m2169[36m:[m121[36m:[m [1m[31mE501[m line too long (130 > 120 characters)
+[1m.\apps\worker\agent.py[m[36m:[m2170[36m:[m121[36m:[m [1m[31mE501[m line too long (136 > 120 characters)
+[1m.\apps\worker\agent.py[m[36m:[m2171[36m:[m121[36m:[m [1m[31mE501[m line too long (136 > 120 characters)
+[1m.\apps\worker\data_retention_worker.py[m[36m:[m146[36m:[m17[36m:[m [1m[31mF841[m local variable 'deleted' is assigned to but never used
+[1m.\apps\worker\data_retention_worker.py[m[36m:[m204[36m:[m17[36m:[m [1m[31mF841[m local variable 'deleted' is assigned to but never used
+[1m.\apps\worker\data_retention_worker.py[m[36m:[m265[36m:[m17[36m:[m [1m[31mF841[m local variable 'deleted' is assigned to but never used
+[1m.\apps\worker\data_retention_worker.py[m[36m:[m325[36m:[m17[36m:[m [1m[31mF841[m local variable 'deleted' is assigned to but never used
+[1m.\apps\worker\data_retention_worker.py[m[36m:[m382[36m:[m17[36m:[m [1m[31mF841[m local variable 'deleted' is assigned to but never used
+[1m.\apps\worker\data_retention_worker.py[m[36m:[m468[36m:[m5[36m:[m [1m[31mF841[m local variable 'settings' is assigned to but never used
+[1m.\apps\worker\follow_up_reminders_worker.py[m[36m:[m19[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m.\apps\worker\follow_up_reminders_worker.py[m[36m:[m22[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m.\apps\worker\health.py[m[36m:[m25[36m:[m1[36m:[m [1m[31mW293[m blank line contains whitespace
+[1m.\apps\worker\scaling.py[m[36m:[m20[36m:[m1[36m:[m [1m[31mF401[m 'shared.config.Environment' imported but unused
+[1m.\apps\worker\scaling.py[m[36m:[m341[36m:[m121[36m:[m [1m[31mE501[m line too long (143 > 120 characters)
+[1m.\apps\worker\scaling.py[m[36m:[m358[36m:[m121[36m:[m [1m[31mE501[m line too long (122 > 120 characters)
+[1m.\apps\worker\scaling.py[m[36m:[m359[36m:[m121[36m:[m [1m[31mE501[m line too long (122 > 120 characters)
+[1m.\apps\worker\scaling.py[m[36m:[m360[36m:[m121[36m:[m [1m[31mE501[m line too long (128 > 120 characters)
+[1m.\apps\worker\scaling.py[m[36m:[m361[36m:[m121[36m:[m [1m[31mE501[m line too long (128 > 120 characters)
+[1m.\apps\worker\scaling.py[m[36m:[m363[36m:[m121[36m:[m [1m[31mE501[m line too long (122 > 120 characters)
+[1m.\apps\worker\startup.py[m[36m:[m87[36m:[m13[36m:[m [1m[31mF401[m 'playwright.async_api.async_playwright' imported but unused
+[1m.\backend\blueprints\grant\prompts.py[m[36m:[m16[36m:[m121[36m:[m [1m[31mE501[m line too long (199 > 120 characters)
+[1m.\backend\blueprints\grant\prompts.py[m[36m:[m75[36m:[m121[36m:[m [1m[31mE501[m line too long (176 > 120 characters)
+[1m.\backend\blueprints\grant\prompts.py[m[36m:[m92[36m:[m121[36m:[m [1m[31mE501[m line too long (124 > 120 characters)
+[1m.\backend\blueprints\grant\prompts.py[m[36m:[m94[36m:[m121[36m:[m [1m[31mE501[m line too long (132 > 120 characters)
+[1m.\backend\blueprints\job_app\prompts.py[m[36m:[m73[36m:[m121[36m:[m [1m[31mE501[m line too long (135 > 120 characters)
+[1m.\packages\backend\blueprints\grant\prompts.py[m[36m:[m16[36m:[m121[36m:[m [1m[31mE501[m line too long (199 > 120 characters)
+[1m.\packages\backend\blueprints\grant\prompts.py[m[36m:[m75[36m:[m121[36m:[m [1m[31mE501[m line too long (176 > 120 characters)
+[1m.\packages\backend\blueprints\grant\prompts.py[m[36m:[m92[36m:[m121[36m:[m [1m[31mE501[m line too long (124 > 120 characters)
+[1m.\packages\backend\blueprints\grant\prompts.py[m[36m:[m94[36m:[m121[36m:[m [1m[31mE501[m line too long (132 > 120 characters)
+[1m.\packages\backend\blueprints\job_app\prompts.py[m[36m:[m73[36m:[m121[36m:[m [1m[31mE501[m line too long (135 > 120 characters)
+[1m.\packages\backend\domain\agent_improvements.py[m[36m:[m2[36m:[m121[36m:[m [1m[31mE501[m line too long (157 > 120 characters)
+[1m.\packages\backend\domain\ai_onboarding.py[m[36m:[m1004[36m:[m121[36m:[m [1m[31mE501[m line too long (126 > 120 characters)
+[1m.\packages\backend\domain\alert_processor.py[m[36m:[m413[36m:[m17[36m:[m [1m[31mF402[m import 'field' from line 8 shadowed by loop variable
+[1m.\packages\backend\domain\captcha_handler.py[m[36m:[m588[36m:[m121[36m:[m [1m[31mE501[m line too long (137 > 120 characters)
+[1m.\packages\backend\domain\cohort_analysis.py[m[36m:[m37[36m:[m9[36m:[m [1m[31mF841[m local variable 'interval' is assigned to but never used
+[1m.\packages\backend\domain\cohort_analysis.py[m[36m:[m38[36m:[m9[36m:[m [1m[31mF841[m local variable 'date_trunc' is assigned to but never used
+[1m.\packages\backend\domain\company_verifier.py[m[36m:[m193[36m:[m21[36m:[m [1m[31mF821[m undefined name 'boolean'
+[1m.\packages\backend\domain\company_verifier.py[m[36m:[m194[36m:[m17[36m:[m [1m[31mF821[m undefined name 'boolean'
+[1m.\packages\backend\domain\contextual_errors.py[m[36m:[m231[36m:[m121[36m:[m [1m[31mE501[m line too long (139 > 120 characters)
+[1m.\packages\backend\domain\contracts.py[m[36m:[m32[36m:[m121[36m:[m [1m[31mE501[m line too long (131 > 120 characters)
+[1m.\packages\backend\domain\cost_monitoring.py[m[36m:[m377[36m:[m121[36m:[m [1m[31mE501[m line too long (128 > 120 characters)
+[1m.\packages\backend\domain\cost_monitoring.py[m[36m:[m389[36m:[m121[36m:[m [1m[31mE501[m line too long (125 > 120 characters)
+[1m.\packages\backend\domain\cost_monitoring.py[m[36m:[m401[36m:[m121[36m:[m [1m[31mE501[m line too long (143 > 120 characters)
+[1m.\packages\backend\domain\data_residency.py[m[36m:[m258[36m:[m121[36m:[m [1m[31mE501[m line too long (122 > 120 characters)
+[1m.\packages\backend\domain\database_performance_manager.py[m[36m:[m495[36m:[m121[36m:[m [1m[31mE501[m line too long (136 > 120 characters)
+[1m.\packages\backend\domain\debug_schema.py[m[36m:[m117[36m:[m121[36m:[m [1m[31mE501[m line too long (652 > 120 characters)
+[1m.\packages\backend\domain\document_processor.py[m[36m:[m203[36m:[m121[36m:[m [1m[31mE501[m line too long (131 > 120 characters)
+[1m.\packages\backend\domain\email_communications.py[m[36m:[m565[36m:[m121[36m:[m [1m[31mE501[m line too long (166 > 120 characters)
+[1m.\packages\backend\domain\email_communications.py[m[36m:[m572[36m:[m121[36m:[m [1m[31mE501[m line too long (129 > 120 characters)
+[1m.\packages\backend\domain\email_communications.py[m[36m:[m577[36m:[m121[36m:[m [1m[31mE501[m line too long (162 > 120 characters)
+[1m.\packages\backend\domain\email_communications.py[m[36m:[m583[36m:[m121[36m:[m [1m[31mE501[m line too long (210 > 120 characters)
+[1m.\packages\backend\domain\email_communications.py[m[36m:[m587[36m:[m121[36m:[m [1m[31mE501[m line too long (152 > 120 characters)
+[1m.\packages\backend\domain\email_communications.py[m[36m:[m604[36m:[m121[36m:[m [1m[31mE501[m line too long (166 > 120 characters)
+[1m.\packages\backend\domain\email_communications.py[m[36m:[m613[36m:[m121[36m:[m [1m[31mE501[m line too long (130 > 120 characters)
+[1m.\packages\backend\domain\email_communications.py[m[36m:[m614[36m:[m121[36m:[m [1m[31mE501[m line too long (171 > 120 characters)
+[1m.\packages\backend\domain\email_communications.py[m[36m:[m618[36m:[m121[36m:[m [1m[31mE501[m line too long (184 > 120 characters)
+[1m.\packages\backend\domain\email_communications.py[m[36m:[m630[36m:[m121[36m:[m [1m[31mE501[m line too long (166 > 120 characters)
+[1m.\packages\backend\domain\email_communications.py[m[36m:[m639[36m:[m121[36m:[m [1m[31mE501[m line too long (130 > 120 characters)
+[1m.\packages\backend\domain\email_communications.py[m[36m:[m640[36m:[m121[36m:[m [1m[31mE501[m line too long (136 > 120 characters)
+[1m.\packages\backend\domain\email_communications.py[m[36m:[m644[36m:[m121[36m:[m [1m[31mE501[m line too long (199 > 120 characters)
+[1m.\packages\backend\domain\email_communications.py[m[36m:[m656[36m:[m121[36m:[m [1m[31mE501[m line too long (166 > 120 characters)
+[1m.\packages\backend\domain\email_communications.py[m[36m:[m663[36m:[m121[36m:[m [1m[31mE501[m line too long (132 > 120 characters)
+[1m.\packages\backend\domain\email_communications.py[m[36m:[m671[36m:[m121[36m:[m [1m[31mE501[m line too long (178 > 120 characters)
+[1m.\packages\backend\domain\email_communications.py[m[36m:[m683[36m:[m121[36m:[m [1m[31mE501[m line too long (166 > 120 characters)
+[1m.\packages\backend\domain\email_communications.py[m[36m:[m692[36m:[m121[36m:[m [1m[31mE501[m line too long (130 > 120 characters)
+[1m.\packages\backend\domain\email_communications.py[m[36m:[m698[36m:[m121[36m:[m [1m[31mE501[m line too long (185 > 120 characters)
+[1m.\packages\backend\domain\email_communications.py[m[36m:[m710[36m:[m121[36m:[m [1m[31mE501[m line too long (166 > 120 characters)
+[1m.\packages\backend\domain\email_communications.py[m[36m:[m717[36m:[m121[36m:[m [1m[31mE501[m line too long (161 > 120 characters)
+[1m.\packages\backend\domain\email_communications.py[m[36m:[m719[36m:[m121[36m:[m [1m[31mE501[m line too long (130 > 120 characters)
+[1m.\packages\backend\domain\email_communications.py[m[36m:[m720[36m:[m121[36m:[m [1m[31mE501[m line too long (191 > 120 characters)
+[1m.\packages\backend\domain\email_communications.py[m[36m:[m724[36m:[m121[36m:[m [1m[31mE501[m line too long (187 > 120 characters)
+[1m.\packages\backend\domain\email_communications.py[m[36m:[m736[36m:[m121[36m:[m [1m[31mE501[m line too long (166 > 120 characters)
+[1m.\packages\backend\domain\email_communications.py[m[36m:[m743[36m:[m121[36m:[m [1m[31mE501[m line too long (153 > 120 characters)
+[1m.\packages\backend\domain\email_communications.py[m[36m:[m745[36m:[m121[36m:[m [1m[31mE501[m line too long (130 > 120 characters)
+[1m.\packages\backend\domain\email_communications.py[m[36m:[m752[36m:[m121[36m:[m [1m[31mE501[m line too long (189 > 120 characters)
+[1m.\packages\backend\domain\email_communications.py[m[36m:[m764[36m:[m121[36m:[m [1m[31mE501[m line too long (166 > 120 characters)
+[1m.\packages\backend\domain\email_communications.py[m[36m:[m771[36m:[m121[36m:[m [1m[31mE501[m line too long (140 > 120 characters)
+[1m.\packages\backend\domain\email_communications.py[m[36m:[m773[36m:[m121[36m:[m [1m[31mE501[m line too long (130 > 120 characters)
+[1m.\packages\backend\domain\email_communications.py[m[36m:[m774[36m:[m121[36m:[m [1m[31mE501[m line too long (124 > 120 characters)
+[1m.\packages\backend\domain\email_communications.py[m[36m:[m780[36m:[m121[36m:[m [1m[31mE501[m line too long (187 > 120 characters)
+[1m.\packages\backend\domain\email_digest.py[m[36m:[m104[36m:[m121[36m:[m [1m[31mE501[m line too long (162 > 120 characters)
+[1m.\packages\backend\domain\email_digest.py[m[36m:[m117[36m:[m121[36m:[m [1m[31mE501[m line too long (123 > 120 characters)
+[1m.\packages\backend\domain\email_digest.py[m[36m:[m136[36m:[m121[36m:[m [1m[31mE501[m line too long (145 > 120 characters)
+[1m.\packages\backend\domain\email_digest.py[m[36m:[m141[36m:[m121[36m:[m [1m[31mE501[m line too long (173 > 120 characters)
+[1m.\packages\backend\domain\email_digest.py[m[36m:[m145[36m:[m121[36m:[m [1m[31mE501[m line too long (123 > 120 characters)
+[1m.\packages\backend\domain\email_digest.py[m[36m:[m153[36m:[m121[36m:[m [1m[31mE501[m line too long (121 > 120 characters)
+[1m.\packages\backend\domain\explainable_scoring.py[m[36m:[m92[36m:[m121[36m:[m [1m[31mE501[m line too long (204 > 120 characters)
+[1m.\packages\backend\domain\explainable_scoring.py[m[36m:[m387[36m:[m121[36m:[m [1m[31mE501[m line too long (140 > 120 characters)
+[1m.\packages\backend\domain\follow_up_reminders.py[m[36m:[m469[36m:[m121[36m:[m [1m[31mE501[m line too long (168 > 120 characters)
+[1m.\packages\backend\domain\follow_up_reminders.py[m[36m:[m471[36m:[m121[36m:[m [1m[31mE501[m line too long (141 > 120 characters)
+[1m.\packages\backend\domain\follow_up_reminders.py[m[36m:[m527[36m:[m121[36m:[m [1m[31mE501[m line too long (226 > 120 characters)
+[1m.\packages\backend\domain\follow_up_reminders.py[m[36m:[m529[36m:[m121[36m:[m [1m[31mE501[m line too long (122 > 120 characters)
+[1m.\packages\backend\domain\gdpr.py[m[36m:[m155[36m:[m121[36m:[m [1m[31mE501[m line too long (126 > 120 characters)
+[1m.\packages\backend\domain\interview_simulator.py[m[36m:[m227[36m:[m121[36m:[m [1m[31mE501[m line too long (138 > 120 characters)
+[1m.\packages\backend\domain\job_alerts.py[m[36m:[m127[36m:[m13[36m:[m [1m[31mF841[m local variable 'interval' is assigned to but never used
+[1m.\packages\backend\domain\job_alerts.py[m[36m:[m254[36m:[m9[36m:[m [1m[31mF841[m local variable 'limit_param' is assigned to but never used
+[1m.\packages\backend\domain\job_alerts.py[m[36m:[m456[36m:[m121[36m:[m [1m[31mE501[m line too long (121 > 120 characters)
+[1m.\packages\backend\domain\job_alerts.py[m[36m:[m471[36m:[m121[36m:[m [1m[31mE501[m line too long (166 > 120 characters)
+[1m.\packages\backend\domain\job_alerts.py[m[36m:[m486[36m:[m121[36m:[m [1m[31mE501[m line too long (192 > 120 characters)
+[1m.\packages\backend\domain\job_alerts.py[m[36m:[m490[36m:[m121[36m:[m [1m[31mE501[m line too long (151 > 120 characters)
+[1m.\packages\backend\domain\job_queue.py[m[36m:[m222[36m:[m13[36m:[m [1m[31mF841[m local variable 'scheduled_at' is assigned to but never used
+[1m.\packages\backend\domain\job_queue.py[m[36m:[m257[36m:[m9[36m:[m [1m[31mF841[m local variable 'queue_filter' is assigned to but never used
+[1m.\packages\backend\domain\job_queue.py[m[36m:[m479[36m:[m121[36m:[m [1m[31mE501[m line too long (122 > 120 characters)
+[1m.\packages\backend\domain\job_queue.py[m[36m:[m484[36m:[m121[36m:[m [1m[31mE501[m line too long (126 > 120 characters)
+[1m.\packages\backend\domain\job_queue.py[m[36m:[m520[36m:[m56[36m:[m [1m[31mW291[m trailing whitespace
+[1m.\packages\backend\domain\job_queue.py[m[36m:[m561[36m:[m61[36m:[m [1m[31mW291[m trailing whitespace
+[1m.\packages\backend\domain\job_queue.py[m[36m:[m579[36m:[m61[36m:[m [1m[31mW291[m trailing whitespace
+[1m.\packages\backend\domain\job_queue.py[m[36m:[m618[36m:[m80[36m:[m [1m[31mW291[m trailing whitespace
+[1m.\packages\backend\domain\job_queue.py[m[36m:[m621[36m:[m68[36m:[m [1m[31mW291[m trailing whitespace
+[1m.\packages\backend\domain\job_spam_detector.py[m[36m:[m107[36m:[m121[36m:[m [1m[31mE501[m line too long (136 > 120 characters)
+[1m.\packages\backend\domain\job_spam_detector.py[m[36m:[m427[36m:[m9[36m:[m [1m[31mF841[m local variable 'description_lower' is assigned to but never used
+[1m.\packages\backend\domain\m4_metrics.py[m[36m:[m33[36m:[m121[36m:[m [1m[31mE501[m line too long (122 > 120 characters)
+[1m.\packages\backend\domain\match_calibration.py[m[36m:[m608[36m:[m121[36m:[m [1m[31mE501[m line too long (139 > 120 characters)
+[1m.\packages\backend\domain\ml_captcha_solver.py[m[36m:[m31[36m:[m5[36m:[m [1m[31mF401[m 'torch' imported but unused
+[1m.\packages\backend\domain\ml_captcha_solver.py[m[36m:[m32[36m:[m5[36m:[m [1m[31mF401[m 'torchvision.transforms' imported but unused
+[1m.\packages\backend\domain\ml_captcha_solver.py[m[36m:[m33[36m:[m5[36m:[m [1m[31mF401[m 'transformers.AutoImageProcessor' imported but unused
+[1m.\packages\backend\domain\ml_captcha_solver.py[m[36m:[m33[36m:[m5[36m:[m [1m[31mF401[m 'transformers.AutoModelForImageClassification' imported but unused
+[1m.\packages\backend\domain\ml_captcha_solver.py[m[36m:[m55[36m:[m1[36m:[m [1m[31mW293[m blank line contains whitespace
+[1m.\packages\backend\domain\ml_captcha_solver.py[m[36m:[m183[36m:[m1[36m:[m [1m[31mW293[m blank line contains whitespace
+[1m.\packages\backend\domain\ml_captcha_solver.py[m[36m:[m260[36m:[m1[36m:[m [1m[31mW293[m blank line contains whitespace
+[1m.\packages\backend\domain\ml_captcha_solver.py[m[36m:[m387[36m:[m13[36m:[m [1m[31mF841[m local variable 'url' is assigned to but never used
+[1m.\packages\backend\domain\notification_batch_processor.py[m[36m:[m407[36m:[m13[36m:[m [1m[31mF824[m `nonlocal skipped` is unused: name is never assigned in scope
+[1m.\packages\backend\domain\password_policy.py[m[36m:[m342[36m:[m121[36m:[m [1m[31mE501[m line too long (175 > 120 characters)
+[1m.\packages\backend\domain\performance_monitor.py[m[36m:[m774[36m:[m121[36m:[m [1m[31mE501[m line too long (148 > 120 characters)
+[1m.\packages\backend\domain\performance_monitor.py[m[36m:[m793[36m:[m121[36m:[m [1m[31mE501[m line too long (150 > 120 characters)
+[1m.\packages\backend\domain\profile_assembly.py[m[36m:[m20[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m.\packages\backend\domain\profile_assembly.py[m[36m:[m26[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m.\packages\backend\domain\proxy_fetcher.py[m[36m:[m33[36m:[m121[36m:[m [1m[31mE501[m line too long (124 > 120 characters)
+[1m.\packages\backend\domain\proxy_fetcher.py[m[36m:[m34[36m:[m121[36m:[m [1m[31mE501[m line too long (124 > 120 characters)
+[1m.\packages\backend\domain\proxy_fetcher.py[m[36m:[m38[36m:[m121[36m:[m [1m[31mE501[m line too long (132 > 120 characters)
+[1m.\packages\backend\domain\repositories.py[m[36m:[m447[36m:[m121[36m:[m [1m[31mE501[m line too long (152 > 120 characters)
+[1m.\packages\backend\domain\repositories.py[m[36m:[m595[36m:[m121[36m:[m [1m[31mE501[m line too long (137 > 120 characters)
+[1m.\packages\backend\domain\revenue_analytics.py[m[36m:[m207[36m:[m121[36m:[m [1m[31mE501[m line too long (126 > 120 characters)
+[1m.\packages\backend\domain\revenue_analytics.py[m[36m:[m209[36m:[m121[36m:[m [1m[31mE501[m line too long (154 > 120 characters)
+[1m.\packages\backend\domain\scraping_scripts.py[m[36m:[m30[36m:[m121[36m:[m [1m[31mE501[m line too long (141 > 120 characters)
+[1m.\packages\backend\domain\scraping_scripts.py[m[36m:[m31[36m:[m121[36m:[m [1m[31mE501[m line too long (135 > 120 characters)
+[1m.\packages\backend\domain\session_manager.py[m[36m:[m223[36m:[m121[36m:[m [1m[31mE501[m line too long (133 > 120 characters)
+[1m.\packages\backend\domain\skill_gap_analyzer.py[m[36m:[m375[36m:[m9[36m:[m [1m[31mF841[m local variable 'preferred_skills' is assigned to but never used
+[1m.\packages\backend\domain\user_behavior_analyzer.py[m[36m:[m1419[36m:[m121[36m:[m [1m[31mE501[m line too long (122 > 120 characters)
+[1m.\packages\backend\domain\user_behavior_analyzer.py[m[36m:[m1681[36m:[m121[36m:[m [1m[31mE501[m line too long (126 > 120 characters)
+[1m.\packages\backend\domain\ux_metrics_collector.py[m[36m:[m697[36m:[m121[36m:[m [1m[31mE501[m line too long (156 > 120 characters)
+[1m.\packages\backend\domain\voice_interviews.py[m[36m:[m295[36m:[m121[36m:[m [1m[31mE501[m line too long (138 > 120 characters)
+[1m.\packages\backend\llm\contracts.py[m[36m:[m112[36m:[m121[36m:[m [1m[31mE501[m line too long (290 > 120 characters)
+[1m.\packages\backend\llm\contracts.py[m[36m:[m305[36m:[m121[36m:[m [1m[31mE501[m line too long (136 > 120 characters)
+[1m.\packages\backend\llm\contracts.py[m[36m:[m440[36m:[m121[36m:[m [1m[31mE501[m line too long (125 > 120 characters)
+[1m.\packages\blueprints\community\linkedin\blueprint.py[m[36m:[m22[36m:[m121[36m:[m [1m[31mE501[m line too long (121 > 120 characters)
+[1m.\packages\blueprints\community\linkedin\blueprint.py[m[36m:[m27[36m:[m121[36m:[m [1m[31mE501[m line too long (137 > 120 characters)
+[1m.\scripts\apply_remediation.py[m[36m:[m13[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m.\scripts\cron\process_job_alerts.py[m[36m:[m14[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m.\scripts\cron\process_job_alerts.py[m[36m:[m15[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m.\scripts\cron\process_job_alerts.py[m[36m:[m17[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m.\scripts\cron\process_job_alerts.py[m[36m:[m18[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m.\scripts\cron\run_weekly_digest.py[m[36m:[m14[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m.\scripts\cron\run_weekly_digest.py[m[36m:[m15[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m.\scripts\cron\run_weekly_digest.py[m[36m:[m17[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m.\scripts\cron\run_weekly_digest.py[m[36m:[m18[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m.\scripts\init_db_schema.py[m[36m:[m31[36m:[m5[36m:[m [1m[31mF841[m local variable 'password' is assigned to but never used
+[1m.\scripts\init_db_schema.py[m[36m:[m102[36m:[m26[36m:[m [1m[31mW291[m trailing whitespace
+[1m.\scripts\init_db_schema.py[m[36m:[m103[36m:[m39[36m:[m [1m[31mW291[m trailing whitespace
+[1m.\scripts\maintenance\check_all_env_vars.py[m[36m:[m79[36m:[m13[36m:[m [1m[31mF841[m local variable 'all_good' is assigned to but never used
+[1m.\scripts\maintenance\configure_ionos_dns.py[m[36m:[m20[36m:[m121[36m:[m [1m[31mE501[m line too long (238 > 120 characters)
+[1m.\scripts\maintenance\configure_ionos_dns_v2.py[m[36m:[m20[36m:[m121[36m:[m [1m[31mE501[m line too long (238 > 120 characters)
+[1m.\scripts\maintenance\deploy_render.py[m[36m:[m109[36m:[m121[36m:[m [1m[31mE501[m line too long (145 > 120 characters)
+[1m.\scripts\maintenance\fetch_api_status.py[m[36m:[m58[36m:[m121[36m:[m [1m[31mE501[m line too long (131 > 120 characters)
+[1m.\scripts\maintenance\fetch_logs.py[m[36m:[m41[36m:[m121[36m:[m [1m[31mE501[m line too long (136 > 120 characters)
+[1m.\scripts\maintenance\ionos_cloud_dns.py[m[36m:[m22[36m:[m121[36m:[m [1m[31mE501[m line too long (238 > 120 characters)
+[1m.\scripts\maintenance\sync_render_env_from_dotenv.py[m[36m:[m25[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m.\scripts\maintenance\sync_render_env_from_dotenv.py[m[36m:[m26[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m.\scripts\maintenance\test_ionos_api.py[m[36m:[m148[36m:[m121[36m:[m [1m[31mE501[m line too long (242 > 120 characters)
+[1m.\scripts\render_connect.py[m[36m:[m25[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m.\scripts\render_connect.py[m[36m:[m26[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m.\scripts\render_connect.py[m[36m:[m27[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m.\scripts\run_migration.py[m[36m:[m71[36m:[m121[36m:[m [1m[31mE501[m line too long (126 > 120 characters)
+[1m.\scripts\run_migration.py[m[36m:[m72[36m:[m121[36m:[m [1m[31mE501[m line too long (135 > 120 characters)
+[1m.\scripts\run_migration.py[m[36m:[m73[36m:[m121[36m:[m [1m[31mE501[m line too long (166 > 120 characters)
+[1m.\scripts\run_migration.py[m[36m:[m74[36m:[m121[36m:[m [1m[31mE501[m line too long (138 > 120 characters)
+[1m.\scripts\run_migration.py[m[36m:[m75[36m:[m121[36m:[m [1m[31mE501[m line too long (137 > 120 characters)
+[1m.\scripts\run_migration.py[m[36m:[m76[36m:[m121[36m:[m [1m[31mE501[m line too long (137 > 120 characters)
+[1m.\scripts\run_migration.py[m[36m:[m77[36m:[m121[36m:[m [1m[31mE501[m line too long (144 > 120 characters)
+[1m.\scripts\run_migration.py[m[36m:[m100[36m:[m121[36m:[m [1m[31mE501[m line too long (129 > 120 characters)
+[1m.\scripts\seed_beta.py[m[36m:[m37[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m.\scripts\seed_beta.py[m[36m:[m147[36m:[m121[36m:[m [1m[31mE501[m line too long (128 > 120 characters)
+[1m.\scripts\set_render_env_vars.py[m[36m:[m13[36m:[m121[36m:[m [1m[31mE501[m line too long (127 > 120 characters)
+[1m.\scripts\set_render_env_vars.py[m[36m:[m27[36m:[m1[36m:[m [1m[31mE302[m expected 2 blank lines, found 1
+[1m.\scripts\verify-nemotron-json.py[m[36m:[m8[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m.\scripts\verify-nemotron-json.py[m[36m:[m9[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m.\scripts\verify-nemotron-json.py[m[36m:[m11[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m.\scripts\verify_auth_changes.py[m[36m:[m9[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m.\scripts\verify_auth_changes.py[m[36m:[m11[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m.\scripts\verify_deployment.py[m[36m:[m14[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m.\scripts\verify_deployment.py[m[36m:[m15[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m.\scripts\verify_deployment.py[m[36m:[m114[36m:[m69[36m:[m [1m[31mW291[m trailing whitespace
+[1m.\scripts\verify_deployment.py[m[36m:[m115[36m:[m50[36m:[m [1m[31mW291[m trailing whitespace
+[1m.\shared\ai_validation.py[m[36m:[m198[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m.\shared\ai_validation.py[m[36m:[m412[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m.\shared\ai_validation.py[m[36m:[m478[36m:[m121[36m:[m [1m[31mE501[m line too long (142 > 120 characters)
+[1m.\shared\api_auth_middleware.py[m[36m:[m35[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m.\shared\api_auth_middleware.py[m[36m:[m36[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m.\shared\api_auth_middleware.py[m[36m:[m1022[36m:[m5[36m:[m [1m[31mF824[m `global _auth_middleware` is unused: name is never assigned in scope
+[1m.\shared\api_rate_limiter.py[m[36m:[m821[36m:[m5[36m:[m [1m[31mF824[m `global _rate_limiter` is unused: name is never assigned in scope
+[1m.\shared\api_request_validator.py[m[36m:[m532[36m:[m121[36m:[m [1m[31mE501[m line too long (139 > 120 characters)
+[1m.\shared\api_response.py[m[36m:[m5[36m:[m121[36m:[m [1m[31mE501[m line too long (127 > 120 characters)
+[1m.\shared\api_response_cache.py[m[36m:[m503[36m:[m121[36m:[m [1m[31mE501[m line too long (144 > 120 characters)
+[1m.\shared\api_response_cache.py[m[36m:[m576[36m:[m121[36m:[m [1m[31mE501[m line too long (162 > 120 characters)
+[1m.\shared\api_response_cache.py[m[36m:[m637[36m:[m121[36m:[m [1m[31mE501[m line too long (148 > 120 characters)
+[1m.\shared\api_response_cache.py[m[36m:[m948[36m:[m121[36m:[m [1m[31mE501[m line too long (133 > 120 characters)
+[1m.\shared\api_response_cache.py[m[36m:[m1164[36m:[m5[36m:[m [1m[31mF824[m `global _response_cache` is unused: name is never assigned in scope
+[1m.\shared\cache_manager.py[m[36m:[m329[36m:[m5[36m:[m [1m[31mF824[m `global _cache_manager` is unused: name is never assigned in scope
+[1m.\shared\circuit_breaker.py[m[36m:[m234[36m:[m5[36m:[m [1m[31mF824[m `global _breakers` is unused: name is never assigned in scope
+[1m.\shared\circuit_breaker.py[m[36m:[m252[36m:[m5[36m:[m [1m[31mF824[m `global _breakers` is unused: name is never assigned in scope
+[1m.\shared\circuit_breaker.py[m[36m:[m252[36m:[m5[36m:[m [1m[31mF824[m `global _openrouter_breaker` is unused: name is never assigned in scope
+[1m.\shared\circuit_breaker.py[m[36m:[m252[36m:[m5[36m:[m [1m[31mF824[m `global _email_breaker` is unused: name is never assigned in scope
+[1m.\shared\circuit_breaker.py[m[36m:[m252[36m:[m5[36m:[m [1m[31mF824[m `global _storage_breaker` is unused: name is never assigned in scope
+[1m.\shared\config.py[m[36m:[m21[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m.\shared\config.py[m[36m:[m22[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m.\shared\config.py[m[36m:[m54[36m:[m121[36m:[m [1m[31mE501[m line too long (128 > 120 characters)
+[1m.\shared\config.py[m[36m:[m108[36m:[m121[36m:[m [1m[31mE501[m line too long (121 > 120 characters)
+[1m.\shared\db_backup_manager.py[m[36m:[m788[36m:[m5[36m:[m [1m[31mF824[m `global _backup_manager` is unused: name is never assigned in scope
+[1m.\shared\db_capacity_planner.py[m[36m:[m1029[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m.\shared\db_capacity_planner.py[m[36m:[m1037[36m:[m5[36m:[m [1m[31mF824[m `global _capacity_planner` is unused: name is never assigned in scope
+[1m.\shared\db_connection_monitor.py[m[36m:[m692[36m:[m5[36m:[m [1m[31mF824[m `global _connection_monitor` is unused: name is never assigned in scope
+[1m.\shared\db_connection_pool.py[m[36m:[m863[36m:[m5[36m:[m [1m[31mF824[m `global _pool_manager` is unused: name is never assigned in scope
+[1m.\shared\db_failover_manager.py[m[36m:[m322[36m:[m121[36m:[m [1m[31mE501[m line too long (125 > 120 characters)
+[1m.\shared\db_failover_manager.py[m[36m:[m851[36m:[m5[36m:[m [1m[31mF824[m `global _failover_manager` is unused: name is never assigned in scope
+[1m.\shared\db_health_checker.py[m[36m:[m222[36m:[m121[36m:[m [1m[31mE501[m line too long (129 > 120 characters)
+[1m.\shared\db_health_checker.py[m[36m:[m389[36m:[m121[36m:[m [1m[31mE501[m line too long (133 > 120 characters)
+[1m.\shared\db_health_checker.py[m[36m:[m448[36m:[m121[36m:[m [1m[31mE501[m line too long (136 > 120 characters)
+[1m.\shared\db_health_checker.py[m[36m:[m677[36m:[m5[36m:[m [1m[31mF824[m `global _health_checker` is unused: name is never assigned in scope
+[1m.\shared\db_load_balancer.py[m[36m:[m228[36m:[m121[36m:[m [1m[31mE501[m line too long (126 > 120 characters)
+[1m.\shared\db_load_balancer.py[m[36m:[m826[36m:[m5[36m:[m [1m[31mF824[m `global _load_balancer` is unused: name is never assigned in scope
+[1m.\shared\db_performance_tuner.py[m[36m:[m201[36m:[m121[36m:[m [1m[31mE501[m line too long (127 > 120 characters)
+[1m.\shared\db_performance_tuner.py[m[36m:[m202[36m:[m121[36m:[m [1m[31mE501[m line too long (124 > 120 characters)
+[1m.\shared\db_performance_tuner.py[m[36m:[m925[36m:[m5[36m:[m [1m[31mF824[m `global _performance_tuner` is unused: name is never assigned in scope
+[1m.\shared\db_pool_metrics.py[m[36m:[m401[36m:[m121[36m:[m [1m[31mE501[m line too long (151 > 120 characters)
+[1m.\shared\db_pool_metrics.py[m[36m:[m409[36m:[m121[36m:[m [1m[31mE501[m line too long (151 > 120 characters)
+[1m.\shared\db_pool_metrics.py[m[36m:[m657[36m:[m5[36m:[m [1m[31mF824[m `global _metrics_collector` is unused: name is never assigned in scope
+[1m.\shared\db_query_cache.py[m[36m:[m830[36m:[m5[36m:[m [1m[31mF824[m `global _query_cache` is unused: name is never assigned in scope
+[1m.\shared\db_query_monitor.py[m[36m:[m602[36m:[m5[36m:[m [1m[31mF824[m `global _query_monitor` is unused: name is never assigned in scope
+[1m.\shared\db_replica_router.py[m[36m:[m560[36m:[m121[36m:[m [1m[31mE501[m line too long (125 > 120 characters)
+[1m.\shared\db_replica_router.py[m[36m:[m749[36m:[m5[36m:[m [1m[31mF824[m `global _replica_router` is unused: name is never assigned in scope
+[1m.\shared\db_replication_monitor.py[m[36m:[m757[36m:[m5[36m:[m [1m[31mF824[m `global _replication_monitor` is unused: name is never assigned in scope
+[1m.\shared\db_retry_handler.py[m[36m:[m715[36m:[m5[36m:[m [1m[31mF824[m `global _retry_handler` is unused: name is never assigned in scope
+[1m.\shared\db_security_auditor.py[m[36m:[m920[36m:[m5[36m:[m [1m[31mF824[m `global _security_auditor` is unused: name is never assigned in scope
+[1m.\shared\db_transaction_manager.py[m[36m:[m739[36m:[m5[36m:[m [1m[31mF824[m `global _transaction_manager` is unused: name is never assigned in scope
+[1m.\shared\errors.py[m[36m:[m105[36m:[m121[36m:[m [1m[31mE501[m line too long (123 > 120 characters)
+[1m.\shared\health_checks.py[m[36m:[m479[36m:[m121[36m:[m [1m[31mE501[m line too long (126 > 120 characters)
+[1m.\shared\health_checks.py[m[36m:[m486[36m:[m121[36m:[m [1m[31mE501[m line too long (123 > 120 characters)
+[1m.\shared\memory_profiler.py[m[36m:[m389[36m:[m5[36m:[m [1m[31mF824[m `global _profiler` is unused: name is never assigned in scope
+[1m.\shared\monitoring.py[m[36m:[m820[36m:[m121[36m:[m [1m[31mE501[m line too long (126 > 120 characters)
+[1m.\shared\monitoring.py[m[36m:[m825[36m:[m121[36m:[m [1m[31mE501[m line too long (123 > 120 characters)
+[1m.\shared\performance_config.py[m[36m:[m389[36m:[m13[36m:[m [1m[31mF841[m local variable '_disk_gb' is assigned to but never used
+[1m.\shared\performance_config.py[m[36m:[m394[36m:[m13[36m:[m [1m[31mF841[m local variable '_user_count' is assigned to but never used
+[1m.\shared\rate_limit_headers.py[m[36m:[m86[36m:[m121[36m:[m [1m[31mE501[m line too long (165 > 120 characters)
+[1m.\shared\rate_limiter.py[m[36m:[m441[36m:[m5[36m:[m [1m[31mF824[m `global _rate_limiter` is unused: name is never assigned in scope
+[1m.\shared\redis_cache.py[m[36m:[m688[36m:[m13[36m:[m [1m[31mF841[m local variable '_start_time' is assigned to but never used
+[1m.\tests\test_agent_integration.py[m[36m:[m283[36m:[m121[36m:[m [1m[31mE501[m line too long (140 > 120 characters)
+[1m.\tests\test_agent_integration.py[m[36m:[m295[36m:[m121[36m:[m [1m[31mE501[m line too long (123 > 120 characters)
+[1m.\tests\test_critical_endpoints.py[m[36m:[m153[36m:[m121[36m:[m [1m[31mE501[m line too long (148 > 120 characters)
+[1m.\tests\test_critical_endpoints.py[m[36m:[m193[36m:[m121[36m:[m [1m[31mE501[m line too long (148 > 120 characters)
+[1m.\tests\test_critical_endpoints.py[m[36m:[m234[36m:[m121[36m:[m [1m[31mE501[m line too long (148 > 120 characters)
+[1m.\tests\test_critical_endpoints.py[m[36m:[m275[36m:[m121[36m:[m [1m[31mE501[m line too long (148 > 120 characters)
+[1m.\tests\test_critical_endpoints.py[m[36m:[m315[36m:[m121[36m:[m [1m[31mE501[m line too long (148 > 120 characters)
+[1m.\tests\test_domain.py[m[36m:[m472[36m:[m9[36m:[m [1m[31mF841[m local variable 'raw' is assigned to but never used
+[1m.\tests\test_domain.py[m[36m:[m545[36m:[m5[36m:[m [1m[31mF811[m redefinition of unused 'test_llm_client_accepts_empty_response_format' from line 524
+[1m.\tests\test_failure_drills.py[m[36m:[m30[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m.\tests\test_failure_drills.py[m[36m:[m31[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m.\tests\test_integration.py[m[36m:[m35[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m.\tests\test_integration.py[m[36m:[m36[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
+[1m.\tests\test_job_board_handlers.py[m[36m:[m28[36m:[m38[36m:[m [1m[31mE712[m comparison to False should be 'if cond is False:' or 'if not cond:'
+[1m.\tests\test_job_board_handlers.py[m[36m:[m35[36m:[m38[36m:[m [1m[31mE712[m comparison to True should be 'if cond is True:' or 'if cond:'
+[1m.\tests\test_job_board_handlers.py[m[36m:[m42[36m:[m38[36m:[m [1m[31mE712[m comparison to True should be 'if cond is True:' or 'if cond:'
+[1m.\tests\test_job_board_handlers.py[m[36m:[m49[36m:[m38[36m:[m [1m[31mE712[m comparison to False should be 'if cond is False:' or 'if not cond:'
+[1m.\tests\test_job_board_handlers.py[m[36m:[m56[36m:[m38[36m:[m [1m[31mE712[m comparison to False should be 'if cond is False:' or 'if not cond:'
+[1m.\tests\test_job_board_handlers.py[m[36m:[m168[36m:[m38[36m:[m [1m[31mE712[m comparison to False should be 'if cond is False:' or 'if not cond:'
+[1m.\tests\test_job_board_handlers.py[m[36m:[m182[36m:[m38[36m:[m [1m[31mE712[m comparison to False should be 'if cond is False:' or 'if not cond:'
+[1m.\tests\test_job_board_handlers.py[m[36m:[m209[36m:[m47[36m:[m [1m[31mE712[m comparison to True should be 'if cond is True:' or 'if cond:'
+[1m.\tests\test_job_board_handlers.py[m[36m:[m212[36m:[m51[36m:[m [1m[31mE712[m comparison to True should be 'if cond is True:' or 'if cond:'
+[1m.\tests\test_job_board_handlers.py[m[36m:[m215[36m:[m45[36m:[m [1m[31mE712[m comparison to False should be 'if cond is False:' or 'if not cond:'
+[1m.\tests\test_job_board_handlers.py[m[36m:[m218[36m:[m48[36m:[m [1m[31mE712[m comparison to False should be 'if cond is False:' or 'if not cond:'
+[1m.\tests\test_saml_integration.py[m[36m:[m112[36m:[m1[36m:[m [1m[31mE402[m module level import not at top of file
