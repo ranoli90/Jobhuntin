@@ -6,7 +6,7 @@ from typing import Any
 
 import asyncpg
 from api.dependencies import get_pool
-from api.main import get_tenant_context
+from api.deps import get_tenant_context
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
