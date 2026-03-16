@@ -1,0 +1,31 @@
+# Large JSON files that shouldn't be in the build
+*_results.json
+*_report.json
+*pylint*
+*bandit*
+*radon*
+*safety*
+*semgrep*
+*.log
+
+# Test files that shouldn't affect production
+tests/
+jobhuntin-e2e-tests/
+
+# IDE and editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Debug and temp files
+debug-setup/
+temp_files.txt
+*.tmp
+
+# Package lock files we don't need for Docker
+package-lock.json
