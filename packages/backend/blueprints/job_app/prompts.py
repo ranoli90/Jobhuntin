@@ -104,6 +104,7 @@ For selects and radios, "options" is a list of {{value, text}} objects.
     "unresolved_required_fields": [{{"selector": "<selector>", "question": "<question>"}}]
 }}
 """
+)
 
 
 def build_dom_mapping_prompt(
