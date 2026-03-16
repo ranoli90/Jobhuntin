@@ -22,7 +22,7 @@ import { Logger, LogLevel, LogEntry } from './logger';
 
 import { retryDatabase } from './retry';
 
-import { config, SEOConfig } from './config';
+import { getConfig, SEOConfig } from './config';
 
 // ============================================================================
 // Database Configuration
@@ -108,7 +108,7 @@ export const DEFAULT_SSL_CONFIG: DatabaseSSLConfig = {
  * @returns DatabaseConfig object
  */
 export function getDatabaseConfig(): DatabaseConfig {
-    const connectionString = process.env.DATABASE_URL || config.databaseUrl;
+    const connectionString = process.env.DATABASE_URL || getConfig().databaseUrl;
 
     if (!connectionString) {
         throw new Error('DATABASE_URL environment variable is not set');
@@ -2000,45 +2000,4 @@ export function createMigrationRunner(
     return new MigrationRunner(connection, logger);
 }
 
-// ============================================================================
-// Exports
-// ============================================================================
-
-export type {
-    DatabaseClient,
-    QueryResult,
-    ExecutionResult,
-    FieldInfo,
-};
-
-export {
-    DatabasePoolConfig,
-    DatabaseSSLConfig,
-    DatabaseConfig,
-    DEFAULT_POOL_CONFIG,
-    DEFAULT_SSL_CONFIG,
-    getDatabaseConfig,
-    DatabaseConnection,
-    DatabaseConnectionState,
-    SEODatabase,
-    SEOJob,
-    SEOJobStatus,
-    SEOJobType,
-    SEOProgress,
-    SEOLog,
-    SEOLogLevel,
-    SEOMetrics,
-    URLRecord,
-    QueryBuilder,
-    createParameterizedQuery,
-    MigrationRunner,
-    MigrationDefinition,
-    SchemaVersion,
-    getSEOMigrations,
-    createDatabaseConnection,
-    getSharedDatabaseConnection,
-    getSharedSEODatabase,
-    closeSharedDatabaseConnection,
-    createSEODatabase,
-    createMigrationRunner,
-};
+// End of database.ts

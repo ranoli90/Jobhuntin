@@ -529,7 +529,7 @@ export async function retryWithResult<T>(
  * }
  * ```
  */
-export function retryable(config: Partial<RetryConfig> = {}) {
+export function retryableDecorator(config: Partial<RetryConfig> = {}) {
     return function <T extends (...args: any[]) => Promise<any>>(
         target: any,
         propertyKey: string,

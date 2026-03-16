@@ -1237,28 +1237,4 @@ export function timeAsync<T>(name: string, fn: () => Promise<T>, tags?: Record<s
     return getMetricsCollector().timeAsync(name, fn, tags);
 }
 
-// ============================================================================
-// Export all types and classes
-// ============================================================================
-
-export {
-    MetricsCollector,
-    MetricType,
-    Metric,
-    BaseMetric,
-    CounterMetric,
-    GaugeMetric,
-    HistogramMetric,
-    TimerMetric,
-    MetricDefinition,
-    MetricValue,
-    SEO_METRIC_NAMES,
-    SEO_METRIC_DEFINITIONS,
-    HealthStatus,
-    AlertCondition,
-    HealthCheckResult,
-    TimeWindow,
-    AggregatedMetrics,
-    MetricsCollectorConfig,
-    DEFAULT_METRICS_CONFIG
-};
+// End of metrics.ts
