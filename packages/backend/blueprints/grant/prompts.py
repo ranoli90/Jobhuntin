@@ -107,6 +107,7 @@ for the user.
     "unresolved_required_fields": [{{"selector": "<css_selector>", "question": "<human_readable_question>"}}]
 }}
 """
+)
 
 
 def build_grant_dom_mapping_prompt(
