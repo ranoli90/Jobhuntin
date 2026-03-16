@@ -94,8 +94,10 @@ CREATE TABLE IF NOT EXISTS jobs (
 -- ============================================================
 
 CREATE TABLE IF NOT EXISTS job_sync_config (
-    source TEXT PRIMARY KEY,
-    enabled BOOLEAN DEFAULT TRUE,
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    source TEXT UNIQUE NOT NULL,
+    is_enabled BOOLEAN DEFAULT TRUE,
+    enabled BOOLEAN DEFAULT TRUE,  -- Deprecated: kept for backward compatibility
     last_synced_at TIMESTAMPTZ,
     sync_interval_hours INTEGER DEFAULT 4,
     max_results INTEGER DEFAULT 50,
@@ -115,9 +117,14 @@ CREATE TABLE IF NOT EXISTS job_sync_runs (
     jobs_skipped INTEGER DEFAULT 0,
     errors JSONB DEFAULT '[]',
     duration_ms INTEGER,
+    search_term TEXT,
+    location TEXT,
     started_at TIMESTAMPTZ DEFAULT now(),
     completed_at TIMESTAMPTZ
 );
+
+CREATE INDEX IF NOT EXISTS idx_job_sync_runs_source ON job_sync_runs (source);
+CREATE INDEX IF NOT EXISTS idx_job_sync_runs_started_at ON job_sync_runs (started_at DESC);
 
 CREATE TABLE IF NOT EXISTS popular_searches (
     search_term TEXT NOT NULL,
@@ -402,11 +409,11 @@ CREATE TRIGGER trg_applications_notify_job_queue
 -- Seed: Default job sync sources
 -- ============================================================
 
-INSERT INTO job_sync_config (source, enabled, sync_interval_hours, max_results)
+INSERT INTO job_sync_config (source, is_enabled, enabled, sync_interval_hours, max_results, config)
 VALUES
-    ('adzuna', TRUE, 4, 50),
-    ('indeed', TRUE, 4, 50),
-    ('linkedin', TRUE, 4, 50),
-    ('glassdoor', TRUE, 6, 30),
-    ('zip_recruiter', TRUE, 6, 30)
+    ('adzuna', TRUE, TRUE, 4, 50, '{"rate_limit": 100, "priority": 1}'::jsonb),
+    ('indeed', TRUE, TRUE, 4, 50, '{"rate_limit": 100, "priority": 1}'::jsonb),
+    ('linkedin', TRUE, TRUE, 4, 50, '{"rate_limit": 50, "priority": 2}'::jsonb),
+    ('glassdoor', TRUE, TRUE, 6, 30, '{"rate_limit": 50, "priority": 4}'::jsonb),
+    ('zip_recruiter', TRUE, TRUE, 6, 30, '{"rate_limit": 100, "priority": 3}'::jsonb)
 ON CONFLICT (source) DO NOTHING;

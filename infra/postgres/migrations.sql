@@ -97,3 +97,59 @@ CREATE TABLE IF NOT EXISTS public.contact_messages (
 );
 CREATE INDEX IF NOT EXISTS idx_contact_messages_created_at ON public.contact_messages(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_contact_messages_inquiry_type ON public.contact_messages(inquiry_type);
+
+-- ============================================
+-- Job Sync Schema Fixes (042_job_sync_tables)
+-- ============================================
+
+-- Fix job_sync_config table: add id and is_enabled columns
+ALTER TABLE public.job_sync_config ADD COLUMN IF NOT EXISTS id UUID DEFAULT uuid_generate_v4();
+ALTER TABLE public.job_sync_config ADD COLUMN IF NOT EXISTS is_enabled BOOLEAN DEFAULT TRUE;
+
+-- Ensure id is the primary key (if not already)
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint WHERE conname = 'job_sync_config_pkey'
+    ) THEN
+        ALTER TABLE public.job_sync_config ADD PRIMARY KEY (id);
+    END IF;
+END $$;
+
+-- Add unique constraint on source if not exists
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint WHERE conname = 'job_sync_config_source_key'
+    ) THEN
+        ALTER TABLE public.job_sync_config ADD UNIQUE (source);
+    END IF;
+END $$;
+
+-- Fix job_sync_runs table: add search_term and location columns
+ALTER TABLE public.job_sync_runs ADD COLUMN IF NOT EXISTS search_term TEXT;
+ALTER TABLE public.job_sync_runs ADD COLUMN IF NOT EXISTS location TEXT;
+
+-- Create indexes for job_sync_runs
+CREATE INDEX IF NOT EXISTS idx_job_sync_runs_source ON public.job_sync_runs (source);
+CREATE INDEX IF NOT EXISTS idx_job_sync_runs_started_at ON public.job_sync_runs (started_at DESC);
+
+-- Create job_source_stats table if not exists
+CREATE TABLE IF NOT EXISTS public.job_source_stats (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    source TEXT UNIQUE NOT NULL,
+    total_jobs INTEGER NOT NULL DEFAULT 0,
+    new_jobs_24h INTEGER NOT NULL DEFAULT 0,
+    updated_jobs_24h INTEGER NOT NULL DEFAULT 0,
+    avg_quality_score REAL,
+    last_updated TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- Insert default sync sources if they don't exist
+INSERT INTO public.job_sync_config (source, is_enabled, config)
+VALUES 
+    ('indeed', true, '{"rate_limit": 100, "priority": 1}'::jsonb),
+    ('linkedin', true, '{"rate_limit": 50, "priority": 2}'::jsonb),
+    ('zip_recruiter', true, '{"rate_limit": 100, "priority": 3}'::jsonb),
+    ('glassdoor', true, '{"rate_limit": 50, "priority": 4}'::jsonb)
+ON CONFLICT (source) DO NOTHING;

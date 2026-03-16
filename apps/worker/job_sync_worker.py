@@ -65,10 +65,115 @@ async def create_db_pool():
     )
 
 
+async def ensure_job_sync_tables(db_pool):
+    """Create job sync tables if they don't exist, and add missing columns to existing tables."""
+    async with db_pool.acquire() as conn:
+        # Create popular_searches table
+        await conn.execute("""
+            CREATE TABLE IF NOT EXISTS public.popular_searches (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                search_term TEXT NOT NULL,
+                location TEXT NOT NULL DEFAULT 'Remote',
+                search_count INTEGER NOT NULL DEFAULT 1,
+                last_searched_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+                created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+                UNIQUE(search_term, location)
+            )
+        """)
+        
+        # Add missing columns to job_sync_runs if they exist
+        try:
+            await conn.execute("""
+                ALTER TABLE public.job_sync_runs ADD COLUMN IF NOT EXISTS search_term TEXT
+            """)
+            await conn.execute("""
+                ALTER TABLE public.job_sync_runs ADD COLUMN IF NOT EXISTS location TEXT
+            """)
+        except Exception as e:
+            logger.debug("Columns may already exist: %s", e)
+        
+        # Add missing columns to job_sync_config if they exist
+        try:
+            await conn.execute("""
+                ALTER TABLE public.job_sync_config ADD COLUMN IF NOT EXISTS is_enabled BOOLEAN DEFAULT TRUE
+            """)
+            await conn.execute("""
+                ALTER TABLE public.job_sync_config ADD COLUMN IF NOT EXISTS id UUID DEFAULT gen_random_uuid()
+            """)
+        except Exception as e:
+            logger.debug("Columns may already exist: %s", e)
+        
+        # Create job_sync_runs table
+        await conn.execute("""
+            CREATE TABLE IF NOT EXISTS public.job_sync_runs (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                source TEXT NOT NULL,
+                status TEXT NOT NULL DEFAULT 'running',
+                started_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+                completed_at TIMESTAMPTZ,
+                jobs_fetched INTEGER NOT NULL DEFAULT 0,
+                jobs_new INTEGER NOT NULL DEFAULT 0,
+                jobs_updated INTEGER NOT NULL DEFAULT 0,
+                jobs_skipped INTEGER NOT NULL DEFAULT 0,
+                errors JSONB NOT NULL DEFAULT '[]'::jsonb,
+                duration_ms INTEGER,
+                search_term TEXT,
+                location TEXT
+            )
+        """)
+        
+        # Create job_sync_config table
+        await conn.execute("""
+            CREATE TABLE IF NOT EXISTS public.job_sync_config (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                source TEXT UNIQUE NOT NULL,
+                is_enabled BOOLEAN DEFAULT TRUE,
+                enabled BOOLEAN DEFAULT TRUE,
+                last_synced_at TIMESTAMPTZ,
+                sync_interval_hours INTEGER DEFAULT 4,
+                max_results INTEGER DEFAULT 50,
+                search_queries JSONB DEFAULT '[]',
+                config JSONB DEFAULT '{}',
+                created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+                updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+            )
+        """)
+        
+        # Create job_source_stats table
+        await conn.execute("""
+            CREATE TABLE IF NOT EXISTS public.job_source_stats (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                source TEXT UNIQUE NOT NULL,
+                total_jobs INTEGER NOT NULL DEFAULT 0,
+                new_jobs_24h INTEGER NOT NULL DEFAULT 0,
+                updated_jobs_24h INTEGER NOT NULL DEFAULT 0,
+                avg_quality_score REAL,
+                last_updated TIMESTAMPTZ NOT NULL DEFAULT now()
+            )
+        """)
+        
+        # Insert default sync sources
+        await conn.execute("""
+            INSERT INTO public.job_sync_config (source, is_enabled, enabled, config)
+            VALUES 
+                ('indeed', true, true, '{"rate_limit": 100, "priority": 1}'::jsonb),
+                ('linkedin', true, true, '{"rate_limit": 50, "priority": 2}'::jsonb),
+                ('zip_recruiter', true, true, '{"rate_limit": 100, "priority": 3}'::jsonb),
+                ('glassdoor', true, true, '{"rate_limit": 50, "priority": 4}'::jsonb)
+            ON CONFLICT (source) DO NOTHING
+        """)
+        
+        logger.info("Job sync tables created/verified")
+
+
 async def run_sync_loop():
     """Main sync loop - runs every 4 hours."""
     settings = get_settings()
     db_pool = await create_db_pool()
+    
+    # Ensure tables exist before starting
+    await ensure_job_sync_tables(db_pool)
+    
     sync_service = JobSyncService(db_pool, settings)
 
     logger.info("Job sync worker started")
