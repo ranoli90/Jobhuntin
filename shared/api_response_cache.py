@@ -30,6 +30,7 @@ import redis.asyncio as redis
 
 from shared.alerting import get_alert_manager
 from shared.api_rate_limiter import RateLimitStrategy
+from shared.config import get_settings
 from shared.logging_config import get_logger
 
 logger = get_logger("sorce.api_cache")
@@ -101,6 +102,7 @@ class CacheConfig:
     max_disk_size_mb: float = 10240.0  # 10GB
     enable_redis: bool = True
     enable_disk: bool = False
+    disk_cache_dir: str | None = None
     enable_compression: bool = True
     compression_threshold_bytes: int = 1024
     cleanup_interval_seconds: float = 300.0
@@ -130,6 +132,8 @@ class ResponseCache:
     ):
         self.redis_client = redis_client
         self.config = config or CacheConfig()
+        if not self.config.disk_cache_dir:
+            self.config.disk_cache_dir = get_settings().api_cache_disk_path
         self.alert_manager = alert_manager or get_alert_manager()
 
         # Cache storage
@@ -193,6 +197,14 @@ class ResponseCache:
         self.rules: List[Any] = []
 
         self._lock = asyncio.Lock()
+
+    def _disk_cache_dir(self) -> str:
+        return self.config.disk_cache_dir or get_settings().api_cache_disk_path
+
+    def _disk_cache_file_path(self, key: str | bytes) -> str:
+        key_bytes = key.encode() if isinstance(key, str) else key
+        file_name = f"{hashlib.md5(key_bytes, usedforsecurity=False).hexdigest()}.cache"
+        return os.path.join(self._disk_cache_dir(), file_name)
 
     async def get(
         self,
@@ -500,10 +512,7 @@ class ResponseCache:
             return default
 
         try:
-            cache_file = f"/tmp/api_cache/{hashlib.md5(
-    key.encode() if isinstance(key, str) else key, usedforsecurity=False).hexdigest()}.cache"
-
-            import os
+            cache_file = self._disk_cache_file_path(key)
 
             if os.path.exists(cache_file):
                 with open(cache_file, "rb") as f:
@@ -574,11 +583,8 @@ class ResponseCache:
             return
 
         try:
-            cache_file = f"/tmp/api_cache/{hashlib.md5(
-    entry.key.encode() if isinstance(entry.key, str) else entry.key, usedforsecurity=False).hexdigest()}.cache"
+            cache_file = self._disk_cache_file_path(entry.key)
             metadata_file = f"{cache_file}.meta"
-
-            import os
 
             # Create directory if needed
             os.makedirs(os.path.dirname(cache_file), exist_ok=True)
@@ -636,8 +642,7 @@ class ResponseCache:
                 deleted = True
         elif cache_level == CacheLevel.DISK:
             if key in self.disk_cache:
-                cache_file = f"/tmp/api_cache/{hashlib.md5(
-    key.encode() if isinstance(key, str) else key, usedforsecurity=False).hexdigest()}.cache"
+                cache_file = self._disk_cache_file_path(key)
                 metadata_file = f"{cache_file}.meta"
 
                 try:
@@ -726,7 +731,7 @@ class ResponseCache:
 
         # Clean disk cache
         if self.config.enable_disk:
-            cache_dir = "/tmp/api_cache"
+            cache_dir = self._disk_cache_dir()
             if os.path.exists(cache_dir):
                 current_time = time.time()
 

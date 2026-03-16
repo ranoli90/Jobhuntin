@@ -6,6 +6,8 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import BinaryIO
 
+from shared.config import get_settings
+
 
 class FileType(Enum):
     """Allowed file types for upload."""
@@ -26,87 +28,93 @@ class UploadLimits:
     max_total_storage_mb: int
 
 
-# Tier-based upload limits
-TIER_LIMITS: dict[str, dict[FileType, UploadLimits]] = {
-    "free": {
-        FileType.RESUME: UploadLimits(
-            max_file_size_mb=5,
-            max_files_per_day=3,
-            allowed_extensions=["pdf", "doc", "docx"],
-            max_total_storage_mb=50,
-        ),
-        FileType.COVER_LETTER: UploadLimits(
-            max_file_size_mb=2,
-            max_files_per_day=5,
-            allowed_extensions=["pdf", "doc", "docx", "txt"],
-            max_total_storage_mb=20,
-        ),
-        FileType.PROFILE_IMAGE: UploadLimits(
-            max_file_size_mb=2,
-            max_files_per_day=1,
-            allowed_extensions=["jpg", "jpeg", "png", "webp"],
-            max_total_storage_mb=10,
-        ),
-        FileType.DOCUMENT: UploadLimits(
-            max_file_size_mb=2,
-            max_files_per_day=3,
-            allowed_extensions=["pdf"],
-            max_total_storage_mb=20,
-        ),
-    },
-    "pro": {
-        FileType.RESUME: UploadLimits(
-            max_file_size_mb=10,
-            max_files_per_day=20,
-            allowed_extensions=["pdf", "doc", "docx", "txt"],
-            max_total_storage_mb=500,
-        ),
-        FileType.COVER_LETTER: UploadLimits(
-            max_file_size_mb=5,
-            max_files_per_day=30,
-            allowed_extensions=["pdf", "doc", "docx", "txt"],
-            max_total_storage_mb=200,
-        ),
-        FileType.PROFILE_IMAGE: UploadLimits(
-            max_file_size_mb=5,
-            max_files_per_day=5,
-            allowed_extensions=["jpg", "jpeg", "png", "webp", "gif"],
-            max_total_storage_mb=50,
-        ),
-        FileType.DOCUMENT: UploadLimits(
-            max_file_size_mb=10,
-            max_files_per_day=20,
-            allowed_extensions=["pdf", "doc", "docx", "xls", "xlsx"],
-            max_total_storage_mb=500,
-        ),
-    },
-    "enterprise": {
-        FileType.RESUME: UploadLimits(
-            max_file_size_mb=25,
-            max_files_per_day=-1,  # Unlimited
-            allowed_extensions=["pdf", "doc", "docx", "txt", "rtf"],
-            max_total_storage_mb=5000,
-        ),
-        FileType.COVER_LETTER: UploadLimits(
-            max_file_size_mb=10,
-            max_files_per_day=-1,
-            allowed_extensions=["pdf", "doc", "docx", "txt", "rtf"],
-            max_total_storage_mb=2000,
-        ),
-        FileType.PROFILE_IMAGE: UploadLimits(
-            max_file_size_mb=10,
-            max_files_per_day=-1,
-            allowed_extensions=["jpg", "jpeg", "png", "webp", "gif", "svg"],
-            max_total_storage_mb=500,
-        ),
-        FileType.DOCUMENT: UploadLimits(
-            max_file_size_mb=50,
-            max_files_per_day=-1,
-            allowed_extensions=["pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx"],
-            max_total_storage_mb=10000,
-        ),
-    },
-}
+def _get_upload_limits_from_config() -> dict[str, dict[FileType, UploadLimits]]:
+    """Build upload limits dictionary from config settings."""
+    settings = get_settings()
+    return {
+        "free": {
+            FileType.RESUME: UploadLimits(
+                max_file_size_mb=settings.upload_limit_free_resume_mb,
+                max_files_per_day=settings.upload_limit_free_resume_per_day,
+                allowed_extensions=["pdf", "doc", "docx"],
+                max_total_storage_mb=settings.upload_limit_free_total_storage_mb,
+            ),
+            FileType.COVER_LETTER: UploadLimits(
+                max_file_size_mb=settings.upload_limit_free_cover_letter_mb,
+                max_files_per_day=5,
+                allowed_extensions=["pdf", "doc", "docx", "txt"],
+                max_total_storage_mb=20,
+            ),
+            FileType.PROFILE_IMAGE: UploadLimits(
+                max_file_size_mb=settings.upload_limit_free_profile_image_mb,
+                max_files_per_day=1,
+                allowed_extensions=["jpg", "jpeg", "png", "webp"],
+                max_total_storage_mb=10,
+            ),
+            FileType.DOCUMENT: UploadLimits(
+                max_file_size_mb=settings.upload_limit_free_document_mb,
+                max_files_per_day=3,
+                allowed_extensions=["pdf"],
+                max_total_storage_mb=20,
+            ),
+        },
+        "pro": {
+            FileType.RESUME: UploadLimits(
+                max_file_size_mb=settings.upload_limit_pro_resume_mb,
+                max_files_per_day=settings.upload_limit_pro_resume_per_day,
+                allowed_extensions=["pdf", "doc", "docx", "txt"],
+                max_total_storage_mb=settings.upload_limit_pro_total_storage_mb,
+            ),
+            FileType.COVER_LETTER: UploadLimits(
+                max_file_size_mb=settings.upload_limit_pro_cover_letter_mb,
+                max_files_per_day=30,
+                allowed_extensions=["pdf", "doc", "docx", "txt"],
+                max_total_storage_mb=200,
+            ),
+            FileType.PROFILE_IMAGE: UploadLimits(
+                max_file_size_mb=settings.upload_limit_pro_profile_image_mb,
+                max_files_per_day=5,
+                allowed_extensions=["jpg", "jpeg", "png", "webp", "gif"],
+                max_total_storage_mb=50,
+            ),
+            FileType.DOCUMENT: UploadLimits(
+                max_file_size_mb=settings.upload_limit_pro_document_mb,
+                max_files_per_day=20,
+                allowed_extensions=["pdf", "doc", "docx", "xls", "xlsx"],
+                max_total_storage_mb=500,
+            ),
+        },
+        "enterprise": {
+            FileType.RESUME: UploadLimits(
+                max_file_size_mb=settings.upload_limit_enterprise_resume_mb,
+                max_files_per_day=settings.upload_limit_enterprise_resume_per_day,
+                allowed_extensions=["pdf", "doc", "docx", "txt", "rtf"],
+                max_total_storage_mb=settings.upload_limit_enterprise_total_storage_mb,
+            ),
+            FileType.COVER_LETTER: UploadLimits(
+                max_file_size_mb=settings.upload_limit_enterprise_cover_letter_mb,
+                max_files_per_day=-1,
+                allowed_extensions=["pdf", "doc", "docx", "txt", "rtf"],
+                max_total_storage_mb=2000,
+            ),
+            FileType.PROFILE_IMAGE: UploadLimits(
+                max_file_size_mb=settings.upload_limit_enterprise_profile_image_mb,
+                max_files_per_day=-1,
+                allowed_extensions=["jpg", "jpeg", "png", "webp", "gif", "svg"],
+                max_total_storage_mb=500,
+            ),
+            FileType.DOCUMENT: UploadLimits(
+                max_file_size_mb=settings.upload_limit_enterprise_document_mb,
+                max_files_per_day=-1,
+                allowed_extensions=["pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx"],
+                max_total_storage_mb=10000,
+            ),
+        },
+    }
+
+
+# Build tier limits from config at module load
+TIER_LIMITS: dict[str, dict[FileType, UploadLimits]] = _get_upload_limits_from_config()
 
 
 def get_limits(tier: str, file_type: FileType) -> UploadLimits:

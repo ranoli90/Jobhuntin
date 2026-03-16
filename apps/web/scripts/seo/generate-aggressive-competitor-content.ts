@@ -17,11 +17,23 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
+import { getConfig } from './config';
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const COMPETITORS_FILE = path.resolve(__dirname, '../../src/data/competitors.json');
 
 // API key from environment only — never hardcode secrets
 const DEFAULT_KEY = process.env.LLM_API_KEY || "";
+
+// Get OpenRouter API URL from config
+function getOpenRouterUrl(): string {
+  try {
+    const config = getConfig();
+    return config.urls.openRouterApiUrl;
+  } catch {
+    return process.env.OPENROUTER_API_URL || 'https://openrouter.ai/api/v1';
+  }
+}
 
 // Paid models with excellent quality and low cost
 const PAID_MODELS = [
@@ -249,8 +261,9 @@ async function generateAggressiveSEOContent(
   for (const model of modelsToTry) {
     try {
       console.log("🤖 Generating aggressive SEO content with", model, "...");
+      const openRouterUrl = getOpenRouterUrl();
 
-      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      const response = await fetch(openRouterUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -285,13 +298,13 @@ async function generateAggressiveSEOContent(
 
       const content = data.choices[0].message?.content;
       const finishReason = data.choices[0].finish_reason;
-      
+
       // Check if response was truncated
       if (finishReason === 'length') {
         console.warn("⚠️  Model", model, "hit token limit, response truncated. Trying next model...");
         continue;
       }
-      
+
       if (!content) {
         console.warn("⚠️  Model", model, "returned empty content.");
         continue;

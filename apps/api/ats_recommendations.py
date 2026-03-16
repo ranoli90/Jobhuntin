@@ -21,6 +21,7 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
+from api.deps import get_pool as _get_pool, get_tenant_context as _get_tenant_ctx
 from packages.backend.domain.ats_recommendations import get_ats_recommendations_engine
 from packages.backend.domain.tenant import TenantContext
 from shared.logging_config import get_logger
@@ -151,16 +152,6 @@ class ATSStatsResponse(BaseModel):
     success_rates: Dict[str, float] = Field(
         ..., description="Success rates by category"
     )
-
-
-def _get_pool():
-    """Database pool dependency."""
-    raise NotImplementedError("Pool dependency not injected")
-
-
-def _get_tenant_ctx():
-    """Tenant context dependency."""
-    raise NotImplementedError("Tenant context dependency not injected")
 
 
 @router.post("/analyze", response_model=ATSAnalysisResponse)

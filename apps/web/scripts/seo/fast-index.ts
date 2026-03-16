@@ -155,10 +155,12 @@ async function pingSitemaps(): Promise<void> {
   log('PING', 'METHOD 1: SITEMAP PING (Google + Bing)');
   log('PING', '═══════════════════════════════════════════════════');
 
-  const sitemapUrl = encodeURIComponent(`${BASE_URL}/sitemap.xml`);
+  const baseUrl = getBaseUrl();
+  const config = getConfig();
+  const sitemapUrl = encodeURIComponent(`${baseUrl}/sitemap.xml`);
   const pingTargets = [
-    { name: 'Google', url: `https://www.google.com/ping?sitemap=${sitemapUrl}` },
-    { name: 'Bing', url: `https://www.bing.com/ping?sitemap=${sitemapUrl}` },
+    { name: 'Google', url: `${config.urls.googleSitemapPingUrl}?sitemap=${sitemapUrl}` },
+    { name: 'Bing', url: `${config.urls.bingSitemapPingUrl}?sitemap=${sitemapUrl}` },
   ];
 
   for (const target of pingTargets) {
@@ -199,7 +201,8 @@ async function submitIndexNow(urls: string[], progress: Progress): Promise<numbe
   pending.slice(0, 5).forEach((u, i) => log('INDEXNOW', `  ${i + 1}. ${u}`));
   if (pending.length > 5) log('INDEXNOW', `  ... and ${pending.length - 5} more`);
 
-  const host = new URL(BASE_URL).hostname;
+  const baseUrl = getBaseUrl();
+  const host = new URL(baseUrl).hostname;
   const indexNowKey = process.env.INDEXNOW_API_KEY;
   if (!indexNowKey) {
     log('INDEXNOW', '⚠️  INDEXNOW_API_KEY not set in environment. Skipping IndexNow submission.');
@@ -214,11 +217,8 @@ async function submitIndexNow(urls: string[], progress: Progress): Promise<numbe
     log('INDEXNOW', `Created IndexNow key file: public/${indexNowKey}.txt`);
   }
 
-  const engines = [
-    'https://api.indexnow.org/indexnow',
-    'https://www.bing.com/indexnow',
-    'https://yandex.com/indexnow',
-  ];
+  const config = getConfig();
+  const engines = config.urls.indexNowEndpoints;
 
   let totalSubmitted = 0;
   const BATCH_SIZE = 500;
@@ -404,10 +404,11 @@ async function submitGoogleIndexingApi(urls: string[], progress: Progress): Prom
 // ─── Main ────────────────────────────────────────────────────────────────────
 async function main() {
   const runStart = Date.now();
+  const baseUrl = getBaseUrl();
   log('MAIN', '═══════════════════════════════════════════════════════════');
   log('MAIN', '🚀 FAST-INDEX: Multi-Method URL Indexing');
   log('MAIN', '═══════════════════════════════════════════════════════════');
-  log('MAIN', `Site: ${BASE_URL}`);
+  log('MAIN', `Site: ${baseUrl}`);
   log('MAIN', `Node: ${process.version}`);
   log('MAIN', `Env: ${process.env.NODE_ENV || 'development'}`);
   if (DRY_RUN) log('MAIN', '🔍 DRY RUN MODE — no actual submissions');

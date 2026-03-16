@@ -10,6 +10,7 @@ from __future__ import annotations
 import re
 import uuid
 from collections.abc import Callable
+from typing import Any
 from urllib.parse import urlparse
 
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -78,19 +79,25 @@ class CSRFMiddleware:
     """
 
     # Paths exempt from CSRF protection (webhooks, public endpoints)
+    # SECURITY: Only exempt endpoints that:
+    # 1. Have no authentication (public), OR
+    # 2. Have external signature verification (webhooks from third parties), OR
+    # 3. Are idempotent safe operations (health checks, GET-based flows)
+    #
+    # DO NOT exempt authenticated user-action endpoints - they should use Bearer token
+    # auth (auto-CSRF-safe) or cookie auth with CSRF token.
     EXEMPT_PATHS = [
         "/health",
         "/healthz",
-        "/auth/magic-link",
-        "/auth/verify-magic",
-        "/auth/dev-login",
-        "/auth/logout",
-        "/auth/webhooks/resend",
-        "/billing/webhook",
-        "/sso/saml/acs",
-        "/og/",
-        "/webhook/resume_parse",  # Resume parse webhook (user-initiated but from same origin)
-        "/contact",  # Public contact form (rate-limited by IP)
+        "/auth/magic-link",  # Public - initiates auth flow, rate-limited
+        "/auth/verify-magic",  # GET request with token in URL
+        "/auth/dev-login",  # Dev-only, disabled in production
+        "/auth/logout",  # Idempotent - forcing logout is not a security concern
+        "/auth/webhooks/resend",  # External webhook with signature verification
+        "/billing/webhook",  # External webhook with Stripe signature verification
+        "/sso/saml/acs",  # External SAML IdP POST with signed assertion
+        "/og/",  # OpenGraph image generation (typically GET)
+        "/contact",  # Public contact form (rate-limited by IP, no auth)
     ]
 
     @classmethod
@@ -142,7 +149,7 @@ def _get_csrf_cookie_domain(
     return None
 
 
-def setup_csrf_middleware(app, secret: str) -> None:
+def setup_csrf_middleware(app: Any, secret: str) -> None:
     """Configure CSRF middleware on the FastAPI app.
 
     Fail-closed: in staging/prod, refuse to start without a CSRF secret.
@@ -172,6 +179,22 @@ def setup_csrf_middleware(app, secret: str) -> None:
 
     class CSRFForCORSMiddleware(StarletteCSRF):
         def _get_error_response(self, request: Request) -> Response:
+            # Log CSRF violation for security monitoring
+            # Extract relevant info for audit trail (without logging sensitive data)
+            client_ip = get_client_ip(request)
+            user_agent = request.headers.get("user-agent", "unknown")
+            method = request.method
+            path = request.url.path
+            
+            # Log the violation with security event marker
+            logger.warning(
+                f"CSRF_VALIDATION_FAILED | "
+                f"method={method} | "
+                f"path={path} | "
+                f"client_ip={client_ip} | "
+                f"user_agent={user_agent[:100] if user_agent else 'unknown'}"
+            )
+            
             response = JSONResponse(
                 {
                     "error": {
@@ -226,7 +249,7 @@ def setup_csrf_middleware(app, secret: str) -> None:
     )
 
 
-def setup_request_id_middleware(app) -> None:
+def setup_request_id_middleware(app: Any) -> None:
     """Add RequestID middleware to the app."""
     app.add_middleware(RequestIDMiddleware)
     logger.info("Request ID middleware enabled")
@@ -326,7 +349,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         return response  # type: ignore[no-any-return]
 
 
-def setup_security_headers(app) -> None:
+def setup_security_headers(app: Any) -> None:
     """Add SecurityHeaders middleware to the app."""
     app.add_middleware(SecurityHeadersMiddleware)
     logger.info("Security headers middleware enabled")

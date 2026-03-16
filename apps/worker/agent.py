@@ -391,12 +391,6 @@ NEXT_BUTTON_SELECTORS: list[str] = [
     ".btn-next",
     ".btn-continue",
 ]
-"""Playwright selectors for multi-step form 'Next'/'Continue' buttons.
-
-Shared by :func:`detect_next_button` and :func:`click_next_button` to
-avoid duplication.  Custom selectors can be prepended via the
-*custom_next_selectors* parameter on :func:`click_next_button`.
-"""
 
 
 async def detect_next_button(page: Page) -> bool:
@@ -451,8 +445,7 @@ async def extract_all_form_fields(page: Page) -> list[FormField]:
 # ---------------------------------------------------------------------------
 
 
-MAP_PROMPT_TEMPLATE =
-    """You are a job-application autofill assistant. Your goal is to fill a web form using the user's profile data.
+MAP_PROMPT_TEMPLATE = """You are a job-application autofill assistant. Your goal is to fill a web form using the user's profile data.
 
 ## Canonical User Profile
 {profile_json}

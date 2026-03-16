@@ -11,20 +11,92 @@ from urllib.parse import quote, urlparse
 import httpx
 
 from shared.logging_config import get_logger
+from shared.path_security import (
+    PathTraversalError,
+    SecurityError,
+    validate_bucket_name,
+    validate_storage_path,
+    secure_path,
+)
 
 logger = get_logger("sorce.storage")
 
 
-def _reject_path_traversal(bucket: str, path: str) -> None:
-    """Reject path traversal attempts. Raises ValueError if path is unsafe."""
-    if ".." in bucket or "/" in bucket or "\\" in bucket:
-        raise ValueError("Invalid bucket name")
-    if ".." in path or path.startswith("/") or path.startswith("\\"):
-        raise ValueError("Invalid path: path traversal not allowed")
-    # Reject encoded traversal
-    decoded = path.replace("%2e%2e", "..").replace("%2E%2E", "..")
-    if ".." in decoded:
-        raise ValueError("Invalid path: path traversal not allowed")
+def _reject_path_traversal(base_dir: Path, bucket: str, path: str) -> Path:
+    """Validate path using secure_path to prevent traversal attacks.
+    
+    This function uses pathlib.Path.resolve() as the primary method to
+    resolve symlinks and relative paths, then validates the resolved path
+    is within the allowed base directory.
+    
+    Args:
+        base_dir: The base directory for storage
+        bucket: The bucket/container name
+        path: The user-provided path to validate
+        
+    Returns:
+        The validated, resolved Path object
+        
+    Raises:
+        SecurityError: If path traversal or injection is detected
+        PathTraversalError: If the path escapes the base directory
+    """
+    # First validate the bucket name
+    validate_bucket_name(bucket)
+    
+    # Create the full base path (bucket directory)
+    full_base = base_dir / bucket
+    
+    # Use secure_path which uses Path.resolve() as primary method
+    return secure_path(full_base, path)
+
+
+def _validate_s3_path(bucket: str, path: str) -> None:
+    """Validate path for S3 storage using pattern-based checks.
+    
+    S3 uses virtual paths rather than real filesystem paths, so we use
+    pattern-based validation instead of filesystem resolution.
+    
+    Args:
+        bucket: The bucket name
+        path: The path to validate
+        
+    Raises:
+        SecurityError: If path traversal or injection is detected
+    """
+    # Validate bucket name
+    validate_bucket_name(bucket)
+    
+    # Import pattern check functions
+    from shared.path_security import (
+        contains_traversal_patterns,
+        decode_path_fully,
+    )
+    
+    # Check for traversal patterns in raw path
+    if contains_traversal_patterns(path):
+        logger.warning(
+            "Security violation: path traversal pattern in S3 path",
+            extra={"bucket": bucket, "path": path[:100]}
+        )
+        raise SecurityError("Path traversal detected: invalid path pattern")
+    
+    # Decode and check again
+    decoded = decode_path_fully(path)
+    if contains_traversal_patterns(decoded):
+        logger.warning(
+            "Security violation: encoded path traversal in S3 path",
+            extra={"bucket": bucket, "path": path[:100]}
+        )
+        raise SecurityError("Path traversal detected: encoded traversal not allowed")
+    
+    # Check for null bytes and injection
+    if "\x00" in path or "\n" in path or "\r" in path:
+        logger.warning(
+            "Security violation: injection characters in S3 path",
+            extra={"bucket": bucket, "path": repr(path[:100])}
+        )
+        raise SecurityError("Path contains invalid characters")
 
 
 class StorageService:
@@ -62,8 +134,7 @@ class LocalStorageService(StorageService):
         self, bucket: str, path: str, data: bytes, content_type: str = "application/pdf"
     ) -> str:
         """Save file to local filesystem."""
-        _reject_path_traversal(bucket, path)
-        full_path = self.base_path / bucket / path
+        full_path = validate_storage_path(self.base_path, bucket, path)
         full_path.parent.mkdir(parents=True, exist_ok=True)
         full_path.write_bytes(data)
         return f"{bucket}/{path}"
@@ -73,21 +144,19 @@ class LocalStorageService(StorageService):
     ) -> str:
         """For local storage, just return a file:// URL."""
         bucket, path = storage_path.split("/", 1)
-        full_path = self.base_path / bucket / path
+        full_path = validate_storage_path(self.base_path, bucket, path)
         return f"file://{full_path.absolute()}"
 
     async def download_file(self, storage_path: str) -> bytes:
         """Read file from local filesystem."""
         bucket, path = storage_path.split("/", 1)
-        _reject_path_traversal(bucket, path)
-        full_path = self.base_path / bucket / path
+        full_path = validate_storage_path(self.base_path, bucket, path)
         return full_path.read_bytes()
 
     async def delete_file(self, storage_path: str) -> None:
         """Delete file from local filesystem."""
         bucket, path = storage_path.split("/", 1)
-        _reject_path_traversal(bucket, path)
-        full_path = self.base_path / bucket / path
+        full_path = validate_storage_path(self.base_path, bucket, path)
         if full_path.exists():
             full_path.unlink()
             logger.info("Deleted local file: %s", storage_path)
@@ -176,7 +245,8 @@ class S3CompatibleStorageService(StorageService):
         self, bucket: str, path: str, data: bytes, content_type: str = "application/pdf"
     ) -> str:
         """Upload file to S3-compatible storage."""
-        _reject_path_traversal(bucket, path)
+        # Validate bucket and path for security
+        _validate_s3_path(bucket, path)
         object_path = f"/{bucket}/{path}"
         url = f"{self.endpoint_url}{object_path}"
 
@@ -206,6 +276,8 @@ class S3CompatibleStorageService(StorageService):
         """Generate a pre-signed URL for object access using AWS Signature V4."""
         ttl = ttl_seconds or 3600
         bucket, path = storage_path.split("/", 1)
+        # Validate bucket and path using S3-specific validation
+        _validate_s3_path(bucket, path)
 
         # Use AWS Signature Version 4 (more secure than V2)
         from datetime import datetime
@@ -267,7 +339,7 @@ class S3CompatibleStorageService(StorageService):
     async def download_file(self, storage_path: str) -> bytes:
         """Download file from S3-compatible storage."""
         bucket, path = storage_path.split("/", 1)
-        _reject_path_traversal(bucket, path)
+        _validate_s3_path(bucket, path)
         object_path = f"/{bucket}/{path}"
         url = f"{self.endpoint_url}{object_path}"
 
@@ -291,7 +363,7 @@ class S3CompatibleStorageService(StorageService):
     async def delete_file(self, storage_path: str) -> None:
         """Delete file from S3-compatible storage."""
         bucket, path = storage_path.split("/", 1)
-        _reject_path_traversal(bucket, path)
+        _validate_s3_path(bucket, path)
         object_path = f"/{bucket}/{path}"
         url = f"{self.endpoint_url}{object_path}"
 
@@ -330,8 +402,7 @@ class RenderDiskStorageService(StorageService):
         self, bucket: str, path: str, data: bytes, content_type: str = "application/pdf"
     ) -> str:
         """Save file to Render persistent disk."""
-        _reject_path_traversal(bucket, path)
-        full_path = self.disk_path / bucket / path
+        full_path = validate_storage_path(self.disk_path, bucket, path)
         full_path.parent.mkdir(parents=True, exist_ok=True)
         full_path.write_bytes(data)
         logger.info(f"Saved {len(data)} bytes to {full_path}")
@@ -350,15 +421,13 @@ class RenderDiskStorageService(StorageService):
     async def download_file(self, storage_path: str) -> bytes:
         """Read file from Render persistent disk."""
         bucket, path = storage_path.split("/", 1)
-        _reject_path_traversal(bucket, path)
-        full_path = self.disk_path / bucket / path
+        full_path = validate_storage_path(self.disk_path, bucket, path)
         return full_path.read_bytes()
 
     async def delete_file(self, storage_path: str) -> None:
         """Delete file from Render persistent disk."""
         bucket, path = storage_path.split("/", 1)
-        _reject_path_traversal(bucket, path)
-        full_path = self.disk_path / bucket / path
+        full_path = validate_storage_path(self.disk_path, bucket, path)
         if full_path.exists():
             full_path.unlink()
             logger.info("Deleted disk file: %s", storage_path)

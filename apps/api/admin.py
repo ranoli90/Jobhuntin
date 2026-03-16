@@ -19,6 +19,7 @@ import asyncpg
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from pydantic import BaseModel
 
+from api.deps import get_pool, get_tenant_context, require_admin_user_id
 from packages.backend.domain.repositories import (
     ApplicationRepo,
     EventRepo,
@@ -33,6 +34,16 @@ from packages.backend.domain.tenant import (
 )
 from shared.logging_config import get_logger
 from shared.metrics import incr
+from shared.error_responses import (
+    AuthorizationError,
+    NotFoundError,
+    ConflictError,
+)
+from shared.error_responses import (
+    AuthorizationError,
+    ConflictError,
+    NotFoundError,
+)
 
 logger = get_logger("sorce.admin")
 
@@ -92,24 +103,6 @@ class ReplayResponse(BaseModel):
 
 
 # ---------------------------------------------------------------------------
-# Dependencies (injected by main app at mount time)
-# ---------------------------------------------------------------------------
-
-
-def _get_pool():
-    raise NotImplementedError("Pool dependency not injected")
-
-
-def _get_tenant_ctx():
-    raise NotImplementedError("Tenant context dependency not injected")
-
-
-async def _get_admin_user_id():
-    """Placeholder — overridden at mount time to return current user_id."""
-    raise NotImplementedError("Auth dependency not injected")
-
-
-# ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
 
@@ -136,8 +129,8 @@ def _serialize(obj: Any) -> Any:
 async def list_tenants(
     limit: int = Query(50, ge=1, le=200),
     offset: int = Query(0, ge=0),
-    user_id: str = Depends(_get_admin_user_id),
-    db: asyncpg.Pool = Depends(_get_pool),
+    user_id: str = Depends(require_admin_user_id),
+    db: asyncpg.Pool = Depends(get_pool),
 ) -> PaginatedTenants:
     """List all tenants. System admin only."""
     async with db.acquire() as conn:
@@ -163,8 +156,8 @@ async def list_tenant_applications(
     status: str | None = Query(None),
     limit: int = Query(50, ge=1, le=200),
     offset: int = Query(0, ge=0),
-    user_id: str = Depends(_get_admin_user_id),
-    db: asyncpg.Pool = Depends(_get_pool),
+    user_id: str = Depends(require_admin_user_id),
+    db: asyncpg.Pool = Depends(get_pool),
 ) -> PaginatedApplications:
     """List applications for a tenant. Requires system admin or tenant admin."""
     async with db.acquire() as conn:
@@ -174,9 +167,7 @@ async def list_tenant_applications(
         except TenantScopeError:
             ctx = await resolve_tenant_context(conn, user_id)
             if ctx.tenant_id != tenant_id:
-                raise HTTPException(
-                    status_code=403, detail="Access denied to this tenant"
-                )
+                raise AuthorizationError("Access denied to this tenant")
             require_role(ctx, "OWNER", "ADMIN")
 
         rows = await ApplicationRepo.list_for_tenant(
@@ -216,8 +207,8 @@ async def get_tenant_application_detail(
     tenant_id: str,
     application_id: str,
     unmask: bool = Query(False),
-    user_id: str = Depends(_get_admin_user_id),
-    db: asyncpg.Pool = Depends(_get_pool),
+    user_id: str = Depends(require_admin_user_id),
+    db: asyncpg.Pool = Depends(get_pool),
 ) -> ApplicationDetailAdmin:
     """Full application detail with inputs and events.
     PII is masked by default; ?unmask=true requires OWNER role.
@@ -232,9 +223,7 @@ async def get_tenant_application_detail(
         except TenantScopeError:
             ctx = await resolve_tenant_context(conn, user_id)
             if ctx.tenant_id != tenant_id:
-                raise HTTPException(
-                    status_code=403, detail="Access denied to this tenant"
-                )
+                raise AuthorizationError("Access denied to this tenant")
             require_role(ctx, "OWNER", "ADMIN", "SUPPORT_AGENT")
 
         detail = await ApplicationRepo.get_detail(
@@ -242,13 +231,16 @@ async def get_tenant_application_detail(
         )
 
     if detail is None:
-        raise HTTPException(status_code=404, detail="Application not found")
+        raise NotFoundError("Application")
 
     serialized = detail.to_serializable()
 
     # Mask PII using the masking module unless explicitly unmasked
     if not unmask:
-        from packages.backend.domain.masking import redact_event_payload, redact_profile_for_support
+        from packages.backend.domain.masking import (
+            redact_event_payload,
+            redact_profile_for_support,
+        )
 
         if "profile_data" in serialized and isinstance(
             serialized["profile_data"], dict
@@ -273,8 +265,8 @@ async def get_tenant_application_detail(
 async def replay_application(
     tenant_id: str,
     application_id: str,
-    user_id: str = Depends(_get_admin_user_id),
-    db: asyncpg.Pool = Depends(_get_pool),
+    user_id: str = Depends(require_admin_user_id),
+    db: asyncpg.Pool = Depends(get_pool),
 ) -> ReplayResponse:
     """Re-queue a FAILED application for another processing attempt.
     Resets status to QUEUED and records a RETRY_SCHEDULED event.
@@ -289,9 +281,7 @@ async def replay_application(
         except TenantScopeError:
             ctx = await resolve_tenant_context(conn, user_id)
             if ctx.tenant_id != tenant_id:
-                raise HTTPException(
-                    status_code=403, detail="Access denied to this tenant"
-                )
+                raise AuthorizationError("Access denied to this tenant")
             require_role(ctx, "OWNER", "ADMIN")
 
     async with db_transaction(db) as conn:
@@ -299,14 +289,11 @@ async def replay_application(
             conn, application_id, tenant_id
         )
         if app_row is None:
-            raise HTTPException(
-                status_code=404, detail="Application not found in this tenant"
-            )
+            raise NotFoundError("Application", "in this tenant")
 
         if str(app_row["status"]) != "FAILED":
-            raise HTTPException(
-                status_code=409,
-                detail=f"Can only replay FAILED applications, current status: {app_row['status']}",
+            raise ConflictError(
+                f"Can only replay FAILED applications, current status: {app_row['status']}"
             )
 
         updated = await ApplicationRepo.update_status(conn, application_id, "QUEUED")
@@ -370,8 +357,8 @@ async def get_tenant_audit_log(
     end_date: str | None = Query(None),
     limit: int = Query(100, ge=1, le=500),
     offset: int = Query(0, ge=0),
-    user_id: str = Depends(_get_admin_user_id),
-    db: asyncpg.Pool = Depends(_get_pool),
+    user_id: str = Depends(require_admin_user_id),
+    db: asyncpg.Pool = Depends(get_pool),
 ) -> PaginatedAuditLog:
     """Retrieve audit log for a tenant with filtering options."""
     from datetime import datetime
@@ -386,9 +373,7 @@ async def get_tenant_audit_log(
         except TenantScopeError:
             ctx = await resolve_tenant_context(conn, user_id)
             if ctx.tenant_id != tenant_id:
-                raise HTTPException(
-                    status_code=403, detail="Access denied to this tenant"
-                )
+                raise AuthorizationError("Access denied to this tenant")
             require_role(ctx, "OWNER", "ADMIN", "COMPLIANCE_OFFICER")
 
         from shared.sql_utils import escape_ilike
@@ -461,8 +446,8 @@ async def get_tenant_audit_log(
 async def get_tenant_audit_stats(
     tenant_id: str,
     days: int = Query(30, ge=1, le=365),
-    user_id: str = Depends(_get_admin_user_id),
-    db: asyncpg.Pool = Depends(_get_pool),
+    user_id: str = Depends(require_admin_user_id),
+    db: asyncpg.Pool = Depends(get_pool),
 ) -> AuditLogStats:
     """Get audit log statistics for a tenant."""
     from shared.validators import validate_uuid
@@ -475,9 +460,7 @@ async def get_tenant_audit_stats(
         except TenantScopeError:
             ctx = await resolve_tenant_context(conn, user_id)
             if ctx.tenant_id != tenant_id:
-                raise HTTPException(
-                    status_code=403, detail="Access denied to this tenant"
-                )
+                raise AuthorizationError("Access denied to this tenant")
             require_role(ctx, "OWNER", "ADMIN", "COMPLIANCE_OFFICER")
 
         total = await conn.fetchval(
@@ -560,8 +543,8 @@ async def get_tenant_audit_stats(
 async def export_tenant_audit_log(
     tenant_id: str,
     days: int = Query(90, ge=1, le=365),
-    user_id: str = Depends(_get_admin_user_id),
-    db: asyncpg.Pool = Depends(_get_pool),
+    user_id: str = Depends(require_admin_user_id),
+    db: asyncpg.Pool = Depends(get_pool),
 ):
     """Export audit log as CSV for compliance reporting."""
     from fastapi.responses import StreamingResponse
@@ -577,9 +560,7 @@ async def export_tenant_audit_log(
         except TenantScopeError:
             ctx = await resolve_tenant_context(conn, user_id)
             if ctx.tenant_id != tenant_id:
-                raise HTTPException(
-                    status_code=403, detail="Access denied to this tenant"
-                )
+                raise AuthorizationError("Access denied to this tenant")
             require_role(ctx, "OWNER", "ADMIN", "COMPLIANCE_OFFICER")
 
         csv_content = await export_audit_log_csv(conn, tenant_id, days=days)
@@ -601,8 +582,8 @@ async def export_tenant_audit_log(
 
 @router.get("/jobs/sync-status")
 async def get_job_sync_status(
-    user_id: str = Depends(_get_admin_user_id),
-    db: asyncpg.Pool = Depends(_get_pool),
+    user_id: str = Depends(require_admin_user_id),
+    db: asyncpg.Pool = Depends(get_pool),
 ):
     """Get current status of JobSpy integration.
     Returns configured sources, last run stats, and circuit breaker status.
@@ -621,8 +602,8 @@ async def get_job_sync_status(
 @router.post("/jobs/sync")
 async def trigger_job_sync(
     background_tasks: BackgroundTasks,
-    user_id: str = Depends(_get_admin_user_id),
-    db: asyncpg.Pool = Depends(_get_pool),
+    user_id: str = Depends(require_admin_user_id),
+    db: asyncpg.Pool = Depends(get_pool),
 ):
     """Trigger a manual job sync in the background."""
     from packages.backend.domain.job_sync_service import JobSyncService

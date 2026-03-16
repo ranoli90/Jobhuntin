@@ -17,6 +17,11 @@ from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import Response
 from pydantic import BaseModel, Field, field_validator
 
+from api.deps import (
+    get_current_user_id as _get_user_id,
+    get_pool as _get_pool,
+    get_tenant_id as _get_tenant_id,
+)
 from packages.backend.domain.repositories import db_transaction
 from shared.logging_config import get_logger
 from shared.metrics import incr
@@ -72,25 +77,6 @@ class DeletionResponse(BaseModel):
     status: str
     scheduled_at: str
     retention_exceptions: list[str] = Field(default_factory=list)
-
-
-async def _get_pool() -> asyncpg.Pool:
-    from api.main import get_pool
-
-    return get_pool()
-
-
-async def _get_user_id() -> str:
-    from api.main import get_current_user_id
-
-    return get_current_user_id()
-
-
-async def _get_tenant_id() -> str:
-    from api.main import get_tenant_context
-
-    ctx = await get_tenant_context()
-    return ctx.tenant_id
 
 
 # PRIV-005: Use application_inputs (hold questions) and answer_memory (smart pre-fill),
@@ -231,7 +217,7 @@ async def export_user_data(
                 # Whitelist of allowed tables for GDPR export to prevent SQL injection
                 allowed_tables = {
                     "public.users": "user_id",
-                    "public.user_profiles": "user_id", 
+                    "public.user_profiles": "user_id",
                     "public.applications": "user_id",
                     "public.resumes": "user_id",
                     "public.resume_pdfs": "user_id",
@@ -239,13 +225,13 @@ async def export_user_data(
                     "public.email_communications_log": "user_id",
                     "public.user_preferences": "user_id",
                 }
-                
+
                 if table not in allowed_tables:
                     logger.warning(
                         f"Invalid table requested for GDPR export: {table}"
                     )
                     continue
-                
+
                 user_col = allowed_tables[table]
 
                 if user_col not in table_columns:

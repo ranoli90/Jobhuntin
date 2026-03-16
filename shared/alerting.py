@@ -167,6 +167,10 @@ class SlackWebhookChannel(NotificationChannel):
             logger.warning("Slack webhook URL not configured")
             return False
 
+        from shared.config import get_settings
+
+        settings = get_settings()
+
         severity_colors = {
             AlertSeverity.INFO: "#36a64f",
             AlertSeverity.WARNING: "#ffcc00",
@@ -201,7 +205,7 @@ class SlackWebhookChannel(NotificationChannel):
                         },
                     ],
                     "footer": "Sorce Alerting",
-                    "footer_icon": "https://sorce.app/favicon.ico",
+                    "footer_icon": settings.alerting_footer_icon_url,
                 }
             ]
         }
@@ -230,9 +234,11 @@ class SlackWebhookChannel(NotificationChannel):
 class EmailChannel(NotificationChannel):
     """Sends alerts via email (uses Resend API)."""
 
-    def __init__(self, recipients: list[str], from_address: str = "alerts@sorce.app"):
+    def __init__(self, recipients: list[str], from_address: str | None = None):
+        from shared.config import get_settings
+
         self.recipients = recipients
-        self.from_address = from_address
+        self.from_address = from_address or get_settings().alert_email_from
 
     async def send(self, alert: Alert, rule: AlertRule) -> bool:
         if not self.recipients:
@@ -266,7 +272,7 @@ Labels: {json.dumps(alert.labels, indent=2)}
 
             async with aiohttp.ClientSession() as session:
                 async with session.post(
-                    "https://api.resend.com/emails",
+                    settings.resend_emails_api_url,
                     headers={"Authorization": f"Bearer {settings.resend_api_key}"},
                     json={
                         "from": self.from_address,

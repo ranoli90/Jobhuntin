@@ -13,6 +13,8 @@ from packages.backend.domain.match_weights import (
 from packages.backend.domain.tenant import TenantContext
 from shared.logging_config import get_logger
 
+from api.deps import get_tenant_context
+
 logger = get_logger("sorce.match_weights")
 
 router = APIRouter(tags=["match_weights"])
@@ -101,19 +103,9 @@ class MatchScoreResponse(BaseModel):
     )
 
 
-def _get_pool():
-    """Database pool dependency."""
-    raise NotImplementedError("Pool dependency not injected")
-
-
-def _get_tenant_ctx():
-    """Tenant context dependency."""
-    raise NotImplementedError("Tenant context dependency not injected")
-
-
 @router.get("/config")
 async def get_tenant_config(
-    ctx: TenantContext = Depends(_get_tenant_ctx),
+    ctx: TenantContext = Depends(get_tenant_context),
 ) -> Dict[str, Any]:
     """Get the current match configuration for the tenant.
 
@@ -169,7 +161,7 @@ async def get_tenant_config(
 @router.put("/config")
 async def update_tenant_config(
     request: TenantConfigRequest,
-    ctx: TenantContext = Depends(_get_tenant_ctx),
+    ctx: TenantContext = Depends(get_tenant_context),
 ) -> Dict[str, Any]:
     """Update the tenant's match configuration.
 
@@ -224,7 +216,7 @@ async def update_tenant_config(
 async def update_weight(
     category: str,
     request: WeightConfigRequest,
-    ctx: TenantContext = Depends(_get_tenant_ctx),
+    ctx: TenantContext = Depends(get_tenant_context),
 ) -> Dict[str, Any]:
     """Update a specific weight configuration.
 
@@ -287,7 +279,7 @@ async def update_weight(
 @router.post("/calculate-score")
 async def calculate_match_score(
     request: MatchScoreRequest,
-    ctx: TenantContext = Depends(_get_tenant_ctx),
+    ctx: TenantContext = Depends(get_tenant_context),
 ) -> MatchScoreResponse:
     """Calculate match score using tenant-specific configuration.
 
@@ -376,7 +368,7 @@ async def calculate_match_score(
 
 @router.get("/categories")
 async def get_weight_categories(
-    ctx: TenantContext = Depends(_get_tenant_ctx),
+    ctx: TenantContext = Depends(get_tenant_context),
 ) -> List[Dict[str, Any]]:
     """Get all available weight categories.
 
@@ -416,7 +408,7 @@ async def get_weight_categories(
 
 @router.get("/analytics")
 async def get_match_analytics(
-    ctx: TenantContext = Depends(_get_tenant_ctx),
+    ctx: TenantContext = Depends(get_tenant_context),
     days: int = Query(
         default=30, ge=1, le=365, description="Number of days to analyze"
     ),
@@ -521,7 +513,7 @@ async def get_match_analytics(
 
 @router.post("/reset")
 async def reset_to_defaults(
-    ctx: TenantContext = Depends(_get_tenant_ctx),
+    ctx: TenantContext = Depends(get_tenant_context),
 ) -> Dict[str, Any]:
     """Reset tenant configuration to defaults.
 

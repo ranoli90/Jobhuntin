@@ -439,7 +439,9 @@ class NotificationBatchProcessor:
             await self._update_user_batch(user_batch)
 
             # Get notification manager
-            from packages.backend.domain.notification_manager import create_notification_manager
+            from packages.backend.domain.notification_manager import (
+                create_notification_manager,
+            )
 
             notification_manager = create_notification_manager(self.db_pool)
 

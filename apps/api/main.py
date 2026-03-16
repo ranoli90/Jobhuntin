@@ -22,10 +22,6 @@ from pathlib import Path
 project_root = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(project_root))
 
-import json
-import mimetypes
-import os
-import re
 import time
 import uuid
 from contextlib import asynccontextmanager
@@ -33,32 +29,29 @@ from typing import Any
 
 import asyncpg
 import jwt as pyjwt
-from fastapi import BackgroundTasks, Depends, FastAPI, File, HTTPException
-from fastapi import Path as FastAPIPath
-from fastapi import Request, UploadFile
+from api.dependencies import (
+    _pool_manager,
+    get_current_user_id,
+    get_pool,
+    require_admin_user_id,
+)
+from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, Response
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from fastapi.responses import JSONResponse
 
-from api.dependencies import _pool_manager, get_current_user_id, get_pool, require_admin_user_id
 from packages.backend.domain.agent_improvements import create_agent_improvements_manager
-from packages.backend.domain.analytics_events import (
-    APPLICATION_STATUS_CHANGED,
-    emit_analytics_event,
-)
 from packages.backend.domain.masking import mask_ip
-from packages.backend.domain.models import CanonicalProfile
-from packages.backend.domain.repositories import (
-    ApplicationRepo,
-    EventRepo,
-    InputRepo,
-    JobRepo,
-    db_transaction,
-)
-from packages.backend.domain.resume import process_resume_upload
 from packages.backend.domain.tenant import TenantContext, resolve_tenant_context
 from shared.api_response import SuccessResponse, success_response
 from shared.config import Environment, get_settings
+from shared.error_responses import (
+    APIError,
+    ErrorCodes,
+    ErrorDetail,
+    ErrorInfo,
+    ErrorResponse,
+    register_exception_handlers,
+)
 from shared.logging_config import LogContext, get_logger, setup_logging
 from shared.metrics import get_rate_limiter, incr, observe
 from shared.middleware import (
@@ -68,9 +61,7 @@ from shared.middleware import (
     setup_security_headers,
 )
 from shared.redis_client import close_redis, get_redis
-from shared.storage import get_storage_service
 from shared.telemetry import setup_telemetry
-from shared.validators import validate_uuid
 
 # ---------------------------------------------------------------------------
 # Configuration (loaded from shared.config)
@@ -105,11 +96,7 @@ if _settings.sentry_dsn:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
-    if not _settings.jwt_secret:
-        if _settings.env == Environment.PROD:
-            logger.critical("JWT_SECRET missing in PROD. Aborting startup.")
-            raise RuntimeError("JWT_SECRET must be set in production")
-        logger.warning("JWT_SECRET not set. Authentication will fail.")
+    _settings.validate_critical()
 
     await _pool_manager.initialize()
 
@@ -137,16 +124,6 @@ async def lifespan(app: FastAPI):
         except Exception as e:
             logger.warning(f"Redis connection failed: {e}")
     else:
-        if _settings.env == Environment.PROD:
-            logger.critical(
-                "REDIS_URL not set in production. Magic-link token replay prevention "
-                "uses in-memory store which is unsafe for multi-instance deployments. "
-                "Set REDIS_URL for production."
-            )
-            raise RuntimeError(
-                "REDIS_URL must be set in production for secure magic-link auth. "
-                "In-memory token replay prevention is not safe across multiple workers."
-            )
         logger.info("Redis disabled (REDIS_URL not set)")
 
     yield
@@ -502,6 +479,26 @@ async def rate_limiting_middleware(request: Request, call_next):
 
     tenant_id, tenant_tier = await _get_tenant_info(auth_header)
 
+    # Helper to build standardized error response
+    def _rate_limit_error(message: str, retry_after: int | None = None) -> JSONResponse:
+        from datetime import datetime, timezone
+        request_id = getattr(request.state, "request_id", None)
+        details = []
+        if retry_after is not None:
+            details.append(ErrorDetail(field="retry_after", message=f"Try again in {retry_after} seconds"))
+        return JSONResponse(
+            status_code=429,
+            content=ErrorResponse(
+                error=ErrorInfo(
+                    code=ErrorCodes.RATE_LIMIT_EXCEEDED,
+                    message=message,
+                    details=details,
+                ),
+                request_id=request_id,
+            ).model_dump(),
+            headers={"Retry-After": str(retry_after)} if retry_after else None,
+        )
+
     if tenant_id:
         tenant_limiter = get_tenant_rate_limiter()
         allowed, metadata = await tenant_limiter.acquire(
@@ -511,30 +508,31 @@ async def rate_limiting_middleware(request: Request, call_next):
         )
         if not allowed:
             incr("api.rate_limit_exceeded", tags={"tenant_id": str(tenant_id), "endpoint": request.url.path})
-            return JSONResponse(
-                status_code=429,
-                content={
-                    "error": {
-                        "code": "RATE_LIMIT_EXCEEDED",
-                        "message": f"Rate limit exceeded. Limit: {metadata.get('limit', 'unknown')} requests/minute. "
-                        f"Try again in {metadata.get('reset_in', 60)} seconds.",
-                    }
-                },
+            reset_in = metadata.get("reset_in", 60)
+            return _rate_limit_error(
+                f"Rate limit exceeded. Limit: {metadata.get('limit', 'unknown')} requests/minute. "
+                f"Try again in {reset_in} seconds.",
+                retry_after=reset_in,
             )
     else:
         ip_limiter = get_rate_limiter(f"api:{client_ip}", max_calls=100, window_seconds=60)
         if not await ip_limiter.acquire():
             incr("api.rate_limit_exceeded", tags={"ip_hash": mask_ip(client_ip)})
-            return JSONResponse(
-                status_code=429,
-                content =
-    {"error": {"code": "RATE_LIMIT_EXCEEDED", "message": "Rate limit exceeded. Please try again later."}},
-            )
+            return _rate_limit_error("Rate limit exceeded. Please try again later.", retry_after=60)
 
     response = await call_next(request)
     if response is None:
+        request_id = getattr(request.state, "request_id", None)
         return JSONResponse(
-    status_code=500, content={"error": {"code": "INTERNAL_SERVER_ERROR", "message": "No response"}})
+            status_code=500,
+            content=ErrorResponse(
+                error=ErrorInfo(
+                    code=ErrorCodes.INTERNAL_ERROR,
+                    message="No response from server",
+                ),
+                request_id=request_id,
+            ).model_dump(),
+        )
     return response
 
 
@@ -594,14 +592,12 @@ def _mount_sub_routers() -> None:
 
     import api.admin as admin_mod
 
-    app.dependency_overrides[admin_mod._get_pool] = get_pool
-    app.dependency_overrides[admin_mod._get_tenant_ctx] = get_tenant_context
-    app.dependency_overrides[admin_mod._get_admin_user_id] = require_admin_user_id
+    # admin.py now imports directly from api.deps - no overrides needed
     app.include_router(admin_mod.router)
 
     import api.auth as auth_mod
 
-    # auth uses get_pool directly from api.dependencies
+    # auth.py now imports directly from api.deps - no overrides needed
     app.include_router(auth_mod.router)
 
     import api.export as export_mod
@@ -668,8 +664,7 @@ def _mount_sub_routers() -> None:
 
     import api.user as user_mod
 
-    app.dependency_overrides[user_mod._get_pool] = get_pool
-    app.dependency_overrides[user_mod._get_tenant_ctx] = get_tenant_context
+    # user.py now imports directly from api.deps - no overrides needed
     app.include_router(user_mod.router)
 
     # Skills taxonomy and validation
@@ -749,8 +744,7 @@ def _mount_sub_routers() -> None:
     # AI onboarding system
     import api.ai_onboarding as ai_onboarding_mod
 
-    app.dependency_overrides[ai_onboarding_mod._get_pool] = get_pool
-    app.dependency_overrides[ai_onboarding_mod._get_tenant_ctx] = get_tenant_context
+    # ai_onboarding.py now imports directly from api.deps - no overrides needed
     app.include_router(ai_onboarding_mod.router)
 
     # A/B testing system
@@ -772,16 +766,12 @@ def _mount_sub_routers() -> None:
     # AI Suggestions for smart onboarding
     import api.ai as ai_mod
 
-    app.dependency_overrides[ai_mod._get_pool] = get_pool
-    app.dependency_overrides[ai_mod._get_user_id] = get_current_user_id
-    app.dependency_overrides[ai_mod._get_tenant_id] = _get_tenant_id_from_context
+    # ai.py now imports directly from api.deps - no overrides needed
     app.include_router(ai_mod.router)
 
     import api.dashboard as dashboard_mod
 
-    app.dependency_overrides[dashboard_mod._get_pool] = get_pool
-    app.dependency_overrides[dashboard_mod._get_tenant_ctx] = get_tenant_context
-    app.dependency_overrides[dashboard_mod._get_admin_user_id] = require_admin_user_id
+    # dashboard.py now imports directly from api.deps - no overrides needed
     app.include_router(dashboard_mod.router)
 
     import api.sessions as sessions_mod
@@ -943,167 +933,9 @@ def _mount_sub_routers() -> None:
 # Standard error envelope handler
 # ---------------------------------------------------------------------------
 
-
-@app.exception_handler(HTTPException)
-async def http_exception_handler(request: Request, exc: HTTPException) -> JSONResponse:
-    """C7: Error Handling - Standardize error responses.
-
-    Returns consistent error format:
-    {
-        "error": {
-            "code": "ERROR_CODE",
-            "message": "Human-readable message",
-            "detail": "Additional context",
-            "request_id": "X-Request-ID"
-        }
-    }
-    """
-    request_id = request.headers.get("X-Request-ID", "unknown")
-
-    # MEDIUM: Extract error code from status code or detail message
-    error_codes = {
-        400: "BAD_REQUEST",
-        401: "UNAUTHORIZED",
-        403: "FORBIDDEN",
-        404: "NOT_FOUND",
-        409: "CONFLICT",
-        402: "PAYMENT_REQUIRED",
-        413: "PAYLOAD_TOO_LARGE",
-        429: "RATE_LIMIT_EXCEEDED",
-        500: "INTERNAL_SERVER_ERROR",
-        502: "BAD_GATEWAY",
-        503: "SERVICE_UNAVAILABLE",
-        504: "GATEWAY_TIMEOUT",
-    }
-
-    # Try to extract specific error code from detail message
-    error_code = error_codes.get(exc.status_code, "HTTP_ERROR")
-    detail_lower = (exc.detail or "").lower()
-
-    # Map common error messages to specific error codes
-    if "invalid job id" in detail_lower:
-        error_code = "INVALID_JOB_ID_FORMAT"
-    elif "invalid application id" in detail_lower:
-        error_code = "INVALID_APPLICATION_ID_FORMAT"
-    elif "undo window" in detail_lower or "expired" in detail_lower:
-        error_code = "UNDO_WINDOW_EXPIRED"
-    elif "invalid captcha" in detail_lower:
-        error_code = "INVALID_CAPTCHA"
-    elif "file is empty" in detail_lower or "corrupted" in detail_lower:
-        error_code = "FILE_CORRUPTED"
-    elif "invalid file type" in detail_lower or "not allowed" in detail_lower:
-        error_code = "INVALID_FILE_TYPE"
-    elif "missing signature" in detail_lower:
-        error_code = "MISSING_SIGNATURE"
-    elif "invalid signature" in detail_lower:
-        error_code = "INVALID_SIGNATURE"
-    elif "missing authentication" in detail_lower:
-        error_code = "MISSING_AUTHENTICATION"
-    elif "invalid.*token" in detail_lower or "expired.*token" in detail_lower:
-        error_code = "INVALID_TOKEN"
-    elif "admin access required" in detail_lower or "admin.*required" in detail_lower:
-        error_code = "ADMIN_ACCESS_REQUIRED"
-    elif "plan.*upgrade" in detail_lower or "enterprise plan" in detail_lower:
-        error_code = "PLAN_UPGRADE_REQUIRED"
-    elif "access denied" in detail_lower:
-        error_code = "ACCESS_DENIED"
-    elif "not found" in detail_lower:
-        if "job" in detail_lower:
-            error_code = "JOB_NOT_FOUND"
-        elif "application" in detail_lower:
-            error_code = "APPLICATION_NOT_FOUND"
-        elif "user" in detail_lower:
-            error_code = "USER_NOT_FOUND"
-        elif "session" in detail_lower:
-            error_code = "SESSION_NOT_FOUND"
-    elif "already exists" in detail_lower or "duplicate" in detail_lower:
-        error_code = "RESOURCE_ALREADY_EXISTS"
-    elif "status conflict" in detail_lower or "status.*conflict" in detail_lower:
-        error_code = "APPLICATION_STATUS_CONFLICT"
-    elif "no pending questions" in detail_lower:
-        error_code = "NO_PENDING_QUESTIONS"
-    elif "email service" in detail_lower:
-        if "timeout" in detail_lower:
-            error_code = "EMAIL_SERVICE_TIMEOUT"
-        else:
-            error_code = "EMAIL_SERVICE_ERROR"
-    elif (
-        "database.*unavailable" in detail_lower or "pool.*not available" in detail_lower
-    ):
-        error_code = "DATABASE_UNAVAILABLE"
-    elif "rating" in detail_lower and ("1" in detail_lower or "5" in detail_lower):
-        error_code = "INVALID_RATING"
-
-    return JSONResponse(
-        status_code=exc.status_code,
-        content={
-            "error": {
-                "code": error_code,
-                "message": exc.detail or "Something went wrong. Please try again.",
-                "request_id": request_id,
-            }
-        },
-    )
-
-
-@app.exception_handler(Exception)
-async def global_exception_handler(request: Request, exc: Exception) -> JSONResponse:
-    """C7: Error Handling - Catch-all for unhandled exceptions.
-
-    Prevents stack trace leaks in production while providing useful
-    error information in development. B1: Return 503 for pool exhaustion.
-    """
-    request_id = request.headers.get("X-Request-ID", "unknown")
-    # B1: DB pool exhausted - return 503
-    exc_name = type(exc).__name__
-    if (
-        "TooManyConnections" in exc_name
-        or "PoolTimeout" in exc_name
-        or (
-            isinstance(exc, (TimeoutError, ConnectionError))
-            and "pool" in str(exc).lower()
-        )
-    ):
-        logger.warning("Database pool exhausted or timeout: %s", exc)
-        return JSONResponse(
-            status_code=503,
-            content={
-                "error": {
-                    "code": "SERVICE_UNAVAILABLE",
-                    "message": "Service temporarily unavailable. Please try again.",
-                    "request_id": request_id,
-                }
-            },
-        )
-    logger.error(
-        "Unhandled exception",
-        extra={
-            "exception_type": type(exc).__name__,
-            "exception_message": str(exc),
-            "request_id": request_id,
-            "path": request.url.path,
-        },
-        exc_info=True,
-    )
-
-    if _settings.env == Environment.LOCAL:
-        msg = f"Internal Server Error: {str(exc)}"
-        detail = f"{type(exc).__name__}: {str(exc)}"
-    else:
-        msg = "Internal Server Error"
-        detail = "An unexpected error occurred. Our team has been notified."
-
-    return JSONResponse(
-        status_code=500,
-        content={
-            "error": {
-                "code": "INTERNAL_SERVER_ERROR",
-                "message": msg,
-                "detail": detail,
-                "request_id": request_id,
-            }
-        },
-    )
+# Register standardized exception handlers from shared.error_responses
+# This provides consistent error format across all API endpoints
+register_exception_handlers(app)
 
 
 # ---------------------------------------------------------------------------

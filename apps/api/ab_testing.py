@@ -27,9 +27,15 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
-from packages.backend.domain.ab_testing import ExperimentStatus, MetricType, get_ab_testing_manager
+from packages.backend.domain.ab_testing import (
+    ExperimentStatus,
+    MetricType,
+    get_ab_testing_manager,
+)
 from packages.backend.domain.tenant import TenantContext
 from shared.logging_config import get_logger
+
+from api.deps import get_pool, get_tenant_context
 
 logger = get_logger("sorce.ab_testing")
 
@@ -150,20 +156,11 @@ class GenerateVariantResponse(BaseModel):
     )
 
 
-def _get_pool():
-    """Database pool dependency."""
-    raise NotImplementedError("Pool dependency not injected")
-
-
-def _get_tenant_ctx():
-    """Tenant context dependency."""
-    raise NotImplementedError("Tenant context dependency not injected")
-
 
 @router.post("/experiments", response_model=CreateExperimentResponse)
 async def create_experiment(
     request: CreateExperimentRequest,
-    ctx: TenantContext = Depends(_get_tenant_ctx),
+    ctx: TenantContext = Depends(get_tenant_context),
 ) -> CreateExperimentResponse:
     """Create a new A/B testing experiment.
 
@@ -210,7 +207,7 @@ async def list_experiments(
     status: Optional[str] = Query(None, description="Filter by status"),
     limit: int = Query(50, description="Maximum number of experiments"),
     offset: int = Query(0, description="Offset for pagination"),
-    ctx: TenantContext = Depends(_get_tenant_ctx),
+    ctx: TenantContext = Depends(get_tenant_context),
 ) -> Dict[str, Any]:
     """List A/B testing experiments.
 
@@ -253,7 +250,7 @@ async def list_experiments(
 @router.get("/experiments/{experiment_id}")
 async def get_experiment(
     experiment_id: str,
-    ctx: TenantContext = Depends(_get_tenant_ctx),
+    ctx: TenantContext = Depends(get_tenant_context),
 ) -> Dict[str, Any]:
     """Get experiment details.
 

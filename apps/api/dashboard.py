@@ -3,25 +3,33 @@
 Provides:
   - GET /admin/dashboard/overview - System health summary
   - GET /admin/dashboard/metrics - Detailed metrics for time range
-  - GET /admin/dashboard/alerts - Active and recent alerts
+  - GET /admin/dashboard/alerts - Active and recent alerts (cursor-based pagination)
   - POST /admin/dashboard/alerts/{id}/acknowledge - Acknowledge alert
-  - GET /admin/dashboard/tenants - Tenant activity overview
-  - GET /admin/dashboard/performance - Performance trends
+  - GET /admin/dashboard/tenants - Tenant activity overview (cursor-based pagination)
+  - GET /admin/dashboard/performance - Performance trends (cursor-based pagination)
 """
 
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
-from typing import Any
+from typing import Any, Optional
 
 import asyncpg
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 
+from api.deps import get_pool, get_tenant_context, require_admin_user_id
 from shared.alerting import AlertSeverity, AlertStatus, get_alert_manager
 from shared.circuit_breaker import get_all_circuit_breaker_statuses
 from shared.logging_config import get_logger
 from shared.monitoring_config import get_monitoring_config
+from shared.pagination import (
+    PaginatedResult,
+    PaginationParams,
+    decode_cursor,
+    encode_cursor,
+    paginated_response,
+)
 from shared.structured_logging import get_structured_metrics
 
 logger = get_logger("sorce.dashboard")
@@ -88,22 +96,10 @@ class PerformanceTrend(BaseModel):
     active_connections: int
 
 
-def _get_pool():
-    raise NotImplementedError("Pool dependency not injected")
-
-
-def _get_tenant_ctx():
-    raise NotImplementedError("Tenant context dependency not injected")
-
-
-async def _get_admin_user_id():
-    raise NotImplementedError("Auth dependency not injected")
-
-
 @router.get("/overview", response_model=HealthSummary)
 async def get_overview(
-    _admin: str = Depends(_get_admin_user_id),
-    db: asyncpg.Pool = Depends(_get_pool),
+    _admin: str = Depends(require_admin_user_id),
+    db: asyncpg.Pool = Depends(get_pool),
 ) -> HealthSummary:
     """Get system health summary for dashboard."""
     structured_metrics = get_structured_metrics()
@@ -166,7 +162,7 @@ async def get_overview(
 
 @router.get("/metrics")
 async def get_metrics(
-    _admin: str = Depends(_get_admin_user_id),
+    _admin: str = Depends(require_admin_user_id),
     metric_type: str = Query("all", description="Type: all, endpoints, operations"),
     time_range: str = Query("1h", description="Time range: 1h, 6h, 24h, 7d"),
 ) -> dict[str, Any]:
@@ -200,18 +196,26 @@ async def get_metrics(
     return response
 
 
-@router.get("/alerts", response_model=list[AlertResponse])
+class PaginatedAlertsResponse(BaseModel):
+    """Paginated response for alerts."""
+
+    items: list[AlertResponse]
+    pagination: dict[str, Any]
+
+
+@router.get("/alerts", response_model=PaginatedAlertsResponse)
 async def get_alerts(
-    _admin: str = Depends(_get_admin_user_id),
+    _admin: str = Depends(require_admin_user_id),
     status: str | None = Query(
         None, description="Filter by status: active, acknowledged, resolved"
     ),
     severity: str | None = Query(
         None, description="Filter by severity: info, warning, error, critical"
     ),
+    cursor: str | None = Query(None, description="Pagination cursor"),
     limit: int = Query(50, ge=1, le=200),
-) -> list[AlertResponse]:
-    """Get active and recent alerts."""
+) -> PaginatedAlertsResponse:
+    """Get active and recent alerts with cursor-based pagination."""
     alert_manager = get_alert_manager()
 
     status_filter = None
@@ -228,20 +232,38 @@ async def get_alerts(
         except ValueError:
             pass
 
-    # Get alerts based on status filter
+    # Get alerts based on status filter (fetch more than needed for pagination)
+    fetch_limit = limit + 1
     if status_filter == AlertStatus.FIRING:
         alerts = alert_manager.get_active_alerts()
     else:
-        alerts = alert_manager.get_alert_history(limit=limit)
+        alerts = alert_manager.get_alert_history(limit=fetch_limit * 2)
 
     # Apply severity filter if specified
     if severity_filter:
         alerts = [a for a in alerts if a.severity == severity_filter]
 
-    # Apply limit
-    alerts = alerts[:limit]
+    # Apply cursor filter if provided
+    if cursor:
+        cursor_data = decode_cursor(cursor)
+        if cursor_data:
+            cursor_id = cursor_data.get("id")
+            # Find position after cursor
+            for i, alert in enumerate(alerts):
+                if alert.id == cursor_id:
+                    alerts = alerts[i + 1 :]
+                    break
 
-    return [
+    # Check for more results
+    has_more = len(alerts) > limit
+    items = alerts[:limit]
+
+    # Generate next cursor
+    next_cursor = None
+    if has_more and items:
+        next_cursor = encode_cursor({"id": items[-1].id})
+
+    alert_responses = [
         AlertResponse(
             id=alert.id,
             rule_name=alert.rule_name,
@@ -256,14 +278,25 @@ async def get_alerts(
             ),
             acknowledged_by=alert.acknowledged_by,
         )
-        for alert in alerts
+        for alert in items
     ]
+
+    return PaginatedAlertsResponse(
+        items=alert_responses,
+        pagination={
+            "has_next_page": has_more,
+            "has_previous_page": cursor is not None,
+            "start_cursor": encode_cursor({"id": items[0].id}) if items else None,
+            "end_cursor": next_cursor,
+            "total_count": None,  # Not available from in-memory alert manager
+        },
+    )
 
 
 @router.post("/alerts/{alert_id}/acknowledge")
 async def acknowledge_alert(
     alert_id: str,
-    user_id: str = Depends(_get_admin_user_id),
+    user_id: str = Depends(require_admin_user_id),
 ) -> dict[str, Any]:
     """Acknowledge an alert."""
     alert_manager = get_alert_manager()
@@ -282,7 +315,7 @@ async def acknowledge_alert(
 @router.post("/alerts/{alert_id}/resolve")
 async def resolve_alert(
     alert_id: str,
-    user_id: str = Depends(_get_admin_user_id),
+    user_id: str = Depends(require_admin_user_id),
 ) -> dict[str, Any]:
     """Resolve an alert."""
     alert_manager = get_alert_manager()
@@ -299,16 +332,32 @@ async def resolve_alert(
     return {"status": "resolved", "alert": alert.to_dict()}
 
 
-@router.get("/tenants", response_model=list[TenantActivity])
+class PaginatedTenantsResponse(BaseModel):
+    """Paginated response for tenant activity."""
+
+    items: list[TenantActivity]
+    pagination: dict[str, Any]
+
+
+@router.get("/tenants", response_model=PaginatedTenantsResponse)
 async def get_tenant_activity(
+    cursor: str | None = Query(None, description="Pagination cursor"),
     limit: int = Query(20, ge=1, le=100),
-    db: asyncpg.Pool = Depends(_get_pool),
-    user_id: str = Depends(_get_admin_user_id),
-) -> list[TenantActivity]:
-    """Get tenant activity overview."""
+    db: asyncpg.Pool = Depends(get_pool),
+    user_id: str = Depends(require_admin_user_id),
+) -> PaginatedTenantsResponse:
+    """Get tenant activity overview with cursor-based pagination."""
+    # Decode cursor to get last seen tenant_id
+    last_tenant_id = None
+    if cursor:
+        cursor_data = decode_cursor(cursor)
+        if cursor_data:
+            last_tenant_id = cursor_data.get("tenant_id")
+
     async with db.acquire() as conn:
-        rows = await conn.fetch(
-            """
+        # Build query with cursor condition
+        cursor_condition = "AND t.id < $2" if last_tenant_id else ""
+        query = f"""
             SELECT
                 t.id as tenant_id,
                 t.name as tenant_name,
@@ -328,14 +377,34 @@ async def get_tenant_activity(
             FROM public.tenants t
             LEFT JOIN public.profiles p ON p.tenant_id = t.id
             LEFT JOIN public.applications a ON a.user_id = p.user_id AND a.tenant_id = t.id
+            WHERE 1=1 {cursor_condition}
             GROUP BY t.id, t.name, t.plan
-            ORDER BY requests_last_day DESC NULLS LAST
+            ORDER BY t.id DESC
             LIMIT $1
-        """,
-            limit,
-        )
+        """
 
-    return [
+        if last_tenant_id:
+            rows = await conn.fetch(query, limit + 1, last_tenant_id)
+        else:
+            rows = await conn.fetch(query, limit + 1)
+
+        # Get total count
+        count_query = """
+            SELECT COUNT(*) as total FROM public.tenants
+        """
+        total_result = await conn.fetchrow(count_query)
+        total_count = total_result["total"] if total_result else 0
+
+    # Check for more results
+    has_more = len(rows) > limit
+    items = rows[:limit]
+
+    # Generate next cursor
+    next_cursor = None
+    if has_more and items:
+        next_cursor = encode_cursor({"tenant_id": str(items[-1]["tenant_id"])})
+
+    tenant_activities = [
         TenantActivity(
             tenant_id=str(r["tenant_id"]),
             tenant_name=r["tenant_name"] or "Unknown",
@@ -348,18 +417,40 @@ async def get_tenant_activity(
                 r["last_activity"].isoformat() if r["last_activity"] else None
             ),
         )
-        for r in rows
+        for r in items
     ]
 
+    return PaginatedTenantsResponse(
+        items=tenant_activities,
+        pagination={
+            "has_next_page": has_more,
+            "has_previous_page": cursor is not None,
+            "start_cursor": (
+                encode_cursor({"tenant_id": str(items[0]["tenant_id"])}) if items else None
+            ),
+            "end_cursor": next_cursor,
+            "total_count": total_count,
+        },
+    )
 
-@router.get("/performance", response_model=list[PerformanceTrend])
+
+class PaginatedPerformanceResponse(BaseModel):
+    """Paginated response for performance trends."""
+
+    items: list[PerformanceTrend]
+    pagination: dict[str, Any]
+
+
+@router.get("/performance", response_model=PaginatedPerformanceResponse)
 async def get_performance_trends(
     time_range: str = Query("1h", description="Time range: 1h, 6h, 24h"),
     interval: str = Query("5m", description="Interval: 1m, 5m, 15m, 1h"),
-    db: asyncpg.Pool = Depends(_get_pool),
-    user_id: str = Depends(_get_admin_user_id),
-) -> list[PerformanceTrend]:
-    """Get performance trends over time."""
+    cursor: str | None = Query(None, description="Pagination cursor"),
+    limit: int = Query(60, ge=1, le=200),
+    db: asyncpg.Pool = Depends(get_pool),
+    user_id: str = Depends(require_admin_user_id),
+) -> PaginatedPerformanceResponse:
+    """Get performance trends over time with cursor-based pagination."""
     time_range_map = {
         "1h": timedelta(hours=1),
         "6h": timedelta(hours=6),
@@ -367,10 +458,18 @@ async def get_performance_trends(
     }
     duration = time_range_map.get(time_range, timedelta(hours=1))
 
+    # Decode cursor to get last seen bucket timestamp
+    last_bucket = None
+    if cursor:
+        cursor_data = decode_cursor(cursor)
+        if cursor_data:
+            last_bucket = cursor_data.get("bucket")
+
     interval_hours = duration.total_seconds() / 3600
     async with db.acquire() as conn:
-        rows = await conn.fetch(
-            """
+        # Build query with cursor condition
+        cursor_condition = "AND bucket < $2" if last_bucket else ""
+        query = f"""
             SELECT
                 date_trunc('minute', created_at) -
                 (EXTRACT(minute FROM created_at)::int % 5) * interval '1 minute' as bucket,
@@ -381,14 +480,39 @@ async def get_performance_trends(
                     / NULLIF(COUNT(*), 0) * 100 as error_rate_pct
             FROM public.applications
             WHERE created_at > now() - interval '1 hour' * $1
+            {cursor_condition}
             GROUP BY bucket
             ORDER BY bucket DESC
-            LIMIT 60
-            """,
-            interval_hours,
-        )
+            LIMIT $3
+        """
 
-    return [
+        if last_bucket:
+            rows = await conn.fetch(query, interval_hours, last_bucket, limit + 1)
+        else:
+            rows = await conn.fetch(query, interval_hours, limit + 1)
+
+        # Get total count for the time range
+        count_query = """
+            SELECT COUNT(DISTINCT date_trunc('minute', created_at) -
+                (EXTRACT(minute FROM created_at)::int % 5) * interval '1 minute') as total
+            FROM public.applications
+            WHERE created_at > now() - interval '1 hour' * $1
+        """
+        total_result = await conn.fetchrow(count_query, interval_hours)
+        total_count = total_result["total"] if total_result else 0
+
+    # Check for more results
+    has_more = len(rows) > limit
+    items = rows[:limit]
+
+    # Generate next cursor
+    next_cursor = None
+    if has_more and items:
+        next_bucket = items[-1]["bucket"]
+        if next_bucket:
+            next_cursor = encode_cursor({"bucket": next_bucket.isoformat()})
+
+    performance_trends = [
         PerformanceTrend(
             timestamp=(
                 r["bucket"].isoformat()
@@ -400,13 +524,28 @@ async def get_performance_trends(
             error_rate_pct=round(r["error_rate_pct"] or 0, 2),
             active_connections=0,
         )
-        for r in rows
+        for r in items
     ]
+
+    return PaginatedPerformanceResponse(
+        items=performance_trends,
+        pagination={
+            "has_next_page": has_more,
+            "has_previous_page": cursor is not None,
+            "start_cursor": (
+                encode_cursor({"bucket": items[0]["bucket"].isoformat()})
+                if items and items[0]["bucket"]
+                else None
+            ),
+            "end_cursor": next_cursor,
+            "total_count": total_count,
+        },
+    )
 
 
 @router.get("/config")
 async def get_dashboard_config(
-    _admin: str = Depends(_get_admin_user_id),
+    _admin: str = Depends(require_admin_user_id),
 ) -> dict[str, Any]:
     """Get monitoring configuration for dashboard."""
     config = get_monitoring_config()
@@ -415,7 +554,7 @@ async def get_dashboard_config(
 
 @router.post("/alerts/evaluate")
 async def evaluate_alerts(
-    user_id: str = Depends(_get_admin_user_id),
+    user_id: str = Depends(require_admin_user_id),
 ) -> dict[str, Any]:
     """Manually trigger alert evaluation."""
     alert_manager = get_alert_manager()

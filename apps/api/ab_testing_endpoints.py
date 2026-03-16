@@ -11,7 +11,10 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 from apps.api.dependencies import get_current_user, get_db_pool, get_tenant_id
-from packages.backend.domain.ab_testing_manager import MetricType, create_ab_testing_manager
+from packages.backend.domain.ab_testing_manager import (
+    MetricType,
+    create_ab_testing_manager,
+)
 
 router = APIRouter(prefix="/ab-testing", tags=["ab-testing"])
 

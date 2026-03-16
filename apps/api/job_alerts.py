@@ -11,6 +11,7 @@ import asyncpg
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
+from api.deps import get_pool as _get_pool, get_tenant_context as _get_tenant_ctx
 from packages.backend.domain.job_alerts import AlertFrequency, JobAlert, JobAlertService
 from packages.backend.domain.tenant import TenantContext
 from shared.logging_config import get_logger
@@ -43,16 +44,8 @@ class AlertResponse(BaseModel):
     last_sent_at: str | None = None
 
 
-def _get_pool():
-    raise NotImplementedError("Pool dependency not injected")
-
-
 def get_alert_service(pool: asyncpg.Pool = Depends(_get_pool)) -> JobAlertService:
     return JobAlertService(pool)
-
-
-def _get_tenant_ctx() -> TenantContext:
-    raise NotImplementedError("TenantContext dependency not injected")
 
 
 @router.post("", response_model=dict[str, Any])

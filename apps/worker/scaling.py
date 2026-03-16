@@ -17,7 +17,7 @@ from typing import Any
 
 import asyncpg
 
-from shared.config import Environment, get_settings
+from shared.config import get_settings
 from shared.logging_config import get_logger
 from shared.metrics import incr, observe
 
@@ -649,7 +649,7 @@ class WorkerScaler:
 async def main() -> None:
     """Entry point for scaled worker."""
     # Ensure Playwright browsers are installed
-    _ensure_playwright_browsers()
+    await asyncio.to_thread(_ensure_playwright_browsers)
 
     s = get_settings()
     count = s.worker_instance_count

@@ -16,6 +16,12 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
+from api.deps import (
+    get_pool as _get_pool,
+    get_tenant_context,
+    get_tenant_context as _get_tenant_ctx,
+    require_admin_user_id as _get_admin_user_id,
+)
 from packages.backend.domain.tenant import TenantContext
 from shared.config import get_settings
 from shared.logging_config import get_logger
@@ -42,25 +48,9 @@ class _StubDLQManager:
 
         return _raise
 
-
-async def get_tenant_context() -> TenantContext:
-    raise NotImplementedError("Tenant context dependency not injected")
-
 logger = get_logger("sorce.dlq_api")
 
 router = APIRouter(prefix="/admin/dlq", tags=["dlq"])
-
-
-async def _get_pool():
-    raise NotImplementedError("Pool dependency not injected")
-
-
-async def _get_tenant_ctx():
-    raise NotImplementedError("Tenant context dependency not injected")
-
-
-async def _get_admin_user_id():
-    raise NotImplementedError("Admin user ID dependency not injected")
 
 
 # Pydantic models
@@ -172,7 +162,10 @@ async def get_dlq_items(
             pool, ctx.user_id, ctx, tenant_id
         )
     else:
-        from packages.backend.domain.tenant import TenantScopeError, require_system_admin
+        from packages.backend.domain.tenant import (
+            TenantScopeError,
+            require_system_admin,
+        )
 
         async with pool.acquire() as conn:
             try:
@@ -246,7 +239,10 @@ async def get_dlq_stats(
             pool, ctx.user_id, ctx, tenant_id
         )
     else:
-        from packages.backend.domain.tenant import TenantScopeError, require_system_admin
+        from packages.backend.domain.tenant import (
+            TenantScopeError,
+            require_system_admin,
+        )
 
         async with pool.acquire() as conn:
             try:
@@ -392,7 +388,10 @@ async def bulk_delete_dlq_items(
             pool, ctx.user_id, ctx, request.tenant_id
         )
     else:
-        from packages.backend.domain.tenant import TenantScopeError, require_system_admin
+        from packages.backend.domain.tenant import (
+            TenantScopeError,
+            require_system_admin,
+        )
 
         async with pool.acquire() as conn:
             try:
@@ -483,7 +482,10 @@ async def get_concurrent_usage(
             )
         stats = await tracker.get_stats()
 
-        from packages.backend.domain.tenant import TenantScopeError, require_system_admin
+        from packages.backend.domain.tenant import (
+            TenantScopeError,
+            require_system_admin,
+        )
 
         active_by_tenant = stats.active_by_tenant
         async with pool.acquire() as conn:

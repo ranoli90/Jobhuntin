@@ -5,14 +5,17 @@ from __future__ import annotations
 from typing import Any
 
 import asyncpg
+from api.dependencies import get_pool
+from api.main import get_tenant_context
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
-from api.dependencies import get_pool
-from api.main import get_tenant_context
 from packages.backend.domain.audit import export_audit_log_csv
-from packages.backend.domain.billing import ensure_stripe_customer, update_subscription_state
+from packages.backend.domain.billing import (
+    ensure_stripe_customer,
+    update_subscription_state,
+)
 from packages.backend.domain.stripe_client import get_stripe, protected_stripe_call
 from packages.backend.domain.tenant import TenantContext, TenantScopeError, require_role
 from shared.config import Settings, settings_dependency

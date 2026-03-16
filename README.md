@@ -18,6 +18,8 @@ cp .env.example .env   # Configure DATABASE_URL, JWT_SECRET, CSRF_SECRET, etc.
 docker compose up db -d
 PYTHONPATH=apps:packages:. uvicorn api.main:app --reload --host 0.0.0.0 --port 8000
 cd apps/web && npx vite --host 0.0.0.0 --port 5173
+# Optional: Admin Dashboard
+cd apps/web-admin && npx vite --host 0.0.0.0 --port 5174
 ```
 
 ### Key Commands

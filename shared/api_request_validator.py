@@ -14,6 +14,12 @@ from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Union
 from urllib.parse import urlparse
 
+from shared.security_utils import (
+    check_injection_characters,
+    validate_email_format,
+    validate_url_format,
+)
+
 logger = logging.getLogger(__name__)
 
 
@@ -121,20 +127,23 @@ class SecurityValidator:
 
     @staticmethod
     def validate_path_traversal(value: str) -> bool:
-        """Check for path traversal patterns."""
-        traversal_patterns = [
-            r"\.\.[\\/]",
-            r"\.\.[\\/]\.\.[\\/]",
-            r"%2e%2e[\\/]",
-            r"%2e%2e%2f",
-            r"%2e%2e%5c",
-            r"\.\.%2f",
-            r"\.\.%5c",
-        ]
-
-        for pattern in traversal_patterns:
-            if re.search(pattern, value, re.IGNORECASE):
-                return False
+        """Check for path traversal patterns.
+        
+        Uses the robust path_security module to detect all variants of
+        path traversal including URL encoding, double encoding, and
+        overlong UTF-8 sequences.
+        """
+        from shared.path_security import contains_traversal_patterns, decode_path_fully
+        
+        # Check raw value for traversal patterns
+        if contains_traversal_patterns(value):
+            return False
+        
+        # Check decoded value for traversal patterns
+        decoded = decode_path_fully(value)
+        if contains_traversal_patterns(decoded):
+            return False
+        
         return True
 
     @staticmethod
@@ -155,17 +164,11 @@ class SecurityValidator:
 
     @staticmethod
     def sanitize_input(value: str) -> str:
-        """Sanitize input by removing dangerous characters."""
-        # Remove null bytes
-        value = value.replace("\x00", "")
-
-        # Normalize whitespace
-        value = re.sub(r"\s+", " ", value).strip()
-
-        # Remove control characters except newlines and tabs
-        value = re.sub(r"[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]", "", value)
-
-        return value
+        """Sanitize input by removing dangerous characters.
+        
+        Uses the shared security_utils.sanitize_input for consistent behavior.
+        """
+        return sanitize_input(value)
 
 
 class APIRequestValidator:
@@ -469,17 +472,13 @@ class APIRequestValidator:
         return None
 
     def _is_valid_email(self, email: str) -> bool:
-        """Validate email format."""
-        pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
-        return bool(re.match(pattern, email))
+        """Validate email format using shared utility."""
+        return validate_email_format(email)
 
     def _is_valid_url(self, url: str) -> bool:
-        """Validate URL format."""
-        try:
-            result = urlparse(url)
-            return all([result.scheme, result.netloc])
-        except Exception:
-            return False
+        """Validate URL format using shared utility."""
+        # Note: Uses stricter validation than the original - requires https
+        return validate_url_format(url, require_https=False, allow_localhost=True)
 
     def _is_valid_uuid(self, uuid_str: str) -> bool:
         """Validate UUID format."""

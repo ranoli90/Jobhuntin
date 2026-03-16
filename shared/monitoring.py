@@ -809,10 +809,10 @@ class MonitoringSystem:
 
             # Generate health check recommendations
             recommendations.extend(self._generate_health_check_recommendations(health_results))
-            
+
             # Generate alert recommendations
             recommendations.extend(self._generate_alert_recommendations(active_alerts))
-            
+
             # Generate performance recommendations
             recommendations.extend(self._generate_performance_recommendations(health_results))
 
@@ -825,7 +825,7 @@ class MonitoringSystem:
     def _generate_health_check_recommendations(self, health_results: List[HealthCheckResult]) -> List[str]:
         """Generate recommendations based on health check results."""
         recommendations = []
-        
+
         # Analyze critical checks
         critical_checks = [
             r for r in health_results if r.status == CheckStatus.CRITICAL
@@ -858,7 +858,7 @@ class MonitoringSystem:
     def _generate_alert_recommendations(self, active_alerts: List[MonitoringAlert]) -> List[str]:
         """Generate recommendations based on active alerts."""
         recommendations = []
-        
+
         critical_alerts = [
             a for a in active_alerts if a.severity == AlertSeverity.CRITICAL
         ]
@@ -872,7 +872,7 @@ class MonitoringSystem:
     def _generate_performance_recommendations(self, health_results: List[HealthCheckResult]) -> List[str]:
         """Generate performance-based recommendations."""
         recommendations = []
-        
+
         if len(health_results) > 0:
             avg_duration = statistics.mean([r.duration_ms for r in health_results])
             if avg_duration > 500:

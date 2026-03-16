@@ -1,13 +1,23 @@
-"""Skills Analysis API endpoints for skill validation and job matching."""
+"""Skills Analysis API endpoints for skill validation and job matching.
+
+This module demonstrates the use of shared error handling utilities
+from shared.api_error_handler to reduce code duplication.
+"""
 
 from typing import Any, Dict, List
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
-from packages.backend.domain.skills_taxonomy import get_skills_taxonomy, validate_user_skills
+from packages.backend.domain.skills_taxonomy import (
+    get_skills_taxonomy,
+    validate_user_skills,
+)
 from packages.backend.domain.tenant import TenantContext
+from shared.api_error_handler import handle_error
 from shared.logging_config import get_logger
+
+from api.deps import get_tenant_context, get_tenant_context as _get_tenant_ctx
 
 logger = get_logger("sorce.skills")
 
@@ -55,20 +65,10 @@ class SkillSuggestionResponse(BaseModel):
     )
 
 
-def _get_pool():
-    """Database pool dependency."""
-    raise NotImplementedError("Pool dependency not injected")
-
-
-def _get_tenant_ctx():
-    """Tenant context dependency."""
-    raise NotImplementedError("Tenant context dependency not injected")
-
-
 @router.post("/validate")
 async def validate_skills(
     request: SkillsValidationRequest,
-    ctx: TenantContext = Depends(_get_tenant_ctx),
+    ctx: TenantContext = Depends(get_tenant_context),
 ) -> SkillsValidationResponse:
     """Validate and normalize a list of skills.
 
@@ -115,10 +115,7 @@ async def validate_skills(
         )
 
     except Exception as e:
-        logger.error(f"Skills validation failed: {e}")
-        raise HTTPException(
-            status_code=500, detail="Skills validation failed. Please try again."
-        )
+        handle_error(e, "validate_skills")
 
 
 @router.post("/suggestions")
@@ -195,10 +192,7 @@ async def get_skill_suggestions(
         )
 
     except Exception as e:
-        logger.error(f"Skill suggestions failed: {e}")
-        raise HTTPException(
-            status_code=500, detail="Skill suggestions failed. Please try again."
-        )
+        handle_error(e, "get_skill_suggestions")
 
 
 @router.get("/taxonomy")
@@ -250,10 +244,7 @@ async def get_skills_taxonomy_info(
         }
 
     except Exception as e:
-        logger.error(f"Taxonomy retrieval failed: {e}")
-        raise HTTPException(
-            status_code=500, detail="Failed to retrieve skills taxonomy."
-        )
+        handle_error(e, "get_skills_taxonomy")
 
 
 @router.get("/categories")
@@ -279,10 +270,7 @@ async def get_skill_categories(
         return categories
 
     except Exception as e:
-        logger.error(f"Categories retrieval failed: {e}")
-        raise HTTPException(
-            status_code=500, detail="Failed to retrieve skill categories."
-        )
+        handle_error(e, "get_skill_categories")
 
 
 @router.get("/search")
@@ -362,7 +350,4 @@ async def search_skills(
         return results
 
     except Exception as e:
-        logger.error(f"Skill search failed: {e}")
-        raise HTTPException(
-            status_code=500, detail="Skill search failed. Please try again."
-        )
+        handle_error(e, "search_skills")

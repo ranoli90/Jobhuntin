@@ -10,7 +10,21 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
+import {
+  createContentKey,
+  fingerprintContent,
+  hasTrackedContentFingerprint,
+  hasTrackedContentKey,
+  trackContentFingerprint,
+  trackContentKey,
+} from './deduplication';
+import { SEOError, SEO_ERROR_CODES } from './errors';
+import { seoLogger } from './logger';
+import { incrementCounter, recordHistogram, recordTimer, SEO_METRIC_NAMES } from './metrics';
+import { validateCompetitor, validateIntent, validateTopic } from './validators';
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const logger = seoLogger.child({ script: 'generate-intent-content' });
 
 // Configuration
 const MODEL = process.env.LLM_MODEL || 'openai/gpt-4o-mini';
@@ -89,7 +103,7 @@ async function generateContent(
   competitor?: string
 ): Promise<string> {
   const template = CONTENT_TEMPLATES[intent] || CONTENT_TEMPLATES.informational;
-  
+
   const prompt = `You are an expert SEO content writer. Create a comprehensive, search-optimized article.
 
 TOPIC: "${topic}"
@@ -152,15 +166,23 @@ Return ONLY the article content in Markdown format. No explanations, no markdown
 
   if (!response.ok) {
     const error = await response.text();
-    throw new Error(`API error: ${response.status} - ${error}`);
+    throw new SEOError(SEO_ERROR_CODES.LLM_API_ERROR, `API error: ${response.status} - ${error}`, {
+      context: { intent, topic, competitor },
+    });
   }
 
   const data = await response.json();
   const content = data.choices[0].message.content;
-  
+
+  if (!content || typeof content !== 'string') {
+    throw new SEOError(SEO_ERROR_CODES.CONTENT_GENERATION_ERROR, 'LLM returned empty content', {
+      context: { intent, topic, competitor },
+    });
+  }
+
   // Add schema markup comment at the top
   const schemaComment = `<!-- Schema: ${template.schema} | Intent: ${intent} | Generated: ${new Date().toISOString()} -->\n`;
-  
+
   return schemaComment + content;
 }
 
@@ -169,14 +191,14 @@ function createFilename(content: string, intent: string): string {
   // Extract H1 title
   const h1Match = content.match(/^# (.+)$/m);
   const title = h1Match ? h1Match[1] : 'untitled';
-  
+
   // Create slug
   const slug = title
     .toLowerCase()
     .replace(/[^\w\s-]/g, '')
     .replace(/\s+/g, '-')
     .substring(0, 60);
-    
+
   return `${intent}-${slug}.md`;
 }
 
@@ -186,7 +208,7 @@ function saveContent(content: string, filename: string): string {
   if (!fs.existsSync(outputDir)) {
     fs.mkdirSync(outputDir, { recursive: true });
   }
-  
+
   const filepath = path.join(outputDir, filename);
   fs.writeFileSync(filepath, content);
   return filepath;
@@ -197,11 +219,11 @@ function generateMetaTags(content: string, topic: string): Record<string, string
   // Extract first paragraph for meta description
   const firstPara = content.match(/\n\n(.+?)(?=\n\n)/)?.[1] || topic;
   const description = firstPara.substring(0, 160);
-  
+
   // Extract H1 for title
   const h1 = content.match(/^# (.+)$/m)?.[1] || topic;
   const title = h1.length > 60 ? h1.substring(0, 57) + '...' : h1;
-  
+
   return {
     title,
     description,
@@ -214,16 +236,26 @@ function generateMetaTags(content: string, topic: string): Record<string, string
 // Main function
 async function main(): Promise<void> {
   const args = process.argv.slice(2);
-  const intent = args[0];
-  const topic = args[1];
-  const competitor = args[2] || '';
-  
-  if (!intent || !topic) {
+  const rawIntent = args[0];
+  const rawTopic = args[1];
+  const rawCompetitor = args[2] || '';
+
+  if (!rawIntent || !rawTopic) {
     console.error('Usage: tsx generate-intent-content.ts <intent> <topic> [competitor]');
     console.error('Intents: informational, commercial, transactional, navigational');
     process.exit(1);
   }
-  
+
+  const intent = validateIntent(rawIntent);
+  const topic = validateTopic(rawTopic);
+  const competitor = validateCompetitor(rawCompetitor);
+  const dedupeKey = createContentKey(['intent', intent, topic, competitor]);
+
+  if (hasTrackedContentKey(dedupeKey, { script: 'generate-intent-content', intent, topic, competitor: competitor || null })) {
+    console.log('\n⚠️ Duplicate content request detected. Skipping generation.');
+    return;
+  }
+
   try {
     console.log('='.repeat(70));
     console.log('🎯 MODERN SEO CONTENT GENERATOR');
@@ -232,15 +264,26 @@ async function main(): Promise<void> {
     console.log(`Topic: ${topic}`);
     if (competitor) console.log(`Competitor: ${competitor}`);
     console.log('');
-    
+
     const start = Date.now();
     const content = await generateContent(intent, topic, competitor || undefined);
     const duration = ((Date.now() - start) / 1000).toFixed(1);
-    
+    const contentFingerprint = fingerprintContent(content);
+
+    if (hasTrackedContentFingerprint(contentFingerprint, {
+      script: 'generate-intent-content',
+      intent,
+      topic,
+      competitor: competitor || null,
+    })) {
+      console.log('\n⚠️ Equivalent generated content already exists. Skipping save.');
+      return;
+    }
+
     const filename = createFilename(content, intent);
     const filepath = saveContent(content, filename);
     const metaTags = generateMetaTags(content, topic);
-    
+
     console.log('\n✅ Content generated successfully!');
     console.log(`   Duration: ${duration}s`);
     console.log(`   File: ${filepath}`);
@@ -248,12 +291,28 @@ async function main(): Promise<void> {
     console.log('\n📋 Meta Tags:');
     console.log(`   Title: ${metaTags.title}`);
     console.log(`   Description: ${metaTags.description}`);
-    
+
     // Save metadata
     const metaPath = filepath.replace('.md', '.json');
-    fs.writeFileSync(metaPath, JSON.stringify(metaTags, null, 2));
-    
+    fs.writeFileSync(metaPath, JSON.stringify({
+      ...metaTags,
+      dedupeKey,
+      contentFingerprint,
+      intent,
+      topic,
+      competitor: competitor || null,
+      generatedAt: new Date().toISOString(),
+    }, null, 2));
+
+    trackContentKey(dedupeKey, { script: 'generate-intent-content', filepath, metaPath, intent, topic, competitor: competitor || null });
+    trackContentFingerprint(contentFingerprint, { script: 'generate-intent-content', filepath, intent, topic, competitor: competitor || null });
+    incrementCounter(SEO_METRIC_NAMES.CONTENT_GENERATED, 1, { script: 'generate-intent-content', intent });
+    recordHistogram(SEO_METRIC_NAMES.CONTENT_LENGTH, content.length, { script: 'generate-intent-content', intent });
+    recordTimer(SEO_METRIC_NAMES.CONTENT_GENERATION_TIME, Date.now() - start, { script: 'generate-intent-content', intent });
+    logger.info('Generated intent content', { intent, topic, competitor: competitor || null, filepath });
+
   } catch (error: any) {
+    incrementCounter(SEO_METRIC_NAMES.CONTENT_FAILED, 1, { script: 'generate-intent-content', intent });
     console.error('\n❌ Error:', error.message);
     process.exit(1);
   }

@@ -55,10 +55,24 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
+import {
+  createContentKey,
+  fingerprintContent,
+  hasTrackedContentFingerprint,
+  hasTrackedContentKey,
+  trackContentFingerprint,
+  trackContentKey,
+} from './deduplication';
+import { seoLogger } from './logger';
+import { incrementCounter, recordTimer, SEO_METRIC_NAMES } from './metrics';
+import { validateTopic } from './validators';
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const LOCATIONS_FILE = path.resolve(__dirname, '../../src/data/locations.json');
 const ROLES_FILE = path.resolve(__dirname, '../../src/data/roles.json');
 import { getCityJobStats, formatStatsForPrompt } from './data-provider.js';
+
+const logger = seoLogger.child({ script: 'generate-city-content' });
 
 // API key from environment only — never hardcode secrets
 const DEFAULT_KEY = process.env.LLM_API_KEY || "";
@@ -178,6 +192,39 @@ interface ContentSection {
   userIntent: string;
 }
 
+function buildCityRoleUrl(cityName: string, roleName: string, content?: { location: LocationData; role: RoleData }): string {
+  const roleSlug = content?.role?.slug || roleName.toLowerCase().replace(/\s+/g, '-');
+  const citySlug = content?.location?.slug || cityName.toLowerCase().replace(/\s+/g, '-');
+  return `https://jobhuntin.com/jobs/${roleSlug}/${citySlug}`;
+}
+
+function hasExistingSeoContent(cityName: string, roleName: string): boolean {
+  if (!fs.existsSync(LOCATIONS_FILE) || !fs.existsSync(ROLES_FILE)) {
+    return false;
+  }
+
+  const locations = JSON.parse(fs.readFileSync(LOCATIONS_FILE, 'utf-8'));
+  const roles = JSON.parse(fs.readFileSync(ROLES_FILE, 'utf-8'));
+
+  const location = locations.find((entry: any) => entry.name?.toLowerCase() === cityName.toLowerCase());
+  const role = roles.find((entry: any) => entry.name?.toLowerCase() === roleName.toLowerCase());
+
+  if (!location || !role) {
+    return false;
+  }
+
+  return Boolean(
+    location.seoTitle &&
+    location.seoDescription &&
+    location.h1 &&
+    Array.isArray(location.contentSections) &&
+    location.contentSections.length > 0 &&
+    role.avgSalary &&
+    Array.isArray(role.skills) &&
+    role.skills.length > 0
+  );
+}
+
 /**
  * Generate aggressive local SEO content using advanced LLM prompting
  * FREE MODELS ONLY - No paid models
@@ -208,7 +255,7 @@ async function generateAggressiveLocalContent(
   // Randomly select an archetype ("The Chameleon Engine")
   const archetype = ARCHETYPES[Math.floor(Math.random() * ARCHETYPES.length)];
   console.log("🦎 Chameleon Engine: Selected Archetype ->", archetype.name);
-  
+
   // Random unique angle for this generation
   const uniqueAngles = [
     'Focus on salary negotiation tactics specific to this city',
@@ -221,7 +268,7 @@ async function generateAggressiveLocalContent(
     'Highlight stable corporate positions with benefits',
   ];
   const uniqueAngle = uniqueAngles[Math.floor(Math.random() * uniqueAngles.length)];
-  
+
   // Random year reference for freshness
   const currentYear = new Date().getFullYear();
   const currentMonth = new Date().toLocaleString('default', { month: 'long' });
@@ -532,7 +579,7 @@ async function saveContent(cityName: string, roleName: string, content: { locati
     console.log('🗺️  Regenerating sitemap...');
     try {
       const { execSync } = require('child_process');
-      execSync('node scripts/generate-sitemap.cjs', { 
+      execSync('node scripts/generate-sitemap.cjs', {
         cwd: path.resolve(__dirname, '../..'),
         stdio: 'pipe'
       });
@@ -583,13 +630,29 @@ Examples:
     process.exit(1);
   }
 
-  const cityName = args[0];
-  const roleName = args[1];
+  const cityName = validateTopic(args[0]);
+  const roleName = validateTopic(args[1]);
   const aggressive = args.includes('--aggressive');
   const dryRun = args.includes('--dry-run');
   const backup = args.includes('--backup');
   const urlIndex = args.indexOf('--url');
   const customUrl = urlIndex !== -1 ? args[urlIndex + 1] : null;
+  const contentKey = createContentKey(['city-role', cityName, roleName]);
+
+  if (!dryRun && hasTrackedContentKey(contentKey, { script: 'generate-city-content', cityName, roleName })) {
+    console.log('⚠️  Duplicate city/role generation request detected. Skipping.');
+    return;
+  }
+
+  if (!dryRun && hasExistingSeoContent(cityName, roleName)) {
+    incrementCounter(SEO_METRIC_NAMES.CONTENT_DUPLICATES, 1, { script: 'generate-city-content', type: 'city-role-existing' });
+    logger.warn('Skipping city content generation because SEO content already exists in source data', {
+      cityName,
+      roleName,
+    });
+    console.log('⚠️  SEO content already exists for this city/role combination. Skipping.');
+    return;
+  }
 
   console.log("🚀 Generating content for:", roleName, "jobs in", cityName);
   console.log("🎯 Mode:", aggressive ? "Aggressive" : "Standard");
@@ -599,8 +662,25 @@ Examples:
   console.log("🔍 Dry run:", dryRun ? "Yes" : "No");
 
   try {
+    const startTime = Date.now();
     // Generate content
     const content = await generateAggressiveLocalContent(cityName, roleName, aggressive);
+    const contentUrl = buildCityRoleUrl(cityName, roleName, content);
+    const contentFingerprint = fingerprintContent(JSON.stringify({
+      url: contentUrl,
+      location: content.location,
+      role: content.role,
+    }));
+
+    if (!dryRun && hasTrackedContentFingerprint(contentFingerprint, {
+      script: 'generate-city-content',
+      cityName,
+      roleName,
+      url: contentUrl,
+    })) {
+      console.log('⚠️  Equivalent city/role content already exists. Skipping save.');
+      return;
+    }
 
     if (dryRun) {
       console.log('\n🔍 DRY RUN: Content preview:');
@@ -614,6 +694,11 @@ Examples:
     } else {
       // Save content
       await saveContent(cityName, roleName, content);
+      trackContentKey(contentKey, { script: 'generate-city-content', cityName, roleName, url: contentUrl });
+      trackContentFingerprint(contentFingerprint, { script: 'generate-city-content', cityName, roleName, url: contentUrl });
+      incrementCounter(SEO_METRIC_NAMES.CONTENT_GENERATED, 1, { script: 'generate-city-content', type: 'city-role' });
+      recordTimer(SEO_METRIC_NAMES.CONTENT_GENERATION_TIME, Date.now() - startTime, { script: 'generate-city-content', type: 'city-role' });
+      logger.info('Generated city SEO content', { cityName, roleName, url: contentUrl, customUrl });
       console.log('\n✅ Content generation and saving completed successfully');
       console.log('📊 Quality metrics:');
       console.log("   Location:", content.location.contentQuality + "/100");
@@ -624,6 +709,7 @@ Examples:
     }
 
   } catch (error: any) {
+    incrementCounter(SEO_METRIC_NAMES.CONTENT_FAILED, 1, { script: 'generate-city-content', type: 'city-role' });
     console.error("❌ Error:", error.message);
     console.error('🔧 Troubleshooting tips:');
     console.error('   - Check your LLM_API_KEY environment variable');

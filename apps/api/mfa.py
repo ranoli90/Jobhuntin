@@ -11,7 +11,14 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
 from packages.backend.domain.mfa import MFAManager
+from shared.error_responses import RateLimitError
 from shared.logging_config import get_logger
+from shared.metrics import get_rate_limiter
+
+from api.deps import get_pool, get_current_user_id
+
+_get_pool = get_pool
+_get_user_id = get_current_user_id
 
 logger = get_logger("sorce.api.mfa")
 
@@ -44,15 +51,26 @@ def _check_totp_rate_limit(user_id: str) -> bool:
     return True
 
 
+async def _enforce_mfa_rate_limit(
+    user_id: str,
+    action: str,
+    *,
+    max_calls: int,
+    window_seconds: int,
+    message: str,
+) -> None:
+    """Enforce per-user MFA endpoint rate limits."""
+    limiter = get_rate_limiter(
+        f"mfa:{action}:{user_id}",
+        max_calls=max_calls,
+        window_seconds=window_seconds,
+    )
+    if not await limiter.acquire():
+        retry_after = max(1, int(limiter.next_available_in()))
+        raise RateLimitError(message, retry_after=retry_after)
+
+
 router = APIRouter(prefix="/auth/mfa", tags=["mfa"])
-
-
-def _get_pool():
-    raise NotImplementedError("Pool dependency not injected")
-
-
-async def _get_user_id() -> str:
-    raise NotImplementedError("User ID dependency not injected")
 
 
 class TOTPEnrollRequest(BaseModel):
@@ -102,6 +120,13 @@ async def enroll_totp(
     db: asyncpg.Pool = Depends(_get_pool),
     user_id: str = Depends(_get_user_id),
 ) -> TOTPEnrollResponse:
+    await _enforce_mfa_rate_limit(
+        user_id,
+        "totp_enroll",
+        max_calls=3,
+        window_seconds=3600,
+        message="Too many MFA enrollment attempts. Please try again later.",
+    )
     manager = MFAManager(db)
 
     async with db.acquire() as conn:
@@ -140,6 +165,13 @@ async def verify_totp_enrollment(
     db: asyncpg.Pool = Depends(_get_pool),
     user_id: str = Depends(_get_user_id),
 ) -> TOTPVerifyResponse:
+    await _enforce_mfa_rate_limit(
+        user_id,
+        "verify_enrollment",
+        max_calls=10,
+        window_seconds=300,
+        message="Too many MFA verification attempts. Please wait 5 minutes.",
+    )
     manager = MFAManager(db)
 
     result = await manager.verify_totp_enrollment(
@@ -196,6 +228,13 @@ async def regenerate_recovery_codes(
     db: asyncpg.Pool = Depends(_get_pool),
     user_id: str = Depends(_get_user_id),
 ) -> RecoveryCodesResponse:
+    await _enforce_mfa_rate_limit(
+        user_id,
+        "recovery_regenerate",
+        max_calls=3,
+        window_seconds=3600,
+        message="Too many recovery code regeneration attempts. Please try again later.",
+    )
     manager = MFAManager(db)
 
     codes = await manager.regenerate_recovery_codes(user_id)
@@ -250,6 +289,13 @@ async def disable_mfa(
     db: asyncpg.Pool = Depends(_get_pool),
     user_id: str = Depends(_get_user_id),
 ) -> dict[str, str]:
+    await _enforce_mfa_rate_limit(
+        user_id,
+        "disable",
+        max_calls=5,
+        window_seconds=300,
+        message="Too many MFA disable attempts. Please wait 5 minutes.",
+    )
     manager = MFAManager(db)
 
     # Require re-authentication: must provide valid TOTP code or recovery code

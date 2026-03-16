@@ -11,8 +11,8 @@ import time
 from typing import Any
 
 import asyncpg
-
 from api_v2.auth import sign_webhook_payload
+
 from shared.logging_config import get_logger
 
 logger = get_logger("sorce.webhooks")

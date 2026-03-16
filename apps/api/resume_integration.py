@@ -24,8 +24,12 @@ import asyncpg
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
-from packages.backend.domain.resume_agent_integration import get_resume_agent_integration
+from packages.backend.domain.resume_agent_integration import (
+    get_resume_agent_integration,
+)
 from packages.backend.domain.tenant import TenantContext
+
+from api.deps import get_pool, get_tenant_context
 from shared.logging_config import get_logger
 from shared.validators import validate_uuid
 
@@ -140,21 +144,11 @@ class IntegrationAnalyticsResponse(BaseModel):
     )
 
 
-def _get_pool():
-    """Database pool dependency."""
-    raise NotImplementedError("Pool dependency not injected")
-
-
-def _get_tenant_ctx():
-    """Tenant context dependency."""
-    raise NotImplementedError("Tenant context dependency not injected")
-
-
 @router.post("/prepare", response_model=PrepareResumeResponse)
 async def prepare_resume_for_application(
     request: PrepareResumeRequest,
-    ctx: TenantContext = Depends(_get_tenant_ctx),
-    db: asyncpg.Pool = Depends(_get_pool),
+    ctx: TenantContext = Depends(get_tenant_context),
+    db: asyncpg.Pool = Depends(get_pool),
 ) -> PrepareResumeResponse:
     """Prepare a tailored resume for job application.
 
@@ -214,8 +208,8 @@ async def prepare_resume_for_application(
 @router.get("/status/{application_id}", response_model=IntegrationStatusResponse)
 async def get_integration_status(
     application_id: str,
-    ctx: TenantContext = Depends(_get_tenant_ctx),
-    db: asyncpg.Pool = Depends(_get_pool),
+    ctx: TenantContext = Depends(get_tenant_context),
+    db: asyncpg.Pool = Depends(get_pool),
 ) -> IntegrationStatusResponse:
     """Get the status of resume integration for an application.
 
@@ -257,7 +251,7 @@ async def get_integration_status(
 @router.post("/batch", response_model=BatchPrepareResponse)
 async def batch_prepare_resumes(
     request: BatchPrepareRequest,
-    ctx: TenantContext = Depends(_get_tenant_ctx),
+    ctx: TenantContext = Depends(get_tenant_context),
 ) -> BatchPrepareResponse:
     """Prepare resumes for multiple applications in batch.
 
@@ -308,7 +302,7 @@ async def batch_prepare_resumes(
 @router.post("/recommend-template", response_model=TemplateRecommendationResponse)
 async def recommend_template(
     request: TemplateRecommendationRequest,
-    ctx: TenantContext = Depends(_get_tenant_ctx),
+    ctx: TenantContext = Depends(get_tenant_context),
 ) -> TemplateRecommendationResponse:
     """Get template recommendation for job application.
 
@@ -376,7 +370,7 @@ async def recommend_template(
 
 @router.get("/analytics", response_model=IntegrationAnalyticsResponse)
 async def get_integration_analytics(
-    ctx: TenantContext = Depends(_get_tenant_ctx),
+    ctx: TenantContext = Depends(get_tenant_context),
     user_id: Optional[str] = None,
     job_id: Optional[str] = None,
     template_style: Optional[str] = None,
@@ -417,8 +411,8 @@ async def get_integration_analytics(
 async def update_application_agent_resume(
     application_id: str,
     pdf_path: str,
-    ctx: TenantContext = Depends(_get_tenant_ctx),
-    db: asyncpg.Pool = Depends(_get_pool),
+    ctx: TenantContext = Depends(get_tenant_context),
+    db: asyncpg.Pool = Depends(get_pool),
 ) -> Dict[str, Any]:
     """Update the application agent with a new resume file.
 
@@ -474,8 +468,8 @@ async def update_application_agent_resume(
 
 @router.get("/template-usage")
 async def get_template_usage_stats(
-    ctx: TenantContext = Depends(_get_tenant_ctx),
-    db: asyncpg.Pool = Depends(_get_pool),
+    ctx: TenantContext = Depends(get_tenant_context),
+    db: asyncpg.Pool = Depends(get_pool),
 ) -> Dict[str, Any]:
     """Get template usage statistics.
 

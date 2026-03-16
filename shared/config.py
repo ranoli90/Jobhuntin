@@ -13,6 +13,7 @@ import logging
 import os
 from enum import StrEnum
 from functools import lru_cache
+from urllib.parse import urlparse
 
 # Basic logging before shared.logging_config is ready
 logging.basicConfig(level=logging.INFO)
@@ -20,6 +21,48 @@ logger = logging.getLogger("sorce.config")
 
 from pydantic import field_validator
 from pydantic_settings import BaseSettings
+
+
+KNOWN_WEAK_SECRETS = {
+    "secret",
+    "password",
+    "123456",
+    "12345678",
+    "123456789",
+    "qwerty",
+    "abc123",
+    "monkey",
+    "1234567",
+    "letmein",
+    "trustno1",
+    "dragon",
+    "baseball",
+    "iloveyou",
+    "master",
+    "sunshine",
+    "ashley",
+    "bailey",
+    "passw0rd",
+    "shadow",
+    "123123",
+    "654321",
+    "superman",
+    "qazwsx",
+    "michael",
+    "football",
+    "password1",
+    "password123",
+    "welcome",
+    "welcome1",
+    "admin",
+    "root",
+    "toor",
+    "test",
+    "test123",
+    "guest",
+    "changeme",
+    "default",
+}
 
 
 class Environment(StrEnum):
@@ -42,6 +85,18 @@ class Settings(BaseSettings):
     def is_prod(self) -> bool:
         return self.env == Environment.PROD
 
+    @property
+    def parsed_local_redirect_origins(self) -> list[str]:
+        return [
+            origin.strip().rstrip("/")
+            for origin in self.local_redirect_origins.split(",")
+            if origin.strip()
+        ]
+
+    @property
+    def resend_emails_api_url(self) -> str:
+        return f"{self.resend_api_base.rstrip('/')}/emails"
+
     # ── Database ─────────────────────────────────────────────────
     # SECURITY: Database URL must be provided via DATABASE_URL environment variable
     # Hardcoded credentials are a critical security vulnerability
@@ -56,6 +111,10 @@ class Settings(BaseSettings):
     app_admin_base_url: str = ""
     # Public URL of the API (for magic link verify redirect). Set API_PUBLIC_URL in prod.
     api_public_url: str = "https://sorce-api.onrender.com"
+    local_redirect_origins: str = (
+        "http://localhost:5173,http://localhost:3000,"
+        "http://127.0.0.1:5173,http://127.0.0.1:3000"
+    )
     # App branding (used in emails, etc.)
     app_name: str = "JobHuntin"
     app_initials: str = "JH"
@@ -64,6 +123,7 @@ class Settings(BaseSettings):
 
     # ── Redis ────────────────────────────────────────────────────
     redis_url: str | None = None
+    local_redis_url: str = "redis://localhost:6379"
 
     # ── LLM ──────────────────────────────────────────────────────
     llm_api_base: str = "https://openrouter.ai/api/v1"
@@ -109,6 +169,74 @@ class Settings(BaseSettings):
     # This prevents token theft attacks. #9: Default True in prod (override with MAGIC_LINK_BIND_TO_IP=false to disable)
 # .
     magic_link_bind_to_ip: bool = False
+
+    # ── Tenant Rate Limits (per tier) ────────────────────────────────
+    # Free tier: 10 req/min, 100 req/hour, 2 concurrent
+    tenant_rate_limit_free_rpm: int = 10
+    tenant_rate_limit_free_rph: int = 100
+    tenant_rate_limit_free_concurrent: int = 2
+    # Pro tier: 60 req/min, 1000 req/hour, 10 concurrent
+    tenant_rate_limit_pro_rpm: int = 60
+    tenant_rate_limit_pro_rph: int = 1000
+    tenant_rate_limit_pro_concurrent: int = 10
+    # Team tier: 100 req/min, 5000 req/hour, 25 concurrent
+    tenant_rate_limit_team_rpm: int = 100
+    tenant_rate_limit_team_rph: int = 5000
+    tenant_rate_limit_team_concurrent: int = 25
+    # Enterprise tier: 500 req/min, 25000 req/hour, 100 concurrent
+    tenant_rate_limit_enterprise_rpm: int = 500
+    tenant_rate_limit_enterprise_rph: int = 25000
+    tenant_rate_limit_enterprise_concurrent: int = 100
+
+    # ── AI Endpoint Rate Limits (per tier) ──────────────────────────
+    # More restrictive limits due to LLM costs
+    ai_rate_limit_free_rpm: int = 5
+    ai_rate_limit_free_rph: int = 20
+    ai_rate_limit_free_concurrent: int = 1
+    ai_rate_limit_pro_rpm: int = 20
+    ai_rate_limit_pro_rph: int = 200
+    ai_rate_limit_pro_concurrent: int = 3
+    ai_rate_limit_team_rpm: int = 50
+    ai_rate_limit_team_rph: int = 500
+    ai_rate_limit_team_concurrent: int = 10
+    ai_rate_limit_enterprise_rpm: int = 200
+    ai_rate_limit_enterprise_rph: int = 2000
+    ai_rate_limit_enterprise_concurrent: int = 50
+
+    # ── Upload Limits per tier ───────────────────────────────────────
+    # Free tier upload limits
+    upload_limit_free_resume_mb: int = 5
+    upload_limit_free_cover_letter_mb: int = 2
+    upload_limit_free_profile_image_mb: int = 2
+    upload_limit_free_document_mb: int = 2
+    upload_limit_free_resume_per_day: int = 3
+    upload_limit_free_total_storage_mb: int = 50
+    # Pro tier upload limits
+    upload_limit_pro_resume_mb: int = 10
+    upload_limit_pro_cover_letter_mb: int = 5
+    upload_limit_pro_profile_image_mb: int = 5
+    upload_limit_pro_document_mb: int = 10
+    upload_limit_pro_resume_per_day: int = 20
+    upload_limit_pro_total_storage_mb: int = 500
+    # Enterprise tier upload limits
+    upload_limit_enterprise_resume_mb: int = 25
+    upload_limit_enterprise_cover_letter_mb: int = 10
+    upload_limit_enterprise_profile_image_mb: int = 10
+    upload_limit_enterprise_document_mb: int = 50
+    upload_limit_enterprise_resume_per_day: int = -1  # Unlimited
+    upload_limit_enterprise_total_storage_mb: int = 5000
+
+    # ── Cache TTLs ──────────────────────────────────────────────────
+    cache_ttl_short_seconds: int = 60  # 1 minute for frequently changing data
+    cache_ttl_medium_seconds: int = 300  # 5 minutes for moderately static data
+    cache_ttl_long_seconds: int = 3600  # 1 hour for static data
+    cache_ttl_job_results_seconds: int = 1800  # 30 minutes for job search results
+    api_cache_disk_path: str = "/tmp/api_cache"
+
+    # ── Connection Pool Settings ─────────────────────────────────────
+    connection_pool_timeout_seconds: int = 30
+    connection_pool_max_overflow: int = 10
+    connection_pool_recycle_seconds: int = 3600
 
     # ── Timeout configuration ─────────────────────────────────────
     email_timeout_seconds: int = 10
@@ -157,7 +285,7 @@ class Settings(BaseSettings):
 
     @field_validator("adzuna_app_id", "adzuna_api_key")
     @classmethod
-    def validate_adzuna_credentials(cls, v):
+    def validate_adzuna_credentials(cls, v: str) -> str:
         """Adzuna is optional when JobSpy is primary. Empty/placeholder allowed."""
         if v and v not in (
             "your-adzuna-app-id",
@@ -198,7 +326,7 @@ class Settings(BaseSettings):
     # ── Stripe / Billing ─────────────────────────────────────────
     stripe_secret_key: str = ""
     # MUST be set via STRIPE_WEBHOOK_SECRET env in production (validation in validate_critical)
-    stripe_webhook_secret: str = "dev-placeholder-webhook-secret"
+    stripe_webhook_secret: str = ""
     stripe_pro_price_id: str = ""  # Stripe Price ID for PRO plan ($29/month)
     stripe_team_base_price_id: str = ""  # Stripe Price ID for TEAM base ($199/month)
     stripe_team_seat_price_id: str = (
@@ -215,7 +343,7 @@ class Settings(BaseSettings):
     annual_discount_pct: int = 20  # percent discount for annual billing
 
     # Webhook signing. MUST be set via WEBHOOK_SIGNING_SECRET env in production (validation in validate_critical)
-    webhook_signing_secret: str = "dev-placeholder-webhook-signing"
+    webhook_signing_secret: str = ""
 
     # ── Stripe Connect (Marketplace) ──────────────────────────────
     stripe_connect_client_id: str = ""
@@ -237,6 +365,7 @@ class Settings(BaseSettings):
     slack_webhook_url: str = ""
     slack_enterprise_channel: str = "#enterprise-alerts"
     slack_ops_channel: str = "#ops-alerts"
+    alerting_footer_icon_url: str = "https://sorce.app/favicon.ico"
 
     # ── SSO ────────────────────────────────────────────────────────
     sso_sp_entity_id: str = "https://sorce-api.onrender.com/sso/saml/metadata"
@@ -271,7 +400,9 @@ class Settings(BaseSettings):
     # ── Email (Resend) ────────────────────────────────────────────
     resend_api_key: str = ""
     resend_webhook_secret: str = ""  # #1: For Resend webhook signature verification
+    resend_api_base: str = "https://api.resend.com"
     email_from: str = "JobHuntin <noreply@jobhuntin.com>"
+    alert_email_from: str = "alerts@sorce.app"
 
     # ── CAPTCHA (Bot Protection) ───────────────────────────────────
     recaptcha_secret_key: str = ""  # reCAPTCHA v3 secret key
@@ -376,36 +507,138 @@ class Settings(BaseSettings):
     def _normalize_env(cls, v: str) -> str:
         return v.strip().lower()
 
+    @staticmethod
+    def _is_localhost_host(host: str | None) -> bool:
+        return host in {"localhost", "127.0.0.1", "0.0.0.0"}
+
+    def _validate_runtime_secret(
+        self,
+        *,
+        name: str,
+        value: str,
+        missing: list[str],
+        reject_weak: bool = False,
+    ) -> None:
+        if not value:
+            missing.append(f"{name} (required)")
+            return
+        if "dev-" in value or "change-in-production" in value:
+            missing.append(f"{name} (dev default not allowed in prod)")
+            return
+        if len(value) < 32:
+            missing.append(
+                f"{name} (must be at least 32 characters for security; current length: {len(value)})"
+            )
+            return
+        if reject_weak and value.lower().strip() in KNOWN_WEAK_SECRETS:
+            missing.append(
+                f"{name} (known weak secret not allowed - choose a strong, unique secret)"
+            )
+
+    def _validate_public_url(self, *, name: str, value: str, missing: list[str]) -> None:
+        normalized = value.strip()
+        if not normalized or normalized == "[REDACTED]":
+            missing.append(f"{name} (must be set, not placeholder)")
+            return
+
+        parsed = urlparse(normalized)
+        if parsed.scheme not in {"http", "https"} or not parsed.netloc:
+            missing.append(f"{name} (must be a valid absolute http(s) URL)")
+            return
+
+        if self.env in (Environment.STAGING, Environment.PROD) and self._is_localhost_host(parsed.hostname):
+            missing.append(f"{name} (must not use localhost in {self.env.value})")
+        elif self.env == Environment.PROD and parsed.scheme != "https":
+            missing.append(f"{name} (must use https in prod)")
+
+    def _validate_cors_origins(self, *, missing: list[str]) -> None:
+        if not self.cors_allowed_origins:
+            return
+
+        invalid_origins: list[str] = []
+        for origin in self.cors_allowed_origins.split(","):
+            normalized = origin.strip()
+            if not normalized:
+                continue
+            if normalized == "*":
+                invalid_origins.append("* (wildcard not allowed)")
+                continue
+            if "[REDACTED]" in normalized:
+                invalid_origins.append(f"{normalized} (placeholder not allowed)")
+                continue
+
+            parsed = urlparse(normalized)
+            if parsed.scheme not in {"http", "https"} or not parsed.netloc:
+                invalid_origins.append(
+                    f"{normalized} (must be a valid absolute http(s) origin)"
+                )
+                continue
+
+            if self.env in (Environment.STAGING, Environment.PROD) and self._is_localhost_host(parsed.hostname):
+                invalid_origins.append(
+                    f"{normalized} (localhost origins are not allowed in {self.env.value})"
+                )
+
+        if invalid_origins:
+            missing.append(
+                "CORS_ALLOWED_ORIGINS (invalid entries: " + "; ".join(invalid_origins) + ")"
+            )
+
     def validate_critical(self) -> None:
         """Abort startup in staging/prod if critical secrets are missing."""
         if self.env in (Environment.STAGING, Environment.PROD):
             missing: list[str] = []
-            if not self.database_url or "localhost" in self.database_url:
-                missing.append("DATABASE_URL (must not be localhost)")
+            if not self.database_url:
+                missing.append("DATABASE_URL (required)")
+            else:
+                parsed_database_url = urlparse(self.database_url)
+                if (
+                    not parsed_database_url.scheme.startswith("postgres")
+                    or not parsed_database_url.netloc
+                ):
+                    missing.append(
+                        "DATABASE_URL (must be a valid PostgreSQL connection URL)"
+                    )
+                elif self._is_localhost_host(parsed_database_url.hostname):
+                    missing.append("DATABASE_URL (must not be localhost)")
             if not self.llm_api_key:
                 missing.append("LLM_API_KEY")
 
-            if not self.app_base_url or self.app_base_url.strip() == "[REDACTED]":
-                missing.append("APP_BASE_URL (must be set, not placeholder)")
-            if not self.api_public_url or self.api_public_url.strip() == "[REDACTED]":
-                missing.append(
-                    "API_PUBLIC_URL (required for magic-link redirect in prod)"
-                )
-            if not self.csrf_secret:
-                missing.append("CSRF_SECRET")
-            elif (
-                "dev-" in self.csrf_secret or "change-in-production" in self.csrf_secret
-            ):
-                missing.append("CSRF_SECRET (dev default not allowed in prod)")
-            if not self.jwt_secret:
-                missing.append("JWT_SECRET (required for JWT token signing/validation)")
-            elif "dev-" in self.jwt_secret or "change-in-production" in self.jwt_secret:
-                missing.append("JWT_SECRET (dev default not allowed in prod)")
+            self._validate_public_url(
+                name="APP_BASE_URL", value=self.app_base_url, missing=missing
+            )
+            self._validate_public_url(
+                name="API_PUBLIC_URL", value=self.api_public_url, missing=missing
+            )
+            self._validate_runtime_secret(
+                name="CSRF_SECRET",
+                value=self.csrf_secret,
+                missing=missing,
+                reject_weak=True,
+            )
+            self._validate_runtime_secret(
+                name="JWT_SECRET",
+                value=self.jwt_secret,
+                missing=missing,
+                reject_weak=True,
+            )
+            self._validate_cors_origins(missing=missing)
             # #8: Redis required for token replay protection and session revocation
             if not self.redis_url:
                 missing.append(
                     "REDIS_URL (required for token replay protection and session revocation)"
                 )
+            else:
+                parsed_redis_url = urlparse(self.redis_url)
+                if (
+                    parsed_redis_url.scheme not in {"redis", "rediss"}
+                    or not parsed_redis_url.netloc
+                ):
+                    missing.append(
+                        "REDIS_URL (must be a valid redis:// or rediss:// URL)"
+                    )
+                elif self.env == Environment.PROD and self._is_localhost_host(parsed_redis_url.hostname):
+                    missing.append("REDIS_URL (must not use localhost in prod)")
             # SSO_SESSION_SECRET is optional - only required for ENTERPRISE plans with SSO enabled
             # if not self.sso_session_secret:
             #     missing.append("SSO_SESSION_SECRET")

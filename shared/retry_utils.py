@@ -7,7 +7,6 @@ jitter, and circuit breaker patterns for reliable operations.
 from __future__ import annotations
 
 import asyncio
-import random
 import secrets
 import time
 from dataclasses import dataclass

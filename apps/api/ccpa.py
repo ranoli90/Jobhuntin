@@ -1,4 +1,18 @@
+"""CCPA (California Consumer Privacy Act) compliance endpoints.
+
+Provides REST API endpoints for CCPA data access and deletion requests.
+Implements PRIV-004: CCPA Right to Know and Right to Delete.
+
+Mounted via _mount_sub_routers() in api/main.py.
+"""
+
+from __future__ import annotations
+
+from typing import Any
+
+import asyncpg
 from fastapi import APIRouter, Depends
+from pydantic import BaseModel
 
 from api.dependencies import get_current_user_id, get_pool
 from packages.backend.domain.ccpa import CCPAComplianceManager
@@ -8,8 +22,9 @@ router = APIRouter(prefix="/ccpa", tags=["CCPA Compliance"])
 
 @router.post("/data-access-request")
 async def data_access_request(
-    user_id: str = Depends(get_current_user_id), pool=Depends(get_pool)
-):
+    user_id: str = Depends(get_current_user_id),
+    pool: asyncpg.Pool = Depends(get_pool),
+) -> dict[str, Any]:
     """PRIV-004: CCPA Right to Know — full data inventory including answer_memory, application_inputs."""
     async with pool.acquire() as conn:
         user_data = await conn.fetchrow(
@@ -71,6 +86,7 @@ async def data_access_request(
 
 @router.post("/data-deletion-request")
 async def data_deletion_request(
-    user_id: str = Depends(get_current_user_id), pool=Depends(get_pool)
-):
+    user_id: str = Depends(get_current_user_id),
+    pool: asyncpg.Pool = Depends(get_pool),
+) -> dict[str, Any]:
     return await CCPAComplianceManager.handle_data_deletion_request(user_id, pool)

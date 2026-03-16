@@ -1,3 +1,4 @@
+import asyncio
 import io
 from typing import Any
 
@@ -5,6 +6,7 @@ import httpx
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
 from PIL import Image, ImageDraw, ImageFont
 
+from api.deps import get_tenant_context as _get_tenant_ctx
 from packages.backend.domain.masking import mask_ip
 from shared.logging_config import get_logger
 from shared.metrics import get_rate_limiter
@@ -13,11 +15,6 @@ from shared.middleware import get_client_ip
 logger = get_logger("sorce.api.og")
 
 router = APIRouter()
-
-
-def _get_tenant_ctx():
-    """Stub; inject tenant context via Depends in main app."""
-    raise NotImplementedError("Tenant context dependency not injected")
 
 
 # --- CONFIG ---
@@ -40,7 +37,7 @@ FONT_URL_REGULAR = (
 _font_cache: dict[str, Any] = {}
 
 
-def get_font(url: str, size: int):
+async def get_font(url: str, size: int):
     key = f"{url}-{size}"
     if key in _font_cache:
         return _font_cache[key]
@@ -48,10 +45,11 @@ def get_font(url: str, size: int):
     try:
         # Try to load from cache first if we saved it to disk (optional optimization)
         # For now, just fetch into memory
-        resp = httpx.get(url, timeout=10)
+        async with httpx.AsyncClient(timeout=10) as client:
+            resp = await client.get(url)
         resp.raise_for_status()
         font_bytes = io.BytesIO(resp.content)
-        font = ImageFont.truetype(font_bytes, size)
+        font = await asyncio.to_thread(ImageFont.truetype, font_bytes, size)
         _font_cache[key] = font
         return font
     except Exception as e:
@@ -156,10 +154,10 @@ async def generate_og_image(
 
     # 3. Text
     # Load Fonts
-    title_font = get_font(FONT_URL_BOLD, 70)
-    company_font = get_font(FONT_URL_REGULAR, 40)
-    meta_font = get_font(FONT_URL_BOLD, 30)
-    footer_font = get_font(FONT_URL_REGULAR, 24)
+    title_font = await get_font(FONT_URL_BOLD, 70)
+    company_font = await get_font(FONT_URL_REGULAR, 40)
+    meta_font = await get_font(FONT_URL_BOLD, 30)
+    footer_font = await get_font(FONT_URL_REGULAR, 24)
 
     # Job Title
     lines = wrap_text(job, title_font, card_width - 100)

@@ -18,13 +18,19 @@ from packages.backend.domain.answer_memory import (
     AnswerMemoryManager,
     InterviewQuestion,
 )
-from packages.backend.domain.application_export import ApplicationExportManager, ExportConfig
+from packages.backend.domain.application_export import (
+    ApplicationExportManager,
+    ExportConfig,
+)
 from packages.backend.domain.application_notes import (
     ApplicationNote,
     ApplicationNotesManager,
     NoteTemplate,
 )
-from packages.backend.domain.application_pipeline import ApplicationPipelineManager, PipelineView
+from packages.backend.domain.application_pipeline import (
+    ApplicationPipelineManager,
+    PipelineView,
+)
 from packages.backend.domain.follow_up_reminders import (
     FollowUpManager,
     FollowUpReminder,
@@ -39,34 +45,33 @@ from packages.backend.domain.multi_resume import (
 from packages.backend.domain.tenant import TenantContext
 from shared.logging_config import get_logger
 
+from api.deps import (
+    get_pool,
+    get_pool as _get_pool,
+    get_tenant_context,
+    get_tenant_context as _get_tenant_ctx,
+)
+
 logger = get_logger("sorce.user_experience_api")
 
 router = APIRouter(prefix="/ux", tags=["user_experience"])
 
 
 # Placeholder dependencies - overridden by main.py with get_pool and get_tenant_context
-async def _get_pool():
-    raise NotImplementedError("Pool dependency not injected")
-
-
-async def _get_tenant_ctx():
-    raise NotImplementedError("Tenant context dependency not injected")
-
-
 # Manager factories - receive pool via Depends(_get_pool) so main.py override applies
-def get_pipeline_manager(db=Depends(_get_pool)):
+def get_pipeline_manager(db=Depends(get_pool)):
     from packages.backend.domain.application_pipeline import create_pipeline_manager
 
     return create_pipeline_manager(db)
 
 
-def get_export_manager(db=Depends(_get_pool)):
+def get_export_manager(db=Depends(get_pool)):
     from packages.backend.domain.application_export import create_export_manager
 
     return create_export_manager(db)
 
 
-def get_follow_up_manager(db=Depends(_get_pool)):
+def get_follow_up_manager(db=Depends(get_pool)):
     from packages.backend.domain.follow_up_reminders import create_follow_up_manager
 
     return create_follow_up_manager(db)
@@ -85,7 +90,9 @@ def get_multi_resume_manager(db=Depends(_get_pool)):
 
 
 def get_application_notes_manager(db=Depends(_get_pool)):
-    from packages.backend.domain.application_notes import create_application_notes_manager
+    from packages.backend.domain.application_notes import (
+        create_application_notes_manager,
+    )
 
     return create_application_notes_manager(db)
 

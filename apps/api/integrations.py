@@ -10,16 +10,23 @@ import asyncpg
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
-from packages.backend.domain.google_drive_integration import GoogleDriveIntegrationManager
+from packages.backend.domain.google_drive_integration import (
+    GoogleDriveIntegrationManager,
+)
 from packages.backend.domain.notion_integration import (
     APPLICATION_DATABASE_SCHEMA,
     NotionClient,
     NotionIntegrationManager,
 )
-from packages.backend.domain.slack_integration import SlackIntegrationManager, SlackMessageType
+from packages.backend.domain.slack_integration import (
+    SlackIntegrationManager,
+    SlackMessageType,
+)
 from packages.backend.domain.zapier_integration import ZapierIntegrationManager
 from shared.logging_config import get_logger
 from shared.redirect_validation import validate_webhook_url
+
+from api.deps import get_pool, get_current_user_id, get_tenant_id
 
 logger = get_logger("sorce.api.integrations")
 
@@ -60,18 +67,6 @@ def _decrypt_token(encrypted: str) -> str:
 
 
 router = APIRouter(prefix="/integrations", tags=["integrations"])
-
-
-def _get_pool():
-    raise NotImplementedError("Pool dependency not injected")
-
-
-async def _get_user_id() -> str:
-    raise NotImplementedError("User ID dependency not injected")
-
-
-async def _get_tenant_id() -> str:
-    raise NotImplementedError("Tenant ID dependency not injected")
 
 
 # ============ SLACK ============

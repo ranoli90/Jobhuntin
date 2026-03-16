@@ -383,6 +383,7 @@ class ReplicaRouter:
             return self._select_random(available_replicas)
 
         # Weighted random selection
+        # nosemgrep: python.lang.security.audit.crypto.random.random - used for load balancing, not security
         rand = random.random() * total_weight
         current_weight = 0
 
@@ -409,7 +410,7 @@ class ReplicaRouter:
     def _select_random(self, available_replicas: List[str]) -> Tuple[asyncpg.Pool, str]:
         """Select random replica."""
         import random
-
+        # nosemgrep: python.lang.security.audit.crypto.random.random - used for load balancing, not security
         replica_id = random.choice(available_replicas)
         return self.replicas[replica_id].pool, replica_id
 

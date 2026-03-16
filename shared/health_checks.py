@@ -474,7 +474,7 @@ class HealthChecker:
 
             # Generate status-based recommendations
             recommendations.extend(self._generate_status_recommendations(results))
-            
+
             # Generate performance recommendations
             recommendations.extend(self._generate_performance_recommendations(results))
 
@@ -487,7 +487,7 @@ class HealthChecker:
     def _generate_status_recommendations(self, results: List[HealthCheckResult]) -> List[str]:
         """Generate recommendations based on health check status."""
         recommendations = []
-        
+
         # Critical checks
         critical_checks = [r for r in results if r.status == HealthStatus.CRITICAL]
         if critical_checks:
@@ -517,7 +517,7 @@ class HealthChecker:
     def _generate_performance_recommendations(self, results: List[HealthCheckResult]) -> List[str]:
         """Generate performance-based recommendations."""
         recommendations = []
-        
+
         if len(results) > 0:
             avg_duration = statistics.mean([r.duration_ms for r in results])
             if avg_duration > 500:
@@ -633,7 +633,7 @@ class HealthChecker:
             # This would check actual database performance
             # For now, simulate a check with random response time
             import random
-
+            # nosemgrep: python.lang.security.audit.crypto.random.random - used for simulation, not security
             query_time = random.uniform(50, 2000)  # 50ms to 2s
 
             return {
@@ -743,8 +743,9 @@ class HealthChecker:
             # This would check application-specific health indicators
             # For now, simulate a check
             import random
-
+            # nosemgrep: python.lang.security.audit.crypto.random.random - used for simulation, not security
             uptime = random.uniform(3600, 86400)  # 1-24 hours
+            # nosemgrep: python.lang.security.audit.crypto.random.random - used for simulation, not security
             active_connections = random.randint(10, 100)
 
             return {

@@ -12,6 +12,7 @@ import asyncpg
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
+from api.deps import get_pool as _get_pool, get_tenant_context as _get_tenant_ctx
 from packages.backend.domain.audit import record_audit_event
 from packages.backend.domain.repositories import db_transaction
 from packages.backend.domain.tenant import TenantContext, TenantScopeError, require_role
@@ -22,18 +23,6 @@ from shared.sql_utils import escape_ilike
 logger = get_logger("sorce.api.bulk")
 
 router = APIRouter(prefix="/bulk", tags=["bulk"])
-
-# ---------------------------------------------------------------------------
-# Dependency stubs (injected by api/main.py)
-# ---------------------------------------------------------------------------
-
-
-def _get_pool() -> asyncpg.Pool:
-    return (_ for _ in ()).throw(NotImplementedError("Pool not injected"))
-
-
-def _get_tenant_ctx() -> TenantContext:
-    return (_ for _ in ()).throw(NotImplementedError("Tenant ctx not injected"))
 
 
 # ---------------------------------------------------------------------------

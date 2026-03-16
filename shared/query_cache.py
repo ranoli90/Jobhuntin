@@ -153,3 +153,36 @@ class QueryCache:
 profile_cache = QueryCache("profile", PROFILE_TTL)
 job_cache = QueryCache("jobs", JOB_LISTINGS_TTL)
 tenant_cache = QueryCache("tenant", TENANT_CONFIG_TTL)
+
+
+async def invalidate_cache(key: str) -> bool:
+    """Invalidate a specific cache key.
+    
+    Convenience function for cache invalidation on data changes.
+    
+    Usage:
+        await invalidate_cache(f"user_preferences:{user_id}")
+    """
+    return await delete_cached(key)
+
+
+async def invalidate_pattern(pattern: str) -> int:
+    """Invalidate all keys matching a pattern.
+    
+    Usage:
+        # Invalidate all profile-related caches for a user
+        await invalidate_pattern(f"profile:*:{user_id}*")
+    """
+    return await delete_pattern(pattern)
+
+
+def make_cache_key(prefix: str, *args, **kwargs) -> str:
+    """Generate a cache key with a given prefix.
+    
+    Public wrapper for _make_cache_key for use in key_builder functions.
+    
+    Usage:
+        def key_builder(user_id: str, **kwargs):
+            return make_cache_key("user_prefs", user_id)
+    """
+    return _make_cache_key(prefix, *args, **kwargs)

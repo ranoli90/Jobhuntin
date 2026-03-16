@@ -11,6 +11,7 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
+from api.deps import get_pool as _get_pool, get_tenant_context
 from packages.backend.domain.agent_improvements import (
     AgentImprovementsManager,
     ButtonDetection,
@@ -32,16 +33,12 @@ logger = get_logger("sorce.agent_improvements_api")
 router = APIRouter(prefix="/agent-improvements", tags=["agent_improvements"])
 
 
-async def get_tenant_context() -> TenantContext:
-    raise NotImplementedError("Tenant context dependency not injected")
+def get_agent_improvements_manager(pool=Depends(_get_pool)):
+    from packages.backend.domain.agent_improvements import (
+        create_agent_improvements_manager,
+    )
 
-
-async def _get_pool():
-    raise NotImplementedError("Pool dependency not injected")
-
-
-def get_agent_improvements_manager():
-    raise NotImplementedError("Agent improvements manager dependency not injected")
+    return create_agent_improvements_manager(pool)
 
 
 # Pydantic models for API requests/responses

@@ -26,8 +26,7 @@ services:
         value: https://jobhuntin-web.onrender.com
       - key: API_PUBLIC_URL
         value: https://jobhuntin-api.onrender.com
-      - key: MAGIC_LINK_BIND_TO_IP
-        value: "false"
+      # MAGIC_LINK_BIND_TO_IP: "false"  # Removed - defaults to true in prod via apply_env_defaults()
       - key: LLM_API_BASE
         value: https://openrouter.ai/api/v1
       - key: LLM_MODEL

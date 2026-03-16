@@ -152,11 +152,17 @@ class RedisCache:
             logger.info("Connected to Redis")
             return True
 
-        except Exception as e:
+        except (redis.RedisError, redis.ConnectionError, redis.TimeoutError) as e:
             self._is_connected = False
             self._connection_error_count += 1
             logger.error(f"Failed to connect to Redis: {e}")
             return False
+        except json.JSONDecodeError as e:
+            logger.error(f"Cache data corrupted in connect: {e}")
+            return False
+        except Exception as e:
+            logger.error(f"Unexpected error connecting to Redis: {e}")
+            raise  # Re-raise unexpected exceptions
 
     async def disconnect(self) -> None:
         """Disconnect from Redis."""
@@ -168,8 +174,11 @@ class RedisCache:
             self._is_connected = False
             logger.info("Disconnected from Redis")
 
-        except Exception as e:
+        except (redis.RedisError, redis.ConnectionError, redis.TimeoutError) as e:
             logger.error(f"Error disconnecting from Redis: {e}")
+        except Exception as e:
+            logger.error(f"Unexpected error disconnecting from Redis: {e}")
+            raise  # Re-raise unexpected exceptions
 
     async def get(self, key: str, default: Any = None) -> Any:
         """Get value from cache."""
@@ -218,10 +227,21 @@ class RedisCache:
                 self._update_hit_rate()
                 return default
 
-        except Exception as e:
-            logger.error(f"Failed to get from cache: {e}")
+        except (json.JSONDecodeError, UnicodeDecodeError) as e:
+            logger.error(f"Failed to deserialize cache value: {e}")
             self._stats.miss_count += 1
             self._update_hit_rate()
+            return default
+        except (redis.RedisError, redis.ConnectionError, redis.TimeoutError) as e:
+            logger.error(f"Redis error in get for key {key}: {e}")
+            self._stats.miss_count += 1
+            self._update_hit_rate()
+            return default
+        except Exception as e:
+            logger.error(f"Unexpected error getting from cache: {e}")
+            self._stats.miss_count += 1
+            self._update_hit_rate()
+            raise  # Re-raise unexpected exceptions
             return default
 
     async def set(
@@ -273,8 +293,15 @@ class RedisCache:
                 logger.error(f"Redis set error for key {key}: {e}")
                 return False
 
+        except (json.JSONDecodeError, TypeError) as e:
+            logger.error(f"Failed to serialize value for cache: {e}")
+            return False
+        except (redis.RedisError, redis.ConnectionError, redis.TimeoutError) as e:
+            logger.error(f"Redis error in set for key {key}: {e}")
+            return False
         except Exception as e:
-            logger.error(f"Failed to set in cache: {e}")
+            logger.error(f"Unexpected error setting in cache: {e}")
+            raise  # Re-raise unexpected exceptions
             return False
 
     async def delete(self, key: str) -> bool:
@@ -301,9 +328,12 @@ class RedisCache:
                 logger.error(f"Redis delete error for key {key}: {e}")
                 return False
 
+        except (redis.RedisError, redis.ConnectionError, redis.TimeoutError) as e:
+            logger.error(f"Redis error in delete for key {key}: {e}")
+            return False
         except Exception as e:
-            # nosemgrep: python.lang.security.audit.sqli.asyncpg-sqli.asyncpg-sqli - logging exception, not SQL
-            logger.error(f"Failed to delete from cache: {e}")
+            logger.error(f"Unexpected error deleting from cache: {e}")
+            raise  # Re-raise unexpected exceptions
             return False
 
     async def clear(self, pattern: Optional[str] = None) -> int:
@@ -341,8 +371,12 @@ class RedisCache:
                 logger.error(f"Redis clear error: {e}")
                 return 0
 
+        except (redis.RedisError, redis.ConnectionError, redis.TimeoutError) as e:
+            logger.error(f"Redis error in clear: {e}")
+            return 0
         except Exception as e:
-            logger.error(f"Failed to clear cache: {e}")
+            logger.error(f"Unexpected error clearing cache: {e}")
+            raise  # Re-raise unexpected exceptions
             return 0
 
     async def exists(self, key: str) -> bool:
@@ -362,8 +396,12 @@ class RedisCache:
                 logger.error(f"Redis exists error for key {key}: {e}")
                 return False
 
+        except (redis.RedisError, redis.ConnectionError, redis.TimeoutError) as e:
+            logger.error(f"Redis error in exists for key {key}: {e}")
+            return False
         except Exception as e:
-            logger.error(f"Failed to check cache existence: {e}")
+            logger.error(f"Unexpected error checking cache existence: {e}")
+            raise  # Re-raise unexpected exceptions
             return False
 
     async def expire(self, key: str, ttl_seconds: int) -> bool:
@@ -383,8 +421,12 @@ class RedisCache:
                 logger.error(f"Redis expire error for key {key}: {e}")
                 return False
 
+        except (redis.RedisError, redis.ConnectionError, redis.TimeoutError) as e:
+            logger.error(f"Redis error in expire for key {key}: {e}")
+            return False
         except Exception as e:
-            logger.error(f"Failed to set cache expiration: {e}")
+            logger.error(f"Unexpected error setting cache expiration: {e}")
+            raise  # Re-raise unexpected exceptions
             return False
 
     async def ttl(self, key: str) -> int:
@@ -404,8 +446,12 @@ class RedisCache:
                 logger.error(f"Redis TTL error for key {key}: {e}")
                 return -1
 
+        except (redis.RedisError, redis.ConnectionError, redis.TimeoutError) as e:
+            logger.error(f"Redis error in ttl for key {key}: {e}")
+            return -1
         except Exception as e:
-            logger.error(f"Failed to get cache TTL: {e}")
+            logger.error(f"Unexpected error getting cache TTL: {e}")
+            raise  # Re-raise unexpected exceptions
             return -1
 
     async def get_stats(self) -> CacheStatistics:
@@ -416,8 +462,12 @@ class RedisCache:
 
             return self._stats
 
+        except (AttributeError, TypeError) as e:
+            logger.error(f"Failed to get cache stats (attribute/type error): {e}")
+            return CacheStatistics()
         except Exception as e:
-            logger.error(f"Failed to get cache stats: {e}")
+            logger.error(f"Unexpected error getting cache stats: {e}")
+            raise  # Re-raise unexpected exceptions
             return CacheStatistics()
 
     async def health_check(self) -> bool:
@@ -435,8 +485,12 @@ class RedisCache:
                 logger.error(f"Redis health check failed: {e}")
                 return False
 
+        except (redis.RedisError, redis.ConnectionError, redis.TimeoutError) as e:
+            logger.error(f"Redis error in health check: {e}")
+            return False
         except Exception as e:
-            logger.error(f"Failed to perform health check: {e}")
+            logger.error(f"Unexpected error in health check: {e}")
+            raise  # Re-raise unexpected exceptions
             return False
 
     def _keys(self, pattern: str) -> List[str]:
@@ -489,9 +543,16 @@ class RedisCache:
             if max_memory > 0:
                 self._stats.memory_usage_percent = (used_memory / max_memory) * 100
 
-        except Exception as e:
-            logger.error(f"Failed to update memory usage: {e}")
+        except (redis.RedisError, redis.ConnectionError, redis.TimeoutError) as e:
+            logger.error(f"Redis error updating memory usage: {e}")
             self._stats.memory_usage_percent = 0.0
+        except (AttributeError, TypeError) as e:
+            logger.error(f"Failed to update memory usage (attribute/type error): {e}")
+            self._stats.memory_usage_percent = 0.0
+        except Exception as e:
+            logger.error(f"Unexpected error updating memory usage: {e}")
+            self._stats.memory_usage_percent = 0.0
+            raise  # Re-raise unexpected exceptions
 
     def _initialize_metrics(self) -> None:
         """Initialize metrics collection."""
@@ -530,8 +591,11 @@ class RedisCache:
                 unit="operations",
             )
 
-        except Exception as e:
+        except (AttributeError, TypeError) as e:
             logger.error(f"Failed to initialize metrics: {e}")
+        except Exception as e:
+            logger.error(f"Unexpected error initializing metrics: {e}")
+            raise  # Re-raise unexpected exceptions
 
     def _start_background_tasks(self) -> None:
         """Start background tasks."""
@@ -539,8 +603,11 @@ class RedisCache:
             self._health_check_task = asyncio.create_task(self._health_check_loop())
             self._metrics_task = asyncio.create_task(self._metrics_loop())
 
-        except Exception as e:
+        except (AttributeError, RuntimeError) as e:
             logger.error(f"Failed to start background tasks: {e}")
+        except Exception as e:
+            logger.error(f"Unexpected error starting background tasks: {e}")
+            raise  # Re-raise unexpected exceptions
 
     async def _health_check_loop(self) -> None:
         """Background health check loop."""
@@ -566,13 +633,19 @@ class RedisCache:
                         labels={"status": "healthy" if is_healthy else "unhealthy"},
                     )
 
-                except Exception as e:
+                except (redis.RedisError, redis.ConnectionError, redis.TimeoutError) as e:
                     logger.error(f"Health check loop error: {e}")
+                except Exception as e:
+                    logger.error(f"Unexpected error in health check loop: {e}")
+                    raise  # Re-raise unexpected exceptions
 
         except asyncio.CancelledError:
             pass
-        except Exception as e:
+        except (redis.RedisError, redis.ConnectionError, redis.TimeoutError) as e:
             logger.error(f"Health check loop failed: {e}")
+        except Exception as e:
+            logger.error(f"Unexpected error in health check loop: {e}")
+            raise  # Re-raise unexpected exceptions
 
     async def _metrics_loop(self) -> None:
         """Background metrics collection loop."""
@@ -609,12 +682,14 @@ class RedisCache:
                     )
 
                 except Exception as e:
-                    logger.error(f"Metrics loop error: {e}")
+                    logger.error(f"Unexpected error in metrics loop: {e}")
+                    raise  # Re-raise unexpected exceptions
 
         except asyncio.CancelledError:
             pass
         except Exception as e:
-            logger.error(f"Metrics loop failed: {e}")
+            logger.error(f"Unexpected error in metrics loop: {e}")
+            raise  # Re-raise unexpected exceptions
 
 
 class MemoryCache:
@@ -677,11 +752,16 @@ class MemoryCache:
 
                 return entry.value
 
-        except Exception as e:
+        except (KeyError, AttributeError) as e:
             logger.error(f"Failed to get from memory cache: {e}")
             self._stats.miss_count += 1
             self._update_hit_rate()
             return default
+        except Exception as e:
+            logger.error(f"Unexpected error getting from memory cache: {e}")
+            self._stats.miss_count += 1
+            self._update_hit_rate()
+            raise  # Re-raise unexpected exceptions
 
     async def set(
         self,

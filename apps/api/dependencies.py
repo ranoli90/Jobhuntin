@@ -6,6 +6,13 @@ import asyncpg
 from fastapi import Cookie, Depends, Header, HTTPException
 
 from shared.config import get_settings
+from shared.error_responses import (
+    AuthenticationError,
+    AuthorizationError,
+    ConfigurationError,
+    ErrorCodes,
+    ServiceUnavailableError,
+)
 from shared.logging_config import get_logger
 
 logger = get_logger("sorce.api.dependencies")
@@ -30,9 +37,8 @@ async def _check_session_revocation(jti: str, settings: Any) -> bool:
                 "Rejecting request (fail closed). Set REDIS_URL.",
                 settings.env.value,
             )
-            raise HTTPException(
-                status_code=503,
-                detail="Authentication service temporarily unavailable. Please try again.",
+            raise ServiceUnavailableError(
+                "Authentication service temporarily unavailable. Please try again."
             )
         return False
 
@@ -48,9 +54,8 @@ async def _check_session_revocation(jti: str, settings: Any) -> bool:
     except Exception as e:
         logger.warning("Failed to check session token revocation: %s", e)
         if settings.env.value in ("prod", "staging"):
-            raise HTTPException(
-                status_code=503,
-                detail="Authentication service temporarily unavailable. Please try again.",
+            raise ServiceUnavailableError(
+                "Authentication service temporarily unavailable. Please try again."
             )
         # Local/dev: allow auth to proceed when Redis is unavailable
         return False
@@ -66,7 +71,7 @@ class DatabasePoolManager:
     @property
     def pool(self) -> asyncpg.Pool:
         if self._pool is None:
-            raise HTTPException(status_code=503, detail="Database pool not available")
+            raise ServiceUnavailableError("Database pool not available")
         return self._pool
 
     @property
@@ -217,11 +222,8 @@ _pool_manager = DatabasePoolManager()
 async def get_pool() -> asyncpg.Pool:
     """Dependency for getting the primary database pool."""
     if _pool_manager.pool is None:
-        from fastapi import HTTPException
-        raise HTTPException(
-            status_code=503,
-            detail =
-    "Database connection not available. The service may be starting up or experiencing connectivity issues."
+        raise ServiceUnavailableError(
+            "Database connection not available. The service may be starting up or experiencing connectivity issues."
         )
     return _pool_manager.pool
 
@@ -231,11 +233,7 @@ async def get_read_pool() -> asyncpg.Pool:
     if _pool_manager.read_pool is None:
         # Fall back to primary pool if read replica is not available
         if _pool_manager.pool is None:
-            from fastapi import HTTPException
-            raise HTTPException(
-                status_code=503,
-                detail="Database connection not available."
-            )
+            raise ServiceUnavailableError("Database connection not available.")
         return _pool_manager.pool
     return _pool_manager.read_pool
 
@@ -254,7 +252,7 @@ async def get_current_user_id(
 
     s = get_settings()
     if not s.jwt_secret:
-        raise HTTPException(status_code=500, detail="JWT secret not configured")
+        raise ConfigurationError("JWT secret not configured")
 
     token: str | None = None
     if jobhuntin_auth:
@@ -263,7 +261,10 @@ async def get_current_user_id(
         token = authorization.replace("Bearer ", "")
 
     if not token:
-        raise HTTPException(status_code=401, detail="Missing authentication")
+        raise AuthenticationError(
+            "Missing authentication",
+            code=ErrorCodes.MISSING_CREDENTIALS,
+        )
 
     try:
         payload = pyjwt.decode(
@@ -271,8 +272,9 @@ async def get_current_user_id(
         )
         user_id = payload.get("sub")
         if not user_id:
-            raise HTTPException(
-                status_code=401, detail="Invalid token: missing subject"
+            raise AuthenticationError(
+                "Invalid token: missing subject",
+                code=ErrorCodes.INVALID_TOKEN,
             )
         jti = payload.get("jti")
         payload.get("session_id")  # M2: Extract session_id for tracking
@@ -282,7 +284,10 @@ async def get_current_user_id(
             logger.warning(
                 "Token missing jti claim - rejecting (cannot verify revocation)"
             )
-            raise HTTPException(status_code=401, detail="Invalid token: missing jti")
+            raise AuthenticationError(
+                "Invalid token: missing jti",
+                code=ErrorCodes.INVALID_TOKEN,
+            )
 
         # Check if session token has been revoked (C1: Session Token Replay Fix)
         revoked = await _check_session_revocation(jti, s)
@@ -292,8 +297,9 @@ async def get_current_user_id(
                 jti,
                 user_id,
             )
-            raise HTTPException(
-                status_code=401, detail="Session revoked. Please sign in again."
+            raise AuthenticationError(
+                "Session revoked. Please sign in again.",
+                code=ErrorCodes.INVALID_TOKEN,
             )
 
         # M2: session_id is stored in JWT payload and extracted by sessions.py
@@ -304,10 +310,16 @@ async def get_current_user_id(
         raise
     except pyjwt.PyJWTError as exc:
         logger.warning("JWT validation failed: %s", exc)
-        raise HTTPException(status_code=401, detail="Invalid or expired token")
+        raise AuthenticationError(
+            "Invalid or expired token",
+            code=ErrorCodes.INVALID_TOKEN,
+        )
     except Exception as exc:
         logger.warning("Token processing error: %s", exc)
-        raise HTTPException(status_code=401, detail="Invalid or expired token")
+        raise AuthenticationError(
+            "Invalid or expired token",
+            code=ErrorCodes.INVALID_TOKEN,
+        )
 
 
 async def require_admin_user_id(
@@ -330,7 +342,7 @@ async def require_admin_user_id(
             pass
 
     logger.warning("Admin access denied for user %s", user_id)
-    raise HTTPException(status_code=403, detail="Admin access required")
+    raise AuthorizationError("Admin access required")
 
 
 # Aliases for modules expecting get_current_user (dict), get_db_pool, get_tenant_id

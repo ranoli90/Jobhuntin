@@ -2,6 +2,11 @@
 
 Provides thin, type-annotated wrappers around raw SQL.
 Used by both API routes and the worker agent.
+
+CACHING: Read-only operations are cached with appropriate TTLs:
+- Job data: 2 minutes (JOB_LISTINGS_TTL) - job details rarely change
+- Profile data: 15 minutes (PROFILE_TTL) - user profile data
+- Tenant config: 1 hour (TENANT_CONFIG_TTL) - rarely changes
 """
 
 from __future__ import annotations
@@ -9,6 +14,7 @@ from __future__ import annotations
 import json
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
+from datetime import timedelta
 from typing import Any, List
 
 import asyncpg
@@ -19,7 +25,34 @@ from packages.backend.domain.models import (
     ApplicationEvent,
     ApplicationInput,
 )
+from shared.logging_config import get_logger
+from shared.query_cache import (
+    JOB_LISTINGS_TTL,
+    PROFILE_TTL,
+    TENANT_CONFIG_TTL,
+    get_cached,
+    invalidate_cache,
+    invalidate_pattern,
+    set_cached,
+)
+from shared.slow_query_monitor import monitor_query
 from shared.sql_utils import escape_ilike
+
+logger = get_logger("sorce.repositories")
+
+
+def build_user_dashboard_cache_key(user_id: str, tenant_id: str | None) -> str:
+    """Build a tenant-safe cache key for user dashboard payloads."""
+    tenant_scope = tenant_id or "none"
+    return f"user_dashboard:{tenant_scope}:{user_id}"
+
+
+async def invalidate_user_dashboard_cache(user_id: str) -> int:
+    """Invalidate all cached dashboard payloads for a user across tenant scopes."""
+    deleted = await invalidate_pattern(f"user_dashboard:*:{user_id}")
+    if deleted:
+        logger.debug(f"Invalidated {deleted} dashboard cache entries for user {user_id}")
+    return deleted
 
 # ---------------------------------------------------------------------------
 # Transaction helper
@@ -49,16 +82,15 @@ async def record_event(
     tenant_id: str | None = None,
 ) -> None:
     """Insert an append-only event row into application_events."""
-    await conn.execute(
-        """
-        INSERT INTO public.application_events (application_id, event_type, payload, tenant_id)
-        VALUES ($1, $2::public.application_event_type, $3::jsonb, $4)
-        """,
-        application_id,
-        event_type,
-        json.dumps(payload or {}),
-        tenant_id,
-    )
+    event_query = """INSERT INTO public.application_events (application_id, event_type, payload, tenant_id) VALUES ($1, $2, $3, $4)"""
+    async with monitor_query(event_query, threshold=0.5) as query_info:
+        await conn.execute(
+            event_query,
+            application_id,
+            event_type,
+            json.dumps(payload or {}),
+            tenant_id,
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -122,9 +154,13 @@ class ApplicationRepo:
     async def claim_next(pool: asyncpg.Pool, max_attempts: int) -> dict | None:
         """Atomically claim the next QUEUED or resumable task (any tenant)."""
         async with db_transaction(pool) as conn:
-            row = await conn.fetchrow(CLAIM_QUEUED_SQL, max_attempts)
+            claim_query = """SELECT id FROM public.applications WHERE status = 'QUEUED' AND attempt_count < $1 AND (available_at IS NULL OR available_at <= now()) ORDER BY created_at ASC LIMIT 1 FOR UPDATE SKIP LOCKED"""
+            async with monitor_query(claim_query, threshold=2.0) as query_info:
+                row = await conn.fetchrow(CLAIM_QUEUED_SQL, max_attempts)
+            
             if row is None:
-                row = await conn.fetchrow(CLAIM_RESUMABLE_SQL, max_attempts)
+                async with monitor_query(CLAIM_RESUMABLE_SQL, threshold=2.0) as query_info:
+                    row = await conn.fetchrow(CLAIM_RESUMABLE_SQL, max_attempts)
             if row is None:
                 return None
             task = dict(row)
@@ -145,39 +181,47 @@ class ApplicationRepo:
         *,
         error_message: str | None = None,
     ) -> dict | None:
-        """Update application status with appropriate side-effects."""
+        """Update application status with appropriate side-effects.
+        
+        CACHE INVALIDATION: Invalidates application detail cache on status change.
+        """
+        update_query = """UPDATE public.applications SET status = $2, updated_at = now() WHERE id = $1 RETURNING *"""
+        
         if status == "APPLIED":
-            row = await conn.fetchrow(
-                """
-                UPDATE public.applications
-                SET    status        = $2::public.application_status,
-                       submitted_at  = now(),
-                       last_error    = NULL,
-                       updated_at    = now()
-                WHERE  id = $1
-                RETURNING *
-                """,
-                application_id,
-                status,
-            )
+            async with monitor_query(update_query, threshold=1.0) as query_info:
+                row = await conn.fetchrow(
+                    """
+                    UPDATE public.applications
+                    SET    status        = $2::public.application_status,
+                           submitted_at  = now(),
+                           last_error    = NULL,
+                           updated_at    = now()
+                    WHERE  id = $1
+                    RETURNING *
+                    """,
+                    application_id,
+                    status,
+                )
         elif status == "FAILED":
-            row = await conn.fetchrow(
-                """
-                UPDATE public.applications
-                SET    status        = $2::public.application_status,
-                       last_error    = $3,
-                       updated_at    = now()
-                WHERE  id = $1
-                RETURNING *
-                """,
-                application_id,
-                status,
-                error_message,
-            )
+            async with monitor_query(update_query, threshold=1.0) as query_info:
+                row = await conn.fetchrow(
+                    """
+                    UPDATE public.applications
+                    SET    status        = $2::public.application_status,
+                           last_error    = $3,
+                           updated_at    = now()
+                    WHERE  id = $1
+                    RETURNING *
+                    """,
+                    application_id,
+                    status,
+                    error_message,
+                )
         else:
-            row = await conn.fetchrow(
-                """
-                UPDATE public.applications
+            async with monitor_query(update_query, threshold=1.0) as query_info:
+                row = await conn.fetchrow(
+                    """
+                    UPDATE public.applications
                 SET    status     = $2::public.application_status,
                        last_error = CASE WHEN $2 = 'QUEUED' THEN NULL ELSE last_error END,
                        updated_at = now()
@@ -187,7 +231,17 @@ class ApplicationRepo:
                 application_id,
                 status,
             )
-        return dict(row) if row else None
+        
+        if row:
+            result = dict(row)
+            # Invalidate application detail cache on status change
+            await invalidate_cache(f"application_detail:{application_id}")
+            if result.get("user_id"):
+                await invalidate_user_dashboard_cache(str(result["user_id"]))
+            logger.debug(f"Invalidated cache for application {application_id}")
+            return result
+        
+        return None
 
     @staticmethod
     async def get_by_id(conn: asyncpg.Connection, application_id: str) -> dict | None:
@@ -418,17 +472,64 @@ class ProfileRepo:
     """CRUD for user profiles."""
 
     @staticmethod
-    async def get_profile_data(conn: asyncpg.Connection, user_id: str) -> dict | None:
-        """Return raw profile_data dict, or None."""
+    async def get_profile_snapshot(
+        conn: asyncpg.Connection,
+        user_id: str,
+        *,
+        use_cache: bool = True,
+    ) -> dict[str, Any]:
+        """Return profile payload and resume URL for a user in one query."""
+        cache_key = f"profile_snapshot:{user_id}"
+
+        if use_cache:
+            cached = await get_cached(cache_key)
+            if cached is not None:
+                logger.debug(f"Cache hit for profile_snapshot {user_id}")
+                return cached
+
         row = await conn.fetchrow(
-            "SELECT profile_data FROM public.profiles WHERE user_id = $1",
+            "SELECT profile_data, resume_url FROM public.profiles WHERE user_id = $1",
             user_id,
         )
+
         if row is None:
-            return None
-        data = row["profile_data"]
-        result = json.loads(data) if isinstance(data, str) else data
-        return result  # type: ignore[no-any-return]
+            result = {
+                "exists": False,
+                "profile_data": None,
+                "resume_url": None,
+            }
+        else:
+            data = row["profile_data"]
+            result = {
+                "exists": True,
+                "profile_data": json.loads(data) if isinstance(data, str) else data,
+                "resume_url": row["resume_url"],
+            }
+
+        if use_cache:
+            await set_cached(cache_key, result, PROFILE_TTL)
+            logger.debug(f"Cache set for profile_snapshot {user_id}")
+
+        return result
+
+    @staticmethod
+    async def get_profile_data(
+        conn: asyncpg.Connection,
+        user_id: str,
+        *,
+        use_cache: bool = True,
+    ) -> dict | None:
+        """Return raw profile_data dict, or None.
+        
+        CACHING: Profile data is cached for 15 minutes by default.
+        Set use_cache=False to bypass cache.
+        """
+        snapshot = await ProfileRepo.get_profile_snapshot(
+            conn,
+            user_id,
+            use_cache=use_cache,
+        )
+        return snapshot["profile_data"]  # type: ignore[no-any-return]
 
     @staticmethod
     async def upsert(
@@ -455,6 +556,13 @@ class ProfileRepo:
             resume_url,
             tenant_id,
         )
+        
+        # Invalidate profile cache on upsert
+        await invalidate_cache(f"profile_data:{user_id}")
+        await invalidate_cache(f"profile_snapshot:{user_id}")
+        await invalidate_cache(f"deep_profile:{user_id}")
+        logger.debug(f"Invalidated cache for profile {user_id}")
+        
         return dict(row)
 
 
@@ -464,18 +572,20 @@ class ProfileRepo:
 
 
 class JobRepo:
-    """Read operations for jobs with comprehensive job details."""
+    """Read operations for jobs with comprehensive job details.
+
+    OPTIMIZATION: Provides both single-job and batch-fetch methods to avoid
+    N+1 query patterns. Use get_by_ids() when fetching multiple jobs to
+    reduce database round trips from N queries to 1 query.
+    """
 
     @staticmethod
-    async def get_by_id(conn: asyncpg.Connection, job_id: str) -> dict | None:
-        """Get job details by ID. Works with JobSpy schema (no companies join)."""
-        row = await conn.fetchrow(
-            "SELECT * FROM public.jobs WHERE id = $1",
-            job_id,
-        )
-        if not row:
-            return None
+    def _row_to_job_detail(row: asyncpg.Record) -> dict[str, Any]:
+        """Normalize a `jobs` row into the job payload used by matching code.
 
+        This helper is shared by get_by_id() and get_by_ids() to ensure
+        consistent output format and avoid code duplication.
+        """
         def _iso(d):
             return d.isoformat() if d and hasattr(d, "isoformat") else d
 
@@ -535,6 +645,124 @@ class JobRepo:
             "deadline": None,
             "application_url": app_url,
         }
+
+    @staticmethod
+    async def get_by_id(
+        conn: asyncpg.Connection, 
+        job_id: str,
+        *,
+        use_cache: bool = True,
+    ) -> dict | None:
+        """Get job details by ID. Works with JobSpy schema (no companies join).
+        
+        CACHING: Job details are cached for 2 minutes by default.
+        Set use_cache=False to bypass cache.
+        """
+        cache_key = f"job:{job_id}"
+        
+        if use_cache:
+            cached = await get_cached(cache_key)
+            if cached is not None:
+                logger.debug(f"Cache hit for job {job_id}")
+                return cached
+        
+        job_query = "SELECT * FROM public.jobs WHERE id = $1"
+        async with monitor_query(job_query, threshold=1.0) as query_info:
+            row = await conn.fetchrow(
+                job_query,
+                job_id,
+            )
+        if not row:
+            return None
+        
+        result = JobRepo._row_to_job_detail(row)
+        
+        if use_cache:
+            await set_cached(cache_key, result, JOB_LISTINGS_TTL)
+            logger.debug(f"Cache set for job {job_id}")
+        
+        return result
+
+    @staticmethod
+    async def get_by_ids(
+        conn: asyncpg.Connection, 
+        job_ids: list[str],
+        *,
+        use_cache: bool = True,
+    ) -> list[dict[str, Any]]:
+        """Batch-fetch job details in input order to avoid N+1 job lookups.
+
+        OPTIMIZATION: Uses a single query with unnest() and ordinality to fetch
+        all requested jobs while preserving the input order. This eliminates the
+        N+1 pattern where callers would loop over job_ids and call get_by_id()
+        for each one.
+        
+        CACHING: Individual job results are cached for 2 minutes. The method
+        first checks the cache for each job, then fetches only uncached jobs
+        from the database.
+
+        Args:
+            conn: Database connection
+            job_ids: List of job UUID strings to fetch
+            use_cache: Whether to use caching (default True)
+
+        Returns:
+            List of job detail dicts in the same order as input job_ids.
+            Jobs not found are omitted from the result.
+        """
+        if not job_ids:
+            return []
+
+        results: list[dict[str, Any]] = []
+        uncached_ids: list[str] = []
+        cached_results: dict[str, dict] = {}
+        
+        # Check cache for each job if caching is enabled
+        if use_cache:
+            for job_id in job_ids:
+                cache_key = f"job:{job_id}"
+                cached = await get_cached(cache_key)
+                if cached is not None:
+                    cached_results[job_id] = cached
+                else:
+                    uncached_ids.append(job_id)
+        else:
+            uncached_ids = list(job_ids)
+        
+        # Fetch uncached jobs from database
+        if uncached_ids:
+            batch_query = """
+                WITH requested_jobs AS (
+                    SELECT requested_id, ord
+                    FROM unnest($1::uuid[]) WITH ORDINALITY AS job_ids(requested_id, ord)
+                )
+                SELECT j.*, requested_jobs.ord
+                FROM requested_jobs
+                JOIN public.jobs j ON j.id = requested_jobs.requested_id
+                ORDER BY requested_jobs.ord
+            """
+            async with monitor_query(batch_query, threshold=2.0) as query_info:
+                rows = await conn.fetch(
+                    batch_query,
+                    uncached_ids,
+            )
+            
+            for row in rows:
+                job_detail = JobRepo._row_to_job_detail(row)
+                job_id = str(row["id"])
+                cached_results[job_id] = job_detail
+                
+                # Cache the result
+                if use_cache:
+                    cache_key = f"job:{job_id}"
+                    await set_cached(cache_key, job_detail, JOB_LISTINGS_TTL)
+        
+        # Build results in original order
+        for job_id in job_ids:
+            if job_id in cached_results:
+                results.append(cached_results[job_id])
+        
+        return results
 
     @staticmethod
     async def list_jobs(
@@ -801,6 +1029,10 @@ class InputRepo:
             """,
             rows,
         )
+        
+        # Invalidate application detail cache when new inputs are inserted
+        await invalidate_cache(f"application_detail:{application_id}")
+        logger.debug(f"Invalidated cache for application {application_id} after input insertion")
 
     @staticmethod
     async def update_answers(
@@ -824,6 +1056,10 @@ class InputRepo:
                 a["answer"],
                 application_id,
             )
+        
+        # Invalidate application detail cache when answers are updated
+        await invalidate_cache(f"application_detail:{application_id}")
+        logger.debug(f"Invalidated cache for application {application_id} after answer updates")
 
 
 # ---------------------------------------------------------------------------
@@ -857,17 +1093,74 @@ class TenantRepo:
     """CRUD for tenants and tenant membership."""
 
     @staticmethod
-    async def get_by_id(conn: asyncpg.Connection, tenant_id: str) -> dict | None:
-        """Fetch tenant by ID."""
+    async def get_by_id(
+        conn: asyncpg.Connection, 
+        tenant_id: str,
+        *,
+        use_cache: bool = True,
+    ) -> dict | None:
+        """Fetch tenant by ID.
+        
+        CACHING: Tenant data is cached for 1 hour by default since it rarely changes.
+        Set use_cache=False to bypass cache.
+        """
+        cache_key = f"tenant:{tenant_id}"
+        
+        if use_cache:
+            cached = await get_cached(cache_key)
+            if cached is not None:
+                logger.debug(f"Cache hit for tenant {tenant_id}")
+                return cached
+        
         row = await conn.fetchrow(
             "SELECT * FROM public.tenants WHERE id = $1", tenant_id
         )
-        return dict(row) if row else None
+        
+        if row is None:
+            return None
+        
+        result = dict(row)
+        
+        if use_cache:
+            await set_cached(cache_key, result, TENANT_CONFIG_TTL)
+            logger.debug(f"Cache set for tenant {tenant_id}")
+        
+        return result
 
     @staticmethod
-    async def get_by_slug(conn: asyncpg.Connection, slug: str) -> dict | None:
+    async def get_by_slug(
+        conn: asyncpg.Connection, 
+        slug: str,
+        *,
+        use_cache: bool = True,
+    ) -> dict | None:
+        """Fetch tenant by slug.
+        
+        CACHING: Tenant data is cached for 1 hour by default.
+        """
+        cache_key = f"tenant_slug:{slug}"
+        
+        if use_cache:
+            cached = await get_cached(cache_key)
+            if cached is not None:
+                logger.debug(f"Cache hit for tenant slug {slug}")
+                return cached
+        
         row = await conn.fetchrow("SELECT * FROM public.tenants WHERE slug = $1", slug)
-        return dict(row) if row else None
+        
+        if row is None:
+            return None
+        
+        result = dict(row)
+        
+        if use_cache:
+            await set_cached(cache_key, result, TENANT_CONFIG_TTL)
+            # Also cache by ID for consistency
+            if "id" in result:
+                await set_cached(f"tenant:{result['id']}", result, TENANT_CONFIG_TTL)
+            logger.debug(f"Cache set for tenant slug {slug}")
+        
+        return result
 
     @staticmethod
     async def update_plan(
@@ -889,7 +1182,17 @@ class TenantRepo:
             plan,
             json.dumps(plan_metadata) if plan_metadata else None,
         )
-        return dict(row) if row else None
+        
+        if row:
+            result = dict(row)
+            # Invalidate tenant cache on update
+            await invalidate_cache(f"tenant:{tenant_id}")
+            if "slug" in result:
+                await invalidate_cache(f"tenant_slug:{result['slug']}")
+            logger.debug(f"Invalidated cache for tenant {tenant_id}")
+            return result
+        
+        return None
 
     @staticmethod
     async def list_all(

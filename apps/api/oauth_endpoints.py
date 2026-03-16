@@ -10,6 +10,7 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Depends, Header, HTTPException, Request
 from pydantic import BaseModel, Field
 
+from api.deps import get_tenant_context
 from packages.backend.domain.oauth_handler import OAuthHandler, create_oauth_handler
 from packages.backend.domain.tenant import TenantContext
 from shared.logging_config import get_logger
@@ -24,11 +25,6 @@ def _get_oauth_rate_limiter(request: Request) -> RateLimiter:
     """Get rate limiter for OAuth endpoints based on IP address."""
     client_ip = request.client.host if request.client else "unknown"
     return get_rate_limiter(f"oauth:{client_ip}", max_requests=10, window_seconds=60)
-
-
-async def get_tenant_context() -> TenantContext:
-    """Stub; inject tenant context via Depends in main app."""
-    raise NotImplementedError("Tenant context dependency not injected")
 
 
 # Pydantic models

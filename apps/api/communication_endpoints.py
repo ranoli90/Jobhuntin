@@ -16,7 +16,7 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
-from apps.api.dependencies import get_current_user_id, get_pool
+from api.deps import get_current_user_id, get_pool, get_tenant_context
 from packages.backend.domain.enhanced_notifications import (
     NotificationCategory,
     NotificationContent,
@@ -28,14 +28,6 @@ from shared.logging_config import get_logger
 logger = get_logger("sorce.communication_api")
 
 router = APIRouter(prefix="/communications", tags=["communications"])
-
-
-async def _get_pool():
-    raise NotImplementedError("Pool dependency not injected")
-
-
-async def get_tenant_context() -> TenantContext:
-    raise NotImplementedError("Tenant context dependency not injected")
 
 
 # Pydantic models
@@ -113,7 +105,9 @@ async def get_email_manager_dep(pool=Depends(get_pool)):
 
 async def get_notification_manager_dep(pool=Depends(get_pool)):
     """Get enhanced notification manager."""
-    from packages.backend.domain.enhanced_notifications import get_enhanced_notification_manager
+    from packages.backend.domain.enhanced_notifications import (
+        get_enhanced_notification_manager,
+    )
 
     return get_enhanced_notification_manager(pool)
 
@@ -498,10 +492,10 @@ async def get_email_log(
             conditions.append(f"email_type = ${n}")
             params.append(email_type)
             n += 1
-            
+
         # Ensure only whitelisted fields are used
         where = (" AND " + " AND ".join(conditions)) if conditions else ""
-        
+
         async with pool.acquire() as conn:
             # nosemgrep: python.lang.security.audit.sqli.asyncpg-sqli.
 # asyncpg-sqli - parameterized query with filter whitelist

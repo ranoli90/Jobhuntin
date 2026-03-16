@@ -10,6 +10,8 @@ from packages.backend.domain.tenant import TenantContext
 from shared.logging_config import get_logger
 from shared.sql_utils import escape_ilike
 
+from api.deps import get_tenant_context
+
 logger = get_logger("sorce.job_details")
 
 router = APIRouter(tags=["job_details"])
@@ -122,20 +124,10 @@ class JobFilters(BaseModel):
     company_name: Optional[str] = Field(default=None, description="Company name filter")
 
 
-def _get_pool():
-    """Database pool dependency."""
-    raise NotImplementedError("Pool dependency not injected")
-
-
-def _get_tenant_ctx():
-    """Tenant context dependency."""
-    raise NotImplementedError("Tenant context dependency not injected")
-
-
 @router.get("/{job_id}")
 async def get_job_details(
     job_id: str,
-    ctx: TenantContext = Depends(_get_tenant_ctx),
+    ctx: TenantContext = Depends(get_tenant_context),
 ) -> JobDetailsResponse:
     """Get comprehensive job details by ID.
 
@@ -178,7 +170,7 @@ async def get_job_details(
 
 @router.get("/")
 async def list_jobs(
-    ctx: TenantContext = Depends(_get_tenant_ctx),
+    ctx: TenantContext = Depends(get_tenant_context),
     limit: int = Query(
         default=20, ge=1, le=100, description="Number of jobs to return"
     ),
@@ -353,7 +345,7 @@ async def list_jobs(
 @router.get("/search")
 async def search_jobs(
     q: str = Query(..., description="Search query"),
-    ctx: TenantContext = Depends(_get_tenant_ctx),
+    ctx: TenantContext = Depends(get_tenant_context),
     limit: int = Query(
         default=20, ge=1, le=100, description="Number of jobs to return"
     ),
@@ -414,7 +406,7 @@ async def search_jobs(
 @router.get("/companies/{company_name}")
 async def get_company_jobs(
     company_name: str,
-    ctx: TenantContext = Depends(_get_tenant_ctx),
+    ctx: TenantContext = Depends(get_tenant_context),
     limit: int = Query(
         default=20, ge=1, le=100, description="Number of jobs to return"
     ),
@@ -475,7 +467,7 @@ async def get_company_jobs(
 
 @router.get("/filters/options")
 async def get_filter_options(
-    ctx: TenantContext = Depends(_get_tenant_ctx),
+    ctx: TenantContext = Depends(get_tenant_context),
 ) -> Dict[str, Any]:
     """Get available filter options for job search.
 

@@ -602,7 +602,6 @@ updated.</p>
             company="{company}",
             job_title="{job_title}",
             old_status="{old_status}",
-            new_status="{new_status}",
             application_id="{application_id}",
         )
 

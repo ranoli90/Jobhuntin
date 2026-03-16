@@ -10,8 +10,12 @@ from pydantic import BaseModel
 
 from apps.api.dependencies import get_current_user, get_db_pool, get_tenant_id
 from packages.backend.domain.cache_manager import create_cache_manager
-from packages.backend.domain.connection_pool_manager import create_connection_pool_manager
-from packages.backend.domain.database_performance_manager import create_database_performance_manager
+from packages.backend.domain.connection_pool_manager import (
+    create_connection_pool_manager,
+)
+from packages.backend.domain.database_performance_manager import (
+    create_database_performance_manager,
+)
 from packages.backend.domain.index_analyzer import create_index_analyzer
 from packages.backend.domain.performance_monitor import create_performance_monitor
 from packages.backend.domain.query_optimizer import create_query_optimizer
@@ -69,7 +73,10 @@ async def collect_metric(
         monitor = create_performance_monitor(db_pool)
 
         # Convert string enums to actual enums
-        from packages.backend.domain.performance_monitor import MetricCategory, MetricType
+        from packages.backend.domain.performance_monitor import (
+            MetricCategory,
+            MetricType,
+        )
 
         metric_type = MetricType(request.metric_type)
         metric_category = MetricCategory(request.metric_category)

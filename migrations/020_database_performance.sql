@@ -364,24 +364,41 @@ BEGIN
 END;
 
 -- Create indexes for performance
-CREATE INDEX IF NOT EXISTS idx_performance_metrics_tenant_timestamp ON performance_metrics(tenant_id, timestamp DESC);
-CREATE INDEX IF NOT EXISTS idx_performance_metrics_name_timestamp ON performance_metrics(name, timestamp DESC);
-CREATE INDEX IF NOT EXISTS idx_performance_metrics_category_timestamp ON performance_metrics(category, timestamp DESC);
+-- Keep this index block aligned with the actual table/column names defined above.
+-- The earlier audit draft referenced stale table names (`performance_metrics`,
+-- `query_analysis`, `index_usage`) and duplicated several definitions.
+CREATE INDEX IF NOT EXISTS idx_performance_monitoring_snapshots_tenant_created_at
+ON performance_monitoring_snapshots(tenant_id, created_at DESC);
 
-CREATE INDEX IF NOT EXISTS idx_query_analysis_tenant_hash ON query_analysis(tenant_id, query_hash);
-CREATE INDEX IF NOT EXISTS idx_query_analysis_timestamp ON query_analysis(timestamp DESC);
+CREATE INDEX IF NOT EXISTS idx_query_performance_analysis_tenant_hash_created_at
+ON query_performance_analysis(tenant_id, query_hash, created_at DESC);
 
-CREATE INDEX IF NOT EXISTS idx_index_usage_table_name_timestamp ON index_usage(table_name, last_used DESC);
-CREATE INDEX IF NOT EXISTS idx_performance_optimizations_tenant_timestamp ON performance_optimizations(tenant_id, timestamp DESC);
+CREATE INDEX IF NOT EXISTS idx_query_performance_analysis_created_at
+ON query_performance_analysis(created_at DESC);
 
-CREATE INDEX IF NOT EXISTS idx_performance_alerts_tenant_timestamp ON performance_alerts(tenant_id, timestamp DESC);
+CREATE INDEX IF NOT EXISTS idx_connection_pool_snapshots_tenant_created_at
+ON connection_pool_snapshots(tenant_id, created_at DESC);
 
-CREATE INDEX IF NOT EXISTS idx_database_performance_metrics_category_timestamp ON database_performance_metrics(category, timestamp DESC);
-CREATE INDEX IF NOT EXISTS idx_query_performance_analysis_tenant_hash_timestamp ON query_performance_analysis(tenant_id, query_hash, timestamp DESC);
-CREATE INDEX IF NOT EXISTS idx_connection_pool_snapshots_tenant_timestamp ON connection_pool_snapshots(tenant_id, timestamp DESC);
-CREATE INDEX IF NOT EXISTS idx_index_usage_analysis_tenant_timestamp ON index_usage(tenant_id, last_used DESC);
-CREATE INDEX IF NOT EXISTS idx_performance_optimizations_tenant_timestamp ON performance_optimizations(tenant_id, timestamp DESC);
-CREATE INDEX IF NOT EXISTS idx_performance_alerts_tenant_timestamp ON performance_alerts(tenant_id, timestamp DESC);
+CREATE INDEX IF NOT EXISTS idx_index_usage_analysis_tenant_last_used
+ON index_usage_analysis(tenant_id, last_used DESC);
+
+CREATE INDEX IF NOT EXISTS idx_index_usage_analysis_table_last_used
+ON index_usage_analysis(table_name, last_used DESC);
+
+CREATE INDEX IF NOT EXISTS idx_performance_optimizations_tenant_created_at
+ON performance_optimizations(tenant_id, created_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_performance_alerts_tenant_timestamp
+ON performance_alerts(tenant_id, timestamp DESC);
+
+CREATE INDEX IF NOT EXISTS idx_performance_alerts_metric_timestamp
+ON performance_alerts(metric_name, timestamp DESC);
+
+CREATE INDEX IF NOT EXISTS idx_database_performance_metrics_tenant_timestamp
+ON database_performance_metrics(tenant_id, timestamp DESC);
+
+CREATE INDEX IF NOT EXISTS idx_database_performance_metrics_name_timestamp
+ON database_performance_metrics(metric_name, timestamp DESC);
 
 -- Add comments
 COMMENT ON TABLE performance_monitoring_snapshots IS 'Stores performance monitoring snapshots for analysis';

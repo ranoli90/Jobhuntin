@@ -14,6 +14,11 @@ import asyncpg
 from fastapi import APIRouter, Depends, HTTPException, Path, Query
 from pydantic import BaseModel, Field
 
+from api.deps import (
+    get_pool as _get_pool,
+    get_tenant_context as _get_tenant_ctx,
+    require_admin_user_id as _get_admin_user_id,
+)
 from packages.backend.domain.analytics_events import ALL_EVENT_TYPES
 from packages.backend.domain.business_metrics import get_business_metrics_dashboard
 from packages.backend.domain.eval_queries import get_agent_performance_summary
@@ -30,24 +35,6 @@ from shared.metrics import incr
 logger = get_logger("sorce.api.analytics")
 
 router = APIRouter(tags=["analytics"])
-
-# ---------------------------------------------------------------------------
-# Dependency stubs — injected by api/main.py at mount time
-# ---------------------------------------------------------------------------
-
-
-def _get_pool() -> asyncpg.Pool:
-    return (_ for _ in ()).throw(  # type: ignore[return-value]
-        RuntimeError("analytics._get_pool not wired")
-    )
-
-
-def _get_tenant_ctx() -> Any:
-    return (_ for _ in ()).throw(RuntimeError("analytics._get_tenant_ctx not wired"))
-
-
-def _get_admin_user_id() -> Any:
-    return (_ for _ in ()).throw(RuntimeError("analytics._get_admin_user_id not wired"))
 
 
 # ===================================================================

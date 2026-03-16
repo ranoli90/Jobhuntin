@@ -13,10 +13,10 @@ import hashlib
 from typing import Any
 
 import asyncpg
+from api.dependencies import get_current_user_id
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
-from api.dependencies import get_current_user_id
 from packages.backend.domain.repositories import JobMatchCacheRepo, ProfileRepo
 from packages.backend.llm import LLMClient
 from packages.backend.llm.contracts import (

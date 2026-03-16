@@ -11,6 +11,8 @@ from packages.backend.domain.match_calibration import get_match_calibrator
 from packages.backend.domain.tenant import TenantContext
 from shared.logging_config import get_logger
 
+from api.deps import get_tenant_context
+
 logger = get_logger("sorce.match_calibration")
 
 router = APIRouter(tags=["match_calibration"])
@@ -70,20 +72,10 @@ class AnalyticsResponse(BaseModel):
     )
 
 
-def _get_pool():
-    """Database pool dependency."""
-    raise NotImplementedError("Pool dependency not injected")
-
-
-def _get_tenant_ctx():
-    """Tenant context dependency."""
-    raise NotImplementedError("Tenant context dependency not injected")
-
-
 @router.post("/calibrate")
 async def run_calibration(
     request: CalibrationRequest,
-    ctx: TenantContext = Depends(_get_tenant_ctx),
+    ctx: TenantContext = Depends(get_tenant_context),
     background_tasks: BackgroundTasks = BackgroundTasks(),
 ) -> CalibrationResponse:
     """Run a calibration cycle for the tenant.
@@ -125,7 +117,7 @@ async def run_calibration(
 
 @router.get("/analytics")
 async def get_calibration_analytics(
-    ctx: TenantContext = Depends(_get_tenant_ctx),
+    ctx: TenantContext = Depends(get_tenant_context),
     days_back: int = Query(
         default=90, ge=7, le=365, description="Number of days to analyze"
     ),
@@ -220,7 +212,7 @@ async def get_calibration_analytics(
 
 @router.get("/recommendations")
 async def get_current_recommendations(
-    ctx: TenantContext = Depends(_get_tenant_ctx),
+    ctx: TenantContext = Depends(get_tenant_context),
     days_back: int = Query(
         default=90, ge=7, le=365, description="Number of days to analyze"
     ),
@@ -292,7 +284,7 @@ async def get_current_recommendations(
 
 @router.post("/recommendations/apply")
 async def apply_recommendations(
-    ctx: TenantContext = Depends(_get_tenant_ctx),
+    ctx: TenantContext = Depends(get_tenant_context),
     days_back: int = Query(
         default=90, ge=7, le=365, description="Number of days to analyze"
     ),
@@ -380,7 +372,7 @@ async def apply_recommendations(
 
 @router.get("/history")
 async def get_calibration_history(
-    ctx: TenantContext = Depends(_get_tenant_ctx),
+    ctx: TenantContext = Depends(get_tenant_context),
     limit: int = Query(
         default=10, ge=1, le=50, description="Maximum number of records to return"
     ),
@@ -464,7 +456,7 @@ async def get_calibration_history(
 
 @router.get("/data-quality")
 async def get_data_quality_report(
-    ctx: TenantContext = Depends(_get_tenant_ctx),
+    ctx: TenantContext = Depends(get_tenant_context),
     days_back: int = Query(
         default=90, ge=7, le=365, description="Number of days to analyze"
     ),
@@ -595,7 +587,7 @@ async def get_data_quality_report(
 
 @router.post("/schedule")
 async def schedule_calibration(
-    ctx: TenantContext = Depends(_get_tenant_ctx),
+    ctx: TenantContext = Depends(get_tenant_context),
     frequency_days: int = Query(
         default=30, ge=7, le=90, description="Calibration frequency in days"
     ),

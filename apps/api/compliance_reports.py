@@ -23,20 +23,11 @@ from pydantic import BaseModel
 from packages.backend.domain import compliance_tracker
 from shared.logging_config import get_logger
 
+from api.deps import get_pool, require_admin_user_id
+
 logger = get_logger("sorce.compliance_reports")
 
 router = APIRouter(prefix="/compliance", tags=["compliance"])
-
-
-# Dependency placeholder - will be overridden in main.py
-async def _get_admin_user_id() -> str:
-    """Get admin user ID - overridden in main.py."""
-    raise NotImplementedError("Auth dependency not injected")
-
-
-async def _get_pool() -> asyncpg.Pool:
-    """Get database pool - overridden in main.py."""
-    raise NotImplementedError("DB pool not injected")
 
 
 # ---------------------------------------------------------------------------

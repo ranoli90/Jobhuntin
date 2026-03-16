@@ -27,7 +27,11 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
 from packages.backend.domain.tenant import TenantContext
-from packages.backend.domain.voice_interview_simulator import get_voice_interview_simulator
+from packages.backend.domain.voice_interview_simulator import (
+    get_voice_interview_simulator,
+)
+
+from api.deps import get_pool as _get_pool, get_tenant_context as _get_tenant_ctx
 from shared.config import get_settings
 from shared.logging_config import get_logger
 
@@ -197,16 +201,6 @@ class VoiceSettingsOptionsResponse(BaseModel):
     default_settings: Dict[str, Any] = Field(..., description="Default voice settings")
 
 
-def _get_pool():
-    """Database pool dependency."""
-    raise NotImplementedError("Pool dependency not injected")
-
-
-def _get_tenant_ctx():
-    """Tenant context dependency."""
-    raise NotImplementedError("Tenant context dependency not injected")
-
-
 async def _get_session_from_db(
     conn: asyncpg.Connection, session_id: str, user_id: str
 ) -> Optional[Dict[str, Any]]:
@@ -341,7 +335,10 @@ async def create_voice_session(
         difficulty = difficulty_map.get(request.difficulty.lower(), "MEDIUM")
 
         # Import enum types
-        from packages.backend.domain.interview_simulator import InterviewType, QuestionDifficulty
+        from packages.backend.domain.interview_simulator import (
+            InterviewType,
+            QuestionDifficulty,
+        )
 
         interview_type_enum = InterviewType(interview_type)
         difficulty_enum = QuestionDifficulty(difficulty)

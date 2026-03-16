@@ -18,16 +18,28 @@ import json
 import mimetypes
 import os
 import re
+from datetime import timedelta
 from typing import Any
 from urllib.parse import unquote
 
 import asyncpg
-from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException
+from fastapi import (
+    APIRouter,
+    BackgroundTasks,
+    Depends,
+    File,
+    HTTPException,
+    UploadFile,
+)
 from fastapi import Path as FastAPIPath
-from fastapi import Request, UploadFile
 from fastapi.responses import Response
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
+from api.deps import (
+    get_current_user_id as _get_user_id,
+    get_pool as _get_pool,
+    get_tenant_context as _get_tenant_ctx,
+)
 from packages.backend.domain.analytics_events import (
     APPLICATION_STATUS_CHANGED,
     emit_analytics_event,
@@ -38,6 +50,8 @@ from packages.backend.domain.repositories import (
     EventRepo,
     InputRepo,
     JobRepo,
+    ProfileRepo,
+    build_user_dashboard_cache_key,
     db_transaction,
 )
 from packages.backend.domain.resume import process_resume_upload
@@ -45,26 +59,13 @@ from packages.backend.domain.tenant import TenantContext
 from shared.config import get_settings
 from shared.logging_config import get_logger
 from shared.metrics import incr
+from shared.query_cache import get_cached, set_cached
 from shared.storage import get_storage_service
 from shared.validators import validate_uuid
 
 logger = get_logger("sorce.api.core_routes")
 
-# ---------------------------------------------------------------------------
-# Local dependency stubs — overridden by main.py via app.dependency_overrides
-# ---------------------------------------------------------------------------
-
-
-async def _get_pool() -> asyncpg.Pool:  # pragma: no cover
-    raise NotImplementedError("Must be overridden via dependency_overrides")
-
-
-async def _get_user_id() -> str:  # pragma: no cover
-    raise NotImplementedError
-
-
-async def _get_tenant_ctx() -> TenantContext:  # pragma: no cover
-    raise NotImplementedError
+_DASHBOARD_CACHE_TTL = timedelta(seconds=30)
 
 
 router = APIRouter(tags=["core"])
@@ -379,7 +380,7 @@ async def save_user_skills(
             from packages.backend.domain.deep_profile import calculate_completeness
             from packages.backend.domain.profile_assembly import assemble_profile
 
-            deep_profile = await assemble_profile(conn, user_id)
+            deep_profile = await assemble_profile(conn, user_id, use_cache=False)
             if deep_profile:
                 completeness_score = calculate_completeness(deep_profile)
                 user_exists = await conn.fetchval(
@@ -435,10 +436,12 @@ async def save_work_style(
     )
 
     async with db_transaction(db) as conn:
-        await conn.fetchval(
-            "SELECT 1 FROM public.work_style_profiles WHERE user_id = $1 LIMIT 1",
+        existing_snapshot = await ProfileRepo.get_profile_snapshot(
+            conn,
             user_id,
+            use_cache=False,
         )
+        profile_data = dict(existing_snapshot["profile_data"] or {})
 
         await conn.execute(
             """INSERT INTO public.work_style_profiles
@@ -471,7 +474,7 @@ async def save_work_style(
         from packages.backend.domain.deep_profile import calculate_completeness
         from packages.backend.domain.profile_assembly import assemble_profile
 
-        deep_profile = await assemble_profile(conn, user_id)
+        deep_profile = await assemble_profile(conn, user_id, use_cache=False)
         if deep_profile:
             completeness_score = calculate_completeness(deep_profile)
             user_exists = await conn.fetchval(
@@ -485,18 +488,13 @@ async def save_work_style(
                     user_id,
                 )
 
-        existing = await conn.fetchrow(
-            "SELECT profile_data FROM public.profiles WHERE user_id = $1",
-            user_id,
-        )
-        if existing:
-            pd = existing["profile_data"]
-            profile_data = json.loads(pd) if isinstance(pd, str) else (pd or {})
+        if existing_snapshot["exists"]:
             profile_data["work_style"] = body.model_dump()
-            await conn.execute(
-                "UPDATE public.profiles SET profile_data = $1 WHERE user_id = $2",
-                json.dumps(profile_data),
+            await ProfileRepo.upsert(
+                conn,
                 user_id,
+                profile_data,
+                resume_url=existing_snapshot["resume_url"],
             )
 
     logger.info("[WORK_STYLE] Saved successfully", extra={"user_id": user_id})
@@ -516,35 +514,88 @@ async def user_dashboard(
     """User dashboard data for mobile v3 home screen + widget."""
     user_id = ctx.user_id
     tenant_id = ctx.tenant_id
+    cache_key = build_user_dashboard_cache_key(user_id, tenant_id)
+
+    cached_dashboard = await get_cached(cache_key)
+    if cached_dashboard is not None:
+        return cached_dashboard
+
     async with db.acquire() as conn:
-        counts = await conn.fetchrow(
-            """SELECT
-                COUNT(*) FILTER (WHERE status IN ('QUEUED','PROCESSING'))::int AS active_count,
-                COUNT(*) FILTER (WHERE status = 'REQUIRES_INPUT')::int AS hold_count,
-                COUNT(*) FILTER (WHERE status IN ('APPLIED','SUBMITTED','COMPLETED','REGISTERED')
-                                 AND updated_at::date = CURRENT_DATE)::int AS completed_today,
-                COUNT(*) FILTER (WHERE status IN ('APPLIED','SUBMITTED','COMPLETED','REGISTERED')
-                                 AND updated_at >= date_trunc('week', now()))::int AS completed_week,
-                COUNT(*)::int AS total_all_time
-               FROM public.applications
-               WHERE user_id = $1 AND (tenant_id = $2 OR tenant_id IS NULL)""",
-            user_id,
-            tenant_id,
-        )
-        recent = await conn.fetch(
-            """SELECT a.id, j.title AS job_title, a.status::text, a.updated_at
-               FROM public.applications a
-               LEFT JOIN public.jobs j ON j.id = a.job_id
-               WHERE a.user_id = $1 AND (a.tenant_id = $2 OR a.tenant_id IS NULL)
-               ORDER BY a.updated_at DESC LIMIT 10""",
+        dashboard_row = await conn.fetchrow(
+            """
+            WITH filtered_applications AS (
+                SELECT id, job_id, status, updated_at
+                FROM public.applications
+                WHERE user_id = $1 AND (tenant_id = $2 OR tenant_id IS NULL)
+            ),
+            counts AS (
+                SELECT
+                    COUNT(*) FILTER (WHERE status IN ('QUEUED','PROCESSING'))::int AS active_count,
+                    COUNT(*) FILTER (WHERE status = 'REQUIRES_INPUT')::int AS hold_count,
+                    COUNT(*) FILTER (
+                        WHERE status IN ('APPLIED','SUBMITTED','COMPLETED','REGISTERED')
+                          AND updated_at::date = CURRENT_DATE
+                    )::int AS completed_today,
+                    COUNT(*) FILTER (
+                        WHERE status IN ('APPLIED','SUBMITTED','COMPLETED','REGISTERED')
+                          AND updated_at >= date_trunc('week', now())
+                    )::int AS completed_week,
+                    COUNT(*)::int AS total_all_time
+                FROM filtered_applications
+            ),
+            recent AS (
+                SELECT COALESCE(
+                    json_agg(
+                        json_build_object(
+                            'id', recent_app.id,
+                            'job_title', recent_app.job_title,
+                            'status', recent_app.status,
+                            'updated_at', recent_app.updated_at
+                        )
+                        ORDER BY recent_app.updated_at DESC
+                    ),
+                    '[]'::json
+                ) AS items
+                FROM (
+                    SELECT
+                        a.id,
+                        j.title AS job_title,
+                        a.status::text AS status,
+                        a.updated_at
+                    FROM filtered_applications a
+                    LEFT JOIN public.jobs j ON j.id = a.job_id
+                    ORDER BY a.updated_at DESC
+                    LIMIT 10
+                ) recent_app
+            )
+            SELECT
+                counts.active_count,
+                counts.hold_count,
+                counts.completed_today,
+                counts.completed_week,
+                counts.total_all_time,
+                recent.items AS recent
+            FROM counts
+            CROSS JOIN recent
+            """,
             user_id,
             tenant_id,
         )
 
-    return {
+    recent_items = dashboard_row["recent"] if dashboard_row else []
+    if isinstance(recent_items, str):
+        recent_items = json.loads(recent_items)
+
+    result = {
         **(
-            dict(counts)
-            if counts
+            {
+                "active_count": dashboard_row["active_count"] or 0,
+                "hold_count": dashboard_row["hold_count"] or 0,
+                "completed_today": dashboard_row["completed_today"] or 0,
+                "completed_week": dashboard_row["completed_week"] or 0,
+                "total_all_time": dashboard_row["total_all_time"] or 0,
+            }
+            if dashboard_row
             else {
                 "active_count": 0,
                 "hold_count": 0,
@@ -553,8 +604,11 @@ async def user_dashboard(
                 "total_all_time": 0,
             }
         ),
-        "recent": [dict(r) for r in recent],
+        "recent": recent_items,
     }
+
+    await set_cached(cache_key, result, _DASHBOARD_CACHE_TTL)
+    return result
 
 
 @router.get("/me/team/members")

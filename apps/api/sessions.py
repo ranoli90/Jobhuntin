@@ -18,21 +18,11 @@ from packages.backend.domain.tenant import TenantContext
 from shared.logging_config import get_logger
 from shared.metrics import incr
 
+from api.deps import get_pool, get_tenant_context, get_current_user_id
+
 logger = get_logger("sorce.api.sessions")
 
 router = APIRouter(prefix="/sessions", tags=["sessions"])
-
-
-def _get_pool():
-    raise NotImplementedError("Pool dependency not injected")
-
-
-def _get_tenant_ctx():
-    raise NotImplementedError("Tenant context dependency not injected")
-
-
-def _get_user_id():
-    raise NotImplementedError("User ID dependency not injected")
 
 
 class SessionResponse(BaseModel):

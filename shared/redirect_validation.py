@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import ipaddress
 import socket
 from urllib.parse import urlparse
 
@@ -10,6 +9,7 @@ from fastapi import HTTPException
 
 from shared.config import get_settings
 from shared.logging_config import get_logger
+from shared.security_utils import is_private_ip, is_safe_redirect_url
 
 logger = get_logger("sorce.redirect_validation")
 
@@ -22,14 +22,7 @@ def _get_allowed_redirect_origins() -> list[str]:
         return []
     origins = [app_url.rstrip("/")]
     if settings.env.value == "local":
-        origins.extend(
-            [
-                "http://localhost:5173",
-                "http://localhost:3000",
-                "http://127.0.0.1:5173",
-                "http://127.0.0.1:3000",
-            ]
-        )
+        origins.extend(settings.parsed_local_redirect_origins)
     return origins
 
 
@@ -44,16 +37,8 @@ def validate_redirect_url(url: str, param_name: str = "redirect_url") -> None:
             status_code=503,
             detail="APP_BASE_URL not configured. Cannot validate redirect URL.",
         )
-    # Prevent sibling-domain bypass (e.g. https://jobhuntin.com.evil.com)
-    valid = False
-    for origin in origins:
-        if url == origin:
-            valid = True
-            break
-        if url.startswith(origin) and len(url) > len(origin) and url[len(origin)] in ("/", "?"):
-            valid = True
-            break
-    if not valid:
+    # Use shared utility to validate redirect URL against allowed origins
+    if not is_safe_redirect_url(url, origins):
         raise HTTPException(status_code=400, detail=f"Invalid {param_name}")
 
 
@@ -72,16 +57,12 @@ def validate_webhook_url(url: str, param_name: str = "webhook_url") -> None:
         )
     if not parsed.hostname:
         raise HTTPException(status_code=400, detail=f"Invalid {param_name}")
-    try:
-        ip = ipaddress.ip_address(socket.gethostbyname(parsed.hostname))
-        if ip.is_private or ip.is_loopback or ip.is_reserved or ip.is_link_local:
-            raise HTTPException(
-                status_code=400,
-                detail=f"{param_name} must point to a public address",
-            )
-    except (socket.gaierror, ValueError) as e:
-        logger.warning("Webhook URL hostname check skipped (resolve failed): %s", e)
-        # Allow; will fail at delivery if unreachable
+    # Use shared utility to check for private IP addresses
+    if is_private_ip(parsed.hostname):
+        raise HTTPException(
+            status_code=400,
+            detail=f"{param_name} must point to a public address",
+        )
 
 
 def validate_oauth_redirect_uri(redirect_uri: str) -> None:
@@ -110,12 +91,9 @@ def validate_oauth_redirect_uri(redirect_uri: str) -> None:
         raise HTTPException(status_code=400, detail="Invalid redirect_uri")
     if parsed.hostname in ("localhost", "127.0.0.1", "::1"):
         return
-    try:
-        ip = ipaddress.ip_address(socket.gethostbyname(parsed.hostname))
-        if ip.is_private or ip.is_loopback or ip.is_reserved or ip.is_link_local:
-            raise HTTPException(
-                status_code=400,
-                detail="redirect_uri must point to a public address",
-            )
-    except (socket.gaierror, ValueError):
-        pass
+    # Use shared utility to check for private IP addresses
+    if is_private_ip(parsed.hostname):
+        raise HTTPException(
+            status_code=400,
+            detail="redirect_uri must point to a public address",
+        )

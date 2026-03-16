@@ -13,23 +13,14 @@ import asyncpg
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
+from api.deps import get_pool as _get_pool, get_tenant_context as _get_tenant_ctx
 from packages.backend.domain.tenant import TenantContext
-
-
-async def _get_tenant_ctx() -> TenantContext:
-    raise NotImplementedError("Tenant context dependency not injected")
-
-
 from shared.logging_config import get_logger
 from shared.metrics import incr
 
 logger = get_logger("sorce.api.worker_health")
 
 router = APIRouter(prefix="/worker", tags=["worker-health"])
-
-
-def _get_pool() -> asyncpg.Pool:
-    return (_ for _ in ()).throw(NotImplementedError("Pool not injected"))
 
 
 # ---------------------------------------------------------------------------

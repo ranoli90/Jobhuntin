@@ -8,25 +8,19 @@ import asyncpg
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
-from packages.backend.domain.data_residency import REGION_CONFIGS, DataRegion, DataResidencyManager
+from packages.backend.domain.data_residency import (
+    REGION_CONFIGS,
+    DataRegion,
+    DataResidencyManager,
+)
 from packages.backend.domain.ip_allowlist import IPAllowlistManager
 from shared.logging_config import get_logger
+
+from api.deps import get_pool, get_current_user_id, get_tenant_id
 
 logger = get_logger("sorce.api.admin_security")
 
 router = APIRouter(prefix="/admin", tags=["admin"])
-
-
-def _get_pool():
-    raise NotImplementedError("Pool dependency not injected")
-
-
-async def _get_user_id() -> str:
-    raise NotImplementedError("User ID dependency not injected")
-
-
-async def _get_tenant_id() -> str:
-    raise NotImplementedError("Tenant ID dependency not injected")
 
 
 # ============ IP ALLOWLIST ============

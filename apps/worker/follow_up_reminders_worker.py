@@ -16,8 +16,12 @@ sys.path.insert(0, os.path.join(_root, "packages"))
 
 import asyncpg  # noqa: E402
 
-from packages.backend.domain.follow_up_reminders import create_follow_up_manager  # noqa: E402
-from packages.backend.domain.job_queue import create_follow_up_reminders_table  # noqa: E402
+from packages.backend.domain.follow_up_reminders import (
+    create_follow_up_manager,  # noqa: E402
+)
+from packages.backend.domain.job_queue import (
+    create_follow_up_reminders_table,  # noqa: E402
+)
 from shared.config import get_settings  # noqa: E402
 from shared.logging_config import get_logger  # noqa: E402
 

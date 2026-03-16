@@ -10,10 +10,14 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
-from apps.api.dependencies import get_pool
+from api.deps import get_pool, get_tenant_context
 from packages.backend.domain.alert_processor import create_alert_processor
-from packages.backend.domain.email_communication_manager import create_email_communication_manager
-from packages.backend.domain.notification_batch_processor import create_notification_batch_processor
+from packages.backend.domain.email_communication_manager import (
+    create_email_communication_manager,
+)
+from packages.backend.domain.notification_batch_processor import (
+    create_notification_batch_processor,
+)
 from packages.backend.domain.notification_manager import create_notification_manager
 from packages.backend.domain.semantic_notification_matcher import (
     create_semantic_notification_matcher,
@@ -24,11 +28,6 @@ from shared.logging_config import get_logger
 
 logger = get_logger("sorce.communications")
 router = APIRouter(prefix="/communications", tags=["communications"])
-
-
-async def get_tenant_context() -> TenantContext:
-    """Stub; inject tenant context via Depends in main app."""
-    raise NotImplementedError("Tenant context dependency not injected")
 
 
 # Pydantic models
@@ -120,34 +119,34 @@ class AlertRequest(BaseModel):
 
 
 # Dependency injection functions
-def get_email_manager():
+def get_email_manager(pool=Depends(get_pool)):
     """Get email communication manager instance."""
-    return create_email_communication_manager(get_pool())
+    return create_email_communication_manager(pool)
 
 
-def get_notification_manager():
+def get_notification_manager(pool=Depends(get_pool)):
     """Get notification manager instance."""
-    return create_notification_manager(get_pool())
+    return create_notification_manager(pool)
 
 
-def get_semantic_matcher():
+def get_semantic_matcher(pool=Depends(get_pool)):
     """Get semantic notification matcher instance."""
-    return create_semantic_notification_matcher(get_pool())
+    return create_semantic_notification_matcher(pool)
 
 
-def get_user_profiler():
+def get_user_profiler(pool=Depends(get_pool)):
     """Get user interest profiler instance."""
-    return create_user_interest_profiler(get_pool())
+    return create_user_interest_profiler(pool)
 
 
-def get_alert_processor():
+def get_alert_processor(pool=Depends(get_pool)):
     """Get alert processor instance."""
-    return create_alert_processor(get_pool())
+    return create_alert_processor(pool)
 
 
-def get_batch_processor():
+def get_batch_processor(pool=Depends(get_pool)):
     """Get notification batch processor instance."""
-    return create_notification_batch_processor(get_pool())
+    return create_notification_batch_processor(pool)
 
 
 @router.post("/email/send")

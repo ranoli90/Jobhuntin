@@ -12,7 +12,10 @@ from typing import Any
 import asyncpg
 
 from packages.backend.domain.job_dedup import deduplicate_jobs, normalize_job
-from packages.backend.domain.job_scoring import apply_dealbreaker_filters, score_job_match
+from packages.backend.domain.job_scoring import (
+    apply_dealbreaker_filters,
+    score_job_match,
+)
 from packages.backend.domain.profile_assembly import assemble_profile
 from shared.config import get_settings
 from shared.logging_config import get_logger

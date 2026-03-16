@@ -1,6 +1,6 @@
 """User-facing web API — endpoints consumed by the web app (not admin).
 
-- GET  /applications           — list applications for current user
+- GET  /applications           — list applications for current user (cursor-based pagination)
 - POST /applications           — create application from swipe (job_id, decision)
 - POST /applications/{id}/answer — answer a hold question (single answer)
 - GET  /jobs                   — list jobs with optional filters
@@ -15,17 +15,30 @@ import json
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Literal
+from typing import Any, Literal, Optional
 
 import asyncpg
-from fastapi import APIRouter, BackgroundTasks, Body, Depends, File, HTTPException
+from fastapi import (
+    APIRouter,
+    BackgroundTasks,
+    Body,
+    Depends,
+    File,
+    HTTPException,
+    Query,
+    Request,
+    UploadFile,
+)
 from fastapi import Path as FastAPIPath
-from fastapi import Request, UploadFile
 from pydantic import BaseModel, Field, field_validator, model_validator
 
+from api.deps import get_pool, get_tenant_context
 from packages.backend.domain.document_processor import create_document_processor
 from packages.backend.domain.masking import mask_email
-from packages.backend.domain.quotas import QuotaExceededError, check_can_create_application
+from packages.backend.domain.quotas import (
+    QuotaExceededError,
+    check_can_create_application,
+)
 from packages.backend.domain.repositories import (
     ApplicationRepo,
     EventRepo,
@@ -33,12 +46,23 @@ from packages.backend.domain.repositories import (
     JobRepo,
     ProfileRepo,
     db_transaction,
+    invalidate_user_dashboard_cache,
 )
 from packages.backend.domain.resume import process_resume_upload
 from packages.backend.domain.tenant import TenantContext
 from shared.config import get_settings
+from shared.error_responses import (
+    AuthorizationError,
+    ConflictError,
+    ErrorCodes,
+    InternalError,
+    NotFoundError,
+    RateLimitError,
+    ValidationError,
+)
 from shared.logging_config import get_logger, sanitize_for_log
 from shared.metrics import RateLimiter
+from shared.pagination import decode_cursor, encode_cursor
 from shared.storage import get_storage_service
 
 logger = get_logger("sorce.user")
@@ -135,14 +159,6 @@ def _get_upload_limiter(user_id: str) -> RateLimiter:
     return limiter
 
 
-def _get_pool():
-    raise NotImplementedError("Pool dependency not injected")
-
-
-def _get_tenant_ctx():
-    raise NotImplementedError("Tenant context dependency not injected")
-
-
 def _status_to_web(status: str) -> str:
     """Map backend application_status to web status."""
     if status in ("QUEUED", "PROCESSING"):
@@ -203,17 +219,41 @@ def _format_location(location: str | None) -> str:
 
 @router.get("/me/applications")
 async def list_applications(
-    ctx: TenantContext = Depends(_get_tenant_ctx),
-    db: asyncpg.Pool = Depends(_get_pool),
-    limit: int = 25,
-    offset: int = 0,
+    ctx: TenantContext = Depends(get_tenant_context),
+    db: asyncpg.Pool = Depends(get_pool),
+    cursor: str | None = Query(None, description="Pagination cursor"),
+    limit: int = Query(25, ge=5, le=100),
+    offset: int = Query(0, ge=0),
 ) -> dict[str, Any]:
-    """List applications for the current user with pagination; status mapped for web (HOLD, APPLYING, etc.)."""
+    """List applications for the current user with cursor-based pagination; status mapped for web (HOLD, APPLYING, etc.).
+    
+    Supports both cursor-based (recommended) and offset-based pagination.
+    Cursor-based pagination is more efficient for large datasets.
+    """
     # Validate and limit pagination parameters
     limit = max(5, min(limit, 100))  # Between 5 and 100 items
-    offset = max(0, offset)
+
+    # Decode cursor to get last seen id/updated_at
+    last_id = None
+    last_updated_at = None
+    if cursor:
+        cursor_data = decode_cursor(cursor)
+        if cursor_data:
+            last_id = cursor_data.get("id")
+            last_updated_at = cursor_data.get("updated_at")
 
     async with db.acquire() as conn:
+        # Build cursor condition for efficient pagination
+        cursor_condition = ""
+        cursor_params: list[Any] = []
+        
+        if last_id and last_updated_at:
+            # Use composite cursor for stable pagination
+            cursor_condition = """
+                AND (a.updated_at, a.id) < ($3, $4)
+            """
+            cursor_params = [last_updated_at, last_id]
+
         # Query with tenant filter (works when applications.tenant_id exists)
         count_sql = """
             SELECT COUNT(*)::bigint AS total
@@ -223,7 +263,7 @@ async def list_applications(
               AND a.status != 'REJECTED'
               AND (a.snoozed_until IS NULL OR a.snoozed_until < now())
             """
-        rows_sql = """
+        rows_sql = f"""
             SELECT a.id, a.status::text, a.updated_at, a.snoozed_until,
                    j.title AS job_title, j.company,
                    (
@@ -236,8 +276,9 @@ async def list_applications(
             WHERE  a.user_id = $1 AND (a.tenant_id = $2 OR a.tenant_id IS NULL)
               AND a.status != 'REJECTED'
               AND (a.snoozed_until IS NULL OR a.snoozed_until < now())
-            ORDER  BY a.updated_at DESC
-            LIMIT $3 OFFSET $4
+              {cursor_condition}
+            ORDER  BY a.updated_at DESC, a.id DESC
+            LIMIT ${3 + len(cursor_params)}
             """
         try:
             count_result = await conn.fetchrow(
@@ -245,13 +286,9 @@ async def list_applications(
                 ctx.user_id,
                 ctx.tenant_id,
             )
-            rows = await conn.fetch(
-                rows_sql,
-                ctx.user_id,
-                ctx.tenant_id,
-                limit,
-                offset,
-            )
+            # Build query params
+            query_params = [ctx.user_id, ctx.tenant_id] + cursor_params + [limit + 1]
+            rows = await conn.fetch(rows_sql, *query_params)
         except asyncpg.UndefinedColumnError:
             # applications.tenant_id or snoozed_until may not exist in older schemas
             count_sql_fallback = """
@@ -261,7 +298,14 @@ async def list_applications(
                 WHERE  a.user_id = $1
                   AND a.status != 'REJECTED'
                 """
-            rows_sql_fallback = """
+            # Fallback without tenant filter
+            cursor_condition_fallback = ""
+            if last_id and last_updated_at:
+                cursor_condition_fallback = """
+                    AND (a.updated_at, a.id) < ($2, $3)
+                """
+            
+            rows_sql_fallback = f"""
                 SELECT a.id, a.status::text, a.updated_at, NULL::timestamptz AS snoozed_until,
                        j.title AS job_title, j.company,
                        (
@@ -273,21 +317,23 @@ async def list_applications(
                 JOIN   public.jobs j ON j.id = a.job_id
                 WHERE  a.user_id = $1
                   AND a.status != 'REJECTED'
-                ORDER  BY a.updated_at DESC
-                LIMIT $2 OFFSET $3
+                  {cursor_condition_fallback}
+                ORDER  BY a.updated_at DESC, a.id DESC
+                LIMIT ${2 + len(cursor_params)}
                 """
             count_result = await conn.fetchrow(count_sql_fallback, ctx.user_id)
-            rows = await conn.fetch(
-                rows_sql_fallback,
-                ctx.user_id,
-                limit,
-                offset,
-            )
+            query_params = [ctx.user_id] + cursor_params + [limit + 1]
+            rows = await conn.fetch(rows_sql_fallback, *query_params)
 
         total_count = int(count_result["total"]) if count_result else 0
 
+    # Check for more results
+    has_more = len(rows) > limit
+    items = rows[:limit]
+
+    # Build output list
     out: list[dict[str, Any]] = []
-    for r in rows:
+    for r in items:
         out.append(
             {
                 "id": str(r["id"]),
@@ -303,15 +349,34 @@ async def list_applications(
             }
         )
 
-    # Calculate pagination metadata
-    has_more = offset + limit < total_count
-    offset + limit if has_more else None
-    max(0, offset - limit) if offset > 0 else None
+    # Generate next cursor
+    next_cursor = None
+    if has_more and items:
+        last_item = items[-1]
+        next_cursor = encode_cursor({
+            "id": str(last_item["id"]),
+            "updated_at": last_item["updated_at"].isoformat() if last_item["updated_at"] else None,
+        })
 
-    # MEDIUM: Use standardized pagination format
-    from packages.backend.domain.pagination import PaginatedResponse, create_pagination_meta
+    # Build pagination metadata
+    from packages.backend.domain.pagination import (
+        PaginatedResponse,
+        create_pagination_meta,
+    )
 
     pagination_meta = create_pagination_meta(total_count, limit, offset)
+
+    # Add cursor-based pagination metadata
+    pagination_dict = pagination_meta.model_dump()
+    pagination_dict["next_cursor"] = next_cursor
+    pagination_dict["has_next_page"] = has_more
+    pagination_dict["start_cursor"] = (
+        encode_cursor({
+            "id": str(items[0]["id"]),
+            "updated_at": items[0]["updated_at"].isoformat() if items[0]["updated_at"] else None,
+        }) if items else None
+    )
+    pagination_dict["end_cursor"] = next_cursor
 
     return PaginatedResponse(
         items=out,
@@ -326,8 +391,8 @@ async def list_applications(
 
 @router.get("/me/applications/queue-stats")
 async def get_queue_stats(
-    ctx: TenantContext = Depends(_get_tenant_ctx),
-    db: asyncpg.Pool = Depends(_get_pool),
+    ctx: TenantContext = Depends(get_tenant_context),
+    db: asyncpg.Pool = Depends(get_pool),
 ) -> dict[str, Any]:
     """Return queue position and estimated wait for user's APPLYING applications.
     #36: Queue position/ETA for users.
@@ -388,8 +453,8 @@ class CreateApplicationBody(BaseModel):
 async def create_application(
     request: Request,
     body: CreateApplicationBody,
-    ctx: TenantContext = Depends(_get_tenant_ctx),
-    db: asyncpg.Pool = Depends(_get_pool),
+    ctx: TenantContext = Depends(get_tenant_context),
+    db: asyncpg.Pool = Depends(get_pool),
 ) -> dict[str, Any]:
     """Create an application when user swipes ACCEPT; record REJECTED for REJECT.
 
@@ -431,9 +496,8 @@ async def create_application(
     # P1: Rate limit applies per user (60/min)
     apply_limiter = _get_apply_limiter(str(ctx.user_id))
     if not await apply_limiter.acquire():
-        raise HTTPException(
-            status_code=429,
-            detail="Too many applications. Please wait a moment before applying to more jobs.",
+        raise RateLimitError(
+            "Too many applications. Please wait a moment before applying to more jobs."
         )
 
     validate_uuid(body.job_id, "job_id")
@@ -486,7 +550,7 @@ async def create_application(
 
             job = await JobRepo.get_by_id(conn, body.job_id)
             if not job:
-                raise HTTPException(status_code=404, detail="Job not found")
+                raise NotFoundError("Job")
 
             s = get_settings()
             blueprint_key = s.default_blueprint_key or "job-app"
@@ -506,6 +570,7 @@ async def create_application(
                 blueprint_key,
             )
 
+        await invalidate_user_dashboard_cache(str(ctx.user_id))
         result = {"status": "recorded", "decision": body.decision}
         await _idem_set(result)
         return result
@@ -551,16 +616,16 @@ async def create_application(
 
         # MEDIUM: Add null check for user-provided job_id
         if not body.job_id:
-            raise HTTPException(status_code=400, detail="Job ID is required")
+            raise ValidationError("Job ID is required")
 
         job = await JobRepo.get_by_id(conn, body.job_id)
         if not job:
-            raise HTTPException(status_code=404, detail="Job not found")
+            raise NotFoundError("Job")
 
         try:
             await check_can_create_application(conn, ctx.tenant_id, ctx.plan)
         except QuotaExceededError as e:
-            raise HTTPException(status_code=402, detail=e.message)
+            raise AuthorizationError(e.message)
 
         s = get_settings()
         blueprint_key = s.default_blueprint_key or "job-app"
@@ -587,6 +652,7 @@ async def create_application(
         # Wake auto-apply agent immediately (it listens for job_queue)
         await conn.execute("NOTIFY job_queue")
 
+    await invalidate_user_dashboard_cache(str(ctx.user_id))
     result = {
         "id": str(app_id),
         "job_id": body.job_id,
@@ -611,8 +677,8 @@ async def undo_application(
     job_id: str = FastAPIPath(
         ..., description="The job ID (not application ID) whose swipe to undo"
     ),
-    ctx: TenantContext = Depends(_get_tenant_ctx),
-    db: asyncpg.Pool = Depends(_get_pool),
+    ctx: TenantContext = Depends(get_tenant_context),
+    db: asyncpg.Pool = Depends(get_pool),
 ) -> dict[str, Any]:
     """Undo the last swipe decision for a job (identified by job_id) within 10 second window."""
     from shared.validators import validate_uuid
@@ -621,7 +687,7 @@ async def undo_application(
     try:
         validate_uuid(job_id)
     except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid job ID format")
+        raise ValidationError("Invalid job ID format")
 
     async with db.acquire() as conn:
         # Find the application for this user/job
@@ -636,9 +702,7 @@ async def undo_application(
         )
 
         if not app:
-            raise HTTPException(
-                status_code=404, detail="No application found for this job"
-            )
+            raise NotFoundError("Application", "for this job")
 
         # Check if within 10 second undo window
         from datetime import datetime, timedelta
@@ -647,7 +711,7 @@ async def undo_application(
         if created_at and datetime.now(timezone.utc) - created_at > timedelta(
             seconds=10
         ):
-            raise HTTPException(status_code=400, detail="Undo window has expired")
+            raise ValidationError("Undo window has expired")
 
         # Delete the application record (tenant_id for defense in depth)
         # nosemgrep: python.lang.security.audit.sqli.asyncpg-sqli.asyncpg-sqli - parameterized
@@ -661,6 +725,7 @@ async def undo_application(
             ctx.tenant_id,
         )
 
+        await invalidate_user_dashboard_cache(str(ctx.user_id))
         return {"status": "undone", "job_id": job_id}
 
 
@@ -684,8 +749,8 @@ class AnswerHoldBody(BaseModel):
 async def answer_hold(
     application_id: str = FastAPIPath(...),
     body: AnswerHoldBody = ...,
-    ctx: TenantContext = Depends(_get_tenant_ctx),
-    db: asyncpg.Pool = Depends(_get_pool),
+    ctx: TenantContext = Depends(get_tenant_context),
+    db: asyncpg.Pool = Depends(get_pool),
 ) -> dict[str, Any]:
     """Submit a single answer for a hold; applies to first unresolved input and re-queues."""
     from shared.validators import validate_uuid
@@ -696,25 +761,22 @@ async def answer_hold(
             conn, application_id, ctx.user_id, tenant_id=ctx.tenant_id
         )
     if not app_row:
-        raise HTTPException(status_code=404, detail="Application not found")
+        raise NotFoundError("Application")
     if app_row["status"] != "REQUIRES_INPUT":
-        raise HTTPException(
-            status_code=409,
+        raise ConflictError(
             detail=f"Application status is {app_row['status']}, expected REQUIRES_INPUT",
         )
 
     async with db.acquire() as conn:
         unresolved = await InputRepo.get_unresolved(conn, application_id)
     if not unresolved:
-        raise HTTPException(
-            status_code=409, detail="No pending questions for this application"
-        )
+        raise ConflictError("No pending questions for this application")
 
     # Use first unresolved input; single answer applies to it
     first_row = unresolved[0]
     first_id = str(first_row.get("id", ""))
     if not first_id:
-        raise HTTPException(status_code=500, detail="Invalid input data")
+        raise InternalError("Invalid input data")
     answers = [{"input_id": first_id, "answer": body.answer}]
 
     async with db_transaction(db) as conn:
@@ -735,6 +797,7 @@ async def answer_hold(
             tenant_id=ctx.tenant_id,
         )
 
+    await invalidate_user_dashboard_cache(str(ctx.user_id))
     return {
         "status": "saved",
         "application_id": application_id,
@@ -755,8 +818,8 @@ class SnoozeBody(BaseModel):
 async def snooze_application(
     application_id: str = FastAPIPath(...),
     body: SnoozeBody | None = None,
-    ctx: TenantContext = Depends(_get_tenant_ctx),
-    db: asyncpg.Pool = Depends(_get_pool),
+    ctx: TenantContext = Depends(get_tenant_context),
+    db: asyncpg.Pool = Depends(get_pool),
 ) -> dict[str, Any]:
     """Snooze an application for N hours."""
     if body is None:
@@ -782,8 +845,9 @@ async def snooze_application(
             ctx.tenant_id,
         )
         if res == "UPDATE 0":
-            raise HTTPException(status_code=404, detail="Application not found")
+            raise NotFoundError("Application")
 
+    await invalidate_user_dashboard_cache(str(ctx.user_id))
     return {
         "status": "snoozed",
         "application_id": application_id,
@@ -799,8 +863,8 @@ async def snooze_application(
 @router.post("/me/applications/{application_id}/review")
 async def mark_application_reviewed(
     application_id: str = FastAPIPath(...),
-    ctx: TenantContext = Depends(_get_tenant_ctx),
-    db: asyncpg.Pool = Depends(_get_pool),
+    ctx: TenantContext = Depends(get_tenant_context),
+    db: asyncpg.Pool = Depends(get_pool),
 ) -> dict[str, Any]:
     """Mark an application as reviewed (acknowledge its current status)."""
     from shared.validators import validate_uuid
@@ -818,8 +882,9 @@ async def mark_application_reviewed(
             ctx.tenant_id,
         )
         if res == "UPDATE 0":
-            raise HTTPException(status_code=404, detail="Application not found")
+            raise NotFoundError("Application")
 
+    await invalidate_user_dashboard_cache(str(ctx.user_id))
     return {"status": "reviewed", "application_id": application_id}
 
 
@@ -831,8 +896,8 @@ async def mark_application_reviewed(
 @router.post("/me/applications/{application_id}/withdraw")
 async def withdraw_application(
     application_id: str = FastAPIPath(...),
-    ctx: TenantContext = Depends(_get_tenant_ctx),
-    db: asyncpg.Pool = Depends(_get_pool),
+    ctx: TenantContext = Depends(get_tenant_context),
+    db: asyncpg.Pool = Depends(get_pool),
 ) -> dict[str, Any]:
     """Withdraw/cancel an application."""
     from shared.validators import validate_uuid
@@ -849,11 +914,10 @@ async def withdraw_application(
             ctx.tenant_id,
         )
         if not app_row:
-            raise HTTPException(status_code=404, detail="Application not found")
+            raise NotFoundError("Application")
 
         if app_row["status"] in ("APPLIED", "SUBMITTED", "COMPLETED"):
-            raise HTTPException(
-                status_code=409,
+            raise ConflictError(
                 detail="Cannot withdraw an already submitted application",
             )
 
@@ -868,6 +932,7 @@ async def withdraw_application(
             ctx.tenant_id,
         )
 
+    await invalidate_user_dashboard_cache(str(ctx.user_id))
     return {"status": "withdrawn", "application_id": application_id}
 
 
@@ -901,8 +966,8 @@ class UpdateApplicationStatusBody(BaseModel):
 @router.patch("/me/applications/{application_id}/status")
 async def update_application_status(
     application_id: str = FastAPIPath(..., description="Application ID to update"),
-    ctx: TenantContext = Depends(_get_tenant_ctx),
-    db: asyncpg.Pool = Depends(_get_pool),
+    ctx: TenantContext = Depends(get_tenant_context),
+    db: asyncpg.Pool = Depends(get_pool),
     body: UpdateApplicationStatusBody = Body(...),
 ) -> dict[str, Any]:
     """Update application status manually."""
@@ -912,7 +977,7 @@ async def update_application_status(
     try:
         validate_uuid(application_id)
     except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid application ID format")
+        raise ValidationError("Invalid application ID format")
 
     # Validate status
     valid_statuses = [
@@ -923,8 +988,7 @@ async def update_application_status(
         "WITHDRAWN",
     ]
     if body.status not in valid_statuses:
-        raise HTTPException(
-            status_code=400,
+        raise ValidationError(
             detail=f"Invalid status. Must be one of: {', '.join(valid_statuses)}",
         )
 
@@ -939,7 +1003,7 @@ async def update_application_status(
         )
 
         if not app:
-            raise HTTPException(status_code=404, detail="Application not found")
+            raise NotFoundError("Application")
 
         # Update status and notes - Use field whitelist to prevent SQL injection
         allowed_fields = {"status", "notes", "updated_at"}
@@ -951,7 +1015,7 @@ async def update_application_status(
 
         # Ensure only whitelisted fields are used
         set_clause = ", ".join(field for field in update_fields if any(allowed in field for allowed in allowed_fields))
-        
+
         # nosemgrep: python.lang.security.audit.sqli.asyncpg-sqli.
 # asyncpg-sqli - parameterized query with field whitelist
         await conn.execute(
@@ -967,6 +1031,7 @@ async def update_application_status(
             f"Application {application_id} status updated to {body.status} by user {ctx.user_id}"
         )
 
+        await invalidate_user_dashboard_cache(str(ctx.user_id))
         return {
             "status": "updated",
             "application_id": application_id,
@@ -992,8 +1057,8 @@ async def list_jobs(
     min_match_score: int | None = None,
     limit: int = 25,
     offset: int = 0,
-    ctx: TenantContext = Depends(_get_tenant_ctx),
-    db: asyncpg.Pool = Depends(_get_pool),
+    ctx: TenantContext = Depends(get_tenant_context),
+    db: asyncpg.Pool = Depends(get_pool),
 ) -> dict[str, Any]:
     """List jobs from DB with optional filters. Returns { jobs: [...], next_offset } for web.
 
@@ -1027,8 +1092,8 @@ async def list_jobs(
 
 @router.get("/me/jobs/sources")
 async def get_job_sources(
-    ctx: TenantContext = Depends(_get_tenant_ctx),
-    db: asyncpg.Pool = Depends(_get_pool),
+    ctx: TenantContext = Depends(get_tenant_context),
+    db: asyncpg.Pool = Depends(get_pool),
 ) -> list[dict[str, Any]]:
     """Get list of available job sources with stats."""
     from packages.backend.domain.job_search import get_job_sources
@@ -1043,8 +1108,8 @@ async def get_job_sources(
 
 @router.get("/me/applications/export")
 async def export_applications(
-    ctx: TenantContext = Depends(_get_tenant_ctx),
-    db: asyncpg.Pool = Depends(_get_pool),
+    ctx: TenantContext = Depends(get_tenant_context),
+    db: asyncpg.Pool = Depends(get_pool),
 ):
     """Export applications as CSV."""
     import csv
@@ -1093,54 +1158,49 @@ async def export_applications(
 
 @router.get("/me/profile")
 async def get_profile(
-    ctx: TenantContext = Depends(_get_tenant_ctx),
-    db: asyncpg.Pool = Depends(_get_pool),
+    ctx: TenantContext = Depends(get_tenant_context),
+    db: asyncpg.Pool = Depends(get_pool),
 ) -> dict[str, Any]:
     """Current user profile for web: id, email, has_completed_onboarding, resume_url, preferences."""
     logger.info("[PROFILE] Fetching profile", extra={"user_id": str(ctx.user_id)})
 
     try:
         async with db.acquire() as conn:
-            # Fetch user profile from public.users
             user_row = await conn.fetchrow(
-                "SELECT id, email, full_name FROM public.users WHERE id = $1",
+                """
+                SELECT
+                    u.id,
+                    u.email,
+                    u.full_name,
+                    COALESCE((to_jsonb(u) ->> 'is_system_admin')::boolean, false)
+                        AS is_system_admin
+                FROM public.users u
+                WHERE u.id = $1
+                """,
                 ctx.user_id,
             )
-            profile_row = await conn.fetchrow(
-                "SELECT profile_data, resume_url FROM public.profiles WHERE user_id = $1",
-                ctx.user_id,
+            profile_snapshot = await ProfileRepo.get_profile_snapshot(
+                conn,
+                str(ctx.user_id),
             )
             # Item 23: Include role for AdminGuard (admin/superadmin = OWNER/ADMIN or is_system_admin)
             role: str = "user"
             if ctx.is_admin:
                 role = "admin"
-            try:
-                is_system_admin = await conn.fetchval(
-                    "SELECT COALESCE(is_system_admin, false) FROM public.users WHERE id = $1",
-                    ctx.user_id,
-                )
-                if is_system_admin:
-                    role = "superadmin"
-            except Exception as e:
-                logger.debug(
-                    "is_system_admin check failed (column may not exist): %s", e
-                )
+            if user_row and user_row["is_system_admin"]:
+                role = "superadmin"
     except Exception as exc:
         logger.error(
             "[PROFILE] Database error fetching profile: %s", exc, exc_info=True
         )
-        raise HTTPException(status_code=500, detail="Failed to fetch profile")
+        raise InternalError("Failed to fetch profile")
 
     if not user_row:
         logger.warning("[PROFILE] User not found", extra={"user_id": str(ctx.user_id)})
-        raise HTTPException(status_code=404, detail="User not found")
+        raise NotFoundError("User")
 
-    profile_data: dict = {}
-    resume_url: str | None = None
-    if profile_row:
-        pd = profile_row["profile_data"]
-        profile_data = json.loads(pd) if isinstance(pd, str) else (pd or {})
-        resume_url = profile_row["resume_url"]
+    profile_data = dict(profile_snapshot["profile_data"] or {})
+    resume_url = profile_snapshot["resume_url"]
 
     # Web expects has_completed_onboarding and preferences from profile_data
     prefs = profile_data.get("preferences") or {}
@@ -1151,7 +1211,7 @@ async def get_profile(
     has_completed_onboarding = profile_data.get("has_completed_onboarding", False)
 
     logger.info(
-        "[PROFILE] Profile fetched successfully",
+            "[PROFILE] Profile fetched successfully",
         extra={
             "user_id": str(ctx.user_id),
             "email": mask_email(user_row["email"] or ""),
@@ -1339,8 +1399,8 @@ class ProfileUpdate(BaseModel):
 async def update_profile(
     body: ProfileUpdate,
     background_tasks: BackgroundTasks,
-    ctx: TenantContext = Depends(_get_tenant_ctx),
-    db: asyncpg.Pool = Depends(_get_pool),
+    ctx: TenantContext = Depends(get_tenant_context),
+    db: asyncpg.Pool = Depends(get_pool),
 ) -> dict[str, Any]:
     """Update profile: onboarding flag and preferences stored in profile_data."""
     logger.info(
@@ -1357,13 +1417,33 @@ async def update_profile(
 
         incr("profile.update.rate_limited", {"user_id": ctx.user_id})
         logger.warning("[PROFILE] Rate limited", extra={"user_id": str(ctx.user_id)})
-        raise HTTPException(
-            status_code=429, detail="Too many profile updates. Please retry later."
-        )
+        raise RateLimitError("Too many profile updates. Please retry later.")
     async with db.acquire() as conn:
         async with conn.transaction():
-            existing = await ProfileRepo.get_profile_data(conn, ctx.user_id)
-            profile_data = dict(existing or {})
+            existing_snapshot = await conn.fetchrow(
+                """
+                SELECT
+                    u.email,
+                    p.profile_data,
+                    p.resume_url
+                FROM public.users u
+                LEFT JOIN public.profiles p ON p.user_id = u.id
+                WHERE u.id = $1
+                """,
+                ctx.user_id,
+            )
+            existing_profile_data = (
+                existing_snapshot["profile_data"] if existing_snapshot else None
+            )
+            profile_data = dict(
+                json.loads(existing_profile_data)
+                if isinstance(existing_profile_data, str)
+                else (existing_profile_data or {})
+            )
+            current_resume = (
+                existing_snapshot["resume_url"] if existing_snapshot else None
+            )
+            user_email = existing_snapshot["email"] if existing_snapshot else ""
 
             # Check if we are completing onboarding
             was_onboarding = profile_data.get("has_completed_onboarding", False)
@@ -1385,13 +1465,7 @@ async def update_profile(
                     preferences=profile_data.get("preferences", {}),
                 )
 
-            existing_row = await conn.fetchrow(
-                "SELECT resume_url FROM public.profiles WHERE user_id = $1",
-                ctx.user_id,
-            )
-            current_resume = existing_row["resume_url"] if existing_row else None
-
-            await ProfileRepo.upsert(
+            saved_profile = await ProfileRepo.upsert(
                 conn,
                 ctx.user_id,
                 profile_data,
@@ -1422,16 +1496,7 @@ async def update_profile(
                 "has_completed_onboarding": now_onboarding,
             },
         )
-        row = await conn.fetchrow(
-            "SELECT resume_url FROM public.profiles WHERE user_id = $1",
-            ctx.user_id,
-        )
-        final_resume = row["resume_url"] if row else None
-
-        user_row = await conn.fetchrow(
-            "SELECT email FROM public.users WHERE id = $1", ctx.user_id
-        )
-        user_email = user_row["email"] if user_row else ""
+        final_resume = saved_profile.get("resume_url") if saved_profile else None
 
     return {
         "id": ctx.user_id,
@@ -1557,15 +1622,13 @@ async def _hydrate_job_matches(
 @router.post("/me/profile/resume")
 async def upload_resume(
     file: UploadFile = File(...),
-    ctx: TenantContext = Depends(_get_tenant_ctx),
-    db: asyncpg.Pool = Depends(_get_pool),
+    ctx: TenantContext = Depends(get_tenant_context),
+    db: asyncpg.Pool = Depends(get_pool),
 ) -> dict[str, Any]:
     """Upload resume: extract text, parse via LLM, upsert profile, store file. Returns parsed data."""
     limiter = _get_upload_limiter(ctx.user_id)
     if not await limiter.acquire():
-        raise HTTPException(
-            status_code=429, detail="Too many uploads. Please retry later."
-        )
+        raise RateLimitError("Too many uploads. Please retry later.")
 
     # Enhanced file type validation for multiple formats
     supported_types = (
@@ -1574,13 +1637,12 @@ async def upload_resume(
         | processor.SUPPORTED_IMAGE_TYPES
     )
     if file.content_type not in supported_types:
-        raise HTTPException(
-            status_code=400,
+        raise ValidationError(
             detail=f"Unsupported file type: {file.content_type}. Supported formats: PDF, DOCX, and images.",
         )
 
     if file.size == 0:
-        raise HTTPException(status_code=400, detail="File is empty or corrupted")
+        raise ValidationError("File is empty or corrupted")
 
     settings = get_settings()
     if file.size and file.size > settings.max_upload_size_bytes:
@@ -1773,15 +1835,13 @@ async def upload_resume(
 @router.post("/me/profile/avatar")
 async def upload_avatar(
     file: UploadFile = File(...),
-    ctx: TenantContext = Depends(_get_tenant_ctx),
-    db: asyncpg.Pool = Depends(_get_pool),
+    ctx: TenantContext = Depends(get_tenant_context),
+    db: asyncpg.Pool = Depends(get_pool),
 ) -> dict[str, Any]:
     """Upload an avatar image to storage and persist URL to profile."""
     limiter = _get_upload_limiter(ctx.user_id)
     if not await limiter.acquire():
-        raise HTTPException(
-            status_code=429, detail="Too many uploads. Please retry later."
-        )
+        raise RateLimitError("Too many uploads. Please retry later.")
     allowed_types = {
         "image/png": ".png",
         "image/jpeg": ".jpg",
@@ -1829,23 +1889,22 @@ async def upload_avatar(
     )
 
     async with db.acquire() as conn:
-        existing = await ProfileRepo.get_profile_data(conn, ctx.user_id)
+        existing_snapshot = await ProfileRepo.get_profile_snapshot(
+            conn,
+            ctx.user_id,
+            use_cache=False,
+        )
+        existing = existing_snapshot["profile_data"]
         profile_data = dict(existing or {})
         contact = dict(profile_data.get("contact") or {})
         contact["avatar_url"] = avatar_url
         profile_data["contact"] = contact
 
-        existing_row = await conn.fetchrow(
-            "SELECT resume_url FROM public.profiles WHERE user_id = $1",
-            ctx.user_id,
-        )
-        current_resume = existing_row["resume_url"] if existing_row else None
-
         await ProfileRepo.upsert(
             conn,
             ctx.user_id,
             profile_data,
-            resume_url=current_resume,
+            resume_url=existing_snapshot["resume_url"],
             tenant_id=ctx.tenant_id,
         )
 
@@ -1860,8 +1919,8 @@ async def upload_avatar(
 @router.post("/me/jobs/refresh")
 async def refresh_my_jobs(
     background_tasks: BackgroundTasks,
-    ctx: TenantContext = Depends(_get_tenant_ctx),
-    db: asyncpg.Pool = Depends(_get_pool),
+    ctx: TenantContext = Depends(get_tenant_context),
+    db: asyncpg.Pool = Depends(get_pool),
 ) -> dict[str, str]:
     """Trigger per-user job sync for current user's preferences and job alerts.
     Rate-limited to once per 3 hours per user.
@@ -1892,8 +1951,8 @@ async def refresh_my_jobs(
 
 @router.get("/me/admin/jobs/sync/status")
 async def get_job_sync_status(
-    ctx: TenantContext = Depends(_get_tenant_ctx),
-    db: asyncpg.Pool = Depends(_get_pool),
+    ctx: TenantContext = Depends(get_tenant_context),
+    db: asyncpg.Pool = Depends(get_pool),
 ) -> dict[str, Any]:
     """Get current job sync status (admin only)."""
     if not ctx.is_admin:
@@ -1909,8 +1968,8 @@ async def get_job_sync_status(
 @router.post("/me/admin/jobs/sync/trigger")
 async def trigger_job_sync(
     background_tasks: BackgroundTasks,
-    ctx: TenantContext = Depends(_get_tenant_ctx),
-    db: asyncpg.Pool = Depends(_get_pool),
+    ctx: TenantContext = Depends(get_tenant_context),
+    db: asyncpg.Pool = Depends(get_pool),
 ) -> dict[str, str]:
     """Manually trigger a job sync (admin only)."""
     if not ctx.is_admin:
@@ -1933,8 +1992,8 @@ async def trigger_job_sync(
 
 @router.delete("/user/delete-account")
 async def delete_account(
-    ctx: TenantContext = Depends(_get_tenant_ctx),
-    db: asyncpg.Pool = Depends(_get_pool),
+    ctx: TenantContext = Depends(get_tenant_context),
+    db: asyncpg.Pool = Depends(get_pool),
 ) -> dict[str, Any]:
     """Permanently delete the current user's account and all associated data.
 

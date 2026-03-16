@@ -41,7 +41,7 @@ const CONFIG = {
     RESEARCH: 'anthropic/claude-3-haiku', // Fast research
     OPTIMIZATION: 'google/gemini-flash-1.5', // Title/meta optimization
   },
-  
+
   API_BASE: 'https://openrouter.ai/api/v1',
 
   // Quality-Focused Generation Settings
@@ -49,14 +49,14 @@ const CONFIG = {
   DAILY_GENERATION_LIMIT: 50, // Focus on quality over quantity (50 high-value pages/day)
   BATCH_SIZE: 5,
   BATCH_DELAY_MS: 30000, // 30 seconds between batches for API stability
-  
+
   // Modern SEO Priorities
   CONTENT_FRESHNESS_HOURS: 2, // Update content every 2 hours
   SERP_CHECK_INTERVAL: 30, // Check rankings every 30 minutes
-  
+
   // Search Intent Categories
   INTENT_TYPES: ['informational', 'commercial', 'transactional', 'navigational'],
-  
+
   // E-E-A-T Signals to Include
   EEAT_SIGNALS: {
     authorBio: true,
@@ -78,7 +78,7 @@ const CONTENT_STRATEGY = {
     { type: 'best_practices', priority: 2, template: '{topic} Best Practices (Expert Tips)' },
     { type: 'common_mistakes', priority: 3, template: '{topic} Mistakes to Avoid' },
   ],
-  
+
   // Commercial Intent (Compare/Buy)
   commercial: [
     { type: 'best_of', priority: 1, template: 'Best {product} for {use_case} (2026)' },
@@ -87,14 +87,14 @@ const CONTENT_STRATEGY = {
     { type: 'review', priority: 2, template: '{product} Review (After 30 Days)' },
     { type: 'alternatives', priority: 2, template: 'Best {product} Alternatives (2026)' },
   ],
-  
+
   // Transactional Intent (Purchase)
   transactional: [
     { type: 'discount', priority: 1, template: '{product} Discount Code (Save {percent}%)' },
     { type: 'free_trial', priority: 1, template: '{product} Free Trial (Get Started)' },
     { type: 'pricing', priority: 2, template: '{product} Pricing (Plans Compared)' },
   ],
-  
+
   // Navigational Intent (Find)
   navigational: [
     { type: 'login_help', priority: 2, template: '{product} Login (How to Access)' },
@@ -103,57 +103,114 @@ const CONTENT_STRATEGY = {
   ],
 };
 
-// Advanced Competitor Intelligence
-const COMPETITOR_INTELLIGENCE = {
-  'teal': { 
-    volume: 12000, 
-    difficulty: 65, 
-    intent: 'commercial',
-    keywords: ['teal jobs', 'teal ai', 'teal job tracker', 'teal vs jobhuntin'],
-    contentGaps: ['teal resume builder review', 'teal vs simplify 2026'],
-    weaknesses: ['slow customer support', 'limited integrations'],
-  },
-  'lazyapply': { 
-    volume: 8500, 
-    difficulty: 58, 
-    intent: 'transactional',
-    keywords: ['lazyapply', 'lazy apply', 'lazyapply reviews', 'lazyapply coupon'],
-    contentGaps: ['lazyapply vs jobhuntin', 'lazyapply free alternative'],
-    weaknesses: ['high price', 'outdated interface'],
-  },
-  'simplify': { 
-    volume: 15000, 
-    difficulty: 70, 
-    intent: 'commercial',
-    keywords: ['simplify jobs', 'simplify ai', 'simplify extension'],
-    contentGaps: ['simplify chrome extension review', 'simplify pricing 2026'],
-    weaknesses: ['limited job sources', 'no mobile app'],
-  },
-  'jobcopilot': { 
-    volume: 3200, 
-    difficulty: 35, 
-    intent: 'commercial',
-    keywords: ['jobcopilot', 'job copilot', 'jobcopilot reviews'],
-    contentGaps: ['jobcopilot vs competitors', 'jobcopilot pricing'],
-    weaknesses: ['new product', 'limited features'],
-  },
-  'jobright': { 
-    volume: 4500, 
-    difficulty: 40, 
-    intent: 'commercial',
-    keywords: ['jobright', 'job right ai', 'jobright reviews'],
-    contentGaps: ['jobright features', 'jobright vs jobhuntin'],
-    weaknesses: ['limited locations', 'no resume builder'],
-  },
-  'finalround': { 
-    volume: 3800, 
-    difficulty: 42, 
-    intent: 'commercial',
-    keywords: ['finalround ai', 'final round interview', 'finalround reviews'],
-    contentGaps: ['finalround vs interview copilot', 'finalround pricing'],
-    weaknesses: ['interview only', 'no job application'],
-  },
-};
+// Advanced Competitor Intelligence - loaded from JSON file
+interface CompetitorIntelligence {
+  volume: number;
+  difficulty: number;
+  intent: string;
+  keywords: string[];
+  contentGaps: string[];
+  weaknesses: string[];
+}
+
+interface CompetitorData {
+  slug: string;
+  name: string;
+  domain: string;
+  [key: string]: unknown;
+}
+
+// Load competitor data from JSON file
+function loadCompetitorIntelligence(): Record<string, CompetitorIntelligence> {
+  const competitorsFile = path.resolve(__dirname, '../../src/data/competitors.json');
+
+  // Default intelligence data if file doesn't exist
+  const defaultIntelligence: Record<string, CompetitorIntelligence> = {
+    'teal': {
+      volume: 12000,
+      difficulty: 65,
+      intent: 'commercial',
+      keywords: ['teal jobs', 'teal ai', 'teal job tracker', 'teal vs jobhuntin'],
+      contentGaps: ['teal resume builder review', 'teal vs simplify 2026'],
+      weaknesses: ['slow customer support', 'limited integrations'],
+    },
+    'lazyapply': {
+      volume: 8500,
+      difficulty: 58,
+      intent: 'transactional',
+      keywords: ['lazyapply', 'lazy apply', 'lazyapply reviews', 'lazyapply coupon'],
+      contentGaps: ['lazyapply vs jobhuntin', 'lazyapply free alternative'],
+      weaknesses: ['high price', 'outdated interface'],
+    },
+    'simplify': {
+      volume: 15000,
+      difficulty: 70,
+      intent: 'commercial',
+      keywords: ['simplify jobs', 'simplify ai', 'simplify extension'],
+      contentGaps: ['simplify chrome extension review', 'simplify pricing 2026'],
+      weaknesses: ['limited job sources', 'no mobile app'],
+    },
+    'jobcopilot': {
+      volume: 3200,
+      difficulty: 35,
+      intent: 'commercial',
+      keywords: ['jobcopilot', 'job copilot', 'jobcopilot reviews'],
+      contentGaps: ['jobcopilot vs competitors', 'jobcopilot pricing'],
+      weaknesses: ['new product', 'limited features'],
+    },
+    'jobright': {
+      volume: 4500,
+      difficulty: 40,
+      intent: 'commercial',
+      keywords: ['jobright', 'job right ai', 'jobright reviews'],
+      contentGaps: ['jobright features', 'jobright vs jobhuntin'],
+      weaknesses: ['limited locations', 'no resume builder'],
+    },
+    'finalround': {
+      volume: 3800,
+      difficulty: 42,
+      intent: 'commercial',
+      keywords: ['finalround ai', 'final round interview', 'finalround reviews'],
+      contentGaps: ['finalround vs interview copilot', 'finalround pricing'],
+      weaknesses: ['interview only', 'no job application'],
+    },
+  };
+
+  try {
+    if (fs.existsSync(competitorsFile)) {
+      const competitors: CompetitorData[] = JSON.parse(fs.readFileSync(competitorsFile, 'utf-8'));
+      const intelligence: Record<string, CompetitorIntelligence> = {};
+
+      for (const comp of competitors) {
+        // Generate intelligence from competitor data
+        intelligence[comp.slug] = {
+          volume: 5000, // Default estimate
+          difficulty: 50, // Default estimate
+          intent: 'commercial',
+          keywords: comp.seoKeywords || [],
+          contentGaps: [],
+          weaknesses: comp.weaknesses || [],
+        };
+      }
+
+      return intelligence;
+    }
+  } catch (e) {
+    console.warn('Could not load competitor data from JSON, using defaults:', e);
+  }
+
+  return defaultIntelligence;
+}
+
+// Lazy-load competitor intelligence
+let _competitorIntelligence: Record<string, CompetitorIntelligence> | null = null;
+
+function getCompetitorIntelligence(): Record<string, CompetitorIntelligence> {
+  if (!_competitorIntelligence) {
+    _competitorIntelligence = loadCompetitorIntelligence();
+  }
+  return _competitorIntelligence;
+}
 
 // Trending Search Topics (Auto-updated via API)
 let TRENDING_SEARCHES: string[] = [];
@@ -283,10 +340,11 @@ SEO REQUIREMENTS:
       console.log('\n' + '-'.repeat(80));
       if (code === 0) {
         console.log(`✅ SUCCESS: ${intent} content for "${topic}" completed in ${duration}s`);
-        const url = `https://jobhuntin.com/${intent}/${topic.toLowerCase().replace(/\s+/g, '-')}`;
-        resolve({ 
-          url, 
-          title: `${topic} (${intent})`, 
+        const baseUrl = CONFIG.BASE_URL;
+        const url = `${baseUrl}/${intent}/${topic.toLowerCase().replace(/\s+/g, '-')}`;
+        resolve({
+          url,
+          title: `${topic} (${intent})`,
           success: true,
           metrics: { intent, topic, duration: parseFloat(duration) }
         });
@@ -307,13 +365,13 @@ async function generateParallelContent(
   state: SEOState
 ): Promise<Array<{ url: string; title: string; success: boolean; metrics: any }>> {
   console.log(`\n🚀 PARALLEL GENERATION: ${items.length} pages simultaneously`);
-  
-  const promises = items.map(item => 
+
+  const promises = items.map(item =>
     generateIntentBasedContent(item.intent, item.topic, item.competitor)
   );
-  
+
   const results = await Promise.all(promises);
-  
+
   // Update state with results
   results.forEach(result => {
     if (result.success) {
@@ -331,7 +389,7 @@ async function generateParallelContent(
       state.totalGenerated++;
     }
   });
-  
+
   return results;
 }
 
@@ -379,7 +437,8 @@ async function generateCompetitorContentGap(
       const duration = ((Date.now() - start) / 1000).toFixed(1);
 
       if (code === 0) {
-        const url = `https://jobhuntin.com/vs/${competitor.toLowerCase()}-alternatives`;
+        const baseUrl = CONFIG.BASE_URL;
+        const url = `${baseUrl}/vs/${competitor.toLowerCase()}-alternatives`;
         resolve({ url, title: `${competitor} Alternatives`, success: true });
       } else {
         resolve({ url: '', title: '', success: false });
@@ -423,9 +482,10 @@ async function runModernSEO(): Promise<void> {
 
   // Build parallel content queue based on priority
   const contentQueue: Array<{ intent: string; topic: string; competitor?: string }> = [];
-  
+
   // 1. High-priority competitor content gaps (commercial intent)
-  Object.entries(COMPETITOR_INTELLIGENCE).forEach(([comp, data]) => {
+  const competitorIntelligence = getCompetitorIntelligence();
+  Object.entries(competitorIntelligence).forEach(([comp, data]) => {
     if (contentQueue.length < CONFIG.BATCH_SIZE) {
       data.contentGaps.forEach(gap => {
         contentQueue.push({
@@ -445,7 +505,7 @@ async function runModernSEO(): Promise<void> {
     'job search automation tools',
     'resume keyword optimization',
   ];
-  
+
   informationalTopics.forEach(topic => {
     if (contentQueue.length < CONFIG.BATCH_SIZE) {
       contentQueue.push({ intent: 'informational', topic });
@@ -471,7 +531,7 @@ async function runModernSEO(): Promise<void> {
   log('SUMMARY', `Generated this run: ${results.filter(r => r.success).length} pages`);
   log('SUMMARY', `Daily quota used: ${state.dailyQuotaUsed}/${CONFIG.DAILY_GENERATION_LIMIT}`);
   log('SUMMARY', `Total generated (all time): ${state.totalGenerated} pages`);
-  
+
   results.filter(r => r.success).forEach((r, i) => {
     log('SUMMARY', `  ${i + 1}. [${r.metrics.intent}] ${r.title} → ${r.url}`);
   });

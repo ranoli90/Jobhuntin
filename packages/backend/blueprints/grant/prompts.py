@@ -23,13 +23,11 @@ GRANT_PROFILE_PARSE_PROMPT_V1 = (
 Extract ALL available information and return ONLY a JSON object (no markdown fences) with these keys:
 {
     "contact": {
-{{
-    "contact": {{
         "full_name": "",
         "email": "",
         "phone": "",
         "location": ""
-    }},
+    },
     "organization_name": "",
     "organization_ein": "",
     "organization_type": "",
@@ -65,6 +63,7 @@ Rules:
 - qualifications and past_grants are arrays of short descriptions
 - Fill in every field you can find. Use empty strings or null for missing data.
 """
+)
 
 
 def build_grant_profile_parse_prompt(document_text: str) -> str:
@@ -75,7 +74,7 @@ def build_grant_profile_parse_prompt(document_text: str) -> str:
 # Contract 2: DOM Mapping for Grant Forms
 # ===================================================================
 
-GRANT_DOM_MAPPING_PROMPT_V1 =
+GRANT_DOM_MAPPING_PROMPT_V1 = (
     """You are a grant application autofill assistant. You fill web-based grant application forms using the applicant's
     organization and project data.
 

@@ -11,19 +11,18 @@ from packages.backend.domain.core_models import (
     ActorProfile,
     ActorQualification,
     DomMappingResult,
-)
-from packages.backend.domain.core_models import FormField as CoreFormField
-from packages.backend.domain.core_models import FormFieldOption as CoreFormFieldOption
-from packages.backend.domain.core_models import (
     TargetForm,
     Task,
     TaskEvent,
     TaskEventType,
     TaskInput,
     TaskStatus,
+    is_terminal,
+    to_generic_status,
 )
+from packages.backend.domain.core_models import FormField as CoreFormField
+from packages.backend.domain.core_models import FormFieldOption as CoreFormFieldOption
 from packages.backend.domain.core_models import UnresolvedField as CoreUnresolvedField
-from packages.backend.domain.core_models import is_terminal, to_generic_status
 from packages.backend.domain.models import (
     Application,
     ApplicationEvent,

@@ -26,8 +26,8 @@ import asyncpg
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field, field_validator
 
+from api.deps import get_pool, get_tenant_context
 from packages.backend.domain.ai_onboarding import get_ai_onboarding_manager
-from packages.backend.domain.tenant import TenantContext
 from shared.logging_config import get_logger
 
 logger = get_logger("sorce.ai_onboarding")
@@ -163,16 +163,6 @@ class OnboardingFlowResponse(BaseModel):
     default_flow: str = Field(..., description="Default flow type")
 
 
-def _get_pool():
-    """Database pool dependency."""
-    raise NotImplementedError("Pool dependency not injected")
-
-
-def _get_tenant_ctx():
-    """Tenant context dependency."""
-    raise NotImplementedError("Tenant context dependency not injected")
-
-
 async def _verify_session_ownership(
     session_id: str,
     ctx: TenantContext,
@@ -242,8 +232,8 @@ async def _verify_session_ownership(
 @router.post("/create-session", response_model=CreateSessionResponse)
 async def create_onboarding_session(
     request: CreateSessionRequest,
-    ctx: TenantContext = Depends(_get_tenant_ctx),
-    db: asyncpg.Pool = Depends(_get_pool),
+    ctx: TenantContext = Depends(get_tenant_context),
+    db: asyncpg.Pool = Depends(get_pool),
 ) -> CreateSessionResponse:
     """Create a new AI-powered onboarding session.
 
@@ -296,8 +286,8 @@ async def create_onboarding_session(
 @router.get("/session/{session_id}", response_model=SessionDetailsResponse)
 async def get_session_details(
     session_id: str,
-    ctx: TenantContext = Depends(_get_tenant_ctx),
-    db: asyncpg.Pool = Depends(_get_pool),
+    ctx: TenantContext = Depends(get_tenant_context),
+    db: asyncpg.Pool = Depends(get_pool),
 ) -> SessionDetailsResponse:
     """Get onboarding session details.
 
@@ -317,7 +307,9 @@ async def get_session_details(
 
         # HIGH: Load session from database
         async with db.acquire() as conn:
-            from packages.backend.domain.onboarding_repository import OnboardingSessionRepo
+            from packages.backend.domain.onboarding_repository import (
+                OnboardingSessionRepo,
+            )
 
             session = await OnboardingSessionRepo.load_session(conn, session_id)
 
@@ -349,8 +341,8 @@ async def get_session_details(
 async def get_next_question(
     session_id: str,
     current_responses: Optional[Dict[str, Any]] = None,
-    ctx: TenantContext = Depends(_get_tenant_ctx),
-    db: asyncpg.Pool = Depends(_get_pool),
+    ctx: TenantContext = Depends(get_tenant_context),
+    db: asyncpg.Pool = Depends(get_pool),
 ) -> NextQuestionResponse:
     """Get the next question in the onboarding flow.
 
@@ -371,7 +363,9 @@ async def get_next_question(
 
         # HIGH: Load session from database
         async with db.acquire() as conn:
-            from packages.backend.domain.onboarding_repository import OnboardingSessionRepo
+            from packages.backend.domain.onboarding_repository import (
+                OnboardingSessionRepo,
+            )
 
             session = await OnboardingSessionRepo.load_session(conn, session_id)
 
@@ -409,8 +403,8 @@ async def get_next_question(
 async def submit_response(
     session_id: str,
     request: SubmitResponseRequest,
-    ctx: TenantContext = Depends(_get_tenant_ctx),
-    db: asyncpg.Pool = Depends(_get_pool),
+    ctx: TenantContext = Depends(get_tenant_context),
+    db: asyncpg.Pool = Depends(get_pool),
 ) -> SubmitResponseResponse:
     """Submit a response to an onboarding question.
 
@@ -431,7 +425,9 @@ async def submit_response(
 
         # HIGH: Load session from database
         async with db.acquire() as conn:
-            from packages.backend.domain.onboarding_repository import OnboardingSessionRepo
+            from packages.backend.domain.onboarding_repository import (
+                OnboardingSessionRepo,
+            )
 
             session = await OnboardingSessionRepo.load_session(conn, session_id)
 
@@ -451,7 +447,9 @@ async def submit_response(
 
             # Single transactional save after processing and getting next question
             async with db.acquire() as conn:
-                from packages.backend.domain.onboarding_repository import OnboardingSessionRepo
+                from packages.backend.domain.onboarding_repository import (
+                    OnboardingSessionRepo,
+                )
 
                 await OnboardingSessionRepo.save_session(conn, session)
 
@@ -479,8 +477,8 @@ async def submit_response(
 @router.post("/session/{session_id}/complete", response_model=CompleteSessionResponse)
 async def complete_onboarding(
     session_id: str,
-    ctx: TenantContext = Depends(_get_tenant_ctx),
-    db: asyncpg.Pool = Depends(_get_pool),
+    ctx: TenantContext = Depends(get_tenant_context),
+    db: asyncpg.Pool = Depends(get_pool),
 ) -> CompleteSessionResponse:
     """Complete the onboarding session.
 
@@ -500,7 +498,9 @@ async def complete_onboarding(
 
         # HIGH: Load session from database
         async with db.acquire() as conn:
-            from packages.backend.domain.onboarding_repository import OnboardingSessionRepo
+            from packages.backend.domain.onboarding_repository import (
+                OnboardingSessionRepo,
+            )
 
             session = await OnboardingSessionRepo.load_session(conn, session_id)
 
@@ -514,7 +514,9 @@ async def complete_onboarding(
 
         # HIGH: Mark session as completed and save
         async with db.acquire() as conn:
-            from packages.backend.domain.onboarding_repository import OnboardingSessionRepo
+            from packages.backend.domain.onboarding_repository import (
+                OnboardingSessionRepo,
+            )
 
             await OnboardingSessionRepo.mark_completed(conn, session_id)
             await OnboardingSessionRepo.save_session(conn, session)
@@ -556,7 +558,7 @@ async def complete_onboarding(
 
 @router.get("/flows", response_model=OnboardingFlowResponse)
 async def get_onboarding_flows(
-    ctx: TenantContext = Depends(_get_tenant_ctx),
+    ctx: TenantContext = Depends(get_tenant_context),
 ) -> OnboardingFlowResponse:
     """Get available onboarding flows.
 
@@ -607,8 +609,8 @@ _PROGRESS_DATA_MAX_BYTES = 50 * 1024  # 50KB
 async def save_session_progress(
     session_id: str,
     progress_data: Dict[str, Any],
-    ctx: TenantContext = Depends(_get_tenant_ctx),
-    db: asyncpg.Pool = Depends(_get_pool),
+    ctx: TenantContext = Depends(get_tenant_context),
+    db: asyncpg.Pool = Depends(get_pool),
 ) -> Dict[str, Any]:
     """Save onboarding session progress.
 
@@ -645,7 +647,9 @@ async def save_session_progress(
 
         # HIGH: Load and update session from database
         async with db.acquire() as conn:
-            from packages.backend.domain.onboarding_repository import OnboardingSessionRepo
+            from packages.backend.domain.onboarding_repository import (
+                OnboardingSessionRepo,
+            )
 
             session = await OnboardingSessionRepo.load_session(conn, session_id)
 
@@ -707,8 +711,8 @@ async def save_session_progress(
 @router.get("/session/{session_id}/progress")
 async def get_session_progress(
     session_id: str,
-    ctx: TenantContext = Depends(_get_tenant_ctx),
-    db: asyncpg.Pool = Depends(_get_pool),
+    ctx: TenantContext = Depends(get_tenant_context),
+    db: asyncpg.Pool = Depends(get_pool),
 ) -> Dict[str, Any]:
     """Get onboarding session progress.
 
@@ -728,7 +732,9 @@ async def get_session_progress(
 
         # HIGH: Load session from database
         async with db.acquire() as conn:
-            from packages.backend.domain.onboarding_repository import OnboardingSessionRepo
+            from packages.backend.domain.onboarding_repository import (
+                OnboardingSessionRepo,
+            )
 
             session = await OnboardingSessionRepo.load_session(conn, session_id)
 
@@ -760,8 +766,8 @@ async def get_session_progress(
 @router.delete("/session/{session_id}")
 async def delete_session(
     session_id: str,
-    ctx: TenantContext = Depends(_get_tenant_ctx),
-    db: asyncpg.Pool = Depends(_get_pool),
+    ctx: TenantContext = Depends(get_tenant_context),
+    db: asyncpg.Pool = Depends(get_pool),
 ) -> Dict[str, Any]:
     """Delete onboarding session.
 
@@ -780,7 +786,9 @@ async def delete_session(
         await _verify_session_ownership(session_id, ctx, db)
         # HIGH: Delete session from database
         async with db.acquire() as conn:
-            from packages.backend.domain.onboarding_repository import OnboardingSessionRepo
+            from packages.backend.domain.onboarding_repository import (
+                OnboardingSessionRepo,
+            )
 
             await OnboardingSessionRepo.delete_session(conn, session_id)
 
@@ -797,7 +805,7 @@ async def delete_session(
 
 @router.get("/analytics")
 async def get_onboarding_analytics(
-    ctx: TenantContext = Depends(_get_tenant_ctx),
+    ctx: TenantContext = Depends(get_tenant_context),
 ) -> Dict[str, Any]:
     """Get onboarding analytics data.
 
@@ -829,7 +837,7 @@ async def get_onboarding_analytics(
 
 @router.get("/health")
 async def health_check(
-    ctx: TenantContext = Depends(_get_tenant_ctx),
+    ctx: TenantContext = Depends(get_tenant_context),
 ) -> Dict[str, Any]:
     """Health check for AI onboarding system."""
 
@@ -880,7 +888,7 @@ async def health_check(
 async def test_question_generation(
     flow_type: str = "professional",
     initial_context: Optional[Dict[str, Any]] = None,
-    ctx: TenantContext = Depends(_get_tenant_ctx),
+    ctx: TenantContext = Depends(get_tenant_context),
 ) -> Dict[str, Any]:
     """Test AI question generation.
 
@@ -923,7 +931,7 @@ async def test_question_generation(
 
 @router.get("/question-templates")
 async def get_question_templates(
-    ctx: TenantContext = Depends(_get_tenant_ctx),
+    ctx: TenantContext = Depends(get_tenant_context),
 ) -> Dict[str, Any]:
     """Get available question templates.
 

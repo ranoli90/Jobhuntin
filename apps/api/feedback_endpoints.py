@@ -9,7 +9,12 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field, field_validator
 
-from apps.api.dependencies import _is_admin, get_current_user, get_db_pool, get_tenant_id
+from apps.api.dependencies import (
+    _is_admin,
+    get_current_user,
+    get_db_pool,
+    get_tenant_id,
+)
 from packages.backend.domain.feedback_manager import create_feedback_manager
 from shared.logging_config import get_logger
 

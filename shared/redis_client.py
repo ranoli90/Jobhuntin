@@ -23,7 +23,7 @@ class RedisManager:
                         "REDIS_URL is required in production and staging. "
                         "Set REDIS_URL for token replay protection and session revocation."
                     )
-                redis_url = "redis://localhost:6379"
+                redis_url = s.local_redis_url
             self._client = redis.from_url(
                 redis_url,
                 encoding="utf-8",

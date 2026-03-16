@@ -5,12 +5,13 @@ No authentication required. Rate-limited by IP.
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException
+from api.dependencies import get_pool
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field, field_validator
 
-from api.dependencies import get_pool
 from shared.logging_config import get_logger
-from shared.metrics import incr
+from shared.metrics import get_rate_limiter, incr
+from shared.middleware import get_client_ip
 
 logger = get_logger("sorce.contact")
 router = APIRouter(prefix="/contact", tags=["contact"])
@@ -41,10 +42,26 @@ class ContactRequest(BaseModel):
 
 @router.post("")
 async def submit_contact(
+    request: Request,
     body: ContactRequest,
     db=Depends(get_pool),
 ) -> dict:
     """Submit contact form. Public endpoint; no auth required."""
+    client_ip = get_client_ip(request)
+    limiter = get_rate_limiter(
+        f"contact:{client_ip}",
+        max_calls=5,
+        window_seconds=300,
+    )
+    if not await limiter.acquire():
+        retry_after = max(1, int(limiter.next_available_in()))
+        incr("api.contact.rate_limited")
+        raise HTTPException(
+            status_code=429,
+            detail="Too many contact form submissions. Please try again later.",
+            headers={"Retry-After": str(retry_after)},
+        )
+
     incr("api.contact.submissions", tags={"type": body.type})
     try:
         async with db.acquire() as conn:

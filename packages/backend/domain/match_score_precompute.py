@@ -19,6 +19,7 @@ from packages.backend.domain.repositories import JobRepo
 from packages.backend.domain.semantic_matching import get_matching_service
 from shared.logging_config import get_logger
 from shared.metrics import incr, observe
+from shared.slow_query_monitor import monitor_query
 
 logger = get_logger("sorce.match_precompute")
 
@@ -52,40 +53,40 @@ async def precompute_match_scores(
     try:
         async with db_pool.acquire() as conn:
             # Get users to process
-            if user_id:
-                user_query = (
-                    "SELECT id FROM public.users WHERE id = $1 AND is_active = true"
-                )
-                user_rows = await conn.fetch(user_query, user_id)
-            else:
-                # Get active users who have completed onboarding
-                user_query = """
-                    SELECT id FROM public.users
-                    WHERE is_active = true
-                    AND profile_completeness >= 20
-                    ORDER BY updated_at DESC
-                    LIMIT 100
-                """
-                user_rows = await conn.fetch(user_query)
+            user_query = """
+                SELECT id FROM public.users
+                WHERE is_active = true
+                AND profile_completeness >= 20
+                ORDER BY updated_at DESC
+                LIMIT 100
+            """
+            async with monitor_query(user_query, threshold=2.0) as query_info:
+                if user_id:
+                    user_query = (
+                        "SELECT id FROM public.users WHERE id = $1 AND is_active = true"
+                    )
+                    user_rows = await conn.fetch(user_query, user_id)
+                else:
+                    user_rows = await conn.fetch(user_query)
 
             # Get jobs to process
-            if job_ids:
-                job_query = """
-                    SELECT id FROM public.jobs
-                    WHERE id = ANY($1::uuid[])
-                    AND is_active = true
-                """
-                job_rows = await conn.fetch(job_query, job_ids)
-            else:
-                # Get recent active jobs
-                job_query = """
-                    SELECT id FROM public.jobs
-                    WHERE is_active = true
-                    AND created_at >= NOW() - INTERVAL '30 days'
-                    ORDER BY created_at DESC
-                    LIMIT 500
-                """
-                job_rows = await conn.fetch(job_query)
+            job_query = """
+                SELECT id FROM public.jobs
+                WHERE is_active = true
+                AND created_at >= NOW() - INTERVAL '30 days'
+                ORDER BY created_at DESC
+                LIMIT 500
+            """
+            async with monitor_query(job_query, threshold=2.0) as query_info:
+                if job_ids:
+                    job_query = """
+                        SELECT id FROM public.jobs
+                        WHERE id = ANY($1::uuid[])
+                        AND is_active = true
+                    """
+                    job_rows = await conn.fetch(job_query, job_ids)
+                else:
+                    job_rows = await conn.fetch(job_query)
 
             if not user_rows or not job_rows:
                 logger.info(
@@ -114,7 +115,9 @@ async def precompute_match_scores(
                         continue
 
                     # Convert profile to dict for matching service
-                    from packages.backend.domain.deep_profile import deep_profile_to_llm_dict
+                    from packages.backend.domain.deep_profile import (
+                        deep_profile_to_llm_dict,
+                    )
 
                     profile_dict = deep_profile_to_llm_dict(profile)
 
@@ -123,13 +126,11 @@ async def precompute_match_scores(
                         batch = job_rows[i : i + batch_size]
                         job_ids_batch = [str(row["id"]) for row in batch]
 
-                        # Get job details
+                        # OPTIMIZATION: Batch-fetch job details once per chunk instead of
+                        # issuing one `JobRepo.get_by_id()` query per job. This removes
+                        # the hot-path N+1 pattern during match score precomputation.
                         async with db_pool.acquire() as job_conn:
-                            jobs = []
-                            for job_id in job_ids_batch:
-                                job = await JobRepo.get_by_id(job_conn, job_id)
-                                if job:
-                                    jobs.append(job)
+                            jobs = await JobRepo.get_by_ids(job_conn, job_ids_batch)
 
                         # Compute match scores for batch
                         for job in jobs:
@@ -147,18 +148,20 @@ async def precompute_match_scores(
                                 # Store match score in database
                                 # Note: This assumes a match_scores table exists
                                 # For now, we'll store in a JSONB column or create the table
-                                async with db_pool.acquire() as store_conn:
-                                    await store_conn.execute(
-                                        """
-                                        INSERT INTO public.match_scores (user_id, job_id, score, computed_at)
-                                        VALUES ($1, $2, $3, NOW())
-                                        ON CONFLICT (user_id, job_id)
-                                        DO UPDATE SET score = $3, computed_at = NOW()
-                                        """,
-                                        user_id_str,
-                                        str(job.get("id")),
-                                        result.score,
-                                    )
+                                store_query = """
+                                    INSERT INTO public.match_scores (user_id, job_id, score, computed_at)
+                                    VALUES ($1, $2, $3, NOW())
+                                    ON CONFLICT (user_id, job_id)
+                                    DO UPDATE SET score = $3, computed_at = NOW()
+                                """
+                                async with monitor_query(store_query, threshold=1.0) as query_info:
+                                    async with db_pool.acquire() as store_conn:
+                                        await store_conn.execute(
+                                            store_query,
+                                            user_id_str,
+                                            str(job.get("id")),
+                                            result.score,
+                                        )
 
                                 stats["scores_computed"] += 1
 

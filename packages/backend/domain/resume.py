@@ -1,5 +1,7 @@
 """Resume processing domain logic: PDF, DOCX, OCR upload, text extraction, and LLM parsing."""
 
+import asyncio
+
 import time
 import uuid
 
@@ -14,9 +16,15 @@ from packages.backend.domain.analytics_events import (
 from packages.backend.domain.document_processor import create_document_processor
 from packages.backend.domain.models import normalize_profile
 from packages.backend.domain.repositories import ProfileRepo
-from packages.backend.domain.skills_taxonomy import get_skills_taxonomy, validate_user_skills
+from packages.backend.domain.skills_taxonomy import (
+    get_skills_taxonomy,
+    validate_user_skills,
+)
 from packages.backend.llm.client import LLMClient, LLMError
-from packages.backend.llm.contracts import ResumeParseResponse_V2, build_resume_parse_prompt_v2
+from packages.backend.llm.contracts import (
+    ResumeParseResponse_V2,
+    build_resume_parse_prompt_v2,
+)
 from shared.ai_validation import sanitize_for_ai
 from shared.config import get_settings
 from shared.logging_config import get_logger
@@ -386,18 +394,22 @@ async def download_from_supabase_storage(resume_url: str) -> str:
         async with httpx.AsyncClient(timeout=30.0) as client:
             resp = await client.get(resume_url, headers=headers, follow_redirects=True)
             resp.raise_for_status()
-            with open(tmp_path, "wb") as f:
-                f.write(resp.content)
+            await asyncio.to_thread(_write_downloaded_resume, tmp_path, resp.content)
     except Exception:
         # Clean up on failure
         if os.path.exists(tmp_path):
             os.unlink(tmp_path)
         raise
 
-    logger.info(
-        "Downloaded resume to %s (%d bytes)", tmp_path, os.path.getsize(tmp_path)
-    )
+    file_size = await asyncio.to_thread(os.path.getsize, tmp_path)
+    logger.info("Downloaded resume to %s (%d bytes)", tmp_path, file_size)
     return tmp_path
+
+
+def _write_downloaded_resume(tmp_path: str, content: bytes) -> None:
+    """Write downloaded resume bytes to a temp file off the event loop."""
+    with open(tmp_path, "wb") as f:
+        f.write(content)
 
 
 def extract_text_from_pdf(pdf_bytes: bytes) -> str:

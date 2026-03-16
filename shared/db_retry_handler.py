@@ -365,6 +365,7 @@ class RetryHandler:
         # Add jitter if enabled
         if self.retry_config.jitter_enabled:
             jitter = delay * self.retry_config.jitter_factor
+            # nosemgrep: python.lang.security.audit.crypto.random.random - used for retry jitter, not security
             delay += random.uniform(-jitter, jitter)
 
         return max(0, delay)

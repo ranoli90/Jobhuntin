@@ -55,10 +55,16 @@ class WorkerStartupManager:
                 incr("worker.startup.failure")
                 return False
 
-        except Exception as e:
+        except (ImportError, AttributeError) as e:
             self._startup_phase = "error"
             logger.error("Worker startup failed during %s phase: %s", self._startup_phase, e)
             incr("worker.startup.error")
+            return False
+        except Exception as e:
+            self._startup_phase = "error"
+            logger.error("Unexpected error in worker startup during %s phase: %s", self._startup_phase, e)
+            incr("worker.startup.error")
+            raise  # Re-raise unexpected exceptions
             return False
 
     async def _check_environment(self) -> None:
@@ -75,6 +81,18 @@ class WorkerStartupManager:
         missing_vars = [name for name, value in required_vars.items() if not value]
         if missing_vars:
             raise RuntimeError(f"Missing required environment variables: {missing_vars}")
+
+        # Validate JWT_SECRET for secure token operations
+        if not s.jwt_secret:
+            raise RuntimeError(
+                "JWT_SECRET is not set. Magic link tokens cannot be securely generated. "
+                "Set JWT_SECRET environment variable (min 32 characters)."
+            )
+        if len(s.jwt_secret) < 32:
+            raise RuntimeError(
+                f"JWT_SECRET is too short ({len(s.jwt_secret)} characters). "
+                "Minimum 32 characters required for security."
+            )
 
         logger.info("Environment check passed")
 

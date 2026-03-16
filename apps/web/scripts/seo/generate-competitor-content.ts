@@ -18,11 +18,27 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
+import { normalizeDomain, normalizeSlug, normalizeText } from './deduplication';
+import { seoLogger } from './logger';
+import { incrementCounter, recordTimer, SEO_METRIC_NAMES } from './metrics';
+import { validateCompetitor, validateUrl } from './validators';
+import { getConfig } from './config';
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const COMPETITORS_FILE = path.resolve(__dirname, '../../src/data/competitors.json');
 
 // API key from environment only — never hardcode secrets
 const DEFAULT_KEY = process.env.LLM_API_KEY || "";
+
+// Get OpenRouter API URL from config
+function getOpenRouterUrl(): string {
+  try {
+    const config = getConfig();
+    return config.urls.openRouterApiUrl;
+  } catch {
+    return process.env.OPENROUTER_API_URL || 'https://openrouter.ai/api/v1';
+  }
+}
 
 // Paid models with excellent quality and low cost
 const PAID_MODELS = [
@@ -71,6 +87,8 @@ interface Competitor {
   };
 }
 
+const logger = seoLogger.child({ script: 'generate-competitor-content' });
+
 async function generateCompetitorData(name: string, url?: string, explicitModel?: string): Promise<Competitor> {
   const apiKey = process.env.LLM_API_KEY || DEFAULT_KEY;
 
@@ -88,7 +106,7 @@ Be objective. Highlight gaps vs JobHuntin.`;
 
   for (let modelIdx = 0; modelIdx < modelsToTry.length; modelIdx++) {
     const model = modelsToTry[modelIdx];
-    
+
     // Retry logic for rate limits (up to 2 retries per model)
     for (let retry = 0; retry < 2; retry++) {
       try {
@@ -97,7 +115,7 @@ Be objective. Highlight gaps vs JobHuntin.`;
           console.log("⏳ Rate limited, waiting", delayMs / 1000, "s before retry...");
           await new Promise(r => setTimeout(r, delayMs));
         }
-        
+
         console.log("🤖 Attempting research with model:", model, "...");
         if (triedModels[triedModels.length - 1] !== model) {
           triedModels.push(model);
@@ -106,8 +124,9 @@ Be objective. Highlight gaps vs JobHuntin.`;
         // Add timeout handling
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 60000);
+        const openRouterUrl = getOpenRouterUrl();
 
-        const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        const response = await fetch(openRouterUrl, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -124,7 +143,7 @@ Be objective. Highlight gaps vs JobHuntin.`;
         });
 
         clearTimeout(timeoutId);
-        
+
         if (!response.ok) {
           const errText = await response.text();
           // For rate limits, retry
@@ -191,7 +210,7 @@ Be objective. Highlight gaps vs JobHuntin.`;
 }
 
 async function main() {
-  const name = process.argv[2];
+  const rawName = process.argv[2];
   const args = process.argv.slice(3);
 
   let url: string | undefined;
@@ -207,10 +226,15 @@ async function main() {
     }
   }
 
-  if (!name) {
+  if (!rawName) {
     console.error('Usage: npx tsx scripts/seo/generate-competitor-content.ts "Competitor Name" [--url "https://..."] [--model "provider/model"]');
     process.exit(1);
   }
+
+  const name = validateCompetitor(rawName)!;
+  const validatedUrl = url ? validateUrl(url) : undefined;
+  const requestedSlug = normalizeSlug(name);
+  const requestedDomain = normalizeDomain(validatedUrl);
 
   // Load existing data
   let competitors: Competitor[] = [];
@@ -218,18 +242,44 @@ async function main() {
     competitors = JSON.parse(fs.readFileSync(COMPETITORS_FILE, 'utf-8'));
   }
 
-  // Check properly
-  if (competitors.find(c => c.name.toLowerCase() === name.toLowerCase())) {
+  const existingCompetitor = competitors.find(c =>
+    normalizeText(c.name) === normalizeText(name) ||
+    normalizeSlug(c.slug) === requestedSlug ||
+    (requestedDomain && normalizeDomain(c.domain) === requestedDomain)
+  );
+
+  if (existingCompetitor) {
+    incrementCounter(SEO_METRIC_NAMES.CONTENT_DUPLICATES, 1, { script: 'generate-competitor-content', type: 'competitor-request' });
+    logger.warn('Skipping duplicate competitor generation request', {
+      requestedName: name,
+      existingName: existingCompetitor.name,
+      existingSlug: existingCompetitor.slug,
+      existingDomain: existingCompetitor.domain,
+    });
     console.log("⚠️  Competitor", name, "already exists. Skipping.");
     return;
   }
 
   try {
-    const newCompetitor = await generateCompetitorData(name, url, model);
+    const startTime = Date.now();
+    const newCompetitor = await generateCompetitorData(name, validatedUrl, model);
 
-    // Safety check for slug collision
-    if (competitors.find(c => c.slug === newCompetitor.slug)) {
-      newCompetitor.slug = `${newCompetitor.slug}-${Date.now()}`;
+    const payloadDuplicate = competitors.find(c =>
+      normalizeText(c.name) === normalizeText(newCompetitor.name) ||
+      normalizeSlug(c.slug) === normalizeSlug(newCompetitor.slug) ||
+      normalizeDomain(c.domain) === normalizeDomain(newCompetitor.domain)
+    );
+
+    if (payloadDuplicate) {
+      incrementCounter(SEO_METRIC_NAMES.CONTENT_DUPLICATES, 1, { script: 'generate-competitor-content', type: 'competitor-payload' });
+      logger.warn('Skipping generated competitor payload because it duplicates existing data', {
+        generatedName: newCompetitor.name,
+        generatedSlug: newCompetitor.slug,
+        generatedDomain: newCompetitor.domain,
+        existingName: payloadDuplicate.name,
+      });
+      console.log("⚠️  Generated competitor duplicates existing data. Skipping save.");
+      return;
     }
 
     competitors.push(newCompetitor);
@@ -238,6 +288,8 @@ async function main() {
     competitors.sort((a, b) => a.name.localeCompare(b.name));
 
     fs.writeFileSync(COMPETITORS_FILE, JSON.stringify(competitors, null, 2));
+    incrementCounter(SEO_METRIC_NAMES.CONTENT_GENERATED, 1, { script: 'generate-competitor-content', type: 'competitor' });
+    recordTimer(SEO_METRIC_NAMES.CONTENT_GENERATION_TIME, Date.now() - startTime, { script: 'generate-competitor-content', type: 'competitor' });
     console.log("✅ Added", newCompetitor.name, "to data/competitors.json");
     console.log("   Slug:", newCompetitor.slug);
     console.log("   Verdict:", newCompetitor.verdict);

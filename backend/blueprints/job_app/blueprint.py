@@ -19,11 +19,18 @@ from backend.blueprints.job_app.models import (
     to_canonical_dict,
 )
 from backend.blueprints.job_app.prompts import JOB_APP_SUBMIT_SELECTORS
-from backend.blueprints.job_app.prompts import build_dom_mapping_prompt as _build_dom_mapping_prompt
+from backend.blueprints.job_app.prompts import (
+    build_dom_mapping_prompt as _build_dom_mapping_prompt,
+)
 from backend.blueprints.job_app.prompts import (
     build_resume_parse_prompt as _build_resume_parse_prompt,
 )
-from backend.domain.core_models import ActorProfile, DomMappingResult, FormField, UnresolvedField
+from backend.domain.core_models import (
+    ActorProfile,
+    DomMappingResult,
+    FormField,
+    UnresolvedField,
+)
 from backend.domain.repositories import ApplicationRepo, EventRepo
 
 

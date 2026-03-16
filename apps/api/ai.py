@@ -20,7 +20,12 @@ import asyncpg
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
-from packages.backend.domain.repositories import CoverLetterRepo, JobMatchCacheRepo, ProfileRepo
+from api.deps import get_current_user_id, get_pool, get_tenant_id
+from packages.backend.domain.repositories import (
+    CoverLetterRepo,
+    JobMatchCacheRepo,
+    ProfileRepo,
+)
 from packages.backend.llm import LLMClient
 from packages.backend.llm.contracts import (
     CoverLetterResponse_V1,
@@ -38,6 +43,7 @@ from packages.backend.llm.contracts import (
 )
 from shared.ai_validation import sanitize_for_ai, validate_and_sanitize_ai_input
 from shared.config import get_settings
+from shared.error_responses import RateLimitError
 from shared.logging_config import get_logger
 
 logger = get_logger("sorce.api.ai")
@@ -84,6 +90,18 @@ async def _check_user_rate_limit(
     return True
 
 
+async def _enforce_user_rate_limit(
+    user_id: str,
+    action: str,
+    *,
+    max_per_hour: int,
+    message: str = "Rate limit exceeded. Please try again later.",
+) -> None:
+    """Raise a structured 429 when a per-user AI action exceeds its limit."""
+    if not await _check_user_rate_limit(user_id, action, max_per_hour):
+        raise RateLimitError(message, retry_after=3600)
+
+
 # ---------------------------------------------------------------------------
 # Singleton LLM client — avoids per-request instantiation overhead
 # ---------------------------------------------------------------------------
@@ -95,21 +113,6 @@ def _get_llm_client() -> LLMClient:
     if _llm_client is None:
         _llm_client = LLMClient(get_settings())
     return _llm_client
-
-
-async def _get_pool() -> asyncpg.Pool:
-    """Dependency override required."""
-    raise NotImplementedError
-
-
-async def _get_user_id() -> str:
-    """Dependency override required."""
-    raise NotImplementedError
-
-
-async def _get_tenant_id() -> str | None:
-    """Dependency override required."""
-    raise NotImplementedError
 
 
 router = APIRouter(prefix="/ai", tags=["AI Suggestions"])
@@ -295,7 +298,7 @@ class OnboardingQuestionsRequest(BaseModel):
 
 @router.post("/onboarding-questions", response_model=OnboardingQuestionsResponse_V1)
 async def generate_onboarding_questions(
-    request: OnboardingQuestionsRequest, user_id: str = Depends(_get_user_id)
+    request: OnboardingQuestionsRequest, user_id: str = Depends(get_current_user_id)
 ) -> OnboardingQuestionsResponse_V1:
     """Generate strategic calibration questions based on the candidate's profile."""
     validation_result = validate_and_sanitize_ai_input(
@@ -337,7 +340,7 @@ async def generate_onboarding_questions(
 
 @router.post("/suggest-roles", response_model=RoleSuggestionResponse_V1)
 async def suggest_roles(
-    request: RoleSuggestionRequest, user_id: str = Depends(_get_user_id)
+    request: RoleSuggestionRequest, user_id: str = Depends(get_current_user_id)
 ) -> RoleSuggestionResponse_V1:
     """Get AI-suggested job roles based on parsed resume profile.
 
@@ -382,7 +385,7 @@ async def suggest_roles(
 
 @router.post("/suggest-salary", response_model=SalarySuggestionResponse_V1)
 async def suggest_salary(
-    request: SalarySuggestionRequest, user_id: str = Depends(_get_user_id)
+    request: SalarySuggestionRequest, user_id: str = Depends(get_current_user_id)
 ) -> SalarySuggestionResponse_V1:
     """Get AI-suggested salary range based on role, location, and skills.
 
@@ -429,7 +432,7 @@ async def suggest_salary(
 
 @router.post("/suggest-locations", response_model=LocationSuggestionResponse_V1)
 async def suggest_locations(
-    request: LocationSuggestionRequest, user_id: str = Depends(_get_user_id)
+    request: LocationSuggestionRequest, user_id: str = Depends(get_current_user_id)
 ) -> LocationSuggestionResponse_V1:
     """Get AI-suggested work locations based on skills and job market.
 
@@ -471,8 +474,8 @@ async def suggest_locations(
 @router.post("/match-job", response_model=JobMatchScore_V1)
 async def match_job(
     request: JobMatchRequest,
-    user_id: str = Depends(_get_user_id),
-    db: asyncpg.Pool = Depends(_get_pool),
+    user_id: str = Depends(get_current_user_id),
+    db: asyncpg.Pool = Depends(get_pool),
 ) -> JobMatchScore_V1:
     """Get AI-generated match score between candidate and a single job.
 
@@ -543,8 +546,8 @@ async def match_job(
 @router.post("/match-jobs-batch", response_model=BatchJobMatchResponse)
 async def match_jobs_batch(
     request: BatchJobMatchRequest,
-    user_id: str = Depends(_get_user_id),
-    db: asyncpg.Pool = Depends(_get_pool),
+    user_id: str = Depends(get_current_user_id),
+    db: asyncpg.Pool = Depends(get_pool),
 ) -> BatchJobMatchResponse:
     """Score multiple jobs against a candidate profile in batch.
 
@@ -557,6 +560,12 @@ async def match_jobs_batch(
         raise HTTPException(
             status_code=400, detail="Maximum 20 jobs per batch. Split your request."
         )
+    await _enforce_user_rate_limit(
+        user_id,
+        "match_jobs_batch",
+        max_per_hour=5,
+        message="Too many batch match requests. Please try again later.",
+    )
 
     client = _get_llm_client()
 
@@ -676,8 +685,8 @@ class SemanticMatchResponse(BaseModel):
 @router.post("/semantic-match", response_model=SemanticMatchResponse)
 async def semantic_match_job(
     request: SemanticMatchRequest,
-    user_id: str = Depends(_get_user_id),
-    db: asyncpg.Pool = Depends(_get_pool),
+    user_id: str = Depends(get_current_user_id),
+    db: asyncpg.Pool = Depends(get_pool),
 ) -> SemanticMatchResponse:
     """Compute semantic match score using vector embeddings.
 
@@ -691,7 +700,17 @@ async def semantic_match_job(
     matching and matches the capabilities of ApplyPass/JobRight.
     """
     from packages.backend.domain.masking import strip_pii_for_llm
-    from packages.backend.domain.semantic_matching import Dealbreakers, get_matching_service
+    from packages.backend.domain.semantic_matching import (
+        Dealbreakers,
+        get_matching_service,
+    )
+
+    await _enforce_user_rate_limit(
+        user_id,
+        "semantic_match",
+        max_per_hour=20,
+        message="Too many semantic match requests. Please try again later.",
+    )
 
     # Strip PII from profile before processing
     sanitized_profile = strip_pii_for_llm(sanitize_dict_input(request.profile))
@@ -787,8 +806,8 @@ class BatchSemanticMatchResponse(BaseModel):
 @router.post("/semantic-match/batch", response_model=BatchSemanticMatchResponse)
 async def semantic_match_batch(
     request: BatchSemanticMatchRequest,
-    user_id: str = Depends(_get_user_id),
-    db: asyncpg.Pool = Depends(_get_pool),
+    user_id: str = Depends(get_current_user_id),
+    db: asyncpg.Pool = Depends(get_pool),
 ) -> BatchSemanticMatchResponse:
     """Batch semantic matching for multiple jobs.
 
@@ -796,7 +815,17 @@ async def semantic_match_batch(
     Returns match scores with explanations for each job.
     """
     from packages.backend.domain.masking import strip_pii_for_llm
-    from packages.backend.domain.semantic_matching import Dealbreakers, get_matching_service
+    from packages.backend.domain.semantic_matching import (
+        Dealbreakers,
+        get_matching_service,
+    )
+
+    await _enforce_user_rate_limit(
+        user_id,
+        "semantic_match_batch",
+        max_per_hour=5,
+        message="Too many batch semantic match requests. Please try again later.",
+    )
 
     sanitized_profile = strip_pii_for_llm(sanitize_dict_input(request.profile))
 
@@ -876,7 +905,7 @@ async def semantic_match_batch(
 
 @router.get("/cover-letters/templates", response_model=list[CoverLetterTemplate])
 async def list_cover_letter_templates(
-    user_id: str = Depends(_get_user_id),
+    user_id: str = Depends(get_current_user_id),
 ) -> list[CoverLetterTemplate]:
     """Get available cover letter templates."""
     # For now, return hardcoded templates
@@ -1208,8 +1237,8 @@ Sincerely,
 
 @router.get("/cover-letters", response_model=list[GeneratedCoverLetter])
 async def list_generated_cover_letters(
-    user_id: str = Depends(_get_user_id),
-    db: asyncpg.Pool = Depends(_get_pool),
+    user_id: str = Depends(get_current_user_id),
+    db: asyncpg.Pool = Depends(get_pool),
 ) -> list[GeneratedCoverLetter]:
     """Get user's generated cover letters."""
     async with db.acquire() as conn:
@@ -1239,8 +1268,8 @@ async def list_generated_cover_letters(
 @router.post("/cover-letters/generate", response_model=GeneratedCoverLetter)
 async def generate_cover_letter_enhanced(
     request: CoverLetterGenerationRequest,
-    user_id: str = Depends(_get_user_id),
-    db: asyncpg.Pool = Depends(_get_pool),
+    user_id: str = Depends(get_current_user_id),
+    db: asyncpg.Pool = Depends(get_pool),
 ) -> GeneratedCoverLetter:
     """Generate a personalized cover letter (enhanced endpoint)."""
     if not await _check_user_rate_limit(user_id, "generate_cover_letter", 10):
@@ -1436,7 +1465,7 @@ class CoverLetterRequest(BaseModel):
 
 @router.post("/generate-cover-letter", response_model=CoverLetterResponse_V1)
 async def generate_cover_letter(
-    request: CoverLetterRequest, user_id: str = Depends(_get_user_id)
+    request: CoverLetterRequest, user_id: str = Depends(get_current_user_id)
 ) -> CoverLetterResponse_V1:
     """Generate a personalized cover letter for a specific job."""
     if not await _check_user_rate_limit(user_id, "generate_cover_letter", 10):
@@ -1495,7 +1524,7 @@ class TailorResumeResponse(BaseModel):
 
 @router.post("/tailor-resume", response_model=TailorResumeResponse)
 async def tailor_resume(
-    request: TailorResumeRequest, user_id: str = Depends(_get_user_id)
+    request: TailorResumeRequest, user_id: str = Depends(get_current_user_id)
 ) -> TailorResumeResponse:
     """Dynamically tailor a resume for a specific job application.
 
@@ -1555,7 +1584,7 @@ class ATSScoreResponse(BaseModel):
 
 @router.post("/ats-score", response_model=ATSScoreResponse)
 async def compute_ats_score(
-    request: ATSScoreRequest, user_id: str = Depends(_get_user_id)
+    request: ATSScoreRequest, user_id: str = Depends(get_current_user_id)
 ) -> ATSScoreResponse:
     """Compute comprehensive ATS score for a resume against a job description.
 
@@ -1637,7 +1666,7 @@ _match_weights_cache: dict[str, MatchWeightsRequest] = {}
 
 @router.get("/match-weights", response_model=MatchWeightsResponse)
 async def get_match_weights(
-    tenant_id: str | None = Depends(_get_tenant_id),
+    tenant_id: str | None = Depends(get_tenant_id),
 ) -> MatchWeightsResponse:
     """Get the current match scoring weights.
 
@@ -1671,15 +1700,25 @@ async def get_match_weights(
 @router.post("/match-weights", response_model=MatchWeightsResponse)
 async def set_match_weights(
     request: MatchWeightsRequest,
-    tenant_id: str | None = Depends(_get_tenant_id),
-    user_id: str = Depends(_get_user_id),
+    tenant_id: str | None = Depends(get_tenant_id),
+    user_id: str = Depends(get_current_user_id),
 ) -> MatchWeightsResponse:
     """Configure match scoring weights.
 
     Weights are automatically normalized to sum to 1.0.
     Requires admin privileges in production.
     """
-    from packages.backend.domain.semantic_matching import MatchWeights, get_matching_service
+    from packages.backend.domain.semantic_matching import (
+        MatchWeights,
+        get_matching_service,
+    )
+
+    await _enforce_user_rate_limit(
+        user_id,
+        "match_weights_write",
+        max_per_hour=30,
+        message="Too many match weight updates. Please try again later.",
+    )
 
     # Normalize weights
     weights = MatchWeights(
@@ -1758,9 +1797,9 @@ class MatchFeedbackSummaryResponse(BaseModel):
 @router.post("/match-feedback", response_model=MatchFeedbackResponseAPI)
 async def submit_match_feedback(
     request: MatchFeedbackRequest,
-    user_id: str = Depends(_get_user_id),
-    tenant_id: str | None = Depends(_get_tenant_id),
-    db: asyncpg.Pool = Depends(_get_pool),
+    user_id: str = Depends(get_current_user_id),
+    tenant_id: str | None = Depends(get_tenant_id),
+    db: asyncpg.Pool = Depends(get_pool),
 ) -> MatchFeedbackResponseAPI:
     """Submit feedback on a job match result.
 
@@ -1779,6 +1818,13 @@ async def submit_match_feedback(
         MatchFeedbackCreate,
         MatchFeedbackRepo,
         validate_feedback_tags,
+    )
+
+    await _enforce_user_rate_limit(
+        user_id,
+        "match_feedback",
+        max_per_hour=60,
+        message="Too many match feedback submissions. Please try again later.",
     )
 
     validated_tags = validate_feedback_tags(request.feedback_tags)
@@ -1829,8 +1875,8 @@ async def submit_match_feedback(
 @router.get("/match-feedback/summary", response_model=MatchFeedbackSummaryResponse)
 async def get_match_feedback_summary(
     days: int = 30,
-    tenant_id: str | None = Depends(_get_tenant_id),
-    db: asyncpg.Pool = Depends(_get_pool),
+    tenant_id: str | None = Depends(get_tenant_id),
+    db: asyncpg.Pool = Depends(get_pool),
 ) -> MatchFeedbackSummaryResponse:
     """Get aggregate feedback summary for analytics.
 
@@ -1858,7 +1904,7 @@ async def get_match_feedback_summary(
 @router.get("/match-feedback/job/{job_id}/stats")
 async def get_job_feedback_stats(
     job_id: str,
-    db: asyncpg.Pool = Depends(_get_pool),
+    db: asyncpg.Pool = Depends(get_pool),
 ):
     """Get aggregate feedback statistics for a specific job.
 
@@ -1889,7 +1935,7 @@ async def get_job_feedback_stats(
 
 @router.get("/llm/metrics")
 async def get_llm_metrics(
-    user_id: str = Depends(_get_user_id),  # SECURITY: Require authentication
+    user_id: str = Depends(get_current_user_id),  # SECURITY: Require authentication
 ):
     """Get LLM model performance metrics.
 
@@ -1912,7 +1958,7 @@ async def get_llm_metrics(
 @router.get("/llm/metrics/{model}")
 async def get_llm_model_metrics(
     model: str,
-    user_id: str = Depends(_get_user_id),  # SECURITY: Require authentication
+    user_id: str = Depends(get_current_user_id),  # SECURITY: Require authentication
 ):
     """Get performance metrics for a specific LLM model."""
     from packages.backend.domain.llm_monitoring import get_llm_monitor
@@ -1930,7 +1976,7 @@ async def get_llm_model_metrics(
 
 @router.get("/llm/health")
 async def get_llm_health(
-    user_id: str = Depends(_get_user_id),  # SECURITY: Require authentication
+    user_id: str = Depends(get_current_user_id),  # SECURITY: Require authentication
 ):
     """Get health status of all LLM models.
 
@@ -1951,7 +1997,7 @@ async def get_llm_health(
 
 @router.get("/llm/semantic-cache/stats")
 async def get_semantic_cache_stats(
-    user_id: str = Depends(_get_user_id),  # SECURITY: Require authentication
+    user_id: str = Depends(get_current_user_id),  # SECURITY: Require authentication
 ):
     """Get semantic cache statistics.
 

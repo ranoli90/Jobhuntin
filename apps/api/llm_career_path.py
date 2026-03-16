@@ -28,6 +28,8 @@ from pydantic import BaseModel, Field
 
 from packages.backend.domain.llm_career_path import get_llm_career_path_analyzer
 from packages.backend.domain.tenant import TenantContext
+
+from api.deps import get_tenant_context
 from shared.ai_validation import sanitize_dict_for_ai, sanitize_for_ai
 from shared.logging_config import get_logger
 
@@ -194,20 +196,10 @@ class EmergingSkillsResponse(BaseModel):
     learning_timelines: Dict[str, int] = Field(..., description="Learning timelines")
 
 
-def _get_pool():
-    """Database pool dependency."""
-    raise NotImplementedError("Pool dependency not injected")
-
-
-def _get_tenant_ctx():
-    """Tenant context dependency."""
-    raise NotImplementedError("Tenant context dependency not injected")
-
-
 @router.post("/generate-roles", response_model=GenerateRolesResponse)
 async def generate_dynamic_roles(
     request: GenerateRolesRequest,
-    ctx: TenantContext = Depends(_get_tenant_ctx),
+    ctx: TenantContext = Depends(get_tenant_context),
 ) -> GenerateRolesResponse:
     """Generate dynamic career roles using LLM and market data.
 
@@ -258,7 +250,7 @@ async def generate_dynamic_roles(
 @router.post("/analyze-path", response_model=AnalyzePathResponse)
 async def analyze_personalized_career_path(
     request: AnalyzePathRequest,
-    ctx: TenantContext = Depends(_get_tenant_ctx),
+    ctx: TenantContext = Depends(get_tenant_context),
 ) -> AnalyzePathResponse:
     """Analyze personalized career path using AI.
 
@@ -323,7 +315,7 @@ async def analyze_personalized_career_path(
 @router.post("/skill-gaps", response_model=SkillGapsResponse)
 async def identify_ai_skill_gaps(
     request: SkillGapsRequest,
-    ctx: TenantContext = Depends(_get_tenant_ctx),
+    ctx: TenantContext = Depends(get_tenant_context),
 ) -> SkillGapsResponse:
     """Identify skill gaps using AI analysis.
 
@@ -389,7 +381,7 @@ async def identify_ai_skill_gaps(
 @router.post("/recommendations", response_model=RecommendationsResponse)
 async def generate_market_aware_recommendations(
     request: RecommendationsRequest,
-    ctx: TenantContext = Depends(_get_tenant_ctx),
+    ctx: TenantContext = Depends(get_tenant_context),
 ) -> RecommendationsResponse:
     """Generate market-aware career recommendations.
 
@@ -455,7 +447,7 @@ async def generate_market_aware_recommendations(
 @router.post("/learning-path", response_model=LearningPathResponse)
 async def create_personalized_learning_path(
     request: LearningPathRequest,
-    ctx: TenantContext = Depends(_get_tenant_ctx),
+    ctx: TenantContext = Depends(get_tenant_context),
 ) -> LearningPathResponse:
     """Create personalized learning path using AI.
 
@@ -546,7 +538,7 @@ async def create_personalized_learning_path(
 @router.get("/market-trends", response_model=MarketTrendsResponse)
 async def get_market_trends(
     industry: Optional[str] = None,
-    ctx: TenantContext = Depends(_get_tenant_ctx),
+    ctx: TenantContext = Depends(get_tenant_context),
 ) -> MarketTrendsResponse:
     """Get market trends for career planning.
 
@@ -603,7 +595,7 @@ async def get_market_trends(
 @router.get("/emerging-skills", response_model=EmergingSkillsResponse)
 async def get_emerging_skills(
     industry: Optional[str] = None,
-    ctx: TenantContext = Depends(_get_tenant_ctx),
+    ctx: TenantContext = Depends(get_tenant_context),
 ) -> EmergingSkillsResponse:
     """Get emerging skills for career planning.
 
@@ -697,7 +689,7 @@ async def get_emerging_skills(
 
 @router.get("/industry-patterns")
 async def get_industry_patterns(
-    ctx: TenantContext = Depends(_get_tenant_ctx),
+    ctx: TenantContext = Depends(get_tenant_context),
 ) -> Dict[str, Any]:
     """Get industry-specific patterns for career planning.
 
@@ -730,7 +722,7 @@ async def get_industry_patterns(
 
 @router.get("/health")
 async def health_check(
-    ctx: TenantContext = Depends(_get_tenant_ctx),
+    ctx: TenantContext = Depends(get_tenant_context),
 ) -> Dict[str, Any]:
     """Health check for LLM career path analyzer."""
 

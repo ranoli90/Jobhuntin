@@ -19,21 +19,11 @@ from packages.backend.domain.calendar import (
 )
 from shared.logging_config import get_logger
 
+from api.deps import get_pool, get_current_user_id, get_tenant_id
+
 logger = get_logger("sorce.api.calendar")
 
 router = APIRouter(prefix="/calendar", tags=["calendar"])
-
-
-def _get_pool():
-    raise NotImplementedError("Pool dependency not injected")
-
-
-async def _get_user_id() -> str:
-    raise NotImplementedError("User ID dependency not injected")
-
-
-async def _get_tenant_id() -> str:
-    raise NotImplementedError("Tenant ID dependency not injected")
 
 
 class CreateEventRequest(BaseModel):

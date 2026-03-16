@@ -53,6 +53,11 @@ PYTHONPATH=apps:packages:. uvicorn api.main:app --reload --host 0.0.0.0 --port 8
 cd apps/web && npx vite --host 0.0.0.0 --port 5173
 ```
 
+**Admin Dashboard** (operator UI):
+```bash
+cd apps/web-admin && npx vite --host 0.0.0.0 --port 5174
+```
+
 **Worker** (optional, for local automation):
 ```bash
 PYTHONPATH=apps:packages:. python -m apps.worker.agent
@@ -63,6 +68,7 @@ Production uses `python -m apps.worker.scaling --instances N` (see render.yaml).
 
 - API: http://localhost:8000/health
 - Web: http://localhost:5173
+- Admin Dashboard: http://localhost:5174
 
 ## PYTHONPATH
 

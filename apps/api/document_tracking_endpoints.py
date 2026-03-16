@@ -9,7 +9,7 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
-from apps.api.dependencies import get_pool
+from api.deps import get_pool, get_tenant_context
 from packages.backend.domain.agent_improvements import (
     AgentImprovementsManager,
     create_agent_improvements_manager,
@@ -17,11 +17,6 @@ from packages.backend.domain.agent_improvements import (
 from packages.backend.domain.tenant import TenantContext
 
 router = APIRouter(prefix="/document-tracking", tags=["document-tracking"])
-
-
-async def get_tenant_context() -> TenantContext:
-    """Stub; inject tenant context via Depends in main app."""
-    raise NotImplementedError("Tenant context dependency not injected")
 
 
 # Pydantic models
@@ -58,9 +53,9 @@ class DocumentListResponse(BaseModel):
 
 
 # Dependency injection functions
-def get_agent_improvements_manager():
+def get_agent_improvements_manager(pool=Depends(get_pool)):
     """Get agent improvements manager instance."""
-    return create_agent_improvements_manager(get_pool())
+    return create_agent_improvements_manager(pool)
 
 
 @router.post("/track")

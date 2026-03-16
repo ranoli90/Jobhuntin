@@ -261,12 +261,24 @@ class QueryMonitor:
         await self._check_table_scans(execution)
 
     async def _check_missing_indexes(self, execution: QueryExecution) -> None:
-        """Check if query could benefit from missing indexes."""
+        """Check if query could benefit from missing indexes.
+
+        This method validates and sanitizes query templates before analysis.
+        EXPLAIN analysis is only performed on read-only SELECT queries.
+        """
         try:
+            # Validate and sanitize the query template before using in EXPLAIN
+            safe_query = self._sanitize_query_for_explain(execution.query_template)
+            if safe_query is None:
+                logger.debug("Query template rejected for EXPLAIN analysis")
+                return
+
             async with self.db_pool.acquire() as conn:
-                # Get query plan
+                # Get query plan - safe because we validated the query template
+                # Note: PostgreSQL EXPLAIN doesn't support parameterized queries,
+                # so we must use string interpolation after validation
                 plan = await conn.fetchval(
-                    f"EXPLAIN (FORMAT JSON) {execution.query_template}"
+                    f"EXPLAIN (FORMAT JSON) {safe_query}"
                 )
 
                 if isinstance(plan, str):
@@ -281,6 +293,100 @@ class QueryMonitor:
 
         except Exception as e:
             logger.debug(f"Failed to analyze query plan: {e}")
+    
+    def _sanitize_query_for_explain(self, query_template: str) -> Optional[str]:
+        """Sanitize and validate query template for EXPLAIN analysis.
+
+        This method provides critical protection against SQL injection attacks
+        for EXPLAIN analysis. Since PostgreSQL EXPLAIN doesn't support parameterized
+        queries, we must validate the query template thoroughly before execution.
+
+        Security measures:
+        - Rejects dangerous SQL patterns (DROP, DELETE, TRUNCATE, etc.)
+        - Rejects SQL comments (--, /* */) that could be used for injection
+        - Rejects UNION-based injection attempts
+        - Rejects stored procedure execution attempts
+        - Rejects file system operations (pg_read_file, COPY)
+        - Only allows SELECT, EXPLAIN, SHOW, and WITH statements
+        - Rejects queries with semicolons (multiple statements)
+
+        Args:
+            query_template: The normalized query template to validate
+
+        Returns:
+            The sanitized query if safe, None if potentially dangerous
+        """
+        import re
+
+        if not query_template or not query_template.strip():
+            return None
+
+        # Check for dangerous patterns that could indicate injection attempts
+        # These patterns are checked first as they're the most critical
+        dangerous_patterns = [
+            # Multiple statements via semicolon
+            (r';\s*(DROP|DELETE|TRUNCATE|ALTER|CREATE|INSERT|UPDATE|GRANT|REVOKE)',
+             "Multiple SQL statements via semicolon"),
+            # SQL comment injection
+            (r'--', "SQL comment (--)"),
+            # Block comment injection
+            (r'/\*', "Block comment (/*)"),
+            # UNION-based injection
+            (r'UNION\s+(ALL\s+)?SELECT', "UNION SELECT injection"),
+            # OR-based boolean injection
+            (r"'\s*OR\s+'", "OR-based boolean injection"),
+            # Stored procedure execution
+            (r'EXEC\s*\(', "Stored procedure execution"),
+            # System command execution
+            (r'xp_cmdshell', "System command execution (xp_cmdshell)"),
+            # File read operations
+            (r'pg_read_file', "File read operation (pg_read_file)"),
+            # File write/export operations
+            (r'COPY\s+\w+\s+TO', "File export operation (COPY TO)"),
+            # File import operations
+            (r'COPY\s+\w+\s+FROM', "File import operation (COPY FROM)"),
+            # Sleep/timeout injection
+            (r'pg_sleep', "Sleep/timeout injection (pg_sleep)"),
+            # Database link operations
+            (r'dblink', "Database link operations (dblink)"),
+            # Prepare statement execution
+            (r'PREPARE.*EXECUTE', "Prepared statement execution"),
+        ]
+
+        query_upper = query_template.upper()
+        for pattern, description in dangerous_patterns:
+            if re.search(pattern, query_upper, re.IGNORECASE):
+                logger.warning(
+                    f"Query template contains dangerous pattern: {description}",
+                    extra={"pattern": pattern, "query": query_template[:100]}
+                )
+                return None
+
+        # Only allow SELECT, EXPLAIN, and SHOW statements for analysis
+        # These are read-only operations safe for EXPLAIN
+        allowed_starts = ['SELECT', 'EXPLAIN', 'SHOW', 'WITH']
+        first_word = query_template.strip().split()[0].upper() if query_template.strip() else ''
+        if first_word not in allowed_starts:
+            logger.debug(f"Query type '{first_word}' not allowed for EXPLAIN analysis")
+            return None
+
+        # Additional check: ensure no semicolons (prevents multiple statements)
+        if ';' in query_template:
+            logger.warning(
+                "Query template contains semicolon, rejected for safety",
+                extra={"query": query_template[:100]}
+            )
+            return None
+
+        # Additional validation: ensure query doesn't contain
+        # common table expression manipulation
+        if 'AS (' in query_upper and 'SELECT' in query_upper:
+            # This is allowed for CTEs but let's validate the structure
+            # Ensure balanced parentheses
+            if query_template.count('(') != query_template.count(')'):
+                return None
+
+        return query_template
 
     async def _analyze_plan_for_indexes(
         self, query_hash: str, plan_node: Dict[str, Any]

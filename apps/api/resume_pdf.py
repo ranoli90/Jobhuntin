@@ -26,17 +26,11 @@ from packages.backend.domain.resume_tailoring import get_tailoring_service
 from packages.backend.domain.tenant import TenantContext
 from shared.logging_config import get_logger
 
+from api.deps import get_tenant_context
+
 logger = get_logger("sorce.resume_pdf")
 
 router = APIRouter(tags=["resume_pdf"])
-
-
-async def _get_pool():
-    raise NotImplementedError("Pool dependency not injected")
-
-
-async def _get_tenant_ctx():
-    raise NotImplementedError("Tenant context dependency not injected")
 
 
 class GenerateResumePDFRequest(BaseModel):

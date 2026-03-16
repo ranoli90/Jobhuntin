@@ -325,7 +325,12 @@ async def test_logging(
     try:
         import uuid
 
-        from shared.api_logger import APIRequest, APIResponse, PerformanceMetrics, SecurityEvent
+        from shared.api_logger import (
+            APIRequest,
+            APIResponse,
+            PerformanceMetrics,
+            SecurityEvent,
+        )
 
         request_id = str(uuid.uuid4())
 

@@ -20,6 +20,7 @@ from dataclasses import dataclass
 from enum import StrEnum
 from typing import Any
 
+from shared.config import get_settings
 from shared.logging_config import get_logger
 
 logger = get_logger("sorce.tenant_rate_limit")
@@ -39,28 +40,35 @@ class TierLimits:
     concurrent_requests: int
 
 
-TIER_LIMITS: dict[TenantTier, TierLimits] = {
-    TenantTier.FREE: TierLimits(
-        requests_per_minute=10,
-        requests_per_hour=100,
-        concurrent_requests=2,
-    ),
-    TenantTier.PRO: TierLimits(
-        requests_per_minute=60,
-        requests_per_hour=1000,
-        concurrent_requests=10,
-    ),
-    TenantTier.TEAM: TierLimits(
-        requests_per_minute=100,
-        requests_per_hour=5000,
-        concurrent_requests=25,
-    ),
-    TenantTier.ENTERPRISE: TierLimits(
-        requests_per_minute=500,
-        requests_per_hour=25000,
-        concurrent_requests=100,
-    ),
-}
+def _get_tier_limits_from_config() -> dict[TenantTier, TierLimits]:
+    """Build tier limits dictionary from config settings."""
+    settings = get_settings()
+    return {
+        TenantTier.FREE: TierLimits(
+            requests_per_minute=settings.tenant_rate_limit_free_rpm,
+            requests_per_hour=settings.tenant_rate_limit_free_rph,
+            concurrent_requests=settings.tenant_rate_limit_free_concurrent,
+        ),
+        TenantTier.PRO: TierLimits(
+            requests_per_minute=settings.tenant_rate_limit_pro_rpm,
+            requests_per_hour=settings.tenant_rate_limit_pro_rph,
+            concurrent_requests=settings.tenant_rate_limit_pro_concurrent,
+        ),
+        TenantTier.TEAM: TierLimits(
+            requests_per_minute=settings.tenant_rate_limit_team_rpm,
+            requests_per_hour=settings.tenant_rate_limit_team_rph,
+            concurrent_requests=settings.tenant_rate_limit_team_concurrent,
+        ),
+        TenantTier.ENTERPRISE: TierLimits(
+            requests_per_minute=settings.tenant_rate_limit_enterprise_rpm,
+            requests_per_hour=settings.tenant_rate_limit_enterprise_rph,
+            concurrent_requests=settings.tenant_rate_limit_enterprise_concurrent,
+        ),
+    }
+
+
+# Build tier limits from config at module load
+TIER_LIMITS: dict[TenantTier, TierLimits] = _get_tier_limits_from_config()
 
 
 def get_tier_limits(tier: str | TenantTier) -> TierLimits:
@@ -309,6 +317,33 @@ async def check_tenant_rate_limit(
     return await limiter.acquire(tenant_id, tier, endpoint)
 
 
+def _get_ai_tier_limits_from_config() -> dict[TenantTier, TierLimits]:
+    """Build AI tier limits dictionary from config settings."""
+    settings = get_settings()
+    return {
+        TenantTier.FREE: TierLimits(
+            requests_per_minute=settings.ai_rate_limit_free_rpm,
+            requests_per_hour=settings.ai_rate_limit_free_rph,
+            concurrent_requests=settings.ai_rate_limit_free_concurrent,
+        ),
+        TenantTier.PRO: TierLimits(
+            requests_per_minute=settings.ai_rate_limit_pro_rpm,
+            requests_per_hour=settings.ai_rate_limit_pro_rph,
+            concurrent_requests=settings.ai_rate_limit_pro_concurrent,
+        ),
+        TenantTier.TEAM: TierLimits(
+            requests_per_minute=settings.ai_rate_limit_team_rpm,
+            requests_per_hour=settings.ai_rate_limit_team_rph,
+            concurrent_requests=settings.ai_rate_limit_team_concurrent,
+        ),
+        TenantTier.ENTERPRISE: TierLimits(
+            requests_per_minute=settings.ai_rate_limit_enterprise_rpm,
+            requests_per_hour=settings.ai_rate_limit_enterprise_rph,
+            concurrent_requests=settings.ai_rate_limit_enterprise_concurrent,
+        ),
+    }
+
+
 class AIEndpointRateLimiter:
     """Specialized rate limiter for AI endpoints with stricter limits.
 
@@ -318,28 +353,8 @@ class AIEndpointRateLimiter:
     - Separate tracking per AI operation type
     """
 
-    AI_TIER_LIMITS: dict[TenantTier, TierLimits] = {
-        TenantTier.FREE: TierLimits(
-            requests_per_minute=5,
-            requests_per_hour=20,
-            concurrent_requests=1,
-        ),
-        TenantTier.PRO: TierLimits(
-            requests_per_minute=20,
-            requests_per_hour=200,
-            concurrent_requests=3,
-        ),
-        TenantTier.TEAM: TierLimits(
-            requests_per_minute=50,
-            requests_per_hour=500,
-            concurrent_requests=10,
-        ),
-        TenantTier.ENTERPRISE: TierLimits(
-            requests_per_minute=200,
-            requests_per_hour=2000,
-            concurrent_requests=50,
-        ),
-    }
+    # Build AI tier limits from config at class definition time
+    AI_TIER_LIMITS: dict[TenantTier, TierLimits] = _get_ai_tier_limits_from_config()
 
     def __init__(self) -> None:
         self._base_limiter = TenantRateLimiter()

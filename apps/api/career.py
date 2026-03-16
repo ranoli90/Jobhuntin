@@ -13,19 +13,13 @@ from packages.backend.domain.career_path import CareerPathAnalyzer, SkillGap
 from packages.backend.domain.repositories import ProfileRepo
 from shared.logging_config import get_logger
 
+from api.deps import get_pool, get_current_user_id
+
 logger = get_logger("sorce.api.career")
 
 router = APIRouter(prefix="/career", tags=["career"])
 
 _analyzer = CareerPathAnalyzer()
-
-
-def _get_pool():
-    raise NotImplementedError("Pool dependency not injected")
-
-
-async def _get_user_id() -> str:
-    raise NotImplementedError("User ID dependency not injected")
 
 
 def _parse_years_from_duration(

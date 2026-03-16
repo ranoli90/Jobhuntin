@@ -750,7 +750,7 @@ class PerformanceMetrics:
 
             # Generate alert recommendations
             recommendations.extend(self._generate_alert_recommendations(alerts))
-            
+
             # Generate metrics recommendations
             recommendations.extend(self._generate_metrics_recommendations(metrics_summary))
 
@@ -763,7 +763,7 @@ class PerformanceMetrics:
     def _generate_alert_recommendations(self, alerts: List[MetricAlert]) -> List[str]:
         """Generate recommendations based on performance alerts."""
         recommendations = []
-        
+
         critical_alerts = [a for a in alerts if a.severity == "critical"]
         if critical_alerts:
             recommendations.append(
@@ -781,7 +781,7 @@ class PerformanceMetrics:
     def _generate_metrics_recommendations(self, metrics_summary: Dict[str, Any]) -> List[str]:
         """Generate recommendations based on metrics analysis."""
         recommendations = []
-        
+
         for category_name, category_data in metrics_summary.items():
             if isinstance(category_data, dict) and "metrics" in category_data:
                 recommendations.extend(
@@ -793,7 +793,7 @@ class PerformanceMetrics:
     def _analyze_category_metrics(self, category_name: str, metrics: Dict[str, Any]) -> List[str]:
         """Analyze metrics within a category and generate recommendations."""
         recommendations = []
-        
+
         for metric_name, metric_data in metrics.items():
             if (
                 isinstance(metric_data, dict)
@@ -809,7 +809,7 @@ class PerformanceMetrics:
     def _analyze_metric_performance(self, metric_name: str, stats: Dict[str, Any]) -> List[str]:
         """Analyze individual metric performance and generate recommendations."""
         recommendations = []
-        
+
         # Check for slow response times
         if (
             "response_time" in metric_name.lower()

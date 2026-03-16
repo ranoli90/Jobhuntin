@@ -11,8 +11,16 @@ import asyncpg
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 
+from api.deps import (
+    get_current_user_id as _get_user_id,
+    get_pool as _get_pool,
+    require_admin_user_id as _get_admin_user_id,
+)
 from packages.backend.domain.email_digest import run_weekly_digest
-from packages.backend.domain.notifications import deactivate_push_token, register_push_token
+from packages.backend.domain.notifications import (
+    deactivate_push_token,
+    register_push_token,
+)
 from packages.backend.domain.referrals import get_referral_stats, redeem_referral_code
 from packages.backend.domain.repositories import db_transaction
 from shared.config import get_settings
@@ -22,28 +30,6 @@ from shared.metrics import incr
 logger = get_logger("sorce.api.growth")
 
 router = APIRouter(tags=["growth"])
-
-# ---------------------------------------------------------------------------
-# Dependency stubs — injected by api/main.py at mount time
-# ---------------------------------------------------------------------------
-
-
-def _get_pool() -> asyncpg.Pool:
-    return (_ for _ in ()).throw(  # type: ignore[return-value]
-        NotImplementedError("Pool dependency not injected")
-    )
-
-
-def _get_user_id() -> str:
-    return (_ for _ in ()).throw(  # type: ignore[return-value]
-        NotImplementedError("User ID dependency not injected")
-    )
-
-
-def _get_admin_user_id() -> str:
-    return (_ for _ in ()).throw(  # type: ignore[return-value]
-        NotImplementedError("Admin user ID dependency not injected")
-    )
 
 
 # ---------------------------------------------------------------------------

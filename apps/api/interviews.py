@@ -21,17 +21,11 @@ from packages.backend.domain.interview_simulator import (
 from shared.logging_config import get_logger
 from shared.metrics import incr
 
+from api.deps import get_pool, get_current_user_id
+
 logger = get_logger("sorce.api.interviews")
 
 router = APIRouter(prefix="/interviews", tags=["interviews"])
-
-
-def _get_pool():
-    raise NotImplementedError("Pool dependency not injected")
-
-
-async def _get_user_id() -> str:
-    raise NotImplementedError("User ID dependency not injected")
 
 
 class CreateSessionRequest(BaseModel):

@@ -48,6 +48,9 @@ class DatabaseMetricsCollector(MetricsCollector):
             try:
                 await asyncio.sleep(self._flush_interval)
                 await self._flush_to_database()
+            except asyncio.TimeoutError as e:
+                logger.error(f"Database flush error (timeout): {e}")
+                await asyncio.sleep(30)  # Retry sooner on error
             except Exception as e:
                 logger.error(f"Database flush error: {e}")
                 await asyncio.sleep(30)  # Retry sooner on error
@@ -71,8 +74,11 @@ class DatabaseMetricsCollector(MetricsCollector):
                 if self._pending_security_events:
                     await self._flush_security_events(conn)
 
-        except Exception as e:
+        except (asyncio.TimeoutError, asyncio.CancelledError) as e:
             logger.error(f"Database flush failed: {e}")
+        except Exception as e:
+            logger.error(f"Unexpected error in database flush: {e}")
+            raise  # Re-raise unexpected exceptions
 
     async def _flush_requests(self, conn) -> None:
         """Flush pending request logs to database."""
@@ -236,27 +242,54 @@ class DatabaseMetricsCollector(MetricsCollector):
         endpoint: Optional[str] = None,
         status_code: Optional[int] = None,
     ) -> Dict[str, Any]:
-        """Get metrics from database."""
+        """Get metrics from database.
+
+        Args:
+            hours: Number of hours to look back (0-8760)
+            endpoint: Optional endpoint filter
+            status_code: Optional status code filter
+
+        Returns:
+            Dictionary containing metrics data
+
+        Raises:
+            ValueError: If parameters are invalid
+        """
         if not self.db_pool:
             return {}
 
+        # Validate hours parameter to prevent injection
+        if not isinstance(hours, int) or hours < 0 or hours > 8760:  # Max 1 year
+            raise ValueError("hours must be an integer between 0 and 8760")
+
         try:
             async with self.db_pool.acquire() as conn:
-                # Get request statistics
-                where_clauses = ["timestamp >= NOW() - INTERVAL '%s hours'" % hours]
-                params = []
+                # Calculate the start time in Python to avoid SQL injection
+                # This is the safest approach - no dynamic SQL for the time filter
+                start_time_query = "SELECT NOW() - ($1 || ' hours')::interval AS start_time"
+                start_time_result = await conn.fetchval(start_time_query, hours)
+
+                # Build parameterized query safely using the calculated timestamp
+                params: List[Any] = [start_time_result]
+                where_clauses = ["timestamp >= $1"]
 
                 if endpoint:
-                    where_clauses.append("path = $%s" % (len(params) + 1))
+                    # Validate endpoint doesn't contain SQL injection attempts
+                    if any(c in endpoint for c in ["'", ";", "-", "/*", "*/", "--", "xp_", "pg_"]):
+                        raise ValueError("Invalid endpoint parameter")
+                    where_clauses.append(f"path = ${len(params) + 1}")
                     params.append(endpoint)
 
                 if status_code:
-                    where_clauses.append("status_code = $%s" % (len(params) + 1))
+                    # Validate status code is a valid HTTP status
+                    if not isinstance(status_code, int) or status_code < 100 or status_code > 599:
+                        raise ValueError("status_code must be an integer between 100 and 599")
+                    where_clauses.append(f"status_code = ${len(params) + 1}")
                     params.append(status_code)
 
                 where_clause = " AND ".join(where_clauses)
 
-                # Basic statistics
+                # Basic statistics - fully parameterized query
                 stats_query = f"""
                 SELECT
                     COUNT(*) as total_requests,
@@ -273,7 +306,7 @@ class DatabaseMetricsCollector(MetricsCollector):
 
                 stats = await conn.fetchrow(stats_query, *params)
 
-                # Error distribution
+                # Error distribution - fully parameterized query
                 error_query = f"""
                 SELECT status_code, COUNT(*) as count
                 FROM api_request_logs
@@ -326,8 +359,12 @@ class DatabaseMetricsCollector(MetricsCollector):
                     ],
                 }
 
-        except Exception as e:
+        except (asyncio.TimeoutError, ValueError) as e:
             logger.error(f"Failed to get database metrics: {e}")
+            return {}
+        except Exception as e:
+            logger.error(f"Unexpected error getting database metrics: {e}")
+            raise  # Re-raise unexpected exceptions
             return {}
 
     async def get_security_events_db(
@@ -336,27 +373,69 @@ class DatabaseMetricsCollector(MetricsCollector):
         severity: Optional[str] = None,
         event_type: Optional[str] = None,
     ) -> List[Dict[str, Any]]:
-        """Get security events from database."""
+        """Get security events from database.
+
+        Args:
+            hours: Number of hours to look back (0-8760)
+            severity: Filter by severity level (low, medium, high, critical, info, warning, error)
+            event_type: Filter by event type
+
+        Returns:
+            List of security event dictionaries
+
+        Raises:
+            ValueError: If parameters are invalid
+        """
         if not self.db_pool:
             return []
 
+        # Validate hours parameter
+        if not isinstance(hours, int) or hours < 0 or hours > 8760:
+            raise ValueError("hours must be an integer between 0 and 8760")
+
+        # Validate severity against whitelist if provided
+        ALLOWED_SEVERITIES = {"low", "medium", "high", "critical", "info", "warning", "error"}
+        if severity and severity.lower() not in ALLOWED_SEVERITIES:
+            raise ValueError(f"Invalid severity. Must be one of: {', '.join(sorted(ALLOWED_SEVERITIES))}")
+
+        # Validate event_type against whitelist if provided
+        # Common security event types - extend as needed
+        ALLOWED_EVENT_TYPES = {
+            "authentication_failure", "authentication_success", "authorization_failure",
+            "rate_limit_exceeded", "suspicious_activity", "invalid_token",
+            "csrf_failure", "xss_attempt", "sql_injection_attempt",
+            "path_traversal_attempt", "invalid_input", "blocked_request",
+            "api_key_invalid", "session_expired", "password_change",
+            "mfa_enabled", "mfa_disabled", "account_locked", "account_unlocked"
+        }
+        if event_type and event_type.lower() not in ALLOWED_EVENT_TYPES:
+            # Log warning but don't fail - allow flexibility for new event types
+            logger.warning(f"Unrecognized event_type: {event_type}")
+
         try:
             async with self.db_pool.acquire() as conn:
+                # Calculate the start time in Python to avoid SQL injection
+                # This is the safest approach - no dynamic SQL for the time filter
+                start_time_query = "SELECT NOW() - ($1 || ' hours')::interval AS start_time"
+                start_time_result = await conn.fetchval(start_time_query, hours)
+
                 # Build WHERE clause with parameterized queries
-                where_clauses = ["timestamp >= NOW() - INTERVAL $1 hours"]
-                params = [hours]
+                params: List[Any] = [start_time_result]
+                where_clauses = ["timestamp >= $1"]
 
                 if severity:
-                    where_clauses.append("severity = $%s" % (len(params) + 1))
-                    params.append(severity)
+                    where_clauses.append(f"severity = ${len(params) + 1}")
+                    params.append(severity.lower())
 
                 if event_type:
-                    where_clauses.append("event_type = $%s" % (len(params) + 1))
-                    params.append(event_type)
+                    # Validate event_type doesn't contain SQL injection attempts
+                    if any(c in event_type for c in ["'", ";", "-", "/*", "*/", "--", "xp_", "pg_"]):
+                        raise ValueError("Invalid event_type parameter")
+                    where_clauses.append(f"event_type = ${len(params) + 1}")
+                    params.append(event_type.lower())
 
                 where_clause = " AND ".join(where_clauses)
 
-                # nosemgrep: python.lang.security.audit.sqli.asyncpg-sqli.asyncpg-sqli - parameterized query with validated inputs
                 query = f"""
                 SELECT
                     event_id, request_id, event_type, severity, description,
@@ -395,8 +474,12 @@ class DatabaseMetricsCollector(MetricsCollector):
                     for row in rows
                 ]
 
-        except Exception as e:
+        except (asyncio.TimeoutError, json.JSONDecodeError, ValueError) as e:
             logger.error(f"Failed to get security events from database: {e}")
+            return []
+        except Exception as e:
+            logger.error(f"Unexpected error getting security events: {e}")
+            raise  # Re-raise unexpected exceptions
             return []
 
     async def get_daily_metrics_db(self, days: int = 30) -> List[Dict[str, Any]]:
@@ -444,8 +527,12 @@ class DatabaseMetricsCollector(MetricsCollector):
                     for row in rows
                 ]
 
-        except Exception as e:
+        except (asyncio.TimeoutError, json.JSONDecodeError, ValueError) as e:
             logger.error(f"Failed to get daily metrics from database: {e}")
+            return []
+        except Exception as e:
+            logger.error(f"Unexpected error getting daily metrics: {e}")
+            raise  # Re-raise unexpected exceptions
             return []
 
 
@@ -664,8 +751,11 @@ class MonitoringService:
                     json.dumps(health_data.get("alerts", [])),
                 )
 
-        except Exception as e:
+        except (asyncio.TimeoutError, json.JSONDecodeError, ValueError) as e:
             logger.error(f"Failed to record system health: {e}")
+        except Exception as e:
+            logger.error(f"Unexpected error recording system health: {e}")
+            raise  # Re-raise unexpected exceptions
 
     async def get_health_trends(self, hours: int = 24) -> List[Dict[str, Any]]:
         """Get system health trends."""

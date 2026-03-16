@@ -10,15 +10,14 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
-from packages.backend.domain.concurrent_tracker import ConcurrentTracker, get_concurrent_tracker
+from api.deps import get_tenant_context
+from packages.backend.domain.concurrent_tracker import (
+    ConcurrentTracker,
+    get_concurrent_tracker,
+)
 from packages.backend.domain.tenant import TenantContext
 
 router = APIRouter(prefix="/concurrent-usage", tags=["concurrent-usage"])
-
-
-async def get_tenant_context() -> TenantContext:
-    """Tenant context dependency; override in main app."""
-    raise NotImplementedError("Tenant context dependency not injected")
 
 
 # Pydantic models

@@ -13,14 +13,24 @@ from urllib.parse import quote
 
 import httpx
 import jwt as pyjwt
+from api.deps import get_pool
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import JSONResponse, RedirectResponse
 from pydantic import BaseModel, EmailStr, Field
 
-from api.dependencies import get_pool
 from packages.backend.domain.masking import mask_ip
 from packages.backend.domain.session_manager import SessionManager
 from shared.config import Settings, settings_dependency
+from shared.error_responses import (
+    AuthenticationError,
+    ConfigurationError,
+    ErrorCodes,
+    InternalError,
+    NotFoundError,
+    RateLimitError,
+    ServiceUnavailableError,
+    ValidationError,
+)
 from shared.logging_config import get_logger
 from shared.metrics import RateLimiter, get_rate_limiter, incr
 from shared.middleware import get_client_ip
@@ -499,9 +509,7 @@ async def _generate_magic_link(
 
     if not settings.jwt_secret:
         logger.error("[MAGIC_LINK] JWT_SECRET not set - cannot sign magic link")
-        raise HTTPException(
-            status_code=500, detail="Server misconfiguration: JWT_SECRET missing"
-        )
+        raise ConfigurationError("Server misconfiguration: JWT_SECRET missing")
 
     secret = settings.jwt_secret
 
@@ -706,9 +714,7 @@ async def _send_magic_link_email(
     if not settings.resend_api_key:
         # In production, email must be configured. In local/dev, log the link instead.
         if settings.env.value == "prod":
-            raise HTTPException(
-                status_code=500, detail="Email service is not configured"
-            )
+            raise ConfigurationError("Email service is not configured")
         # LOCAL DEV FALLBACK: print magic link to server logs so devs can click it
         logger.warning(
             "\n" + "=" * 70 + "\n"
@@ -818,9 +824,8 @@ async def _send_magic_link_email(
                     "attempt": attempt + 1,
                 },
             )
-            raise HTTPException(
-                status_code=502,
-                detail=f"Failed to send magic link email (status {resp.status_code})",
+            raise ServiceUnavailableError(
+                f"Failed to send magic link email (status {resp.status_code})"
             )
 
         except httpx.TimeoutException:
@@ -836,19 +841,27 @@ async def _send_magic_link_email(
                     "[MAGIC_LINK] Resend timeout after all retries",
                     extra={"email": _mask_email(email)},
                 )
-                raise HTTPException(status_code=504, detail="Email service timeout")
+                raise ServiceUnavailableError("Email service timeout")
 
         except Exception as e:
             logger.error(
                 "[MAGIC_LINK] Unexpected error sending email",
                 extra={"email": _mask_email(email), "error": str(e)},
             )
-            raise HTTPException(
-                status_code=502, detail="Failed to send magic link email"
-            )
+            raise ServiceUnavailableError("Failed to send magic link email")
 
 
 AUTH_COOKIE_NAME = "jobhuntin_auth"
+
+
+def _get_ip_rate_limiter(request: Request, name: str, *, max_calls: int, window_seconds: int) -> RateLimiter:
+    """Return an IP-scoped rate limiter for public/auth endpoints."""
+    client_ip = get_client_ip(request)
+    return get_rate_limiter(
+        f"{name}:{client_ip}",
+        max_calls=max_calls,
+        window_seconds=window_seconds,
+    )
 
 
 @router.get("/verify-magic")
@@ -863,6 +876,28 @@ async def verify_magic_link(
     """S1: Verify magic link token, create user if new, set httpOnly cookie, redirect to app.
     User clicks link in email -> hits this endpoint -> [create user if new] -> set cookie -> redirect.
     """
+    verify_limiter = _get_ip_rate_limiter(
+        request,
+        "magic_link_verify_ip",
+        max_calls=60,
+        window_seconds=300,
+    )
+    if not await verify_limiter.acquire():
+        retry_after = max(1, int(math.ceil(verify_limiter.next_available_in())))
+        logger.warning(
+            "Magic link verification IP rate limit hit",
+            extra={"retry_after": retry_after, "ip_hash": mask_ip(get_client_ip(request))},
+        )
+        redirect_url = (
+            f"{_get_login_base_url(settings)}/login?error=auth_failed&hint=rate_limited"
+        )
+        safe_rt = _sanitize_return_to(return_to)
+        if safe_rt:
+            redirect_url += f"&returnTo={quote(safe_rt, safe='')}"
+        response = RedirectResponse(url=redirect_url, status_code=302)
+        response.headers["Retry-After"] = str(retry_after)
+        return response
+
     if not token or not settings.jwt_secret:
         redirect_url = (
             f"{_get_login_base_url(settings)}/login?error=auth_failed&hint=invalid"
@@ -1059,9 +1094,8 @@ async def verify_magic_link(
                 await asyncio.sleep(0.5)
             else:
                 logger.exception("[MAGIC_LINK] Session creation failed after retry")
-                raise HTTPException(
-                    status_code=503,
-                    detail="Session service temporarily unavailable. Please try again.",
+                raise ServiceUnavailableError(
+                    "Session service temporarily unavailable. Please try again."
                 ) from exc
 
     if suspicious_check["suspicious"]:
@@ -1307,10 +1341,7 @@ async def request_magic_link(
         )
         incr("auth.magic_link.disposable_email_blocked", tags={})
         # Return generic error to avoid revealing our detection
-        raise HTTPException(
-            status_code=429,
-            detail="Too many requests. Please wait before requesting another magic link.",
-        )
+        raise RateLimitError("Too many requests. Please wait before requesting another magic link.")
 
     # H1: Rate Limiting Hardening - Enforce CAPTCHA for high-risk scenarios
     # P1: Tighter limits to reduce enumeration risk (20/hr per IP, CAPTCHA after 3)
@@ -1340,14 +1371,11 @@ async def request_magic_link(
                 "email_count": email_request_count,
             },
         )
-        raise HTTPException(
-            status_code=400,
-            detail="CAPTCHA verification required. Please complete the CAPTCHA and try again.",
-        )
+        raise ValidationError("CAPTCHA verification required. Please complete the CAPTCHA and try again.")
 
     if body.captcha_token:
         if not await _verify_captcha(settings, body.captcha_token, client_ip):
-            raise HTTPException(status_code=400, detail="Invalid CAPTCHA token")
+            raise ValidationError("Invalid CAPTCHA token")
 
     # H1: Rate Limiting Hardening - Check IP rate limit
     if not await ip_limiter.acquire():
@@ -1357,10 +1385,9 @@ async def request_magic_link(
             extra={"retry_after": retry_after, "ip_hash": mask_ip(client_ip)},
         )
         incr("auth.magic_link.ip_rate_limited", tags={"ip_hash": mask_ip(client_ip)})
-        raise HTTPException(
-            status_code=429,
-            detail="Too many requests. Please wait before requesting another magic link.",
-            headers={"Retry-After": str(int(math.ceil(retry_after)))},
+        raise RateLimitError(
+            "Too many requests. Please wait before requesting another magic link.",
+            retry_after=int(math.ceil(retry_after)),
         )
 
     limiter = _get_rate_limiter(settings, body.email)
@@ -1375,10 +1402,9 @@ async def request_magic_link(
             tags={"email_domain": body.email.split("@")[-1]},
             value=1,
         )
-        raise HTTPException(
-            status_code=429,
-            detail="Too many requests. Please wait before requesting another magic link.",
-            headers={"Retry-After": str(int(math.ceil(retry_after)))},
+        raise RateLimitError(
+            "Too many requests. Please wait before requesting another magic link.",
+            retry_after=int(math.ceil(retry_after)),
         )
 
     # Admin redirect: use app_admin_base_url (requires APP_ADMIN_BASE_URL env)
@@ -1447,7 +1473,7 @@ async def resend_webhook(
     # COM-001: Require webhook secret in prod/staging to prevent unauthenticated webhooks
     if not webhook_secret and settings.env.value in ("prod", "staging"):
         logger.warning("Resend webhook rejected: RESEND_WEBHOOK_SECRET not configured")
-        raise HTTPException(status_code=401, detail="Webhook not configured")
+        raise AuthenticationError("Webhook not configured")
     if webhook_secret:
         # AUTH-005: Resend uses Svix format (svix-id, svix-timestamp, svix-signature)
         svix_id = request.headers.get("svix-id")
@@ -1468,12 +1494,10 @@ async def resend_webhook(
                     logger.warning(
                         "Resend webhook rejected: timestamp outside 5-minute window"
                     )
-                    raise HTTPException(
-                        status_code=401, detail="Webhook timestamp expired"
-                    )
+                    raise AuthenticationError("Webhook timestamp expired")
             except ValueError:
                 logger.warning("Resend webhook: invalid svix-timestamp")
-                raise HTTPException(status_code=401, detail="Invalid timestamp")
+                raise AuthenticationError("Invalid timestamp")
 
             # Secret may have whsec_ prefix; decode base64 part
             secret_b64 = webhook_secret
@@ -1483,7 +1507,7 @@ async def resend_webhook(
                 secret_bytes = base64.b64decode(secret_b64)
             except Exception:
                 logger.warning("Resend webhook secret invalid base64")
-                raise HTTPException(status_code=401, detail="Invalid webhook config")
+                raise AuthenticationError("Invalid webhook config")
 
             signed_content = f"{svix_id}.{svix_timestamp}.".encode() + body
             expected_sig = base64.b64encode(
@@ -1500,13 +1524,13 @@ async def resend_webhook(
                         break
             if not valid:
                 logger.warning("Resend webhook Svix signature verification failed")
-                raise HTTPException(status_code=401, detail="Invalid signature")
+                raise AuthenticationError("Invalid signature")
         else:
             # Fallback: legacy resend-signature (simple HMAC of body)
             legacy_sig = request.headers.get("resend-signature")
             if not legacy_sig:
                 logger.warning("Resend webhook missing signature")
-                raise HTTPException(status_code=401, detail="Missing signature")
+                raise AuthenticationError("Missing signature")
             import hashlib
             import hmac
 
@@ -1515,14 +1539,14 @@ async def resend_webhook(
             ).hexdigest()
             if not hmac.compare_digest(legacy_sig, expected):
                 logger.warning("Resend webhook legacy signature verification failed")
-                raise HTTPException(status_code=401, detail="Invalid signature")
+                raise AuthenticationError("Invalid signature")
 
     # Parse after verification
     try:
         payload = ResendWebhookPayload.model_validate_json(body)
     except Exception as e:
         logger.warning("Resend webhook invalid payload: %s", e)
-        raise HTTPException(status_code=400, detail="Invalid payload")
+        raise ValidationError("Invalid payload")
 
     event_type = payload.type
     data = payload.data
@@ -1638,7 +1662,20 @@ async def dev_login(
     Only works when ENV=local or ENV=dev.
     """
     if settings.env.value not in ("local", "dev"):
-        raise HTTPException(status_code=404, detail="Not found")
+        raise NotFoundError("Endpoint")
+
+    dev_login_limiter = _get_ip_rate_limiter(
+        request,
+        "dev_login_ip",
+        max_calls=10,
+        window_seconds=300,
+    )
+    if not await dev_login_limiter.acquire():
+        retry_after = max(1, int(math.ceil(dev_login_limiter.next_available_in())))
+        raise RateLimitError(
+            "Too many development login attempts. Please try again later.",
+            retry_after=retry_after,
+        )
 
     email = body.email
     logger.info(f"[DEV] Dev login requested for {_mask_email(email)}")
@@ -1668,7 +1705,7 @@ async def dev_login(
                 email,
             )
             if not row:
-                raise HTTPException(status_code=500, detail="Failed to create user")
+                raise InternalError("Failed to create user")
             user_id = str(row["id"])
 
         SESSION_TTL_SECONDS = 7 * 24 * 3600  # 7 days
@@ -1718,4 +1755,4 @@ async def dev_login(
         raise
     except Exception as e:
         logger.error(f"[DEV] Dev login failed: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise InternalError(str(e))

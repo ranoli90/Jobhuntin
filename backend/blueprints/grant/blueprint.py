@@ -16,7 +16,12 @@ from backend.blueprints.grant.prompts import (
     build_grant_dom_mapping_prompt,
     build_grant_profile_parse_prompt,
 )
-from backend.domain.core_models import ActorProfile, DomMappingResult, FormField, UnresolvedField
+from backend.domain.core_models import (
+    ActorProfile,
+    DomMappingResult,
+    FormField,
+    UnresolvedField,
+)
 from backend.domain.repositories import ApplicationRepo, EventRepo
 
 

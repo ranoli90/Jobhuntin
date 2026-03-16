@@ -22,6 +22,8 @@ from packages.backend.domain.tenant import TenantContext
 from shared.logging_config import get_logger
 from shared.metrics import RateLimiter, incr
 
+from api.deps import get_pool, get_tenant_context
+
 logger = get_logger("sorce.export")
 
 router = APIRouter(tags=["export"])
@@ -37,15 +39,7 @@ _export_limiters: dict[str, RateLimiter] = defaultdict(
 # ---------------------------------------------------------------------------
 
 
-def _get_pool():
-    raise NotImplementedError("Pool dependency not injected")
 
-
-def _get_tenant_ctx():
-    raise NotImplementedError("Tenant context dependency not injected")
-
-
-# ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
 

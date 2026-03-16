@@ -46,7 +46,7 @@ ON profiles USING gin(to_tsvector('english', headline || ' ' || bio));
 
 -- Saved jobs indexes
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_saved_jobs_user_id_created_at 
-ON saved_jobs(user_id, saved_at DESC);
+ON saved_jobs(user_id, created_at DESC);
 
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_saved_jobs_job_id 
 ON saved_jobs(job_id);

@@ -333,7 +333,7 @@ class DatabaseLoadBalancer:
     def _select_random(self, available_pools: List[str]) -> str:
         """Select random pool."""
         import random
-
+        # nosemgrep: python.lang.security.audit.crypto.random.random - used for load balancing, not security
         return random.choice(available_pools)
 
     def _select_hash_based(self, available_pools: List[str]) -> str:

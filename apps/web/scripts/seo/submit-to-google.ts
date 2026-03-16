@@ -25,22 +25,90 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
+import {
+    dedupeUrls,
+    getSubmissionDeduplicationWindowMs,
+    shouldSkipRecentlySubmittedUrl,
+    trackUrlSubmission,
+} from './deduplication';
+import { SEOError, SEO_ERROR_CODES } from './errors';
+import { seoLogger } from './logger';
+import { getMetricsCollector, incrementCounter, recordTimer, SEO_METRIC_NAMES } from './metrics';
+import { closeSharedDatabaseConnection, PersistedSEOJobTracker } from './persistence';
+import { retry, sleep } from './retry';
+import { validateUrlBatch } from './validators';
+import { GoogleServiceAccountKey } from './config';
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const BASE_URL = 'https://jobhuntin.com';
+const logger = seoLogger.child({ script: 'submit-to-google' });
+const GOOGLE_AUTH_TIMEOUT_MS = 20_000;
+const GOOGLE_SUBMISSION_TIMEOUT_MS = 15_000;
+const GOOGLE_SUBMISSION_RETRIES = 2;
+
+function toErrorMessage(error: unknown): string {
+    return error instanceof Error ? error.message : String(error);
+}
+
+function createSubmissionError(
+    error: unknown,
+    url: string,
+    timeoutMs: number
+): Error {
+    if (error instanceof SEOError) {
+        return error;
+    }
+
+    if (error instanceof Error && error.name === 'AbortError') {
+        return new SEOError(
+            SEO_ERROR_CODES.RETRY_TIMEOUT_ERROR,
+            `Timed out submitting URL to Google after ${timeoutMs}ms`,
+            {
+                retryable: true,
+                originalError: error,
+                context: { url, timeoutMs },
+            }
+        );
+    }
+
+    return error instanceof Error ? error : new Error(String(error));
+}
+
+// Data type definitions
+interface Competitor {
+    slug: string;
+    name?: string;
+    [key: string]: unknown;
+}
+
+interface Category {
+    slug: string;
+    [key: string]: unknown;
+}
+
+interface Role {
+    id: string;
+    [key: string]: unknown;
+}
+
+interface Location {
+    id: string;
+    [key: string]: unknown;
+}
 
 // Load data
 const competitors = JSON.parse(
     fs.readFileSync(path.resolve(__dirname, '../../src/data/competitors.json'), 'utf-8')
-);
+) as Competitor[];
 const categories = JSON.parse(
     fs.readFileSync(path.resolve(__dirname, '../../src/data/categories.json'), 'utf-8')
-);
+) as Category[];
 const roles = JSON.parse(
     fs.readFileSync(path.resolve(__dirname, '../../src/data/roles.json'), 'utf-8')
-);
+) as Role[];
 const locations = JSON.parse(
     fs.readFileSync(path.resolve(__dirname, '../../src/data/locations.json'), 'utf-8')
-);
+) as Location[];
 
 // Parse CLI args
 const args = process.argv.slice(2);
@@ -49,6 +117,8 @@ const slugFilter = args.includes('--slug') ? args[args.indexOf('--slug') + 1] : 
 
 // Build URL list
 function getAllUrls(): string[] {
+    const config = getConfig();
+    const baseUrl = config.urls.baseUrl;
     const urls: string[] = [];
 
     // Static routes
@@ -60,7 +130,7 @@ function getAllUrls(): string[] {
         '/guides/scaling-your-applications-safely',
         '/guides/ai-cover-letter-mastery',
     ];
-    urls.push(...staticRoutes.map(r => `${BASE_URL}${r}`));
+    urls.push(...staticRoutes.map(r => `${baseUrl}${r}`));
 
     // Competitor routes (5 page types per brand)
     const filteredCompetitors = slugFilter
@@ -68,16 +138,16 @@ function getAllUrls(): string[] {
         : competitors;
 
     for (const comp of filteredCompetitors) {
-        urls.push(`${BASE_URL}/vs/${comp.slug}`);
-        urls.push(`${BASE_URL}/alternative-to/${comp.slug}`);
-        urls.push(`${BASE_URL}/reviews/${comp.slug}`);
-        urls.push(`${BASE_URL}/switch-from/${comp.slug}`);
-        urls.push(`${BASE_URL}/pricing-vs/${comp.slug}`);
+        urls.push(`${baseUrl}/vs/${comp.slug}`);
+        urls.push(`${baseUrl}/alternative-to/${comp.slug}`);
+        urls.push(`${baseUrl}/reviews/${comp.slug}`);
+        urls.push(`${baseUrl}/switch-from/${comp.slug}`);
+        urls.push(`${baseUrl}/pricing-vs/${comp.slug}`);
     }
 
     // Category hubs
     for (const cat of categories) {
-        urls.push(`${BASE_URL}/best/${cat.slug}`);
+        urls.push(`${baseUrl}/best/${cat.slug}`);
     }
 
     // Local Job Niche routes (Roles × Locations)
@@ -88,7 +158,7 @@ function getAllUrls(): string[] {
 
     for (const role of priorityRoles) {
         for (const loc of priorityLocations) {
-            urls.push(`${BASE_URL}/jobs/${role.id}/${loc.id}`);
+            urls.push(`${baseUrl}/jobs/${role.id}/${loc.id}`);
         }
     }
 
@@ -117,7 +187,7 @@ async function getAccessToken(keyConfig: string): Promise<string> {
 
     try {
         const { google } = await import('googleapis');
-        let key;
+        let key: GoogleServiceAccountKey;
 
         // Check if keyConfig is a file path
         // We use try-catch around fs.statSync just in case the string is too long (raw JSON) to be a valid path
@@ -174,14 +244,63 @@ async function getAccessToken(keyConfig: string): Promise<string> {
 
 async function submitUrl(url: string, accessToken: string, type: 'URL_UPDATED' | 'URL_DELETED' = 'URL_UPDATED'): Promise<{ url: string; status: string; error?: string }> {
     try {
-        const response = await fetch('https://indexing.googleapis.com/v3/urlNotifications:publish', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${accessToken}`,
+        const config = getConfig();
+        const response = await retry(
+            async () => {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), GOOGLE_SUBMISSION_TIMEOUT_MS);
+
+                try {
+                    const apiResponse = await fetch(config.urls.googleIndexingApiUrl, {
+                        method: 'POST',
+                        signal: controller.signal,
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${accessToken}`,
+                        },
+                        body: JSON.stringify({ url, type }),
+                    });
+
+                    if (!apiResponse.ok) {
+                        const errorBody = await apiResponse.text();
+                        throw new SEOError(
+                            SEO_ERROR_CODES.GOOGLE_API_RESPONSE_ERROR,
+                            `Google Indexing API request failed with status ${apiResponse.status}`,
+                            {
+                                retryable: [408, 429, 500, 502, 503, 504].includes(apiResponse.status),
+                                context: {
+                                    url,
+                                    type,
+                                    statusCode: apiResponse.status,
+                                    errorBody,
+                                },
+                            }
+                        );
+                    }
+
+                    return apiResponse;
+                } catch (error) {
+                    throw createSubmissionError(error, url, GOOGLE_SUBMISSION_TIMEOUT_MS);
+                } finally {
+                    clearTimeout(timeoutId);
+                }
             },
-            body: JSON.stringify({ url, type }),
-        });
+            {
+                maxRetries: GOOGLE_SUBMISSION_RETRIES,
+                baseDelay: 1000,
+                maxDelay: 5000,
+                timeout: GOOGLE_SUBMISSION_TIMEOUT_MS + 1000,
+                onRetry: async (attempt, error) => {
+                    incrementCounter(SEO_METRIC_NAMES.API_RETRY_COUNT, 1, { script: 'submit-to-google' });
+                    logger.warn('Retrying Google URL submission', {
+                        url,
+                        attempt,
+                        error: toErrorMessage(error),
+                    });
+                },
+            },
+            'submit-to-google-url'
+        );
 
         if (response.ok) {
             return { url, status: 'success' };
@@ -207,7 +326,21 @@ async function submitBatch(urls: string[], accessToken: string): Promise<void> {
     for (let i = 0; i < urls.length; i += BATCH_SIZE) {
         const batch = urls.slice(i, i + BATCH_SIZE);
         const results = await Promise.all(
-            batch.map(url => submitUrl(url, accessToken))
+            batch.map(async url => {
+                const startedAt = Date.now();
+                const result = await submitUrl(url, accessToken);
+
+                if (result.status === 'success') {
+                    incrementCounter(SEO_METRIC_NAMES.URLS_SUBMITTED, 1, { script: 'submit-to-google' });
+                    recordTimer(SEO_METRIC_NAMES.URL_SUBMISSION_TIME, Date.now() - startedAt, { script: 'submit-to-google' });
+                    trackUrlSubmission(url, 'success', { script: 'submit-to-google' });
+                } else {
+                    incrementCounter(SEO_METRIC_NAMES.URLS_FAILED, 1, { script: 'submit-to-google' });
+                    trackUrlSubmission(url, 'error', { script: 'submit-to-google', error: result.error });
+                }
+
+                return result;
+            })
         );
 
         for (const result of results) {
@@ -222,7 +355,7 @@ async function submitBatch(urls: string[], accessToken: string): Promise<void> {
 
         // Rate limit delay between batches
         if (i + BATCH_SIZE < urls.length) {
-            await new Promise(resolve => setTimeout(resolve, DELAY_MS));
+            await sleep(DELAY_MS);
         }
     }
 
@@ -231,13 +364,37 @@ async function submitBatch(urls: string[], accessToken: string): Promise<void> {
 
 // Main
 async function main() {
-    const urls = getAllUrls();
+    const rawUrls = getAllUrls();
+    const { uniqueUrls, duplicateCount } = dedupeUrls(rawUrls);
+    const validatedUrls = validateUrlBatch(uniqueUrls);
+    const dedupeWindowMs = getSubmissionDeduplicationWindowMs();
+    const skippedRecentUrls: string[] = [];
+    const urls = validatedUrls.filter(url => {
+        if (!shouldSkipRecentlySubmittedUrl(url, dedupeWindowMs, { script: 'submit-to-google' })) {
+            return true;
+        }
+
+        skippedRecentUrls.push(url);
+        return false;
+    });
 
     console.log('🔍 Google Indexing API — URL Submission Tool');
     console.log("   URLs to submit:", urls.length);
+    console.log("   Duplicate URLs suppressed:", duplicateCount);
+    console.log("   Recently submitted URLs skipped:", skippedRecentUrls.length);
     if (slugFilter) console.log("   Filter:", slugFilter);
     if (dryRun) console.log("   Mode: DRY RUN (no submissions)");
     console.log('');
+
+    if (urls.length === 0) {
+        logger.info('No URLs remain after deduplication checks', {
+            duplicateCount,
+            skippedRecent: skippedRecentUrls.length,
+            slugFilter,
+        });
+        console.log('✅ No new URLs to submit after deduplication checks.');
+        return;
+    }
 
     if (dryRun) {
         console.log('📋 URLs that would be submitted:\n');
@@ -268,10 +425,31 @@ async function main() {
 
     console.log('🔑 Authenticating with Google...');
     try {
-        const accessToken = await getAccessToken(keyConfig);
+        const accessToken = await retry(
+            () => getAccessToken(keyConfig),
+            {
+                maxRetries: 1,
+                baseDelay: 1000,
+                timeout: GOOGLE_AUTH_TIMEOUT_MS,
+                onRetry: async (attempt, error) => {
+                    incrementCounter(SEO_METRIC_NAMES.API_RETRY_COUNT, 1, { script: 'submit-to-google' });
+                    logger.warn('Retrying Google authentication', {
+                        attempt,
+                        error: toErrorMessage(error),
+                    });
+                },
+            },
+            'submit-to-google-auth'
+        );
+        logger.info('Authenticated with Google Indexing API', { urlCount: urls.length, slugFilter, dryRun });
         console.log('✅ Authenticated.\n');
         await submitBatch(urls, accessToken);
     } catch (error: any) {
+        logger.error('Google authentication failed, falling back to dry-run output', {
+            error: toErrorMessage(error),
+            urlCount: urls.length,
+            slugFilter,
+        });
         console.error("❌ Authentication failed:", error.message);
         // Do NOT exit(1) if it's just a key mismatch in dev, but here we want to alert the user
         // We will fallback to dry run logic so they see what would happen
