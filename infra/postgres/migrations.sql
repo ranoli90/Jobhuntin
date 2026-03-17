@@ -153,3 +153,40 @@ VALUES
     ('zip_recruiter', true, '{"rate_limit": 100, "priority": 3}'::jsonb),
     ('glassdoor', true, '{"rate_limit": 50, "priority": 4}'::jsonb)
 ON CONFLICT (source) DO NOTHING;
+
+-- ============================================
+-- Follow-up Reminders Schema Fix
+-- ============================================
+-- The table was created with 'remind_at' but domain code uses 'scheduled_for'.
+-- Add missing columns and rename for consistency.
+
+ALTER TABLE public.follow_up_reminders ADD COLUMN IF NOT EXISTS scheduled_for TIMESTAMPTZ;
+ALTER TABLE public.follow_up_reminders ADD COLUMN IF NOT EXISTS reminder_type VARCHAR(50) DEFAULT 'custom';
+ALTER TABLE public.follow_up_reminders ADD COLUMN IF NOT EXISTS metadata JSONB DEFAULT '{}';
+ALTER TABLE public.follow_up_reminders ADD COLUMN IF NOT EXISTS sent_at TIMESTAMPTZ;
+ALTER TABLE public.follow_up_reminders ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT now();
+
+-- Copy remind_at values into scheduled_for if scheduled_for is null
+UPDATE public.follow_up_reminders SET scheduled_for = remind_at WHERE scheduled_for IS NULL AND remind_at IS NOT NULL;
+
+-- Make scheduled_for NOT NULL (only after backfill)
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_schema = 'public' AND table_name = 'follow_up_reminders' AND column_name = 'scheduled_for'
+    ) THEN
+        ALTER TABLE public.follow_up_reminders ALTER COLUMN scheduled_for SET DEFAULT now();
+        UPDATE public.follow_up_reminders SET scheduled_for = COALESCE(scheduled_for, remind_at, now()) WHERE scheduled_for IS NULL;
+        ALTER TABLE public.follow_up_reminders ALTER COLUMN scheduled_for SET NOT NULL;
+    END IF;
+END $$;
+
+-- Update index to use scheduled_for
+DROP INDEX IF EXISTS idx_follow_up_reminders_remind_at;
+CREATE INDEX IF NOT EXISTS idx_follow_up_reminders_scheduled ON public.follow_up_reminders(scheduled_for) WHERE status = 'pending';
+
+-- ============================================
+-- Users: add is_system_admin column
+-- ============================================
+ALTER TABLE public.users ADD COLUMN IF NOT EXISTS is_system_admin BOOLEAN DEFAULT false;
