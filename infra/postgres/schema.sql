@@ -25,6 +25,7 @@ CREATE TABLE IF NOT EXISTS users (
     linkedin_url TEXT,
     resume_url TEXT,
     profile_completeness INTEGER DEFAULT 0,
+    is_system_admin BOOLEAN DEFAULT false,
     created_at TIMESTAMPTZ DEFAULT now(),
     updated_at TIMESTAMPTZ DEFAULT now()
 );
@@ -218,10 +219,14 @@ CREATE TABLE IF NOT EXISTS follow_up_reminders (
     application_id UUID NOT NULL REFERENCES applications(id) ON DELETE CASCADE,
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     tenant_id UUID REFERENCES tenants(id) ON DELETE SET NULL,
-    remind_at TIMESTAMPTZ NOT NULL,
+    reminder_type VARCHAR(50) NOT NULL DEFAULT 'custom',
+    scheduled_for TIMESTAMPTZ NOT NULL,
     message TEXT,
     status VARCHAR(20) DEFAULT 'pending',
+    metadata JSONB DEFAULT '{}',
+    sent_at TIMESTAMPTZ,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     completed_at TIMESTAMPTZ
 );
 
@@ -331,7 +336,7 @@ CREATE INDEX IF NOT EXISTS idx_applications_user_id_status ON applications(user_
 CREATE INDEX IF NOT EXISTS idx_applications_tenant_user ON applications(tenant_id, user_id);
 CREATE INDEX IF NOT EXISTS idx_application_notes_app_id ON application_notes(application_id);
 CREATE INDEX IF NOT EXISTS idx_follow_up_reminders_user ON follow_up_reminders(user_id, status);
-CREATE INDEX IF NOT EXISTS idx_follow_up_reminders_remind_at ON follow_up_reminders(remind_at) WHERE status = 'pending';
+CREATE INDEX IF NOT EXISTS idx_follow_up_reminders_scheduled ON follow_up_reminders(scheduled_for) WHERE status = 'pending';
 CREATE INDEX IF NOT EXISTS idx_application_inputs_app ON application_inputs(application_id);
 CREATE INDEX IF NOT EXISTS idx_events_application ON events(application_id);
 CREATE INDEX IF NOT EXISTS idx_events_created ON events(created_at);

@@ -55,3 +55,19 @@ Run `npm run audit` or `make audit` to execute all tools. Installed tools:
 | **Docker** | hadolint | Dockerfile best practices |
 
 Install Python tools: `pip install -r requirements-dev.txt`
+
+### Render API Logs
+
+To pull logs from Render services, use the logs endpoint: `GET https://api.render.com/v1/logs?resource=<service-id>&ownerId=<owner-id>&limit=100&direction=backward`. The owner ID is `tea-d6p1rv6a2pns73f4sucg`. Service IDs for jobhunting services are listed in the `render.yaml` blueprint.
+
+### Pre-existing Test Failures
+
+Several test files have pre-existing failures (31 of 622):
+- `tests/test_critical_endpoints.py`, `tests/test_onboarding_api.py`: require a running DB with fully-seeded data
+- `tests/test_saml_integration.py`: SAML XML parsing issues
+- `tests/test_edge_cases.py`: validator import issues
+- 591 tests pass without any database or external service
+
+### API Docs (Swagger/ReDoc) CSP Issue
+
+The `/docs` and `/redoc` endpoints don't render in browsers because the security headers middleware blocks external CDN scripts. Use `/openapi.json` directly or test endpoints via `curl`.

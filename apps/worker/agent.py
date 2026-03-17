@@ -201,7 +201,7 @@ async def claim_task(pool: asyncpg.Pool) -> dict | None:
     """Atomically claim the next task, ordered by priority_score DESC (ENTERPRISE > TEAM > PRO > FREE)."""
     async with pool.acquire() as conn:
         row = await conn.fetchrow(
-            "SELECT * FROM public.claim_next_prioritized($1)",
+            "SELECT * FROM public.claim_next_prioritized($1::int)",
             MAX_ATTEMPTS,
         )
         return dict(row) if row else None

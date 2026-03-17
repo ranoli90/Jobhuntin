@@ -198,7 +198,7 @@ class JobSpyClient:
                 jobs = self._normalize_jobs(df)
                 duration_ms = int((time.time() - start_time) * 1000)
 
-                incr("jobspy.jobs_fetched", len(jobs))
+                incr("jobspy.jobs_fetched", value=len(jobs))
                 observe("jobspy.fetch_duration_ms", duration_ms)
 
                 for source in sources:

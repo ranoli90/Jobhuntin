@@ -150,8 +150,7 @@ class TestDashboardAPI:
                 user_id,
             )
             await conn.execute(
-                "INSERT INTO public.tenant_members (
-    tenant_id, user_id, role) VALUES ($1, $2, 'OWNER') ON CONFLICT (tenant_id, user_id) DO NOTHING",
+                "INSERT INTO public.tenant_members (tenant_id, user_id, role) VALUES ($1, $2, 'OWNER') ON CONFLICT (tenant_id, user_id) DO NOTHING",
                 tenant_id,
                 user_id,
             )
@@ -191,8 +190,7 @@ class TestApplicationsAPI:
                    RETURNING id"""
             )
             await conn.execute(
-                "INSERT INTO public.tenant_members (
-    tenant_id, user_id, role) VALUES ($1, $2, 'OWNER') ON CONFLICT (tenant_id, user_id) DO NOTHING",
+                "INSERT INTO public.tenant_members (tenant_id, user_id, role) VALUES ($1, $2, 'OWNER') ON CONFLICT (tenant_id, user_id) DO NOTHING",
                 tenant_id,
                 user_id,
             )
@@ -233,8 +231,7 @@ class TestApplicationsAPI:
                    RETURNING id"""
             )
             await conn.execute(
-                "INSERT INTO public.tenant_members (
-    tenant_id, user_id, role) VALUES ($1, $2, 'OWNER') ON CONFLICT (tenant_id, user_id) DO NOTHING",
+                "INSERT INTO public.tenant_members (tenant_id, user_id, role) VALUES ($1, $2, 'OWNER') ON CONFLICT (tenant_id, user_id) DO NOTHING",
                 tenant_id,
                 user_id,
             )
@@ -275,8 +272,7 @@ class TestApplicationsAPI:
                    RETURNING id"""
             )
             await conn.execute(
-                "INSERT INTO public.tenant_members (
-    tenant_id, user_id, role) VALUES ($1, $2, 'OWNER') ON CONFLICT (tenant_id, user_id) DO NOTHING",
+                "INSERT INTO public.tenant_members (tenant_id, user_id, role) VALUES ($1, $2, 'OWNER') ON CONFLICT (tenant_id, user_id) DO NOTHING",
                 tenant_id,
                 user_id,
             )
@@ -316,8 +312,7 @@ class TestJobsAPI:
                    RETURNING id"""
             )
             await conn.execute(
-                "INSERT INTO public.tenant_members (
-    tenant_id, user_id, role) VALUES ($1, $2, 'OWNER') ON CONFLICT (tenant_id, user_id) DO NOTHING",
+                "INSERT INTO public.tenant_members (tenant_id, user_id, role) VALUES ($1, $2, 'OWNER') ON CONFLICT (tenant_id, user_id) DO NOTHING",
                 tenant_id,
                 user_id,
             )
