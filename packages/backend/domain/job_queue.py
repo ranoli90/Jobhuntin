@@ -442,14 +442,20 @@ class BackgroundJobQueue:
 
 
 async def create_job_queue_tables(conn: asyncpg.Connection) -> None:
-    # First create the enum types (these are idempotent)
+    # Create enum types only if they don't already exist (avoid CASCADE drop that destroys columns)
     await conn.execute(
         """
-        DROP TYPE IF EXISTS public.job_status CASCADE;
-        CREATE TYPE public.job_status AS ENUM ('pending', 'queued', 'running', 'completed', 'failed', 'cancelled');
+        DO $$ BEGIN
+            IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'job_status') THEN
+                CREATE TYPE public.job_status AS ENUM ('pending', 'queued', 'running', 'completed', 'failed', 'cancelled');
+            END IF;
+        END $$;
 
-        DROP TYPE IF EXISTS public.job_priority CASCADE;
-        CREATE TYPE public.job_priority AS ENUM ('low', 'normal', 'high', 'critical');
+        DO $$ BEGIN
+            IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'job_priority') THEN
+                CREATE TYPE public.job_priority AS ENUM ('low', 'normal', 'high', 'critical');
+            END IF;
+        END $$;
         """
     )
 
@@ -510,8 +516,11 @@ async def create_job_queue_tables(conn: asyncpg.Connection) -> None:
     try:
         await conn.execute(
             """
-            DROP TYPE IF EXISTS public.alert_frequency CASCADE;
-            CREATE TYPE public.alert_frequency AS ENUM ('daily', 'weekly', 'immediate');
+            DO $$ BEGIN
+                IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'alert_frequency') THEN
+                    CREATE TYPE public.alert_frequency AS ENUM ('daily', 'weekly', 'immediate');
+                END IF;
+            END $$;
             """
         )
 
