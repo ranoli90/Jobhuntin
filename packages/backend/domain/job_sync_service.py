@@ -205,7 +205,7 @@ class JobSyncService:
             logger.info(
                 f"Sync complete: {total_new} new, {total_updated} updated, {total_failed} failed"
             )
-            incr("jobspy.sync_complete", 1)
+            incr("jobspy.sync_complete")
 
         finally:
             async with self._running_lock:
@@ -375,7 +375,7 @@ class JobSyncService:
             # Update source config
             await self._update_source_config(source, success=True, jobs_count=len(jobs))
 
-            incr("jobspy.sync_success", 1, {"source": source})
+            incr("jobspy.sync_success", {"source": source})
 
             return SyncResult(
                 source=source,
@@ -746,7 +746,7 @@ class JobSyncService:
                     errors = $7::jsonb,
                     duration_ms = $8,
                     completed_at = now()
-                WHERE id = $1
+                WHERE id = $1::uuid
                 """,
                 sync_run_id,
                 status,
@@ -816,7 +816,7 @@ class JobSyncService:
             except Exception as e:
                 logger.warning("Failed to parse cleanup result %r: %s", result, e)
                 deleted = 0
-            incr("jobspy.jobs_expired", deleted)
+            incr("jobspy.jobs_expired", value=deleted)
             return deleted
 
     async def get_sync_status(self) -> dict[str, Any]:
